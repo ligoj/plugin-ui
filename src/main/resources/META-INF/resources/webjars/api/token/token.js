@@ -3,7 +3,7 @@
  */
 define([
 	'cascade', 'clipboard/clipboard'
-], function ($cascade, Clipboard) {
+], function ($cascade, ClipboardJS) {
 	var current = {
 
 		// the main table
