@@ -11,12 +11,13 @@
 
 	<groupId>org.ligoj.plugin</groupId>
 	<artifactId>plugin-ui</artifactId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.0.2</version>
 	<packaging>jar</packaging>
 	<name>Ligoj - Plugin UI</name>
 
 	<properties>
 		<sonar.sources>src/main/java,src/main/resources/META-INF/resources/webjars</sonar.sources>
+		<sonar.coverage.exclusions>*.js</sonar.coverage.exclusions>
 	</properties>
 
 	<scm>
