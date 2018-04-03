@@ -6,8 +6,8 @@ define({
 	"entries" : "Entrées",
 	"hit-count" : "Mode cache",
 	"miss-count" : "Mode non-cache",
-	"memory" : "Mémoire",
-	"off-memory" : "Hors mémoire",
 	"invalidate" : "Invalider ce cache",
-	"invalidated" : "Cache {{this}} invalidé"
+	"invalidated" : "Cache {{this}} invalidé",
+	"nearcache-ratio": "Ration cache proche",
+	"average-time": "Temps moyen"
 });

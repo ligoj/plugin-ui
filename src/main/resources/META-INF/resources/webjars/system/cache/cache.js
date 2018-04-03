@@ -15,10 +15,10 @@ define(function () {
 			var uc = current.table.fnGetData(tr[0]);
 			$.ajax({
 				type: 'POST',
-				url: REST_PATH + 'system/cache/' + encodeURIComponent(uc.name),
+				url: REST_PATH + 'system/cache/' + encodeURIComponent(uc.id),
 				dataType: 'json',
 				success: function () {
-					notifyManager.notify(Handlebars.compile(current.$messages.invalidated)(uc.name));
+					notifyManager.notify(Handlebars.compile(current.$messages.invalidated)(uc.id));
 				}
 			});
 		},
@@ -36,22 +36,50 @@ define(function () {
 				columns: [{
 					data: 'id'
 				}, {
-					data: 'name'
-				}, {
 					data: 'size'
 				}, {
-					data: 'hitCount'
-				}, {
-					data: 'missCount'
-				}, {
-					data: 'bytes',
-					render: function (_i, _j, data) {
-						return formatManager.formatSize(data.bytes);
+					data: 'hitCount',
+					render: function(value, mode, data) {
+						if (mode === 'sort') {
+							return value || 0;
+						}
+						if (typeof data.hitCount === 'undefined') {
+							return null;
+						}
+						return value + ' (' + Math.round(data.hitPercentage || 0) + '%)';
 					}
 				}, {
-					data: 'offHeapBytes',
-					render: function (_i, _j, data) {
-						return formatManager.formatSize(data.offHeapBytes);
+					data: 'missCount',
+					render: function(value, mode, data) {
+						if (mode === 'sort') {
+							return value || 0;
+						}
+						if (typeof data.missCount === 'undefined') {
+							return null;
+						}
+						return value + ' (' + Math.round(data.missPercentage || 0) + '%)';
+					}
+				}, {
+					data: 'nearCacheRatio',
+					render: function(value, mode, data) {
+						if (mode === 'sort') {
+							return value || 0;
+						}
+						if (typeof data.nearCacheRatio === 'undefined') {
+							return null;
+						}
+						return Math.round(data.nearCacheRatio || 0) + '%';
+					}
+				}, {
+					data: 'nearCacheRatio',
+					render: function(value, mode, data) {
+						if (mode === 'sort') {
+							return value || 0;
+						}
+						if (typeof data.averageGetTime === 'undefined') {
+							return null;
+						}
+						return Math.round(data.averageGetTime || 0) + 'ms';
 					}
 				}, {
 					data: null,

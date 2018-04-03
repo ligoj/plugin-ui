@@ -7,10 +7,10 @@ define({
 		"entries" : "Entries",
 		"hit-count" : "Hit count",
 		"miss-count" : "Miss count",
-		"memory" : "Memory",
-		"off-memory" : "Off memory",
 		"invalidate" : "Invalidate this cache",
-		"invalidated" : "Cache {{this}} has been invalidated"
+		"invalidated" : "Cache {{this}} has been invalidated",
+		"nearcache-ratio": "Near cache ratio",
+		"average-time": "Average time"
 	},
 	"fr" : true
 });

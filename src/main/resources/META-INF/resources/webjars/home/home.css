@@ -232,3 +232,6 @@ img.tool.broken {
 .subscriptions .key>i, .subscriptions .key .item>i {
 	font-size: xx-small;
 }
+.subscriptions .key .carousel-indicators {
+	z-index: unset;
+}
