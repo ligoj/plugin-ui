@@ -391,11 +391,12 @@ define(['cascade'], function ($cascade) {
 		},
 
 		/**
-		 * Generate a FontAwesome icon. Provided class will be prefixed by "fas fa-". Tooltip is optional and
-		 * will be resolved with messages if available.
+		 * Generate a FontAwesome icon. Tooltip is optional and will be resolved with messages if available. 
+		 * @param faIcon FontAwesome icon name.Provided CSS class will be prefixed by "fas fa-", unless is starts with 'fas ', 'fab ', 'far ' or space.
 		 */
 		icon: function (faIcon, tooltip) {
-			return '<i class="fas fa-' + faIcon + '"' + current.tooltip(tooltip) + '></i>&nbsp;';
+			faIcon = (faIcon||'').match(/^(fa[brs] | |fa-)/) ? faIcon : 'fas fa-' + faIcon;
+			return '<i class="' + faIcon + '"' + current.tooltip(tooltip) + '></i>&nbsp;';
 		},
 
 		/**
