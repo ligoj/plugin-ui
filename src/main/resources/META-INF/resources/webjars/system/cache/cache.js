@@ -40,35 +40,12 @@ define(function () {
 				}, {
 					data: 'hitCount',
 					render: function(value, mode, data) {
-						if (mode === 'sort') {
-							return value || 0;
-						}
-						if (typeof data.hitCount === 'undefined') {
-							return null;
-						}
-						return value + ' (' + Math.round(data.hitPercentage || 0) + '%)';
+						return current.formatRate(mode, data, 'hitCount', 'hitPercentage', true);
 					}
 				}, {
 					data: 'missCount',
 					render: function(value, mode, data) {
-						if (mode === 'sort') {
-							return value || 0;
-						}
-						if (typeof data.missCount === 'undefined') {
-							return null;
-						}
-						return value + ' (' + Math.round(data.missPercentage || 0) + '%)';
-					}
-				}, {
-					data: 'nearCacheRatio',
-					render: function(value, mode, data) {
-						if (mode === 'sort') {
-							return value || 0;
-						}
-						if (typeof data.averageGetTime === 'undefined') {
-							return null;
-						}
-						return Math.round(data.averageGetTime || 0) + 'ms';
+						return current.formatRate(mode, data, 'missCount', 'missPercentage', false);
 					}
 				}, {
 					data: null,
@@ -79,6 +56,36 @@ define(function () {
 					}
 				}]
 			});
+		},
+		
+		formatRate: function (mode, data, valueProperty, percentProperty, hitMode) {
+			var value = data[valueProperty];
+			if (mode === 'sort') {
+				return value || 0;
+			}
+			if (typeof value === 'undefined') {
+				return null;
+			}
+			
+			var percent = data[percentProperty];
+			if (typeof percent === 'undefined' || value <= (hitMode ? 0 : 1)) {
+				// Not enough data to display a rate
+				return value;
+			}
+			
+			// Full rendering mode
+			percent = Math.round(percent || 0);
+			var score = hitMode ? percent : 100 - percent;
+			if (score >= 90 || data.hitCount === 1) {
+				labelClass = 'success';
+			} else if (score >= 80) {
+				labelClass = 'primary';
+			} else if (score >= 50) {
+				labelClass = 'warning';
+			} else {
+				labelClass = 'danger';
+			}
+			return value + '<span class="pull-right label label-' + labelClass + '">' + percent  + '%</span>';
 		}
 	};
 	return current;
