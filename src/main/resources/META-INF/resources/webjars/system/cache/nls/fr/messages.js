@@ -8,6 +8,5 @@ define({
 	"miss-count" : "Mode non-cache",
 	"invalidate" : "Invalider ce cache",
 	"invalidated" : "Cache {{this}} invalidé",
-	"nearcache-ratio": "Ration cache proche",
 	"average-time": "Temps moyen"
 });

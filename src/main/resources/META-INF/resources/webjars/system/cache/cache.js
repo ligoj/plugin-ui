@@ -65,17 +65,6 @@ define(function () {
 						if (mode === 'sort') {
 							return value || 0;
 						}
-						if (typeof data.nearCacheRatio === 'undefined') {
-							return null;
-						}
-						return Math.round(data.nearCacheRatio || 0) + '%';
-					}
-				}, {
-					data: 'nearCacheRatio',
-					render: function(value, mode, data) {
-						if (mode === 'sort') {
-							return value || 0;
-						}
 						if (typeof data.averageGetTime === 'undefined') {
 							return null;
 						}

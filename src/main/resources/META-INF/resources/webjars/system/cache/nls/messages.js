@@ -9,7 +9,6 @@ define({
 		"miss-count" : "Miss count",
 		"invalidate" : "Invalidate this cache",
 		"invalidated" : "Cache {{this}} has been invalidated",
-		"nearcache-ratio": "Near cache ratio",
 		"average-time": "Average time"
 	},
 	"fr" : true
