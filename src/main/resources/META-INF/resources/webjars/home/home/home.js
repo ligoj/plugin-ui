@@ -57,11 +57,11 @@ define([
 				}
 			}).on('mouseleave', '.node', function (e) {
 				var $node = $(e.target).closest('.node');
-				if ($node.is('.in') && $node.has('.caption i.fa.forced').length === 0) {
+				if ($node.is('.in') && $node.has('.caption i.forced').length === 0) {
 					current.zoomOut($node);
 				}
 			}).on('click', '.caption', function (e) {
-				$(e.target).closest('.node').find('.caption i.fa').toggleClass('forced');
+				$(e.target).closest('.node').find('.caption i').toggleClass('forced');
 			});
 
 			// Full screen mode
@@ -417,7 +417,7 @@ define([
 				var doExpand = $(this).toggleClass('indent').hasClass('indent');
 				$container.find('.node').each(function () {
 					current[doExpand ? 'zoomIn' : 'zoomOut']($(this));
-				}).find('.caption').find('i.fa')[doExpand ? 'addClass' : 'removeClass']('forced');
+				}).find('.caption').find('i')[doExpand ? 'addClass' : 'removeClass']('forced');
 			});
 			if (!$cascade.isOldIE) {
 				// Color modes

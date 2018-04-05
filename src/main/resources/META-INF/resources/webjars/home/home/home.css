@@ -149,6 +149,7 @@
 	padding-left: 2px;
 	padding-right: 8px;
 	font-size: xx-small;
+	font-weight: 900;
 }
 .masonry-container>.node:not(.mode-th-list) tr.detailed>td.zoomable:not(.in)>* {
 	display: none;
@@ -392,7 +393,7 @@
 	box-shadow: 0 4px 20px 0 rgba(0,0,0,.14),0 7px 10px -5px rgba(3,169,244,.4);
 }
 
-#expand-mode:not(.indent) i.fa-dedent, #expand-mode.indent i.fa-indent {
+#expand-mode:not(.indent) i.fa-outdent, #expand-mode.indent i.fa-indent {
 	display: none;
 }
 #status td {
