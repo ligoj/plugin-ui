@@ -11,7 +11,7 @@
 
 	<groupId>org.ligoj.plugin</groupId>
 	<artifactId>plugin-ui</artifactId>
-	<version>0.0.4</version>
+	<version>0.0.5-SANPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Ligoj - Plugin UI</name>
 
