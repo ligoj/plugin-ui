@@ -762,7 +762,7 @@ define([
 				},
 				complete: function () {
 					_('status').find('tr.refresh').removeClass('refresh');
-					$button.disable().find('i').removeClass('fa-spin');
+					$button.enable().find('i').removeClass('fa-spin');
 				}
 			});
 		},
@@ -782,7 +782,7 @@ define([
 					_('refreshSubBtn').disable().find('.fa-sync-alt').addClass('fa-spin');
 				},
 				complete: function () {
-					_('refreshSubBtn').disable().find('.fa-sync-alt').removeClass('fa-spin');
+					_('refreshSubBtn').enable().find('.fa-sync-alt').removeClass('fa-spin');
 				}
 			});
 		},
