@@ -581,7 +581,53 @@ define(['cascade'], function ($cascade) {
 
 		roundPercent: function (percent) {
 			return Number(Math.round(percent + 'e1') + 'e-1');
+		},
+
+		sparklinePieZoom: function ($spark, data, options) {
+			require(['sparkline'], function () {
+				current.setupSparkline($spark, data, options);
+
+				// Zoom and auto update tooltips
+				$spark.on('mouseenter', function (e) {
+					if (!$spark.is('.zoomed')) {
+						$spark.addClass('zoomed').closest('td').addClass('has-zoomed-pie');
+						$('.carousel').addClass('has-zoomed-pie');
+						current.setupSparkline($spark, data, $.extend({}, options), true);
+						window.setTimeout(function () {
+							$spark.addClass('zoomed2');
+							$spark.find('canvas').on('mouseleave', function (e2) {
+								$spark.removeClass('zoomed').closest('td').removeClass('has-zoomed-pie');
+								$('.carousel').removeClass('has-zoomed-pie');
+								current.setupSparkline($spark, data, options);
+								window.setTimeout(function () {
+									$spark.removeClass('zoomed2');
+								}, 50);
+							})
+						}, 50);
+					}
+				});
+			});
+		},
+
+		setupSparkline: function ($spark, data, options, zoom) {
+			$spark.find('canvas').remove();
+			options = options || {};
+			var size = zoom ? options.zoomSize || '128px' : options.size || '20px';
+			var mOptions = $.extend({
+					type: 'pie',
+					width: size,
+					offset: '-90',
+					height: size,
+					fillColor: 'black',
+					borderWidth: size === "128px" ? 4 : 2,
+					borderColor: '#ffffff',
+				}, options);
+			$spark.sparkline(data, mOptions);
+			if (options.sparklineClick) {
+				$spark.off('sparklineClick').on('sparklineClick', options.sparklineClick);
+			}
 		}
+
 	};
 	return current;
 });

@@ -232,6 +232,55 @@ img.tool.broken {
 .subscriptions .key>i, .subscriptions .key .item>i {
 	font-size: xx-small;
 }
-.subscriptions .key .carousel-indicators {
-	z-index: unset;
+
+/* Pie zoom section */
+.has-zoomed-pie, .has-zoomed-pie .carousel-inner {
+	overflow: visible !important;
+}
+.has-zoomed-pie .carousel-indicators {
+	visibility: hidden;
+}
+
+.pie.zoomed {
+	position: absolute;
+ 	z-index: 100;
+ 	width: 20px;
+ 	height: 20px;
+}
+.pie canvas {
+	position: relative;
+}
+.pie.zoomed canvas {
+    -webkit-transform: scale(.33); 
+    -ms-transform: scale(.33); 
+    -moz-transform: scale(.33);
+    transform: scale(.33);
+	left: -50px;
+	top: -52px;
+}
+.node .pie.zoomed canvas {
+    left: -20px;
+    top: -22px;
+}
+.node .pie.zoomed.zoomed2 canvas {
+    left: -7px;
+    top: -40px;
+}
+.pie.zoomed.zoomed2 canvas {
+    -webkit-transition: all 100ms ease-in;
+    -webkit-transform: scale(1); 
+    -ms-transition: all 100ms ease-in;
+    -ms-transform: scale(1); 
+    -moz-transition: all 100ms ease-in;
+    -moz-transform: scale(1);
+    transition: all 100ms ease-in;
+    transform: scale(1);
+}
+.pie.zoomed2 canvas:hover {
+	cursor: pointer;
+}
+
+.carousel-indicators {
+	width: 10%;
+	margin-left: -5%;
 }
