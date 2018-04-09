@@ -20,8 +20,10 @@
 	padding-bottom: 15px;
 }
 .masonry-container .carousel-inner>.item {
-	white-space: nowrap;
 	text-overflow: ellipsis;
+	white-space: normal;
+	word-break: unset;
+	max-height: 36px;
 }
 .masonry-container>.node {
 	padding: 0 6px 6px 0;
@@ -144,6 +146,12 @@
 }
 .masonry-container>.node:not(.mode-th-list) table>tbody>tr.detailed>td {
 	overflow: hidden;
+	padding-top: 0;
+	padding-bottom: 0;
+	vertical-align: middle;
+}
+.carousel .sub-item {
+	white-space: nowrap;	
 }
 .masonry-container>.node:not(.mode-th-list) tr.detailed>td.zoomable:not(.in)::before {
 	font-family: "Font Awesome 5 Free";
