@@ -705,17 +705,17 @@ define(['cascade'], function ($cascade) {
 							// Node mode
 							$tr.append('<td>' + current.$parent.toIcon(subscription.node.refined.refined) +'</td>');
 							$tr.append('<td>' + current.$parent.toIconNameTool(subscription.node.refined) +'</td>');
-							$tr.append('<td colspan="4">' + subscription.node.name +'</td>');
+							$tr.append('<td colspan="' + (project.manageSubscriptions ? 4 : 3) + '">' + subscription.node.name +'</td>');
 						} else if (dataSrc === 'node.refined.id' || dataSrc === 'node.id') {
 							// Tool mode
 							$tr.append('<td>' + current.$parent.toIcon(subscription.node.refined.refined) +'</td>');
-							$tr.append('<td colspan="5">' + current.$parent.toIconNameTool(subscription.node.refined) +'</td>');
+							$tr.append('<td colspan="' + (project.manageSubscriptions ? 5 : 4) + '">' + current.$parent.toIconNameTool(subscription.node.refined) +'</td>');
 						} else if (dataSrc === 'node.refined.refined.id') {
 							// Service mode
-							$tr.append('<td colspan="6">' + current.$parent.toIcon(subscription.node.refined.refined) + '&nbsp;' + subscription.node.refined.refined.name + '</td>');
+							$tr.append('<td colspan="' + (project.manageSubscriptions ? 6 : 5) + '">' + current.$parent.toIcon(subscription.node.refined.refined) + '&nbsp;' + subscription.node.refined.refined.name + '</td>');
 						} else {
 							// Orphan group
-							$tr.append('<td colspan="6">'+ current.$messages['group-by-other'] +'</td>');
+							$tr.append('<td colspan="' + (project.manageSubscriptions ? 6 : 5) + '">'+ current.$messages['group-by-other'] +'</td>');
 						}
 						$tr.children().eq(0).append('<div class="grouped-count label label-default"><span class="toggle"><i class="far fa-plus-square"></i><i class="far fa-minus-square"></i></span>' + rows.count() + '</div>');
 						return $tr;
