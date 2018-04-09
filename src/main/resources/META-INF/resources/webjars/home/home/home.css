@@ -83,6 +83,9 @@
 	border-top-width: 1px;
 	border-top-style: solid;
 }
+.masonry-container td .carousel-inner {
+	overflow: visible;
+}
 .masonry-container table>tbody>tr>td, .masonry-container table>thead>tr>th {
 	border-color: rgb(255, 255, 255);
 	border-color: rgba(255, 255, 255, .21);
