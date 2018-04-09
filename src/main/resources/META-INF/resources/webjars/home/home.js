@@ -579,8 +579,13 @@ define(['cascade'], function ($cascade) {
 			}
 		},
 
+		/**
+		 * Round a percent number with at most one decimal.
+		 * @param {percent|Number} Percent 0-100 value. Null value means 0.
+		 * @return {Number} Percent value with 1 decimal.
+		 */
 		roundPercent: function (percent) {
-			return Number(Math.round(percent + 'e1') + 'e-1');
+			return Math.round((percent || 0) * 10) / 10;
 		},
 
 		sparklinePieZoom: function ($spark, data, options) {

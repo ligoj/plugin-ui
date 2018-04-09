@@ -683,7 +683,7 @@ define([
 						],
 						offset: '-90',
 						fillColor: 'black',
-						tooltipFormatter: current._sparkPieTooltipFormatter
+						tooltipFormatter: current.sparkPieTooltipFormatter
 					});
 					nodes.splice($.inArray(nodeEvent.node, nodes), 1);
 				}
@@ -697,12 +697,12 @@ define([
 						'grey', 'grey', 'grey'
 					],
 					offset: '-90',
-					tooltipFormatter: current._sparkPieTooltipFormatter
+					tooltipFormatter: current.sparkPieTooltipFormatter
 				});
 			}
 		},
 
-		_sparkPieTooltipFormatter: function (sparkline, options, fields) {
+		sparkPieTooltipFormatter: function (sparkline, options, fields) {
 			return Handlebars.compile(current.$messages['status-subscription-' + ['down', 'up', 'none'][fields.offset]])([
 				fields.value,
 				current.$parent.roundPercent(fields.percent)

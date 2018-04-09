@@ -476,10 +476,10 @@ define(['cascade'], function ($cascade) {
 						groups.push(group);
 						sizes[group] = $(this).nextUntil('.group-start').length;
 					});
-					cursor = size;
+					var cursor = size;
 					while (size > 20 && cursor > 2) {
 						for (var index = groups.length; index-- > 0;) {
-							group = groups[index];
+							var group = groups[index];
 							if (sizes[group] === cursor) {
 								// Reduce the remaining size
 								size -= cursor;

@@ -76,14 +76,13 @@ define(function () {
 			// Full rendering mode
 			percent = Math.round(percent || 0);
 			var score = hitMode ? percent : 100 - percent;
+			var labelClass = 'danger';
 			if (score >= 90 || data.hitCount === 1) {
 				labelClass = 'success';
 			} else if (score >= 80) {
 				labelClass = 'primary';
 			} else if (score >= 50) {
 				labelClass = 'warning';
-			} else {
-				labelClass = 'danger';
 			}
 			return value + '<span class="pull-right label label-' + labelClass + '">' + percent  + '%</span>';
 		}
