@@ -593,14 +593,14 @@ define(['cascade'], function ($cascade) {
 				current.setupSparkline($spark, data, options);
 
 				// Zoom and auto update tooltips
-				$spark.on('mouseenter', function (e) {
+				$spark.on('mouseenter', function () {
 					if (!$spark.is('.zoomed')) {
 						$spark.addClass('zoomed').closest('td').addClass('has-zoomed-pie');
 						$('.carousel').addClass('has-zoomed-pie');
 						current.setupSparkline($spark, data, $.extend({}, options), true);
 						window.setTimeout(function () {
 							$spark.addClass('zoomed2');
-							$spark.find('canvas').on('mouseleave', function (e2) {
+							$spark.find('canvas').on('mouseleave', function () {
 								$spark.removeClass('zoomed').closest('td').removeClass('has-zoomed-pie');
 								$('.carousel').removeClass('has-zoomed-pie');
 								current.setupSparkline($spark, data, options);

@@ -144,7 +144,6 @@
 }
 .masonry-container>.node:not(.mode-th-list) tr.detailed>td.zoomable:not(.in)::before {
 	font-family: "Font Awesome 5 Free";
-	font-weight: normal;
 	content: "\f141";
 	padding-left: 2px;
 	padding-right: 8px;
