@@ -9,6 +9,6 @@
 [![Quality Gate](https://sonarcloud.io/api/badges/gate?key=org.ligoj.plugin:plugin-ui)](https://sonarcloud.io/dashboard/index/org.ligoj.plugin:plugin-ui)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/d60ffbcba1b94d1497d28b286b942d83)](https://www.codacy.com/app/ligoj/plugin-ui?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ligoj/plugin-ui&amp;utm_campaign=Badge_Grade)
 [![CodeFactor](https://www.codefactor.io/repository/github/ligoj/plugin-ui/badge)](https://www.codefactor.io/repository/github/ligoj/plugin-ui)
-[![License](http://img.shields.io/:license-mit-blue.svg)](http://gus.mit-license.org/)
+[![License](http://img.shields.io/:license-mit-blue.svg)](http://fabdouglas.mit-license.org/)
 
 [Ligoj](https://github.com/ligoj/ligoj) UI assets
