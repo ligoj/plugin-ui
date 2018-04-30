@@ -6,7 +6,7 @@ define({
 		"title" : "Manage Role",
 		"authorizations-business" : "Business Authorization",
 		"authorizations-ui" : "UI Authorization",
-		"invalidateCache" : "Invalider cache"
+		"invalidateCache" : "Invalidate cache"
 	},
 	"fr" : true
 });

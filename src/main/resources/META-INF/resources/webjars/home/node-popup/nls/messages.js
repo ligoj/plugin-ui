@@ -12,7 +12,7 @@ define({
 		'mode-all': 'All',
 		'mode-all-tooltip': 'All type of subscription will be available',
 		'not-provided-parameters': 'Remaining parameters',
-		'partial-subscription': 'Some parameters could not be validated at this level from UI. For a partial susbscription inside a node, AJAX validations may fail. Use API calls por this purpose.',
+		'partial-subscription': 'Some parameters could not be validated at this level from UI. For a partial subscription inside a node, AJAX validations may fail. Use API calls for this purpose.',
 		'required-tool': 'Select a tool',
 		'error': {
 			'NodeId': 'Invalid node identifier, must match to [a-z]+(:[a-z0-9]+)+'
