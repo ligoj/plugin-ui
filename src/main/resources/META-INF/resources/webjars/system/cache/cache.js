@@ -30,6 +30,8 @@ define(function () {
 					url: REST_PATH + 'system/cache',
 					dataSrc: ''
 				},
+				pageLength: -1,
+				dom: "<'row'<'col-sm-6'l><'col-sm-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-5'i>>",
 				createdRow: function (nRow) {
 					$(nRow).find('.invalidate').on('click', current.invalidateButton);
 				},
