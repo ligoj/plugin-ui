@@ -168,40 +168,54 @@ img.tool.broken {
 	}
 }
 
-.subscriptions .btn-link {
-	padding-top: 0;
-	padding-bottom: 0;
-	padding-left: 0;
-	border: 0;
-}
-
-.subscriptions .features .btn-group {
-	padding-top: 1px;
-}
-
 .subscriptions .carousel-control {
 	background-image: none;
 	width: 15px;
 }
 
 .subscriptions .carousel-indicators {
-	bottom: -22px;
+	bottom: -14px;
 }
 
 .subscriptions .carousel-indicators .active {
 	background-color: #bbb;
-	width: 12px;
-	height: 12px;
 }
 .subscriptions .carousel-indicators>li:hover {
 	border-color: #999;
 	background-color: #ccc;
 }
+.subscriptions .carousel:hover .carousel-indicators>li {
+	opacity: 1;
+}
+
 .subscriptions .carousel-indicators>li {
 	border-color: #aaa;
-	width: 10px;
-	height: 10px;
+	opacity: .2;
 }
+.subscriptions td.key:hover {
+	overflow: visible;
+}
+.subscriptions td.key {
+	padding-top: 0;
+	padding-bottom: 0;
+	vertical-align: middle;
+}
+.subscriptions .carousel .sub-item {
+	white-space: nowrap;	
+}
+.subscriptions td.key .carousel {
+	height: 36px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+.subscriptions .carousel-inner>.item {
+	text-overflow: ellipsis;
+	white-space: normal;
+	word-break: unset;
+	max-height: 36px;
+}
+
 .subscriptions .carousel-control.left>span, .subscriptions .carousel-control.right>span {
 	font-size: 15px;
 	color: #ddd;
