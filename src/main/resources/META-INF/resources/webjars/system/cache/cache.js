@@ -48,6 +48,8 @@ define(function () {
 						return current.formatRate(mode, data, 'missCount', 'missPercentage', false);
 					}
 				}, {
+					data: 'averageGetTime'
+				}, {
 					data: null,
 					width: '16px',
 					orderable: false,
