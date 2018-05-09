@@ -74,7 +74,12 @@ define(['cascade'], function ($cascade) {
 		 */
 		requireService: function (context, node, callback) {
 			var service = current.getServiceNameFromId(node);
-			$cascade.loadFragment(context, context.$transaction, 'main/service/' + service + '/', service, {
+			var path = 'main/service/' + service + '/';
+			if (path === context.$path) {
+				// Current context is loaded
+				return callback && callback(context);
+			}
+			$cascade.loadFragment(context, context.$transaction, path, service, {
 				callback: function($context) {
 					$context.node = 'service:' + service;
 					callback && callback($context);
@@ -113,7 +118,12 @@ define(['cascade'], function ($cascade) {
 				// Then, load tool dependencies
 				var service = current.getServiceNameFromId(node);
 				var tool = current.getToolNameFromId(node);
-				$cascade.loadFragment($service, transaction, 'main/service/' + service + '/' + tool, tool, {
+				var path = 'main/service/' + service + '/' + tool;
+				if (path === context.$path) {
+					// Current context is loaded
+					return callback && callback(context);
+				}
+				$cascade.loadFragment($service, transaction, path, tool, {
 					callback: function($tool) {
 						$tool.node = 'service:' + service + ':' + ':' + tool;
 						callback && callback($tool, $service);
