@@ -87,13 +87,13 @@ define(function () {
 			}).on('show.bs.modal', function (event) {
 				var $source = $(event.relatedTarget);
 				var $tr = $source.closest('tr');
-				var uc = ($tr.length && current.table.fnGetData($tr[0])) || undefined;
-				_('login').val(uc && uc.login).prop('disabled', uc ? true : false);
-				_('roles').select2('val', uc ? $.makeArray($(uc.roles).map(function () {
+				var uc = ($tr.length && current.table.fnGetData($tr[0])) || {};
+				_('login').val(uc.login || '').prop('disabled', uc.login ? true : false);
+				_('roles').select2('val', $.makeArray($(uc.roles || []).map(function () {
 					return this.id;
-				})) : []);
-				$('.modal-title').text(current.$messages[uc ? 'updateUser' : 'newUser']);
-				if (uc) {
+				})));
+				$('.modal-title').text(current.$messages[uc.login ? 'updateUser' : 'newUser']);
+				if (uc.login) {
 					_('create').addClass('hidden');
 					_('save').removeClass('hidden');
 				} else {
