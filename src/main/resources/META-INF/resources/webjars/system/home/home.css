@@ -3,3 +3,10 @@
 	margin-top: 6px;
 	margin-bottom: 4px;
 }
+
+#table .configuration-value {
+	max-height: 36px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	overflow-wrap: break-word;
+}

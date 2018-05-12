@@ -55,10 +55,10 @@ define(function () {
 				}
 			});
 			current.fetchSystem();
-			_('defaultTimeZone').on('blur', function () {
+			_('defaultTimeZone').on('blur change', function () {
 				current.updateTimeZone('default', 'defaultTimeZone', $(this).val());
 			});
-			_('timeZone').on('blur', function () {
+			_('timeZone').on('blur change', function () {
 				current.updateTimeZone('application', 'timeZone', $(this).val());
 			});
 			_('cryptography').on('submit', function (e) {
@@ -74,6 +74,120 @@ define(function () {
 						_('to-encrypt').trigger('focus');
 					}
 				});
+			});
+			current.initializeTable();
+		},
+		
+		initializeTable: function() {
+			_('popup').on('shown.bs.modal', function () {
+				// Clever auto focus
+				if (_('value').val()) {
+					_('value').trigger('focus');
+				} else {
+					_('name').trigger('focus');
+				}
+			}).on('show.bs.modal', function (event) {
+				var $source = $(event.relatedTarget);
+				var $tr = $source.closest('tr');
+				var uc = ($tr.length && current.table.fnGetData($tr[0])) || {};
+				_('name').val(uc.name || '');
+				if (uc.secured && uc.name) {
+					current.$cascade.appendSpin(_('value').addClass('hidden').closest('div'));
+					_('value').val('ERROR');
+					$.ajax({
+						type: 'GET',
+						url: REST_PATH + 'system/configuration/' + encodeURIComponent(uc.name),
+						dataType: 'text',
+						success: function (data) {
+							_('value').val(data);
+						},
+						complete: function() {
+							current.$cascade.removeSpin(_('value').removeClass('hidden').closest('div'));
+						}
+					});
+				} else {
+					_('value').val(uc.value);
+					current.$cascade.removeSpin(_('value').removeClass('hidden').closest('div'));
+				}
+				validationManager.reset($(this));
+			}).on('submit', function() {
+				var name = _('name').val();
+				$.ajax({
+					type: 'POST',
+					url: REST_PATH + 'system/configuration/' + encodeURIComponent(name),
+					dataType: 'text',
+					contentType: 'text/plain',
+					data: _('value').val(),
+					success: function (data) {
+						_('popup').modal('hide');
+						notifyManager.notify(Handlebars.compile(current.$messages.updated)(name));
+						current.table && current.table.api().ajax.reload();
+					}
+				});
+			});
+
+			current.table = _('table')
+			.on('click', '.delete', current.deleteConfiguration)
+			.dataTable({
+				ajax: function () {
+					return REST_PATH + 'system/configuration';
+				},
+				createdRow: function (nRow) {
+					$(nRow).find('.delete').on('click', current.deleteButton);
+				},
+				dataSrc: '',
+				sAjaxDataProp: '',
+				pageLength: -1,
+				dom: '<"row"<"col-sm-11"B><"col-sm-1"f>r>t',
+				destroy: true,
+				order: [
+					[0, 'asc']
+				],
+				columns: [{
+					width: '300px',
+					data: 'name'
+				}, {
+					data: 'value',
+					render: function (data, mode, model) {
+						if (mode === 'display') {
+							return '<div class="configuration-value">' + (model.secured ? '<i class="fas fa-ellipsis-h"></i><i class="fas fa-ellipsis-h"></i>' : data) + '</div>';
+						}
+						return data;
+					}
+				}, {
+					data: 'secured',
+					className: 'hidden-xs hidden-sm',
+					width: '16px',
+					render: function (data, mode) {
+						if (mode === 'display') {
+							return data ? '<i class="fas fa-check" data-toggle="tooltip" title="' + current.$messages['configuration-secured'] + '"></i>' : '';
+						}
+						return data;
+					}
+				}, {
+					data: 'persisted',
+					className: 'hidden-xs hidden-sm',
+					width: '16px',
+					render: function (data, mode, model) {
+						if (mode === 'display') {
+							return data ? '<i class="fas fa-check" data-toggle="tooltip" title="' + current.$messages['configuration-type-persisted'] + '"></i>' :  model.override ? '<i class="fas fa-exclamation-triangle text-warning" data-toggle="tooltip" title="' + current.$messages['configuration-override'] + '"></i>' : '';
+						}
+						return data;
+					}
+				}, {
+					data: null,
+					width: '30px',
+					orderable: false,
+					render: function () {
+						return '<a data-toggle="modal" data-target="#popup"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a><a class="delete"><i class="fas fa-times" data-toggle="tooltip" title="' + current.$messages['delete'] + '"></i></a>';
+					}
+				}],
+				buttons: [{
+					extend: 'create',
+					action: function () {
+						_('popup').modal('show');
+					}
+				}]
 			});
 		},
 
@@ -115,6 +229,22 @@ define(function () {
 					});
 				}
 			});
+		},
+		deleteConfiguration: function () {
+			var tr = $(this).parents('tr');
+			var uc = current.table.fnGetData(tr[0]);
+			bootbox.confirmDelete(function (confirmed) {
+				if (confirmed) {
+					$.ajax({
+						type: 'DELETE',
+						url: REST_PATH + 'system/configuration/' + encodeURIComponent(uc.name),
+						success: function () {
+							notifyManager.notify(Handlebars.compile(current.$messages.deleted)(uc.name));
+							current.table && current.table.api().ajax.reload();
+						}
+					});
+				}
+			}, uc.name);
 		},
 		updateTimeZone: function (type, name, id) {
 			$.ajax({
