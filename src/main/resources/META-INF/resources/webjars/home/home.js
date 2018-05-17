@@ -236,11 +236,16 @@ define(['cascade'], function ($cascade) {
 
 		/**
 		 * Refresh the status of given subscription.
-		 * @param subscriptions : Single or multiple subscription to detail.
+		 * @param {array|integer} subscriptions Single or multiple subscription to detail.
+		 * @param {function} renderCallback     Callback called for each refreshed subscription.
 		 */
 		refreshSubscription: function (subscriptions, renderCallback) {
 			if (!$.isArray(subscriptions)) {
 				subscriptions = [subscriptions];
+			}
+			if (subscriptions.length === 0) {
+				// Nothing to do
+				return;
 			}
 			var subscriptionsAsMap = [];
 			var ids = subscriptions.map(function (s) {
@@ -279,7 +284,9 @@ define(['cascade'], function ($cascade) {
 		},
 
 		/**
-		 * refresh subscriptions status
+		 * Refresh a subscriptions status.
+		 * @param {Object} subscription     The subscription object.
+		 * @param {function} renderCallback Callback called when the subscription data has been rendered.
 		 */
 		updateSubscriptionStatus: function (subscription, renderCallback) {
 			// Check the transition to save useless computation
@@ -324,10 +331,11 @@ define(['cascade'], function ($cascade) {
 
 		/**
 		 * Update the subscription UI details in the target jquery row. No involved AJAX call.
-		 * @param {jquery} $tr the Container row of this subscription.
-		 * @param {object} subscription The subscription object to update.
-		 * @param {string} filter The target UI scope, such as "key" of "feature". 
-		 * @param {boolean} replace When true, the details are overridden, Otherwise, the content is added.
+		 * @param {jquery}   $tr the Container row of this subscription.
+		 * @param {object}   subscription The subscription object to update.
+		 * @param {string}   filter The target UI scope, such as "key" of "feature". 
+		 * @param {boolean}  replace When true, the details are overridden, Otherwise, the content is added.
+		 * @param {function} renderCallback Callback called when the subscription data has been rendered.
 		 */
 		updateSubscriptionDetails: function ($tr, subscription, filter, replace, renderCallback) {
 			var $td = $tr.find('td.' + filter);
@@ -432,8 +440,8 @@ define(['cascade'], function ($cascade) {
 				if ($tool[namespace]) {
 					result += $tool[namespace](subscription, $tr, $td) || '';
 				}
-			} // TODO Simplify
-			return result.length ? result : '';
+			}
+			return result || '';
 		},
 
 		renderKey: function (subscription, parameter) {
@@ -572,7 +580,10 @@ define(['cascade'], function ($cascade) {
 					if (id) {
 						result += ' data-target="#' + id + '"';
 					}
-					result += ' data-slide-to="' + baseIndex + '"' + ((mergeInd === 0 && (startIndex ? i === startIndex : i === 0)) ? ' class="active"' : '') + ($.isArray(item) ? ' data-toggle="tooltip" data-container="body" title="' + (current.$messages[item[0]] || item[0]) + '"' : '') + '></li>';
+					result += ' data-slide-to="' + baseIndex + '"';
+					result += (mergeInd === 0 && (startIndex ? i === startIndex : i === 0)) ? ' class="active"' : '';
+					result += $.isArray(item) ? ' data-toggle="tooltip" data-container="body" title="' + (current.$messages[item[0]] || item[0]) + '"' : '';
+					result += '></li>';
 					baseIndex++;
 				}
 			}
