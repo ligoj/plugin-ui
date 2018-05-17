@@ -175,9 +175,6 @@ define(['cascade'], function ($cascade) {
 				return;
 			}
 			// Trim parameters to drop not provided parameters
-
-
-			// Build the data
 			var data = {
 				id: _('node-id').val(),
 				node: _('node-tool').val(),

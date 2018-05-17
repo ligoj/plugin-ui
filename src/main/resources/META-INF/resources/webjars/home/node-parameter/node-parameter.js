@@ -57,6 +57,15 @@ define(['cascade'], function ($cascade) {
 			// Trim the data
 			return values;
 		},
+		
+		/**
+		 * Indicate the given container corresponds to a node configuration, so a node mode editing.
+		 * @param {jquery} $container The current container.
+		 * @return {boolean} True when the given container corresponds to a node configuration.
+		 */
+		isNodeMode: function($container) {
+			return $container.closest('.modal').length === 1;
+		},
 
 		/**
 		 * Hold the parameter generation configuration : UI input, validator, UI component
@@ -135,9 +144,9 @@ define(['cascade'], function ($cascade) {
 				},
 				providers: {
 					'input': {
-						standard: function (parameter) {
+						standard: function (parameter, $container) {
 							// Create a basic input, manages type, id, required
-							return $('<input class="form-control parameter" type="' + (/(password|secret)/.test(parameter.id) ? 'password' : 'text') + '" autocomplete="off" data-type="' + parameter.type + '" id="' + parameter.id + '"' + (parameter.mandatory ? ' required' : '') + '>');
+							return $('<input class="form-control parameter" type="' + (/(password|secret)/.test(parameter.id) ? 'password' : 'text') + '" autocomplete="off" data-type="' + parameter.type + '" id="' + parameter.id + '"' + ((parameter.mandatory && !current.isNodeMode($container)) ? ' required' : '') + '>');
 						},
 						date: function (parameter) {
 							// Create a data input
@@ -150,7 +159,7 @@ define(['cascade'], function ($cascade) {
 					'form-group': {
 						standard: function (parameter, $container, $input) {
 							// Create a "form-group" with empty "controls", manages name, id, description, required
-							var required = parameter.mandatory ? ' required' : '';
+							var required = parameter.mandatory && !current.isNodeMode($container) ? ' required' : '';
 							var secured = parameter.secured ? ' secured' : '';
 							var id = parameter.id;
 							var validator = configuration.validators[id];
@@ -160,7 +169,7 @@ define(['cascade'], function ($cascade) {
 							var $dom = $('<div class="form-group' + required + secured + '"><label class="control-label col-md-4" for="' + id + '">' + name + '</label><div class="col-md-8">' + description + '</div></div>');
 							$dom.children('div').prepend($input);
 							$container.append($dom);
-							validator && $input.on('change', validator).on('keyup', validator);
+							validator && $input.on('change keyup', validator);
 							return $dom;
 						}
 					}
@@ -271,14 +280,14 @@ define(['cascade'], function ($cascade) {
 				var configuration = current.newSubscriptionParameterConfiguration(node, mode);
 				current.configuration = configuration;
 				configuration.parameters = {};
-				$tool.configureSubscriptionParameters && $tool.configureSubscriptionParameters(configuration);
+				$tool.configureSubscriptionParameters && $tool.configureSubscriptionParameters(configuration, $container);
 				var providers = configuration.providers;
 				var renderers = configuration.renderers;
 				var iProviders = providers.input;
 				var cProviders = providers['form-group'];
 				for (var index = 0; index < parameters.length; index++) {
 					var parameter = parameters[index];
-					var $input = (iProviders[parameter.id] || iProviders[parameter.type] || iProviders.standard)(parameter);
+					var $input = (iProviders[parameter.id] || iProviders[parameter.type] || iProviders.standard)(parameter, $container);
 					(cProviders[parameter.id] || cProviders[parameter.type] || cProviders.standard)(parameter, $container, $input);
 
 					// Post transformations
@@ -350,10 +359,14 @@ define(['cascade'], function ($cascade) {
 				var type = $that.attr('data-type');
 				var id = $that.attr('id');
 				var validators = current.configuration.validators;
+				
+				// Specific parameter validation
 				if (validators[id] && !validators[id]($that)) {
 					validate = false;
 					return;
 				}
+				
+				// Data type validation
 				if (validators[type] && !validators[type]($that)) {
 					validate = false;
 					return;
