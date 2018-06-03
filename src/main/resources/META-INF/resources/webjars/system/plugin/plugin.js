@@ -17,6 +17,12 @@ define(function () {
 			current.table = _('table').on('click', '.update', function () {
 				// Update the plug-in
 				current.installNext(_('table').dataTable().fnGetData($(this).closest('tr')[0]).plugin.artifact, 0);
+			}).on('click', '.cancel-local', function () {
+				// Update the plug-in
+				var plugin = _('table').dataTable().fnGetData($(this).closest('tr')[0]);
+				current.delete(plugin.plugin.artifact, plugin.latestLocalVersion);
+			}).on('click', '.delete', function () {
+				current.delete(_('table').dataTable().fnGetData($(this).closest('tr')[0]).plugin.artifact);
 			}).dataTable({
 				ajax: function () {
 					return REST_PATH + 'system/plugin?repository=' + current.repository;
@@ -30,10 +36,18 @@ define(function () {
 					[1, 'asc']
 				],
 				columns: [{
-					data: null,
-					orderable: false,
-					render: function (data) {
-						return data.plugin.type === 'feature' ? '<i class="fas fa-wrench"></i>' : current.$main.toIcon(data.node);
+					data: 'plugin.type',
+					render: function (type, mode, data) {
+						if (mode === 'display') {
+							if (type === 'feature') {
+								return '<i class="fas fa-wrench"></i>';
+							}
+							if (data.node) {
+								return current.$main.toIcon(data.node);
+							}
+							return '?';
+						}
+						return type;
 					}
 				}, {
 					data: 'id'
@@ -45,13 +59,23 @@ define(function () {
 				}, {
 					data: 'plugin.version',
 					className: 'truncate',
-					render: function (version, _m, plugin) {
-						var result = version;
-						if (plugin.newVersion) {
-							// Upgrade is available
-							result += ' <a class="label label-success update" data-toggle="tooltip" title="' + current.$messages['plugin-update'] + '"><i class="fas fa-arrow-circle-o-up"></i> ' + plugin.newVersion + '</a>';
+					width: '200px',
+					render: function (version, mode, plugin) {
+						if (mode === 'display') {
+							var result = version || '';
+							if (plugin.latestLocalVersion) {
+								// Upgrade is available
+								result += result ? '' : ' ';
+								result += '<a class="label label-primary cancel-local" data-toggle="tooltip" title="' + current.$messages['plugin-cancel-' + (version ? 'update' : 'install')] + '"><i class="fas fa-times-circle"></i> ' + plugin.latestLocalVersion + '</a>';
+							}
+							if (plugin.newVersion) {
+								// Upgrade is available
+								result += result ? '' : ' ';
+								result += '<a class="label label-success update" data-toggle="tooltip" title="' + current.$messages['plugin-update'] + '"><i class="fas fa-arrow-circle-o-up"></i> ' + plugin.newVersion + '</a>';
+							}
+							return result;
 						}
-						return result;
+						return version;
 					}
 				}, {
 					data: 'plugin.type',
@@ -67,6 +91,18 @@ define(function () {
 					className: 'icon',
 					render: function (nb, _i, plugin) {
 						return plugin.plugin.type === 'feature' ? '' : nb;
+					}
+				}, {
+					data: 'deleted',
+					className: 'icon',
+					render: function (deleted, mode) {
+						if (mode === 'display') {
+							if (deleted) {
+								return '<i class="fas fa-ban" data-toggle="tooltip" title="' + current.$messages['plugin-deleted'] + '></i>';
+							}
+							return '<a class="delete" data-toggle="tooltip" title="' + current.$messages.delete + '"><i class="far fa-trash-alt"></i></a>';
+						}
+						return deleted;
 					}
 				}],
 				buttons: [{
@@ -269,6 +305,9 @@ define(function () {
 						// Install the next plug-in
 						if (next) {
 							current.installNext(plugins, index + 1);
+						} else {
+							// Refresh after this batch update
+							current.clearAndReload();
 						}
 					}
 				});
@@ -314,6 +353,22 @@ define(function () {
 				contentType: 'application/json',
 				success: function () {
 					notifyManager.notify(current.$messages['restart-requested']);
+				}
+			});
+		},
+
+		/**
+		 * Delete a specific version.
+		 */
+		delete: function (plugin, version) {
+			$.ajax({
+				type: 'DELETE',
+				url: REST_PATH + 'system/plugin/' + plugin + (version ? '/' + version : ''),
+				dataType: 'text',
+				contentType: 'application/json',
+				success: function () {
+					notifyManager.notify(Handlebars.compile(current.$messages.deleted)(plugin + (version ? ' v'+ version : '')));
+					current.clearAndReload();
 				}
 			});
 		}
