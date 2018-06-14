@@ -165,7 +165,7 @@ define(function () {
 				},
 				ajax: {
 					url: function() {
-						return REST_PATH + 'system/plugin/search?repository=' + current.repository
+						return REST_PATH + 'system/plugin/search?repository=' + current.repository;
 					},
 					dataType: 'json',
 					quietMillis: 250,

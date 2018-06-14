@@ -11,7 +11,7 @@ define(function () {
 		currentId: null,
 
 		// extract authorization from select components
-		extractDataFromSelect: function (selectId, selectType) {
+		extractDataFromSelect: function (selectId, type) {
 			var result = [];
 			var auths = $(selectId).select2('data');
 			for (var idx = 0; idx < auths.length; idx++) {
@@ -23,7 +23,7 @@ define(function () {
 					// Added authorization
 					result.push({
 						pattern: auth.text,
-						type: selectType
+						type: type
 					});
 				}
 			}
@@ -33,11 +33,11 @@ define(function () {
 		// Helper function to serialize all the form fields into a JSON string
 		formToJSON: function () {
 			var authsUI = current.extractDataFromSelect('#authorizations-ui', 'ui');
-			var authsBusiness = current.extractDataFromSelect('#authorizations-business', 'business');
+			var authsApi = current.extractDataFromSelect('#authorizations-api', 'api');
 			return JSON.stringify({
 				id: current.currentId,
 				name: _('name').val(),
-				authorizations: authsUI.concat(authsBusiness)
+				authorizations: authsUI.concat(authsApi)
 			});
 		},
 
@@ -58,15 +58,15 @@ define(function () {
 			_('name').val('');
 			_('create').removeClass('hidden');
 			_('save').addClass('hidden');
-			_('authorizations-business').select2('data', '');
+			_('authorizations-api').select2('data', '');
 			_('authorizations-ui').select2('data', '');
 			_('myModalLabel').text(current.$messages.add);
 			_('popup').modal('show');
 			return false;
 		},
 
-		// ---------------- BUSINESS CALL ----------------
-		// delete business call
+		// ---------------- API CALL ----------------
+		// delete api call
 		deleteEntity: function (id) {
 			$.ajax({
 				type: 'DELETE',
@@ -102,10 +102,10 @@ define(function () {
 			_('save').click(current.saveOrUpdate);
 			_('create').click(current.saveOrUpdate);
 			current.initializeDataTable();
-			_('authorizations-business').select2(current.selectInitConf);
-			_('authorizations-ui').select2(current.selectInitConf);
+			newSelect2('#authorizations-api');
+			newSelect2('#authorizations-ui');
 			// Map fields
-			validationManager.mapping.authorizations = 'authorizations-business;authorizations-ui';
+			validationManager.mapping.authorizations = 'authorizations-api;authorizations-ui';
 			// update focus when modal pop-up is down
 			_('popup').on('shown.bs.modal', function () {
 				_('name').focus();
@@ -124,20 +124,24 @@ define(function () {
 					_('create').removeClass('hidden');
 					_('save').addClass('hidden');
 				}
-				_('authorizations-business').select2('data', uc['authorizations-business']);
+				_('authorizations-api').select2('data', uc['authorizations-api']);
 				_('authorizations-ui').select2('data', uc['authorizations-ui']);
 			});
 		},
 
-		// initial configuration for select components
-		selectInitConf: {
-			tags: [],
-			formatSelection: function (item) {
-				if (item.pattern !== undefined) {
-					return item.pattern;
+		/**
+		 * Create a new Select2 with basic configuration.
+		 */
+		newSelect2: function (selector) {
+			return $(selector).select2({
+				tags: [],
+				formatSelection: function (item) {
+					if (item.pattern !== undefined) {
+						return item.pattern;
+					}
+					return item.text;
 				}
-				return item.text;
-			}
+			});
 		},
 
 		// initialize the datatable
@@ -150,16 +154,16 @@ define(function () {
 					callback :function (json, callback) {
 						for (var idx = 0; idx < json.data.length; idx++) {
 							var auths = json.data[idx].authorizations;
-							var bus = [];
+							var api = [];
 							var ui = [];
 							for (var authIdx = 0; authIdx < auths.length; authIdx++) {
 								if (auths[authIdx].type === 'ui') {
 									ui.push(auths[authIdx]);
 								} else {
-									bus.push(auths[authIdx]);
+									api.push(auths[authIdx]);
 								}
 							}
-							json.data[idx]['authorizations-business'] = bus;
+							json.data[idx]['authorizations-api'] = api;
 							json.data[idx]['authorizations-ui'] = ui;
 						}
 						callback(json);
@@ -171,7 +175,7 @@ define(function () {
 				columns: [{
 					data: 'name'
 				}, {
-					data: 'authorizations-business',
+					data: 'authorizations-api',
 					render: current.authorizationRenderer
 				}, {
 					data: 'authorizations-ui',

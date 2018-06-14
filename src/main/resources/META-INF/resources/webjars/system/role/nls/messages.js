@@ -3,10 +3,9 @@
  */
 define({
 	"root" : {
-		"title" : "Manage Role",
-		"authorizations-business" : "Business Authorization",
-		"authorizations-ui" : "UI Authorization",
-		"invalidateCache" : "Invalidate cache"
+		"title" : "Authorizations",
+		"authorizations-api" : "API Authorization",
+		"authorizations-ui" : "UI Authorization"
 	},
 	"fr" : true
 });
