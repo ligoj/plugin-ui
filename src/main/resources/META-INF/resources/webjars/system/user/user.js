@@ -32,7 +32,7 @@ define(function () {
 			return false;
 		},
 
-		// ---------------- BUSINESS CALL ----------------
+		// ---------------- API CALL ----------------
 		// delete business call
 		deleteEntity: function (id) {
 			$.ajax({
