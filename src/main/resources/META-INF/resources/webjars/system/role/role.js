@@ -102,8 +102,8 @@ define(function () {
 			_('save').click(current.saveOrUpdate);
 			_('create').click(current.saveOrUpdate);
 			current.initializeDataTable();
-			newSelect2('#authorizations-api');
-			newSelect2('#authorizations-ui');
+			current.newSelect2('#authorizations-api');
+			current.newSelect2('#authorizations-ui');
 			// Map fields
 			validationManager.mapping.authorizations = 'authorizations-api;authorizations-ui';
 			// update focus when modal pop-up is down
