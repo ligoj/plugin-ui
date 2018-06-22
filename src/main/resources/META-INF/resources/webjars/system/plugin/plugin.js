@@ -39,7 +39,7 @@ define(function () {
 					data: 'plugin.type',
 					render: function (type, mode, data) {
 						if (mode === 'display') {
-							if (type === 'feature') {
+							if (type.toLowerCase() === 'feature') {
 								return '<i class="fas fa-wrench"></i>';
 							}
 							if (data.node) {
