@@ -29,6 +29,7 @@ define({
 		'noBuildInformation': 'Build information is not yet available',
 		'cryptography': 'Cryptography',
 		'encrypt': 'Encrypt',
+		'information': 'Information',
 		'configuration': 'Configuration'
 	},
 	fr: true
