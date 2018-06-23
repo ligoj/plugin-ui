@@ -26,6 +26,14 @@ define(function () {
 			}
 			return value;
 		},
+		
+		sourceMapping: {
+			systemEnvironment: 'fas fa-desktop',
+			systemProperties: 'fab fa-java',
+			applicationConfig: 'far fa-file-code',
+			database: 'fas fa-database',
+			DEFAULT: 'fas fa-question',
+		},
 
 		/**
 		 * Load session data.
@@ -165,12 +173,18 @@ define(function () {
 						return data;
 					}
 				}, {
-					data: 'persisted',
+					data: 'source',
 					className: 'hidden-xs hidden-sm',
 					width: '16px',
 					render: function (data, mode, model) {
-						if (mode === 'display') {
-							return data ? '<i class="fas fa-check" data-toggle="tooltip" title="' + current.$messages['configuration-type-persisted'] + '"></i>' :  model.override ? '<i class="fas fa-exclamation-triangle text-warning" data-toggle="tooltip" title="' + current.$messages['configuration-override'] + '"></i>' : '';
+						if (mode === 'display' && data) {
+							var fragments = data.split(':');
+							var source = fragments.shift();
+							var i18nSource = current.$messages['configuration-source-' + source];
+							var tooltip = i18nSource ? Handlebars.compile(i18nSource)(fragments.join(':')) : Handlebars.compile(current.$messages['configuration-source-unknown'])(fragments.join(':'));
+							var result = '<i class="fa-fw ' + (current.sourceMapping[source] || current.sourceMapping.DEFAULT) + '" data-toggle="tooltip" title="' + tooltip + '"></i>';
+							result += model.override ? ' <i class="fas fa-exclamation-triangle text-warning" data-toggle="tooltip" title="' + current.$messages['configuration-override'] + '"></i>' : '';
+							return result;
 						}
 						return data;
 					}
