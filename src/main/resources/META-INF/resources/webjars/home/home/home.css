@@ -134,6 +134,10 @@
 .masonry-container>.node.mode-th-list th.project {
 	width: 33%;
 }
+.masonry-container .project.zoomable>a {
+	white-space: nowrap;
+}
+
 .masonry-container>.node:not(.mode-th-list) tr.detailed>td.zoomable:not(.in)::before {
 	font-family: "Font Awesome 5 Free";
 	content: "\f141";
