@@ -1,6 +1,6 @@
 package org.ligoj.app.plugin.ui;
 
-import org.ligoj.app.api.FeaturePlugin;
+import org.ligoj.bootstrap.core.plugin.FeaturePlugin;
 import org.springframework.stereotype.Component;
 
 /**
