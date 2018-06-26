@@ -282,7 +282,7 @@ define(['cascade'], function ($cascade) {
 						return editlink + '<a class="delete"><i class="fas fa-timesfas fa-times" data-toggle="tooltip" title="' + current.$messages['delete'] + '"></i></a>';
 					}
 				}],
-				buttons: securityManager.isAllowedBusiness('project', 'post,put') ? [{
+				buttons: securityManager.isAllowedApi('project', 'post,put') ? [{
 					extend: 'popup',
 					className: 'btn-success btn-raised'
 				}] : []
