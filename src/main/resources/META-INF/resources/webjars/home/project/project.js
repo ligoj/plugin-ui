@@ -59,7 +59,7 @@ define(['cascade'], function ($cascade) {
 		onHashChange: function (parameter) {
 			if (parameter) {
 				var parameters = parameter.split('/');
-				var id = parseInt(parameters[0], 10);
+				var id = parameters[0];
 				if (parameters.length === 1) {
 					// Project mode
 					current.loadProject(id, function(model, refresh) {
@@ -105,7 +105,7 @@ define(['cascade'], function ($cascade) {
 
 		/**
 		 * Project mode, load project where id = current.currentId.
-		 * @param {integer} id Project identifier to load.
+		 * @param {integer|string} id Identifier of PKey of the project to load.
 		 * @param {function} Optional callback called when the project is loaded. 
 		 * Passed arguments are : project's model, and a true boolean when the project has been refreshed. 
 		 */
@@ -118,12 +118,13 @@ define(['cascade'], function ($cascade) {
 			_('details').addClass('hidden');
 
 			$cascade.appendSpin(current.$view, 'fa-4x', 'far fa-circle faa-burst animated centered');
-			if (id === current.currentId) {
+			if (current.model && (current.model.id === id || current.model.pkey === id)) {
 				// Project is already loaded, cache useless Ajax call, display the details
 				_('details').removeClass('hidden');
 				callback && callback(current.model, false);
 				$cascade.removeSpin(current.$view);
 			} else {
+				// Call the API that accepts either identifier either pkey signatures
 				$.ajax({
 					dataType: 'json',
 					url: REST_PATH + 'project/' + id,

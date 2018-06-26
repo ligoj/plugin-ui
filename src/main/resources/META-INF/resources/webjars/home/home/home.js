@@ -130,7 +130,7 @@ define([
 		checkVisibleSubscriptions: function ($context) {
 			var newVisibleSubscriptions = [];
 			$context = $context || $('.masonry-container').children('.node.in');
-			$context.find('.trigger-visibility:visible').not('.refreshing').filter(current.isElementInViewport).addClass('.refreshing').each(function () {
+			$context.find('.trigger-visibility:visible').not('.refreshing').filter(current.isElementInViewport).addClass('refreshing').each(function () {
 				var $owner = $(this);
 				newVisibleSubscriptions.push(current.model.subscriptions[parseInt($owner.removeClass('trigger-visibility').attr('data-subscription'), 10)]);
 				$owner.find('.features').html('<i class="fas spin fa-spinner fa-pulse"></i>');
@@ -564,6 +564,7 @@ define([
 			var project;
 			var nbProjects = 0;
 			var showProject;
+			var $trs = $node.find('tr');
 			// Subscriptions need to be filtered
 			for (index = 0; index < subscriptions.length; index++) {
 				project = projects[model.subscriptions[subscriptions[index]].project];
@@ -581,7 +582,10 @@ define([
 				// Update the UI as needed
 				if (node.detailed) {
 					// UI need to be updated for this project -> remove/add the filter flag
-					$node.find('tr[data-project="' + project.id + '"]')[showProject ? 'addClass' : 'removeClass']('filter-match')[showProject ? 'removeClass' : 'addClass']('hidden');
+					var projectAttribute = project.id.toString();
+					$trs.filter(function(i, tr) {
+						return tr.getAttribute('data-project') === projectAttribute;
+					})[showProject ? 'addClass' : 'removeClass']('filter-match')[showProject ? 'removeClass' : 'addClass']('hidden');
 				}
 			}
 			return {subscriptions: nbSubscriptions, projects: nbProjects};
