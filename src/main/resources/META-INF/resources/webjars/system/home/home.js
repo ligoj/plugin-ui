@@ -98,6 +98,7 @@ define(function () {
 				var $source = $(event.relatedTarget);
 				var $tr = $source.closest('tr');
 				var uc = ($tr.length && current.table.fnGetData($tr[0])) || {};
+				_('override-sys').prop('checked', false);
 				_('name').val(uc.name || '');
 				if (uc.secured && uc.name) {
 					current.$cascade.appendSpin(_('value').addClass('hidden').closest('div'));
@@ -120,9 +121,10 @@ define(function () {
 				validationManager.reset($(this));
 			}).on('submit', function() {
 				var name = _('name').val();
+				var system = _('override-sys').prop('checked') ? 'true' : 'false';
 				$.ajax({
 					type: 'POST',
-					url: REST_PATH + 'system/configuration/' + encodeURIComponent(name),
+					url: REST_PATH + 'system/configuration/' + encodeURIComponent(name) + '/' + system,
 					dataType: 'text',
 					contentType: 'text/plain',
 					data: _('value').val(),
@@ -251,7 +253,7 @@ define(function () {
 				if (confirmed) {
 					$.ajax({
 						type: 'DELETE',
-						url: REST_PATH + 'system/configuration/' + encodeURIComponent(uc.name),
+						url: REST_PATH + 'system/configuration/' + encodeURIComponent(uc.name) + '/true',
 						success: function () {
 							notifyManager.notify(Handlebars.compile(current.$messages.deleted)(uc.name));
 							current.table && current.table.api().ajax.reload();

@@ -36,7 +36,9 @@ define({
 		'cryptography': 'Cryptography',
 		'encrypt': 'Encrypt',
 		'information': 'Information',
-		'configuration': 'Configuration'
+		'configuration': 'Configuration',
+		'override-sys': 'Override system',
+		'override-sys-help': 'System property is created/updated and not hashed'
 	},
 	fr: true
 });

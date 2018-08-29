@@ -29,6 +29,8 @@ define({
 	'buildVersion': 'Version',
 	'noBuildInformation': 'Les informations de construction ne sont pas encore disponibles',
 	'cryptography': 'Cryptographie',
-	'encrypt': 'Chiffrer'
+	'encrypt': 'Chiffrer',
+	'override-sys': 'Ecraser la propriété système',
+	'override-sys-help': 'La propriété système est écrasée/mise-à-jour et pas chiffrée dans ce périmètre'
 
 });
