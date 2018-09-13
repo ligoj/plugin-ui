@@ -96,10 +96,23 @@ define(['cascade'], function ($cascade) {
 		loadProjects: function () {
 			current.initializeSearch();
 			_('details').addClass('hidden');
-			$('.subscribe-configuration').addClass('hidden');
+			current.unloadConfiguration();
 			_('main').removeClass('hidden');
 			$(function () {
 				_('entityTable_filter').find('input').trigger('focus');
+			});
+		},
+
+		/**
+		 * Hide and unload all UI configurations associated to this project
+		 */
+		unloadConfiguration: function() {
+			$('.subscribe-configuration').addClass('hidden');
+			current.$view.find('.configuration-wrapper').each(function() {
+				var $service = $(this).data('service');
+				if ($service && $service.unload) {
+					$service.unload();
+				}
 			});
 		},
 
@@ -113,7 +126,7 @@ define(['cascade'], function ($cascade) {
 			// Restore QR Code position
 			$('.qrcode-toggle').find('.fa-qrcode').removeClass('hidden').end().find('.qrcode').addClass('hidden');
 
-			$('.subscribe-configuration').addClass('hidden');
+			current.unloadConfiguration();
 			_('main').addClass('hidden');
 			_('details').addClass('hidden');
 
@@ -778,7 +791,7 @@ define(['cascade'], function ($cascade) {
 			// Subscription UI mode
 			_('main').addClass('hidden');
 			_('details').addClass('hidden');
-			$('.subscribe-configuration').addClass('hidden');
+			current.unloadConfiguration()
 
 			$cascade.loadFragment(current, current.$transaction, 'main/home/project/subscribe-wizard', 'subscribe-wizard', {
 				callback: function(context) {
@@ -821,7 +834,8 @@ define(['cascade'], function ($cascade) {
 			current.$view.find('.subscribe-configuration').not('#subscribe-definition').remove();
 			// Inject the partial of this service in the current view
 			var $subscribe = ($context.$view.is('.subscribe-configuration') ? $context.$view : $context.$view.find('.subscribe-configuration')).clone();
-			var $subscribeWrapper = $('<div id="configuration-wrapper-' + data.id + '" class="configuration-wrapper-' + service.id.replace(/:/g, '-') + ' configuration-wrapper-' + tool.id.replace(/:/g, '-') +'"></div>');
+			var $subscribeWrapper = $('<div id="configuration-wrapper-' + data.id + '" class="configuration-wrapper configuration-wrapper-' + service.id.replace(/:/g, '-') + ' configuration-wrapper-' + tool.id.replace(/:/g, '-') +'"></div>');
+			$subscribeWrapper.data('service', $context);
 			current.$view.append($subscribeWrapper);
 			$subscribeWrapper.html($subscribe);
 			if ($context && $context.configure) {
