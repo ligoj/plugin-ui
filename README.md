@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/ligoj/plugin-ui.svg?branch=master)](https://travis-ci.org/ligoj/plugin-ui)
 [![Build Status](https://circleci.com/gh/ligoj/plugin-ui.svg?style=svg)](https://circleci.com/gh/ligoj/plugin-ui)
-[![Build Status](https://codeship.com/projects/9d0e2340-1325-0136-a67e-068f11ae90dc/status?branch=master)](https://codeship.com/projects/283129)
 [![Build Status](https://semaphoreci.com/api/v1/ligoj/plugin-ui/branches/master/shields_badge.svg)](https://semaphoreci.com/ligoj/plugin-ui)
 [![Build Status](https://ci.appveyor.com/api/projects/status/yd6yhy17k9y5r1wn/branch/master?svg=true)](https://ci.appveyor.com/project/ligoj/plugin-ui/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/ligoj/plugin-ui/badge.svg?branch=master)](https://coveralls.io/github/ligoj/plugin-ui?branch=master)
