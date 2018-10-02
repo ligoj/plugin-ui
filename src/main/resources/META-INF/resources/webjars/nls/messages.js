@@ -112,7 +112,8 @@ define({
 			'SlaBound': 'SLA bounds must not be ignored',
 			'xls-version': 'Only Excel 97-2003 documents are supported',
 			'bad-file-extension': 'Executable files are not allowed',
-			'csv-extension': 'Only CSV files are supported'
+			'csv-extension': 'Only CSV files are supported',
+            'csv-invalid-entry' : 'Invalid entry "{{name}}"'
 		}
 	},
 	fr: true
