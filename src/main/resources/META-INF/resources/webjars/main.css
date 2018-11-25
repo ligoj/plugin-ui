@@ -117,3 +117,7 @@ i.resource {
 	display: none;
 }
 }
+
+table .hidden-table {
+	display: none;
+}
