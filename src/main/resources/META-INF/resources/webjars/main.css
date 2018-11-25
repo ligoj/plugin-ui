@@ -121,3 +121,28 @@ i.resource {
 table .hidden-table {
 	display: none;
 }
+.dt-button.buttons-colvisRestore {
+	border-top-color: lightgrey;
+	border-top-style: double;
+}
+.dt-button.buttons-columnVisibility.active > a,  .dropdown-menu > .dt-button.buttons-columnVisibility.active > a:focus {
+	border-left-color: #9c27b0;
+    border-left-style: solid;
+}
+.dt-button.buttons-columnVisibility.active a {
+	margin-left: 0;
+	color: inherit;
+	border-radius: 0;
+	background-color: inherit;
+}
+.dt-button-collection-title {
+	display: none;
+}
+.dropdown-menu .dt-button.buttons-columnVisibility >a {
+	margin-left: 0;
+	border-radius: 0;
+	padding-left: 8px;
+}
+.dropdown-menu.dt-button-collection {
+	padding-top: 0;
+}
