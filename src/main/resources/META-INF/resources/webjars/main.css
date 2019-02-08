@@ -88,6 +88,9 @@ html {
 	vertical-align: middle;
 	margin-top: -3px;
 }
+.select2-offscreen, .select2-offscreen:focus {
+	top: 35px !important;
+}
 [data-group] .input-group .input-group-btn .btn {
 	padding-left: 0;
 	padding-right: 0;
