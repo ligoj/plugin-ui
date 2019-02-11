@@ -1,9 +1,9 @@
 .navbar-brand {
 	background: url("home/img/logo.png");
 	background-size: cover;
-	width: 32px;
-	top: 12px;
-	left: 4px;
+	width: 24px;
+	top: 14px;
+	left: 6px;
 }
 .locked {
 	opacity: .6;
