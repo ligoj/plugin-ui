@@ -50,16 +50,18 @@ define(function () {
 						return type;
 					}
 				}, {
-					data: 'id'
+					data: 'id',
+					className: 'truncate'
 				}, {
-					data: 'name'
+					data: 'name',
+					className: 'truncate'
 				}, {
 					data: 'vendor',
 					className: 'hidden-xs hidden-sm'
 				}, {
 					data: 'plugin.version',
 					className: 'truncate',
-					width: '200px',
+					width: '280px',
 					render: function (version, mode, plugin) {
 						if (mode === 'display') {
 							var result = version || '';
