@@ -581,6 +581,7 @@ define(['cascade'], function ($cascade) {
 			var buttons = project.manageSubscriptions ? [{
 					extend: 'create',
 					text: current.$messages.subscribe,
+					tag: 'a',
 					init: function (_i, $button) {
 						$button.off('click.dtb').attr('href', current.$url + '/' + current.currentId + '/subscription');
 					}
