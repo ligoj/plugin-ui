@@ -16,7 +16,7 @@ define({
 	'user': 'Utilisateur',
 	'configuration-value':  'Valeur',
 	'configuration-secured': 'Sécurisé',
-	'configuration-source-systemEnvironment': 'Variable d'environnement',
+	'configuration-source-systemEnvironment': 'Variable d\'environnement',
 	'configuration-source-systemProperties': 'Propriété système',
 	'configuration-source-applicationConfig': 'File: {{this}}',
 	'configuration-source-database': 'Persistance base de données',
