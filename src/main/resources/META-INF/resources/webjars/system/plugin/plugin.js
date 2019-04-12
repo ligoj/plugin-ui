@@ -39,6 +39,9 @@ define(function () {
 					data: 'plugin.type',
 					render: function (type, mode, data) {
 						if (mode === 'display') {
+							if (typeof type === 'undefined') {
+								return '<i data-toggle="tooltip" title="' + current.$messages['plugin-installing'] + '" class="fas fa-unlink"></i>';
+							}
 							if (type.toLowerCase() === 'feature') {
 								return '<i class="fas fa-wrench"></i>';
 							}

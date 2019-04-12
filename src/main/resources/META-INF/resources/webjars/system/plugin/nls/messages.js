@@ -13,6 +13,7 @@ define({
 		'subscriptions': 'Subscriptions',
 		'restart': 'Restart',
 		'restart-requested': 'Restart has been requested',
+		'plugin-installing': 'Plug-in is installed but not yet available. Need a restart.',
 		'plugin-update': 'Update this plug-in',
 		'plugin-cancel-update': 'Cancel this update',
 		'plugin-cancel-install': 'Cancel this install',
