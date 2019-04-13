@@ -105,9 +105,6 @@
     opacity: 0.1;
     display: block;
  
-    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
-    filter: alpha(opacity=0);
- 
     -webkit-border-radius: 7px;
     -moz-border-radius: 7px;
     border-radius: 7px;
