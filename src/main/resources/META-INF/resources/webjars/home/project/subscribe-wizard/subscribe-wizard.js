@@ -250,6 +250,10 @@ define(['cascade'], function ($cascade) {
 			for (var index = 0; index < nodes.length; index++) {
 				var node = nodes[index];
 				var icon;
+				if (node.disabled) {
+					// Do not display disable nodes
+					continue;
+				}
 				if (node.uiClasses) {
 					// Use classes instead of picture
 					icon = current.toUiClassIcon(node.uiClasses);
