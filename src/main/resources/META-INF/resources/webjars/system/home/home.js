@@ -26,7 +26,7 @@ define(function () {
 			}
 			return value;
 		},
-		
+
 		sourceMapping: {
 			systemEnvironment: 'fas fa-desktop',
 			systemProperties: 'fab fa-java',
@@ -85,8 +85,8 @@ define(function () {
 			});
 			current.initializeTable();
 		},
-		
-		initializeTable: function() {
+
+		initializeTable: function () {
 			_('popup').on('shown.bs.modal', function () {
 				// Clever auto focus
 				if (_('value').val()) {
@@ -99,112 +99,101 @@ define(function () {
 				var $tr = $source.closest('tr');
 				var uc = ($tr.length && current.table.fnGetData($tr[0])) || {};
 				_('override-sys').prop('checked', false);
+				_('secured').prop('checked', uc.secured || false);
 				_('name').val(uc.name || '');
-				if (uc.secured && uc.name) {
-					current.$cascade.appendSpin(_('value').addClass('hidden').closest('div'));
-					_('value').val('ERROR');
-					$.ajax({
-						type: 'GET',
-						url: REST_PATH + 'system/configuration/' + encodeURIComponent(uc.name),
-						dataType: 'text',
-						success: function (data) {
-							_('value').val(data);
-						},
-						complete: function() {
-							current.$cascade.removeSpin(_('value').removeClass('hidden').closest('div'));
-						}
-					});
-				} else {
-					_('value').val(uc.value);
-					current.$cascade.removeSpin(_('value').removeClass('hidden').closest('div'));
-				}
+				_('value').val(uc.value);
+				current.$cascade.removeSpin(_('value').removeClass('hidden').closest('div'));
 				validationManager.reset($(this));
-			}).on('submit', function() {
-				var name = _('name').val();
-				var system = _('override-sys').prop('checked') ? 'true' : 'false';
+			}).on('submit', function () {
+				var data = {
+					name: _('name').val(),
+					system: _('override-sys').prop('checked') ? true : false,
+					secured: _('secured').prop('checked') ? true : false,
+					value: _('value').val()
+				};
 				$.ajax({
 					type: 'POST',
-					url: REST_PATH + 'system/configuration/' + encodeURIComponent(name) + '/' + system,
-					dataType: 'text',
-					contentType: 'text/plain',
-					data: _('value').val(),
-					success: function (data) {
+					url: REST_PATH + 'system/configuration',
+					dataType: 'json',
+					contentType: 'application/json',
+					data: JSON.stringify(data),
+					success: function () {
 						_('popup').modal('hide');
-						notifyManager.notify(Handlebars.compile(current.$messages.updated)(name));
+						notifyManager.notify(Handlebars.compile(current.$messages.updated)(data.name));
 						current.table && current.table.api().ajax.reload();
 					}
 				});
 			});
 
 			current.table = _('table')
-			.on('click', '.delete', current.deleteConfiguration)
-			.dataTable({
-				ajax: function () {
-					return REST_PATH + 'system/configuration';
-				},
-				createdRow: function (nRow) {
-					$(nRow).find('.delete').on('click', current.deleteButton);
-				},
-				dataSrc: '',
-				sAjaxDataProp: '',
-				pageLength: -1,
-				dom: '<"row"<"col-sm-11"B><"col-sm-1"f>r>t',
-				destroy: true,
-				order: [
-					[0, 'asc']
-				],
-				columns: [{
-					width: '300px',
-					data: 'name'
-				}, {
-					data: 'value',
-					render: function (data, mode, model) {
-						if (mode === 'display') {
-							return '<div class="configuration-value">' + (model.secured ? '<i class="fas fa-ellipsis-h"></i><i class="fas fa-ellipsis-h"></i>' : current.$super('htmlEscape')(data)) + '</div>';
+				.on('click', '.delete', current.deleteConfiguration)
+				.dataTable({
+					ajax: function () {
+						return REST_PATH + 'system/configuration';
+					},
+					createdRow: function (nRow) {
+						$(nRow).find('.delete').on('click', current.deleteButton);
+					},
+					dataSrc: '',
+					sAjaxDataProp: '',
+					pageLength: -1,
+					dom: '<"row"<"col-sm-11"B><"col-sm-1"f>r>t',
+					destroy: true,
+					order: [
+						[0, 'asc']
+					],
+					columns: [{
+						width: '300px',
+						data: 'name'
+					}, {
+						data: 'value',
+						render: function (data, mode, model) {
+							if (mode === 'display') {
+								return '<div class="configuration-value">' + (model.secured ? '<i class="fas fa-ellipsis-h"></i><i class="fas fa-ellipsis-h"></i>' : current.$super('htmlEscape')(data)) + '</div>';
+							}
+							return data;
 						}
-						return data;
-					}
-				}, {
-					data: 'secured',
-					className: 'hidden-xs hidden-sm',
-					width: '16px',
-					render: function (data, mode) {
-						if (mode === 'display') {
-							return data ? '<i class="fas fa-check" data-toggle="tooltip" title="' + current.$messages['configuration-secured'] + '"></i>' : '';
+					}, {
+						data: 'secured',
+						className: 'hidden-xs hidden-sm',
+						width: '16px',
+						render: function (data, mode) {
+							if (mode === 'display') {
+								return data ? '<i class="fas fa-check" data-toggle="tooltip" title="' + current.$messages['configuration-secured'] + '"></i>' : '';
+							}
+							return data;
 						}
-						return data;
-					}
-				}, {
-					data: 'source',
-					className: 'hidden-xs hidden-sm',
-					width: '16px',
-					render: function (data, mode, model) {
-						if (mode === 'display' && data) {
-							var fragments = data.split(':');
-							var source = fragments.shift();
-							var i18nSource = current.$messages['configuration-source-' + source];
-							var tooltip = i18nSource ? Handlebars.compile(i18nSource)(fragments.join(':')) : Handlebars.compile(current.$messages['configuration-source-unknown'])(fragments.join(':'));
-							var result = '<i class="fa-fw ' + (current.sourceMapping[source] || current.sourceMapping.DEFAULT) + '" data-toggle="tooltip" title="' + tooltip + '"></i>';
-							result += model.override ? ' <i class="fas fa-exclamation-triangle text-warning" data-toggle="tooltip" title="' + current.$messages['configuration-override'] + '"></i>' : '';
-							return result;
+					}, {
+						data: 'source',
+						className: 'hidden-xs hidden-sm',
+						width: '16px',
+						render: function (data, mode, model) {
+							if (mode === 'display' && data) {
+								var fragments = data.split(':');
+								var source = fragments.shift();
+								var i18nSource = current.$messages['configuration-source-' + source];
+								var tooltip = i18nSource ? Handlebars.compile(i18nSource)(fragments.join(':')) : Handlebars.compile(current.$messages['configuration-source-unknown'])(fragments.join(':'));
+								var result = '<i class="fa-fw ' + (current.sourceMapping[source] || current.sourceMapping.DEFAULT) + '" data-toggle="tooltip" title="' + tooltip + '"></i>';
+								result += model.override ? ' <i class="fas fa-exclamation-triangle text-warning" data-toggle="tooltip" title="' + current.$messages['configuration-override'] + '"></i>' : '';
+								return result;
+							}
+							return data;
 						}
-						return data;
-					}
-				}, {
-					data: null,
-					width: '30px',
-					orderable: false,
-					render: function () {
-						return '<a data-toggle="modal" data-target="#popup"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a><a class="delete"><i class="fas fa-times" data-toggle="tooltip" title="' + current.$messages['delete'] + '"></i></a>';
-					}
-				}],
-				buttons: [{
-					extend: 'create',
-					action: function () {
-						_('popup').modal('show');
-					}
-				}]
-			});
+					}, {
+						data: null,
+						width: '30px',
+						orderable: false,
+						render: function () {
+							return '<a data-toggle="modal" data-target="#popup"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a><a class="delete"><i class="fas fa-times" data-toggle="tooltip" title="' + current.$messages['delete'] + '"></i></a>';
+						}
+					}],
+					buttons: [{
+						extend: 'create',
+						action: function () {
+							_('popup').modal('show');
+						}
+					}]
+				});
 		},
 
 		/**

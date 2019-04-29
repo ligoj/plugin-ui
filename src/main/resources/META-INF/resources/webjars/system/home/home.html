@@ -5,194 +5,192 @@
 	</ul>
 	<div class="tab-content">
 		<div role="tabpanel" class="tab-pane active" id="system-info">
-
-<div class="row">
-	<form class="form-horizontal col-md-6">
-		<fieldset>
-			<legend>
-				{{system}}
-			</legend>
-			<div class="form-group">
-				<label class="control-label col-lg-2 col-md-4" for="memory">{{memory}}</label>
-				<div class=" col-lg-10 col-md-8">
-					<div class="progress" id="memory">
-						<div class="progress-bar progress-bar-danger" id="memory-committed-used">
-							<span class="sr-only">35% Complete (success)</span>
-						</div>
-						<div class="progress-bar progress-bar-warning" id="memory-committed-free">
-							<span class="sr-only">20% Complete (warning)</span>
-						</div>
-						<div class="progress-bar progress-bar-success progress-bar-striped" id="memory-free">
-							<span class="sr-only">10% Complete (danger)</span>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="control-label col-lg-2 col-md-4" for="cpu">{{cpu}}</label>
-				<div class="col-md-8">
-					<input type="text" id="cpu" class="form-control input-mini" readonly>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="control-label col-lg-2 col-md-4" for="date">{{date}}</label>
-				<div class="col-lg-10 col-md-8">
-					<input type="text" id="date" class="form-control" readonly>
-				</div>
-			</div>
-		</fieldset>
-	</form>
-	<form class="form-horizontal col-md-6">
-		<fieldset>
-			<legend>
-				{{timeZone}}
-			</legend>
-			<div class="form-group">
-				<label class="control-label col-md-4" for="timeZone">{{timeZone-application}}</label>
-				<div class="col-lg-4 col-md-6">
-					<input type="text" id="timeZone" class="form-control">
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="control-label col-md-4" for="defaultTimeZone">{{timeZone-system}}</label>
-				<div class="col-lg-4 col-md-6">
-					<input type="text" id="defaultTimeZone" class="form-control">
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="control-label col-md-4" for="originalDefaultTimeZone">{{timeZone-system-initial}}</label>
-				<div class="col-lg-4 col-md-6">
-					<input type="text" id="originalDefaultTimeZone" class="form-control" readonly>
-				</div>
-			</div>
-		</fieldset>
-	</form>
-</div>
-<div class="row">
-	<form class="form-horizontal col-md-6">
-		<fieldset>
-			<legend>
-				{{session}}
-			</legend>
-			<div class="form-group">
-				<label class="control-label col-lg-2 col-md-4" for="session">{{identifier}}</label>
-				<div class="col-md-8">
-					<input type="text" id="session" class="form-control" readonly>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="control-label col-lg-2 col-md-4" for="userName">{{user}}</label>
-				<div class="col-md-8">
-					<input type="text" id="userName" class="form-control" readonly>
-				</div>
-			</div>
-		</fieldset>
-	</form>
-	<form class="form-horizontal col-md-6">
-		<fieldset>
-			<legend>
-				{{build}}
-			</legend>
-			<div class="form-group">
-				<label class="control-label col-md-4" for="buildNumber">{{buildNumber}}</label>
-				<div class="col-lg-4 col-md-6">
-					<input type="text" id="buildNumber" class="form-control" readonly>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="control-label col-md-4" for="buildTimestamp">{{buildTimestamp}}</label>
-				<div class="col-lg-4 col-md-6">
-					<input type="text" id="buildTimestamp" class="form-control" readonly>
-					<input type="text" id="buildDate" class="form-control" readonly>
-				</div>
-			</div>
-			<div class="form-group">
-				<label class="control-label col-md-4" for="buildVersion">{{buildVersion}}</label>
-				<div class="col-lg-4 col-md-6">
-					<input type="text" id="buildVersion" class="form-control" readonly>
-				</div>
-			</div>
-		</fieldset>
-	</form>
-</div>
-</div>
-
-<div role="tabpanel" class="tab-pane" id="system-configuration">
-	<div class="row">
-		<form class="form-horizontal col-md-6" id="cryptography" autocomplete="off">
-			<div class="form-group required">
-				<label class="control-label col-lg-2 col-md-3 col-sm-4" for="to-encrypt">{{encrypt}}</label>
-				<div class="input-group col-lg-10 col-md-9 col-sm-8">
-					<input type="text" id="to-encrypt" class="form-control" required>
-					<span class="input-group-btn">
-						<input type="submit" class="btn btn-default" value="{{encrypt}}">
-					</span>
-				</div>
-			</div>
-		</form>
-		<form class="form-horizontal col-md-6">
-			<span class="control-label col-md-12" id="encrypted"></span>
-		</form>
-	</div>
-	<table id="table" class="table justified table-striped table-bordered">
-		<thead>
-			<tr>
-				<th>{{name}}</th>
-				<th>{{value}}</th>
-				<th><i class="fas fa-lock" data-toggle="tooltip" title="{{configuration-secured}}"></i></th>
-				<th><i class="fas fa-sitemap fa-rotate-90" data-toggle="tooltip" title="{{configuration-source}}"></i></th>
-				<th>&nbsp;</th>
-			</tr>
-		</thead>
-		<tr>
-			<td colspan="5">{{loading}}</td>
-		</tr>
-	</table>
-<form id="popup" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-title">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
-					<span aria-hidden="true">&times;</span>
-				</button>
-				<h4 class="modal-title" id="modal-title">{{configuration}}</h4>
-			</div>
-			<div class="modal-body">
-				<div class="form-horizontal">
-					<div class="form-group required">
-						<label class="control-label" for="name">{{name}}</label>
-						<div>
-							<input class="form-control" type="text" id="name" required>
-						</div>
-					</div>
-					<div class="form-group required">
-						<label class="control-label" for="value">{{configuration-value}}</label>
-						<div>
-							<textarea class="form-control" id="value" required maxlength="1023"></textarea>
-						</div>
-					</div>
-					<div class="form-group">
-						<div class="col-sm-offset-4 col-sm-5">
-							<div class="checkbox">
-								<label for="override-sys" data-toggle="tooltip" title="{{override-sys-help}}">
-									<input type="checkbox" id="override-sys">
-									<span>{{override-sys}}</span>
-								</label>
+			<div class="row">
+				<form class="form-horizontal col-md-6">
+					<fieldset>
+						<legend>{{system}}</legend>
+						<div class="form-group">
+							<label class="control-label col-lg-2 col-md-4" for="memory">{{memory}}</label>
+							<div class=" col-lg-10 col-md-8">
+								<div class="progress" id="memory">
+									<div class="progress-bar progress-bar-danger" id="memory-committed-used">
+										<span class="sr-only">35% Complete (success)</span>
+									</div>
+									<div class="progress-bar progress-bar-warning" id="memory-committed-free">
+										<span class="sr-only">20% Complete (warning)</span>
+									</div>
+									<div class="progress-bar progress-bar-success progress-bar-striped" id="memory-free">
+										<span class="sr-only">10% Complete (danger)</span>
+									</div>
+								</div>
 							</div>
 						</div>
-					</div>
-				</div>
+						<div class="form-group">
+							<label class="control-label col-lg-2 col-md-4" for="cpu">{{cpu}}</label>
+							<div class="col-md-8">
+								<input type="text" id="cpu" class="form-control input-mini" readonly>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-lg-2 col-md-4" for="date">{{date}}</label>
+							<div class="col-lg-10 col-md-8">
+								<input type="text" id="date" class="form-control" readonly>
+							</div>
+						</div>
+					</fieldset>
+				</form>
+				<form class="form-horizontal col-md-6">
+					<fieldset>
+						<legend>{{timeZone}}</legend>
+						<div class="form-group">
+							<label class="control-label col-md-4" for="timeZone">{{timeZone-application}}</label>
+							<div class="col-lg-4 col-md-6">
+								<input type="text" id="timeZone" class="form-control">
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-md-4" for="defaultTimeZone">{{timeZone-system}}</label>
+							<div class="col-lg-4 col-md-6">
+								<input type="text" id="defaultTimeZone" class="form-control">
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-md-4" for="originalDefaultTimeZone">{{timeZone-system-initial}}</label>
+							<div class="col-lg-4 col-md-6">
+								<input type="text" id="originalDefaultTimeZone" class="form-control" readonly>
+							</div>
+						</div>
+					</fieldset>
+				</form>
 			</div>
-			<div class="modal-footer">
-				<input type="submit" class="btn btn-primary btn-raised" value="{{save}}">
-				<button class="btn btn-link" data-dismiss="modal">
-					{{cancel}}
-				</button>
+			<div class="row">
+				<form class="form-horizontal col-md-6">
+					<fieldset>
+						<legend>{{session}}</legend>
+						<div class="form-group">
+							<label class="control-label col-lg-2 col-md-4" for="session">{{identifier}}</label>
+							<div class="col-md-8">
+								<input type="text" id="session" class="form-control" readonly>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-lg-2 col-md-4" for="userName">{{user}}</label>
+							<div class="col-md-8">
+								<input type="text" id="userName" class="form-control" readonly>
+							</div>
+						</div>
+					</fieldset>
+				</form>
+				<form class="form-horizontal col-md-6">
+					<fieldset>
+						<legend>{{build}}</legend>
+						<div class="form-group">
+							<label class="control-label col-md-4" for="buildNumber">{{buildNumber}}</label>
+							<div class="col-lg-4 col-md-6">
+								<input type="text" id="buildNumber" class="form-control" readonly>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-md-4" for="buildTimestamp">{{buildTimestamp}}</label>
+							<div class="col-lg-4 col-md-6">
+								<input type="text" id="buildTimestamp" class="form-control" readonly>
+								<input type="text" id="buildDate" class="form-control" readonly>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="control-label col-md-4" for="buildVersion">{{buildVersion}}</label>
+							<div class="col-lg-4 col-md-6">
+								<input type="text" id="buildVersion" class="form-control" readonly>
+							</div>
+						</div>
+					</fieldset>
+				</form>
 			</div>
 		</div>
-	</div>
-</form>
+
+		<div role="tabpanel" class="tab-pane" id="system-configuration">
+			<div class="row">
+				<form class="form-horizontal col-md-6" id="cryptography" autocomplete="off">
+					<div class="form-group required">
+						<label class="control-label col-lg-2 col-md-3 col-sm-4" for="to-encrypt">{{encrypt}}</label>
+						<div class="input-group col-lg-10 col-md-9 col-sm-8">
+							<input type="text" id="to-encrypt" class="form-control" required>
+							<span class="input-group-btn">
+								<input type="submit" class="btn btn-default" value="{{encrypt}}">
+							</span>
+						</div>
+					</div>
+				</form>
+				<form class="form-horizontal col-md-6">
+					<span class="control-label col-md-12" id="encrypted"></span>
+				</form>
+			</div>
+			<table id="table" class="table justified table-striped table-bordered">
+				<thead>
+					<tr>
+						<th>{{name}}</th>
+						<th>{{value}}</th>
+						<th><i class="fas fa-lock" data-toggle="tooltip" title="{{configuration-secured}}"></i></th>
+						<th><i class="fas fa-sitemap fa-rotate-90" data-toggle="tooltip" title="{{configuration-source}}"></i></th>
+						<th>&nbsp;</th>
+					</tr>
+				</thead>
+				<tr>
+					<td colspan="5">{{loading}}</td>
+				</tr>
+			</table>
+			<form id="popup" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modal-title">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
+								<span aria-hidden="true">&times;</span>
+							</button>
+							<h4 class="modal-title" id="modal-title">{{configuration}}</h4>
+						</div>
+						<div class="modal-body">
+							<div class="form-horizontal">
+								<div class="form-group required">
+									<label class="control-label" for="name">{{name}}</label>
+									<div>
+										<input class="form-control" type="text" id="name" required>
+									</div>
+								</div>
+								<div class="form-group required">
+									<label class="control-label" for="value">{{configuration-value}}</label>
+									<div>
+										<textarea class="form-control" id="value" required maxlength="1023"></textarea>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-sm-offset-4 col-sm-5">
+										<div class="checkbox">
+											<label for="override-sys" data-toggle="tooltip" title="{{override-sys-help}}">
+												<input type="checkbox" id="override-sys">
+												<span>{{override-sys}}</span>
+											</label>
+										</div>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-sm-offset-4 col-sm-5">
+										<div class="checkbox">
+											<label for="secured" data-toggle="tooltip" title="{{configuration-secured-option-title}}">
+												<input type="checkbox" id="secured">
+												<span>{{configuration-secured-option}}</span>
+											</label>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<input type="submit" class="btn btn-primary btn-raised" value="{{save}}">
+							<button class="btn btn-link" data-dismiss="modal">{{cancel}}</button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
 	</div>
 </div>
-</div>
-	
