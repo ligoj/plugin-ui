@@ -250,7 +250,7 @@ define(['cascade'], function ($cascade) {
 			for (var index = 0; index < nodes.length; index++) {
 				var node = nodes[index];
 				var icon;
-				if (node.disabled) {
+				if (node.enabled === false) {
 					// Do not display disable nodes
 					continue;
 				}
