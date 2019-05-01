@@ -60,7 +60,7 @@ define(function () {
 					className: 'truncate'
 				}, {
 					data: 'vendor',
-					className: 'hidden-xs hidden-sm'
+					className: 'hidden-xs hidden-sm truncate'
 				}, {
 					data: 'plugin.version',
 					className: 'truncate',
