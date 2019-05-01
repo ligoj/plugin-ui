@@ -225,7 +225,7 @@ define(function () {
 						html: true,
 						title: 'Committed free memory<br/>' + committedFreePercent + '%<br/>' + formatManager.formatSize(data.memory.freeMemory) + ' / ' + formatManager.formatSize(data.memory.maxMemory)
 					});
-					var freePercent = 100 - committedFreePercent - committedUsedPercent;
+					var freePercent = Math.round(10 * (100 - committedFreePercent - committedUsedPercent)) / 10;
 					_('memory-free').css({
 						width: freePercent + '%'
 					}).tooltip({
