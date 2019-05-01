@@ -75,6 +75,9 @@ define([
 
 			// Detect visible subscriptions, and load the fresh status
 			document.addEventListener('scroll', current.onScroll, true);
+			$('.retractable').off('retract:retracted retract:expended').on('retract:retracted retract:expended', function() {
+				current.masonry();
+			});
 
 			// Focus to the filter and register filter on change
 			_('search').on('keyup', function (e) {
