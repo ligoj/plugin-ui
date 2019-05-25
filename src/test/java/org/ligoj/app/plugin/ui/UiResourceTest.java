@@ -21,13 +21,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(locations = "classpath:/META-INF/spring/application-context-test.xml")
 @Rollback
 @Transactional
-public class UiResourceTest extends AbstractAppTest {
+class UiResourceTest extends AbstractAppTest {
 
 	@Autowired
 	private UiResource resource;
 
 	@Test
-	public void getKey() {
+	void getKey() {
 		Assertions.assertEquals("feature:ui", resource.getKey());
 	}
 
