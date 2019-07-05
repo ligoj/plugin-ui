@@ -34,6 +34,24 @@ define(['cascade'], function ($cascade) {
 		initialize: function (parameters) {
 			current.$view.on('click', '.cancel-subscription', function () {
 				window.location.replace(current.$url + '/' + current.currentId);
+			}).on('click', '.carousel-indicators>[data-slide-to]', function (e, source) {
+				// Synchronize the carousel among the same plug-in
+				if (source === 'synchronize') {
+					// Ignore this event to prevent infinite loop
+					return;
+				}
+				var $tr = $(this).closest('tr');
+				var slideTo=$(this).attr('data-slide-to');
+				var classes = $tr.attr('class').split(' ');
+				var $matches = $tr.closest('tbody').find('tr').filter(function() {
+					return this !== $tr[0];
+				});
+				for(var i = 0; i < classes.length; i++) {
+					if (classes[i].startsWith('service-')) {
+						$matches = $matches.filter('.' + classes[i]);
+					}
+				}
+				$matches.find('[data-slide-to="' + slideTo + '"]').trigger('click', 'synchronize');
 			});
 
 			// QR Code management
@@ -49,7 +67,7 @@ define(['cascade'], function ($cascade) {
 					});
 				});
 			});
-			
+
 			this.onHashChange(parameters);
 		},
 
@@ -62,7 +80,7 @@ define(['cascade'], function ($cascade) {
 				var id = parameters[0];
 				if (parameters.length === 1) {
 					// Project mode
-					current.loadProject(id, function(model, refresh) {
+					current.loadProject(id, function (model, refresh) {
 						if (!refresh && current.currentSubscription) {
 							_('subscriptions').find('tr[data-id="' + current.currentSubscription.id + '"]').find('td.key').html('<i class="fas spin fa-spinner fa-pulse"></i>');
 							current.$parent.refreshSubscription(current.currentSubscription);
@@ -76,7 +94,7 @@ define(['cascade'], function ($cascade) {
 				} else {
 					// Subscription configuration mode
 					current.loadProject(id, function () {
-						current.loadSubscriptionConfiguration(parseInt(parameters[2], 10), function(subscription) {
+						current.loadSubscriptionConfiguration(parseInt(parameters[2], 10), function (subscription) {
 							current.currentSubscription = subscription;
 						});
 					});
@@ -106,9 +124,9 @@ define(['cascade'], function ($cascade) {
 		/**
 		 * Hide and unload all UI configurations associated to this project
 		 */
-		unloadConfiguration: function() {
+		unloadConfiguration: function () {
 			$('.subscribe-configuration').addClass('hidden');
-			current.$view.find('.configuration-wrapper').each(function() {
+			current.$view.find('.configuration-wrapper').each(function () {
 				var $service = $(this).data('service');
 				if ($service && $service.unload) {
 					$service.unload();
@@ -375,10 +393,10 @@ define(['cascade'], function ($cascade) {
 			current.form = true;
 			_('cancel').click(current.cancel);
 			_('save').click(current.save);
-			_('subscriptions').on('click', '.group.group-start.row-group-collapsed', function() {
+			_('subscriptions').on('click', '.group.group-start.row-group-collapsed', function () {
 				current.expandGroup($(this));
 			});
-			_('subscriptions').on('click', '.group.group-start:not(.row-group-collapsed)', function() {
+			_('subscriptions').on('click', '.group.group-start:not(.row-group-collapsed)', function () {
 				current.collapseGroup($(this));
 			});
 
@@ -433,39 +451,39 @@ define(['cascade'], function ($cascade) {
 		 * Fill the datatables of subscription, no AJAX, already loaded with the project's detail.
 		 */
 		fillSubscriptionsTable: function (project, $nodes) {
-			require(['datatables/dataTables.rowGroup'], function() {
+			require(['datatables/dataTables.rowGroup'], function () {
 				current.fillSubscriptionsTableInternal(project, $nodes);
 			});
 		},
-		
+
 		/**
 		 * Data source column number.
 		 */
-		dataSrcToNumCol : {'node.refined.refined.id' : 1,'node.refined.id' : 2,'node.id' : 3, 'compact' : 4},
-		
+		dataSrcToNumCol: { 'node.refined.refined.id': 1, 'node.refined.id': 2, 'node.id': 3, 'compact': 4 },
+
 		/**
 		 * Registered data source for grouping.
 		 */
-		dataSrcs : ['node.id', 'node.refined.id', 'node.refined.refined.id'],
-		
+		dataSrcs: ['node.id', 'node.refined.id', 'node.refined.refined.id'],
+
 		/**
 		 * Return the data corresponding to the given depth starting from a node.
 		 * @param {object} node The subscription node.
 		 * @param {integer} depth The positive depth to follow within the node's redefinition.
 		 * @return The node data in the given depth.
 		 */
-		dataSrcGetter : function(node, depth) {
+		dataSrcGetter: function (node, depth) {
 			if (depth === 0) {
 				return node.id;
 			}
 			return current.dataSrcGetter(node.refined, depth - 1);
-		}, 
-		
+		},
+
 		/**
 		 * Group the subscriptions table by the given data path (dataSrc).
 		 * @param {string} dataSrc Optional data source. When null, disable group mode.
 		 */
-		groupBy: function(dataSrc) {
+		groupBy: function (dataSrc) {
 			// Show collapsed groups
 			_('subscriptions').find('tr.hidden[data-subscription]').removeClass('hidden');
 
@@ -474,18 +492,18 @@ define(['cascade'], function ($cascade) {
 				if (dataSrc.startsWith('compact-')) {
 					masterDataSrc = 'compact';
 				}
-				current.subscriptions.DataTable().order([[ current.dataSrcToNumCol[masterDataSrc], 'asc' ]]);
+				current.subscriptions.DataTable().order([[current.dataSrcToNumCol[masterDataSrc], 'asc']]);
 				current.subscriptions.DataTable().rowGroup().dataSrc(dataSrc).enable();
 				current.subscriptions.DataTable().draw();
 				current.subscriptions.addClass('grouped');
-				
+
 				// For auto group, collaspe the big groups
 				var size = current.model.subscriptions.length;
 				if (size > 20) {
 					var $groups = _('subscriptions').find('tbody>tr.group-start');
 					var sizes = {};
 					var groups = [];
-					$groups.each(function() {
+					$groups.each(function () {
 						var group = $(this).attr('data-group');
 						groups.push(group);
 						sizes[group] = $(this).nextUntil('.group-start').length;
@@ -497,7 +515,7 @@ define(['cascade'], function ($cascade) {
 							if (sizes[group] === cursor) {
 								// Reduce the remaining size
 								size -= cursor;
-								current.collapseGroup($groups.filter('[data-group="' + group +'"]'));
+								current.collapseGroup($groups.filter('[data-group="' + group + '"]'));
 							}
 						}
 						cursor--;
@@ -510,11 +528,11 @@ define(['cascade'], function ($cascade) {
 				current.subscriptions.DataTable().draw();
 			}
 		},
-		
+
 		/**
 		 * Remove groups where there is only one subscription.
 		 */
-		pruneUselessGroups: function(groups) {
+		pruneUselessGroups: function (groups) {
 			var total = 0;
 			for (var id in groups) {
 				var count = groups[id];
@@ -527,16 +545,16 @@ define(['cascade'], function ($cascade) {
 			return total;
 		},
 
-		getAutoGroupDataSrc: function() {
+		getAutoGroupDataSrc: function () {
 			var subscriptions = current.model.subscriptions;
 			var modes = [];
 			var nodeId;
 			var depth;
 			var mode;
 			for (depth = 0; depth < current.dataSrcs.length; depth++) {
-				mode = {ids:{}, depth: depth};
+				mode = { ids: {}, depth: depth };
 				modes.push(mode);
-				for (var i = 0; i< subscriptions.length; i++) {
+				for (var i = 0; i < subscriptions.length; i++) {
 					nodeId = current.dataSrcGetter(subscriptions[i].node, depth);
 					mode.ids[nodeId] = (mode.ids[nodeId] || 0) + 1;
 				}
@@ -563,12 +581,12 @@ define(['cascade'], function ($cascade) {
 				// One group means no needed group
 				maxDepth = null;
 			}
-			
+
 			// Check compact mode utility
 			if (maxDepth !== null && (subscriptions.length - mode.nbGrouped) > 1) {
 				// More than 1 subscription is not within a group, create a special compact group
 				maxDepth = 'compact-' + maxDepth.replace(/\./g, '__');
-				for (var j = 0; j< subscriptions.length; j++) {
+				for (var j = 0; j < subscriptions.length; j++) {
 					nodeId = current.dataSrcGetter(subscriptions[j].node, maxMode.depth);
 					subscriptions[j][maxDepth] = maxMode.ids[nodeId] ? nodeId : 'z_orphan_';
 					subscriptions[j].compact = subscriptions[j][maxDepth];
@@ -579,13 +597,13 @@ define(['cascade'], function ($cascade) {
 
 		fillSubscriptionsTableInternal: function (project, $nodes) {
 			var buttons = project.manageSubscriptions ? [{
-					extend: 'create',
-					text: current.$messages.subscribe,
-					tag: 'a',
-					init: function (_i, $button) {
-						$button.off('click.dtb').attr('href', current.$url + '/' + current.currentId + '/subscription');
-					}
-				}] : [];
+				extend: 'create',
+				text: current.$messages.subscribe,
+				tag: 'a',
+				init: function (_i, $button) {
+					$button.off('click.dtb').attr('href', current.$url + '/' + current.currentId + '/subscription');
+				}
+			}] : [];
 			buttons.push({
 				extend: 'collection',
 				text: '<i class="far fa-object-group"></i>',
@@ -594,7 +612,7 @@ define(['cascade'], function ($cascade) {
 					'title': current.$messages['group-by'],
 					'data-toggle': 'tooltip'
 				},
-				autoClose : true,
+				autoClose: true,
 				buttons: [{
 					text: '<i class="fas fa-magic fa-fw"></i> ' + current.$messages['group-by-auto'],
 					action: function () {
@@ -702,10 +720,10 @@ define(['cascade'], function ($cascade) {
 						var dataSrc = rows.table().rowGroup().dataSrc();
 						var $tr = $('<tr/>').attr('data-group', group);
 						var subscription = rows.data()[0];
-						
+
 						// Add common subscription status
 						$tr.append('<td/>');
-						
+
 						// Orphan group detection
 						if (group === 'z_orphan_') {
 							// Orphan group case
@@ -718,19 +736,19 @@ define(['cascade'], function ($cascade) {
 						// Add service/too/node TD
 						if (dataSrc === 'node.id') {
 							// Node mode
-							$tr.append('<td>' + current.$parent.toIcon(subscription.node.refined.refined) +'</td>');
-							$tr.append('<td>' + current.$parent.toIconNameTool(subscription.node.refined) +'</td>');
-							$tr.append('<td colspan="' + (project.manageSubscriptions ? 4 : 3) + '">' + subscription.node.name +'</td>');
+							$tr.append('<td>' + current.$parent.toIcon(subscription.node.refined.refined) + '</td>');
+							$tr.append('<td>' + current.$parent.toIconNameTool(subscription.node.refined) + '</td>');
+							$tr.append('<td colspan="' + (project.manageSubscriptions ? 4 : 3) + '">' + subscription.node.name + '</td>');
 						} else if (dataSrc === 'node.refined.id' || dataSrc === 'node.id') {
 							// Tool mode
-							$tr.append('<td>' + current.$parent.toIcon(subscription.node.refined.refined) +'</td>');
-							$tr.append('<td colspan="' + (project.manageSubscriptions ? 5 : 4) + '">' + current.$parent.toIconNameTool(subscription.node.refined) +'</td>');
+							$tr.append('<td>' + current.$parent.toIcon(subscription.node.refined.refined) + '</td>');
+							$tr.append('<td colspan="' + (project.manageSubscriptions ? 5 : 4) + '">' + current.$parent.toIconNameTool(subscription.node.refined) + '</td>');
 						} else if (dataSrc === 'node.refined.refined.id') {
 							// Service mode
 							$tr.append('<td colspan="' + (project.manageSubscriptions ? 6 : 5) + '">' + current.$parent.toIcon(subscription.node.refined.refined) + '&nbsp;' + subscription.node.refined.refined.name + '</td>');
 						} else {
 							// Orphan group
-							$tr.append('<td colspan="' + (project.manageSubscriptions ? 6 : 5) + '">'+ current.$messages['group-by-other'] +'</td>');
+							$tr.append('<td colspan="' + (project.manageSubscriptions ? 6 : 5) + '">' + current.$messages['group-by-other'] + '</td>');
 						}
 						$tr.children().eq(0).append('<div class="grouped-count label label-default"><span class="toggle"><i class="far fa-plus-square"></i><i class="far fa-minus-square"></i></span>' + rows.count() + '</div>');
 						return $tr;
@@ -753,13 +771,13 @@ define(['cascade'], function ($cascade) {
 		 * @param {jquery} $tr The related row group.
 		 * @param {function} f The function to apply.
 		 */
-		applyFunctionGroup: function($tr, f) {
+		applyFunctionGroup: function ($tr, f) {
 			var id = $tr.attr('data-group');
 			$tr.nextUntil('.group-start')[f]('hidden');
 			$tr[f]('row-group-collapsed');
 			var subscriptions = current.model.subscriptions;
 			var $subscriptions = _('subscriptions');
-			for (var i = 0; i< subscriptions.length; i++) {
+			for (var i = 0; i < subscriptions.length; i++) {
 				var subscription = current.model.subscriptions[i];
 				if (subscription.node.id === id || subscription.node.id.startsWith(id + ':')) {
 					// Hide the related row
@@ -772,7 +790,7 @@ define(['cascade'], function ($cascade) {
 		 * Collapse the given group. All subscriptions based on a node equals or inside the given row group are hidden.
 		 * @param {jquery} $tr The related row group.
 		 */
-		collapseGroup: function($tr) {
+		collapseGroup: function ($tr) {
 			current.applyFunctionGroup($tr, 'addClass');
 		},
 
@@ -780,7 +798,7 @@ define(['cascade'], function ($cascade) {
 		 * Expand the given group. All subscriptions based on a node equals or inside the given row group are shown.
 		 * @param {jquery} $tr The related row group.
 		 */
-		expandGroup: function($tr) {
+		expandGroup: function ($tr) {
 			current.applyFunctionGroup($tr, 'removeClass');
 		},
 
@@ -795,13 +813,13 @@ define(['cascade'], function ($cascade) {
 			current.unloadConfiguration()
 
 			$cascade.loadFragment(current, current.$transaction, 'main/home/project/subscribe-wizard', 'subscribe-wizard', {
-				callback: function(context) {
+				callback: function (context) {
 					context.setModel(project);
 				},
 				plugins: ['css', 'i18n', 'html', 'js']
 			});
 
-			$(document).off('subscribe:saved').on('subscribe:saved', '#subscribe-definition', function() {
+			$(document).off('subscribe:saved').on('subscribe:saved', '#subscribe-definition', function () {
 				// Show the subscription
 				current.currentId = project;
 				window.location.replace(current.$url + '/' + project.id);
@@ -829,13 +847,13 @@ define(['cascade'], function ($cascade) {
 			});
 		},
 
-		configurePluginView: function($context, service, data, callback) {
+		configurePluginView: function ($context, service, data, callback) {
 			var tool = current.$parent.getTool(data.node);
 			// Destroy the previous view, some cache could be performed there ...
 			current.$view.find('.subscribe-configuration').not('#subscribe-definition').remove();
 			// Inject the partial of this service in the current view
 			var $subscribe = ($context.$view.is('.subscribe-configuration') ? $context.$view : $context.$view.find('.subscribe-configuration')).clone();
-			var $subscribeWrapper = $('<div id="configuration-wrapper-' + data.id + '" class="configuration-wrapper configuration-wrapper-' + service.id.replace(/:/g, '-') + ' configuration-wrapper-' + tool.id.replace(/:/g, '-') +'"></div>');
+			var $subscribeWrapper = $('<div id="configuration-wrapper-' + data.id + '" class="configuration-wrapper configuration-wrapper-' + service.id.replace(/:/g, '-') + ' configuration-wrapper-' + tool.id.replace(/:/g, '-') + '"></div>');
 			$subscribeWrapper.data('service', $context);
 			current.$view.append($subscribeWrapper);
 			$subscribeWrapper.html($subscribe);
