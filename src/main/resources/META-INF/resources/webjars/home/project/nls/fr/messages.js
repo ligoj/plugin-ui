@@ -14,15 +14,15 @@ define({
 	"delete-subscription" : "Supprime cette souscription du portail ainsi que de l'outil distant. Cette option est possible car cette souscription a été effectuée en mode 'création'. Une confirmation est attendue.",
 	"confirm-delete-subscription" : "Supprimer cette souscription retirera le lien entre le portail et l'outil, mais détruira aussi les données du projet (projet, données, groupe, ...) de l'outil distant. Cette opération n'est pas réversible.",
 	"subscription-state-up" : "Souscription vérifiée",
-	"subscription-state-down" : "Souscription cassée ou non valide",
+	"subscription-state-down" : "Souscription cassée ou invalide",
 	"subscription-state-unknown" : "Souscription dans un état inconnu",
 	"nb-subscriptions" : "Nombre de souscriptions",
 	"group-by" : "Grouper les souscriptions par affinité",
 	"group-by-none" : "Aucun",
 	"group-by-other" : "Autre",
 	"error" : {
-		"Validation" : "Ensemble de paramètres invalide",
-		"not-accepted-parameter" : "Paramètre {{this}} non attendu"
+		"Validation" : "Ensemble de paramètres invalides",
+		"not-accepted-parameter" : "Paramètre {{this}} inattendu"
 	},
 	"warn" : {
 		"subscription-deletion" : "Pour le moment, les souscriptions ne peuvent pas être modifiées."
