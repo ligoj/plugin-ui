@@ -3,7 +3,7 @@
  */
 define({
 	"root" : {
-		"title" : "Project",
+		"title" : "Projects",
 		"configure" : "Configure",
 		"configure-present" : "Configure (has configuration)",
 		"pkey" : "Key",

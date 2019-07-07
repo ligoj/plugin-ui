@@ -112,6 +112,8 @@ define(['cascade'], function ($cascade) {
 		 * Search mode
 		 */
 		loadProjects: function () {
+			document.title = current.$messages.title;
+			$('.cascade-title').text(document.title);
 			current.initializeSearch();
 			_('details').addClass('hidden');
 			current.unloadConfiguration();
@@ -386,7 +388,10 @@ define(['cascade'], function ($cascade) {
 		/**
 		 * Initialize project's form
 		 */
-		initializeDetails: function () {
+		initializeDetails: function (project) {
+			document.title = project.name;
+			$('.cascade-title').text(project.name);
+
 			if (current.form) {
 				return;
 			}
@@ -404,7 +409,7 @@ define(['cascade'], function ($cascade) {
 		},
 
 		fillProject: function (project) {
-			current.initializeDetails();
+			current.initializeDetails(project);
 			current.currentId = project ? project.id : 0;
 			var name = project ? project.name + ' (' + project.pkey + ')' : '';
 			$('.project-name').text(name);

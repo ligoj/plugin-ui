@@ -2,7 +2,7 @@
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
 define({
-	"title" : "Projet",
+	"title" : "Projets",
 	"configure" : "Configurer",
 	"configure-present" : "Configurer (a déjà une configuration)",
 	"pkey" : "Clé",
