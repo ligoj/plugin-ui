@@ -151,3 +151,25 @@ table .hidden-table {
 .dropdown-menu.dt-button-collection {
 	padding-top: 0;
 }
+#_about .logo {
+    background: url(home/img/logo.png);
+    background-size: cover;
+    width: 32px;
+    position: relative;
+    display: inline-block;
+    height: 32px;
+    margin-right: 4px;
+    margin-bottom: -11px;
+    background-repeat: no-repeat;
+}
+#_about a.brand {
+	background-image: url(../themes/bootstrap-material-design/img/brand.png);
+	background-size: cover;
+	height: 18px;
+	width: 18px;
+	display: inline-block;
+    top: 1px;
+    position: relative;
+    padding-left: 18px;
+    font-weight: bold;
+}
