@@ -27,6 +27,9 @@
 	padding: 0;
 	border-radius: 0;
 	min-height: 80px;
+	background-color: #337ab7;
+	border: none;
+	box-shadow: 0 4px 20px 0 rgba(0,0,0,.14),0 7px 10px -5px rgba(51,122,183,.4);
 }
 .masonry-container>.node .subscriptions {
 	margin-bottom: 0 !important;
@@ -297,16 +300,6 @@
 }
 .masonry-container>.node>tr.filter-match {
 	background-color: yellow;
-}
-
-/**
- * 	Default theme
- */
-
-.masonry-container>.node>.thumbnail {
-	background-color: #337ab7;
-	border: none;
-	box-shadow: 0 4px 20px 0 rgba(0,0,0,.14),0 7px 10px -5px rgba(51,122,183,.4);
 }
 
 /* Blue theme */

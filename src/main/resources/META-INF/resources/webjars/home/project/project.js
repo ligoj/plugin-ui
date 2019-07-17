@@ -508,15 +508,16 @@ define(['cascade'], function ($cascade) {
 					var $groups = _('subscriptions').find('tbody>tr.group-start');
 					var sizes = {};
 					var groups = [];
+					var group;
 					$groups.each(function () {
-						var group = $(this).attr('data-group');
+						group = $(this).attr('data-group');
 						groups.push(group);
 						sizes[group] = $(this).nextUntil('.group-start').length;
 					});
 					var cursor = size;
 					while (size > 20 && cursor > 2) {
 						for (var index = groups.length; index-- > 0;) {
-							var group = groups[index];
+							group = groups[index];
 							if (sizes[group] === cursor) {
 								// Reduce the remaining size
 								size -= cursor;

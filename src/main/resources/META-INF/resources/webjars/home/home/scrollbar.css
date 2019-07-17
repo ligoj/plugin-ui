@@ -97,8 +97,12 @@
     -webkit-border-radius: 8px;
     -moz-border-radius: 8px;
     border-radius: 8px;
+    background-color: #c2c2c2;
 }
-.scrollbar-macosx > .scroll-element .scroll-element_track { display: none; }
+.scrollbar-macosx > .scroll-element .scroll-element_track {
+    display: none;
+    background-color: #e0e0e0;
+}
 .scrollbar-macosx > .scroll-element .scroll-bar {
     -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=40)";
     filter: alpha(opacity=40);
@@ -139,9 +143,7 @@
     top: 0;
     width: 0px;
 }
- 
-.scrollbar-macosx > .scroll-element .scroll-element_track { background-color: #e0e0e0; }
-.scrollbar-macosx > .scroll-element .scroll-bar { background-color: #c2c2c2; }
+
 .scrollbar-macosx > .scroll-element:hover .scroll-bar { background-color: #919191; }
 .scrollbar-macosx > .scroll-element.scroll-draggable .scroll-bar { background-color: #919191; }
  

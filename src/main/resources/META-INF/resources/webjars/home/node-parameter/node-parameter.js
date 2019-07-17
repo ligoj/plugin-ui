@@ -57,13 +57,13 @@ define(['cascade'], function ($cascade) {
 			// Trim the data
 			return values;
 		},
-		
+
 		/**
 		 * Indicate the given container corresponds to a node configuration, so a node mode editing.
 		 * @param {jquery} $container The current container.
 		 * @return {boolean} True when the given container corresponds to a node configuration.
 		 */
-		isNodeMode: function($container) {
+		isNodeMode: function ($container) {
 			return $container.closest('.modal').length === 1;
 		},
 
@@ -98,17 +98,17 @@ define(['cascade'], function ($cascade) {
 						}
 						$element.select2('val', selections);
 					},
-					bool: function (value, $element, parameter, node) {
-						$element.prop('checked', node ? value.bool : !!parameter.defaultValue);
+					bool: function (value, $element, parameter, n) {
+						$element.prop('checked', n ? value.bool : !!parameter.defaultValue);
 					},
 					tags: function (value, $element) {
 						$element.select2('tags', value.split(','));
 					},
-					text: function (value, $element, parameter, node) {
-						$element.val(node ? value.text : (parameter.defaultValue || ''));
+					text: function (value, $element, parameter, n) {
+						$element.val(n ? value.text : (parameter.defaultValue || ''));
 					},
-					integer: function (value, $element, parameter, node) {
-						$element.val((node || (typeof parameter.defaultValue === 'undefined') || parameter.defaultValue === null) ? value.integer : parameter.defaultValue);
+					integer: function (value, $element, parameter, n) {
+						$element.val((n || (typeof parameter.defaultValue === 'undefined') || parameter.defaultValue === null) ? value.integer : parameter.defaultValue);
 					}
 				},
 				renderers: {
@@ -196,13 +196,13 @@ define(['cascade'], function ($cascade) {
 				var $fieldset = previousProvider(parameter, $container, $input);
 				$input = $fieldset.find('input');
 
-				var customQuery = function() {
-					var values =current.getParameterValues($container);
+				var customQuery = function () {
+					var pvalues = current.getParameterValues($container);
 					var queryParameters = [];
-					for (var index = 0; index < values.length; index++) {
-						var parameter = values[index];
-						var value = parameter.text || parameter.date || parameter.tags || parameter.index || parameter.bool || parameter.integer;
-						queryParameters.push(values[index].parameter + '=' + encodeURIComponent(value));
+					for (var index = 0; index < pvalues.length; index++) {
+						var pv = pvalues[index];
+						var value = pv.text || pv.date || pv.tags || pv.index || pv.bool || pv.integer;
+						queryParameters.push(pv.parameter + '=' + encodeURIComponent(value));
 					}
 					return queryParameters.join('&');
 				};
@@ -217,7 +217,7 @@ define(['cascade'], function ($cascade) {
 				}, parameter, customPath, allowNew, lowercase, customQuery);
 			};
 		},
-		
+
 		/**
 		 * Build node/subscription parameter values: UI and configuration.
 		 * Note this is an asynchronous function thats requires the related node's context to render the parameter.
@@ -233,13 +233,13 @@ define(['cascade'], function ($cascade) {
 			// Drop required flag for nodes
 			var parameters = [];
 			for (var index = 0; index < values.length; index++) {
-				var parameter = values[index].parameter;
-				parameters.push(parameter);
-				delete parameter.mandatory;
+				var pvp = values[index].parameter;
+				parameters.push(pvp);
+				delete pvp.mandatory;
 			}
 			current.configureParameters($container, parameters, node, mode, id, function (configuration) {
-				for (var index = 0; index < values.length; index++) {
-					var value = values[index];
+				for (var pi = 0; pi < values.length; pi++) {
+					var value = values[pi];
 					var parameter = value.parameter;
 					var $element = _(parameter.id);
 					var $group = $element.closest('.form-group');
@@ -359,13 +359,13 @@ define(['cascade'], function ($cascade) {
 				var type = $that.attr('data-type');
 				var id = $that.attr('id');
 				var validators = current.configuration.validators;
-				
+
 				// Specific parameter validation
 				if (validators[id] && !validators[id]($that)) {
 					validate = false;
 					return;
 				}
-				
+
 				// Data type validation
 				if (validators[type] && !validators[type]($that)) {
 					validate = false;
