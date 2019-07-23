@@ -468,7 +468,7 @@ define(['cascade'], function ($cascade) {
 			var result = '';
 			// Help
 			if (parameters[serviceKey]) {
-				result += current.renderServicelink('question-circle-o', parameters[serviceKey], 'service:help', undefined, 'target="_blank"');
+				result += current.renderServiceLink('question-circle-o', parameters[serviceKey], 'service:help', undefined, 'target="_blank"');
 			}
 			return result;
 		},
