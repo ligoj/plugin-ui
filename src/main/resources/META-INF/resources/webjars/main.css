@@ -14,14 +14,19 @@
  * Console in square
  */
 
-.fa-square+.fa-terminal {
+.fa-square.terminal+.fa-terminal {
 	font-size: .5em;
 	margin-top: -.3em;
 }
-.fa-stack {
+.fa-stack.terminal {
 	width: 1em;
 	height: 1em;
 	line-height: 1em;
+}
+.fa-stack.fa-fw {
+    width: 1.25em;
+	height: 1em;
+	line-height: 1;
 }
 
 /* Dropdown menu in table */
