@@ -73,6 +73,12 @@ define(['cascade'], function ($cascade) {
 		 * Parameter will be the controller of the service.
 		 */
 		requireService: function (context, node, callback) {
+			// Check the plugin is enabled
+			if (node && typeof securityManager.plugins !== 'undefined' && $.inArray(node.split(':').slice(0,2).join(':'), securityManager.plugins) < 0) {
+				callback && callback();
+				return;
+			}
+
 			var service = current.getServiceNameFromId(node);
 			var path = 'main/service/' + service + '/';
 			if (path === context.$path) {
@@ -109,6 +115,12 @@ define(['cascade'], function ($cascade) {
 		requireTool: function (context, node, callback) {
 			// First, load service dependencies
 			var transaction = context.$transaction;
+			
+			// Check the plugin is enabled
+			if (node && typeof securityManager.plugins !== 'undefined' && $.inArray(node.split(':').slice(0,3).join(':'), securityManager.plugins) < 0) {
+				callback && callback();
+				return;
+			}
 			current.requireService(context, node, function ($service) {
 				if (typeof $service === 'undefined') {
 					callback && callback();
