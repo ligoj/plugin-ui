@@ -136,6 +136,10 @@ define(['cascade'], function ($cascade) {
 			});
 		},
 
+		unload: function() {
+			current.unloadConfiguration();
+		},
+
 		/**
 		 * Project mode, load project where id = current.currentId.
 		 * @param {integer|string} id Identifier of PKey of the project to load.
