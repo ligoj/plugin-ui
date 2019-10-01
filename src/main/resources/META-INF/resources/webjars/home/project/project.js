@@ -402,10 +402,10 @@ define(['cascade'], function ($cascade) {
 			current.form = true;
 			_('cancel').click(current.cancel);
 			_('save').click(current.save);
-			_('subscriptions').on('click', '.group.group-start.row-group-collapsed', function () {
+			_('subscriptions').on('click', '.dtrg-group.dtrg-start.row-group-collapsed', function () {
 				current.expandGroup($(this));
 			});
-			_('subscriptions').on('click', '.group.group-start:not(.row-group-collapsed)', function () {
+			_('subscriptions').on('click', '.dtrg-group.dtrg-start:not(.row-group-collapsed)', function () {
 				current.collapseGroup($(this));
 			});
 
@@ -509,14 +509,14 @@ define(['cascade'], function ($cascade) {
 				// For auto group, collaspe the big groups
 				var size = current.model.subscriptions.length;
 				if (size > 20) {
-					var $groups = _('subscriptions').find('tbody>tr.group-start');
+					var $groups = _('subscriptions').find('tbody>tr.dtrg-start');
 					var sizes = {};
 					var groups = [];
 					var group;
 					$groups.each(function () {
 						group = $(this).attr('data-group');
 						groups.push(group);
-						sizes[group] = $(this).nextUntil('.group-start').length;
+						sizes[group] = $(this).nextUntil('.dtrg-start').length;
 					});
 					var cursor = size;
 					while (size > 20 && cursor > 2) {
@@ -763,7 +763,7 @@ define(['cascade'], function ($cascade) {
 		 */
 		applyFunctionGroup: function ($tr, f) {
 			var id = $tr.attr('data-group');
-			$tr.nextUntil('.group-start')[f]('hidden');
+			$tr.nextUntil('.dtrg-start')[f]('hidden');
 			$tr[f]('row-group-collapsed');
 			var subscriptions = current.model.subscriptions;
 			var $subscriptions = _('subscriptions');

@@ -43,13 +43,13 @@ div.dt-button-background {
 #subscriptions tr>td:nth-child(2) {
 	overflow: hidden;
 }
-#subscriptions .group.group-start {
+#subscriptions .dtrg-group.dtrg-start {
 	cursor: pointer;
 }
-#subscriptions .group.group-start td:first-child {
+#subscriptions .dtrg-group.dtrg-start td:first-child {
 	padding: 0;
 }
-.group-start .grouped-count {
+.dtrg-start .grouped-count {
 	padding-bottom: 13px;
     margin-bottom: 0;
     margin-top: 0;
@@ -71,20 +71,20 @@ div.dt-button-background {
 .table.grouped {
 	border-left: none;
 }
-.group-start .toggle {
+.dtrg-start .toggle {
 	position: absolute;
 	display: block;
 }
-.group-start .toggle i {
+.dtrg-start .toggle i {
     position: relative;
     left: 15px;
     top: 12px;
     display: inline;
 }    
-.group-start.row-group-collapsed .toggle i.fa-minus-square {
+.dtrg-start.row-group-collapsed .toggle i.fa-minus-square {
 	display: none;
 }
-.group-start:not(.row-group-collapsed) .toggle i.fa-plus-square {
+.dtrg-start:not(.row-group-collapsed) .toggle i.fa-plus-square {
 	display: none;
 }
 .details-audit {
