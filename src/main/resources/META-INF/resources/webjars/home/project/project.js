@@ -41,12 +41,12 @@ define(['cascade'], function ($cascade) {
 					return;
 				}
 				var $tr = $(this).closest('tr');
-				var slideTo=$(this).attr('data-slide-to');
+				var slideTo = $(this).attr('data-slide-to');
 				var classes = $tr.attr('class').split(' ');
-				var $matches = $tr.closest('tbody').find('tr').filter(function() {
+				var $matches = $tr.closest('tbody').find('tr').filter(function () {
 					return this !== $tr[0];
 				});
-				for(var i = 0; i < classes.length; i++) {
+				for (var i = 0; i < classes.length; i++) {
 					if (classes[i].startsWith('service-')) {
 						$matches = $matches.filter('.' + classes[i]);
 					}
@@ -136,7 +136,7 @@ define(['cascade'], function ($cascade) {
 			});
 		},
 
-		unload: function() {
+		unload: function () {
 			current.unloadConfiguration();
 		},
 
@@ -610,9 +610,7 @@ define(['cascade'], function ($cascade) {
 				extend: 'create',
 				text: current.$messages.subscribe,
 				tag: 'a',
-				init: function (_i, $button) {
-					$button.off('click.dtb').attr('href', current.$url + '/' + current.currentId + '/subscription');
-				}
+				init: (_i, $button) => $button.off('click.dtb').attr('href', current.$url + '/' + current.currentId + '/subscription')
 			}] : [];
 			buttons.push({
 				extend: 'collection',
@@ -625,29 +623,19 @@ define(['cascade'], function ($cascade) {
 				autoClose: true,
 				buttons: [{
 					text: '<i class="fas fa-magic fa-fw"></i> ' + current.$messages['group-by-auto'],
-					action: function () {
-						current.groupBy(current.getAutoGroupDataSrc());
-					}
+					action: () => current.groupBy(current.getAutoGroupDataSrc())
 				}, {
 					text: '<i class="fas fa-ban fa-fw"></i> ' + current.$messages['group-by-none'],
-					action: function () {
-						current.groupBy();
-					}
+					action: () => current.groupBy()
 				}, {
 					text: '<i class="fas fas fa-glass-martini fa-fw"></i> ' + current.$messages.service,
-					action: function () {
-						current.groupBy('node.refined.refined.id', 1);
-					}
+					action: () => current.groupBy('node.refined.refined.id', 1)
 				}, {
 					text: '<i class="fas fa-wrench fa-fw"></i> ' + current.$messages.tool,
-					action: function () {
-						current.groupBy('node.refined.id', 2);
-					}
+					action: () => current.groupBy('node.refined.id', 2)
 				}, {
 					text: '<i class="fas fa-cube fa-fw"></i> ' + current.$messages.node,
-					action: function () {
-						current.groupBy('node.id', 3);
-					}
+					action: () => current.groupBy('node.id', 3)
 				}]
 			});
 			var groupBy = current.getAutoGroupDataSrc();
@@ -667,9 +655,7 @@ define(['cascade'], function ($cascade) {
 					data: 'null',
 					className: 'status',
 					orderable: false,
-					render: function () {
-						return '<div class="draw status-content"></div>';
-					}
+					render: () => '<div class="draw status-content"></div>'
 				}, {
 					data: 'node.refined.refined.id',
 					className: 'hidden-xs service',
@@ -691,9 +677,7 @@ define(['cascade'], function ($cascade) {
 				}, {
 					data: 'node.id',
 					className: 'hidden-xs responsive-node truncate',
-					render: function (_i, _m, subscription) {
-						return subscription.node.name;
-					}
+					render: (_i, _m, subscription) => subscription.node.name
 				}, {
 					data: 'compact',
 					className: 'hidden'
@@ -701,16 +685,12 @@ define(['cascade'], function ($cascade) {
 					data: null,
 					orderable: false,
 					className: 'truncate key rendered',
-					render: function (_i, _j, subscription) {
-						return current.$parent.render(subscription, 'renderKey', $nodes[subscription.node.id]);
-					}
+					render: (_i, _j, subscription) => current.$parent.render(subscription, 'renderKey', $nodes[subscription.node.id])
 				}, {
 					data: null,
 					orderable: false,
 					className: 'features rendered',
-					render: function (_i, _j, subscription) {
-						return current.$parent.render(subscription, 'renderFeatures', $nodes[subscription.node.id]);
-					}
+					render: (_i, _j, subscription) => current.$parent.render(subscription, 'renderFeatures', $nodes[subscription.node.id])
 				}, {
 					data: null,
 					className: 'hidden-xs hidden-sm',
