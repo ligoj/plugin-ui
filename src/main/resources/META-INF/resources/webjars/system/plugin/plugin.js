@@ -87,15 +87,23 @@ define(function () {
 					className: 'hidden-xs hidden-sm'
 				}, {
 					data: 'nodes',
+					type: 'num',
 					className: 'icon',
-					render: function (nb, _i, plugin) {
-						return plugin.plugin.type === 'feature' ? '' : nb;
+					render: function (nb, mode, plugin) {
+						if (mode === 'display') {
+							return plugin.plugin.type.toLowerCase() === 'feature' ? '' : nb;
+						}
+						return nb;
 					}
 				}, {
 					data: 'subscriptions',
+					type: 'num',
 					className: 'icon',
-					render: function (nb, _i, plugin) {
-						return plugin.plugin.type === 'feature' ? '' : nb;
+					render: function (nb, mode, plugin) {
+						if (mode === 'display') {
+							return plugin.plugin.type.toLowerCase()  === 'feature' ? '' : nb;
+						}
+						return nb;
 					}
 				}, {
 					data: 'deleted',
