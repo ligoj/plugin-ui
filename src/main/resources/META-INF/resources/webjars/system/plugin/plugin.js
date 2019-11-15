@@ -91,7 +91,7 @@ define(function () {
 					className: 'icon',
 					render: function (nb, mode, plugin) {
 						if (mode === 'display') {
-							return plugin.plugin.type.toLowerCase() === 'feature' ? '' : nb;
+							return plugin.plugin.type && plugin.plugin.type.toLowerCase() === 'feature' ? '' : nb;
 						}
 						return nb;
 					}
@@ -101,7 +101,7 @@ define(function () {
 					className: 'icon',
 					render: function (nb, mode, plugin) {
 						if (mode === 'display') {
-							return plugin.plugin.type.toLowerCase()  === 'feature' ? '' : nb;
+							return plugin.plugin.type && plugin.plugin.type.toLowerCase()  === 'feature' ? '' : nb;
 						}
 						return nb;
 					}
