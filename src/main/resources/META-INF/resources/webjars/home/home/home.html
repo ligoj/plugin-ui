@@ -53,19 +53,10 @@
 			<div class="panel-group" role="tablist">
 				<div class="panel panel-info">
 					<div class="panel-heading" role="tab">
-						<h4><i class="fas fa-info"></i> Nouveautés </h4>
+						<h4><i class="fas fa-info"></i> {{news}}</h4>
 					</div>
 					<div class="panel-body">
-						Le portail SaaS intègre constamment de nouvelles fonctionnalités. <a data-toggle="collapse" href="#news-collapse" aria-controls="news-collapse"> Détails »</a>
-						<div id="news-collapse" class="collapse">
-							<div>
-								News ...
-							</div>
-							<div>
-								<br>
-								<a rel="noopener noreferrer" target="blank" href="https://github.com/ligoj/ligoj/issues"><i class="fas fa-bug"></i></a> Vous trouvez un bug, même mineur, ou avez des idées ? Contribuez dans le gestionnaire de demande <a target="blank" href="https://github.com/ligoj/ligoj/issues">JIRA</a>
-							</div>
-						</div>
+						<a rel="noopener noreferrer" target="blank" href="https://github.com/ligoj/ligoj/issues"><i class="fas fa-bug"></i></a> {{new-details}} <a rel="noopener noreferrer" target="blank" href="https://github.com/ligoj/ligoj/issues">GitHub</a>
 					</div>
 				</div>
 			</div>
@@ -75,15 +66,15 @@
 			<div class="panel-group" role="tablist" data-secured-service="node/status" data-secured-method="get">
 				<div class="panel panel-default">
 					<div class="panel-heading" role="tab">
-						<h4><i class="fas fa-map-signs"></i> Redirection </h4>
+						<h4><i class="fas fa-map-signs"></i> {{redirect}} </h4>
 					</div>
 					<div class="panel-body">
-						Vous pouvez sélectionner un outil qui sera associé par défaut à l'adresse <a href="{{{$current.$url}}}">{{{$current.$url}}}</a>. Seuls les outils avec une URL générique sont affichés. <a data-toggle="collapse" href="#redirection-collapse" aria-controls="redirection-collapse"> Configurer <i class="fas fa-cog faa-wrench animated-hover"></i> </a>
+						{{redirect-details}} <a href="{{{$current.$url}}}">{{{$current.$url}}}</a>. {{redirect-notice}} <a data-toggle="collapse" href="#redirection-collapse" aria-controls="redirection-collapse"> {{configure}} <i class="fas fa-cog faa-wrench animated-hover"></i> </a>
 						<div id="redirection-collapse" class="collapse">
 							<form>
 								<div class="form-horizontal">
 									<div class="form-group">
-										<label for="redirection" class="control-label col-xs-4 col-md-3 col-lg-2">Redirection</label>
+										<label for="redirection" class="control-label col-xs-4 col-md-3 col-lg-2">{{redirect}}</label>
 										<div class="col-xs-7 col-md-8 col-lg-9">
 											<div class="input-group">
 												<input id="redirection" type="text" class="form-control" placeholder="URL par défaut">

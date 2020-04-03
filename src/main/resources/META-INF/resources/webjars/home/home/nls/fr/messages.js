@@ -18,5 +18,15 @@ define({
 	'no-match': 'Aucun élément ne correspond aux filtres sélectionnés',
 	'no-node': 'Aucun projet ou outil, contactez votre responsable.',
 	'toggle-thumbnail': 'Cliquer ici pour forcer l\'affichage permanent',
-	'global-statuses': 'Statuts globaux'
+	'global-statuses': 'Statuts globaux',
+	'news': 'Nouveautés',
+	'new-details': 'Ligoj est un gestionnaire de dépendences pour vos projets. Vous êtes les bienvenues pour contribuer sur la plus grosse plateforme Open Source',
+	'redirect': 'Redirection',
+	'redirect-details': 'You can select a tool to be associated to this address',
+	'configure': 'Configure',
+	'redirect-notice': 'Only the tools with generic URL are displayed there.'
+	'redirect': 'Redirection',
+	'redirect-details': 'Vous pouvez sélectionner un outil qui sera associé par défaut à l'adresse',
+	'configure': 'Configurer',
+	'redirect-notice': 'Seuls les outils avec une URL générique sont affichés.'
 });

@@ -19,7 +19,13 @@ define({
 		'no-match': 'No tool or project matches to provided filters',
 		'no-node': 'No enabled project or tool. Contact your manager.',
 		'toggle-thumbnail': 'Click here to force the permanent display',
-		'global-statuses': 'Global Statuses'
-	},
+		'global-statuses': 'Global Statuses',
+		'news': 'News',
+		'new-details': 'Ligoj is a dependency management for your delivery. You are welcome to contribute to this project on the biggest Open Source code platform',
+		'redirect': 'Redirection',
+		'redirect-details': 'You can select a tool to be associated to this address',
+		'configure': 'Configure',
+		'redirect-notice': 'Only the tools with generic URL are displayed there.'
+		},
 	fr: true
 });
