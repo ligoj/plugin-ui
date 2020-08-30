@@ -10,7 +10,7 @@
 
 	<groupId>org.ligoj.plugin</groupId>
 	<artifactId>plugin-ui</artifactId>
-	<version>1.0.15</version>
+	<version>1.0.16-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Ligoj - Plugin UI</name>
 
@@ -22,11 +22,12 @@
 
 	<profiles>
 		<profile>
-			<id>bintray</id>
+			<id>github</id>
 			<distributionManagement>
 				<repository>
-					<id>bintray-ligoj-maven-repo</id>
-					<url>https://api.bintray.com/maven/ligoj/maven-repo/plugin-ui/;publish=1</url>
+					<id>github-ligoj</id>
+					<name>GitHub Packages</name>
+					<url>https://maven.pkg.github.com/ligoj/plugin-ui</url>
 				</repository>
 			</distributionManagement>
 		</profile>
