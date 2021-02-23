@@ -101,12 +101,14 @@ define(function () {
 				_('override-sys').prop('checked', false);
 				_('secured').prop('checked', uc.secured || false);
 				_('name').val(uc.name || '');
+				_('oldName').val(uc.name || '');
 				_('value').val(uc.value);
 				current.$cascade.removeSpin(_('value').removeClass('hidden').closest('div'));
 				validationManager.reset($(this));
 			}).on('submit', function () {
 				var data = {
 					name: _('name').val(),
+					oldName: _('oldName').val() || '',
 					system: _('override-sys').prop('checked') ? true : false,
 					secured: _('secured').prop('checked') ? true : false,
 					value: _('value').val()
