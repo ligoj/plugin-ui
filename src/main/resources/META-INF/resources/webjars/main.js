@@ -232,17 +232,16 @@ define(['cascade'], function ($cascade) {
 		 * Fill audit data in the UI
 		 */
 		fillAuditData: function (data) {
-			if (data && (data.createdBy || data.lastModifiedDate || data.lastModifiedBy || data.createdDate)) {
-				_('detail-audit').html(Handlebars.compile(current.$messages.audit)([
-					current.getUserLink(data.createdBy),
-					moment(data.createdDate).format(formatManager.messages.shortdateMomentJs),
-					current.getUserLink(data.lastModifiedBy),
-					moment(data.lastModifiedDate).format(formatManager.messages.shortdateMomentJs)
-				])).removeClass('hidden');
-			} else {
-				_('detail-audit').addClass('hidden');
-			}
-		},
+            if (data && (data.createdBy || data.lastModifiedDate || data.lastModifiedBy || data.createdDate)) {
+                $('.project-name').attr('title',Handlebars.compile(current.$messages.audit)([
+                    current.getUserLink(data.createdBy),
+                    moment(data.createdDate).format(formatManager.messages.shortdateMomentJs),
+                    current.getUserLink(data.lastModifiedBy),
+                    moment(data.lastModifiedDate).format(formatManager.messages.shortdateMomentJs)
+                ]))
+            } 
+        },
+
 
 		/**
 		 * Diacritics mapping
