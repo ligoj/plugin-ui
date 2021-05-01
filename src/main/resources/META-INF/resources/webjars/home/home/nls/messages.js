@@ -8,7 +8,6 @@ define({
 		'buildTimestamp': 'Timestamp',
 		'buildVersion': 'Version',
 		'noBuildInformation': 'Build information is not yet available',
-		'redirect': 'Redirection',
 		'project-or-tool': 'Project or tool',
 		'expand-toggle': 'Toggle tile details level',
 		'tag-functional': 'Functional',

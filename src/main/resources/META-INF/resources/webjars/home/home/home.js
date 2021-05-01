@@ -111,7 +111,7 @@ define([
 			document.removeEventListener('scroll', current.onScroll);
 		},
 
-		isElementInViewport: function (el) {
+		isElementInViewport: function () {
 			el = $(this)[0];
 			var top = el.getBoundingClientRect().top;
 			var rect;
