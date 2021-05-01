@@ -14,7 +14,6 @@ install: java --version
 cache:
    directories:
    - $HOME/.m2/repository
-   - $HOME/.sonar/cache
    - $HOME/.cache
    - $HOME/maven
 jdk: openjdk15
