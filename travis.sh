@@ -106,7 +106,7 @@ BUILD)
 
     mvn clean package jacoco:report sonar:sonar \
           $MAVEN_ARGS \
-          -Pjacoco -Djacoco.includes=org.ligoj.app.plugin.ui.* \
+          -Pjacoco -Djacoco.includes="org.ligoj.app.plugin.ui.*" \
           -Dsonar.host.url=$SONAR_HOST_URL \
           -Dsonar.sources="src/main/java,src/main/resources/META-INF/resources/webjars" \
           -Dsonar.organization=ligoj-github \
