@@ -104,16 +104,11 @@ BUILD)
     # For this reason errors are ignored with "|| true"
     git fetch --unshallow || true
 
-	echo "Content of directory"
-	ls -al .
-	
-	echo "$MAVEN_ARGS: $MAVEN_ARGS"
     mvn clean package jacoco:report sonar:sonar \
           $MAVEN_ARGS \
           -Pjacoco -Djacoco.includes="org.ligoj.app.plugin.ui.*" \
           -Dsonar.javascript.exclusions="node_modules,dist" \
           -Dsonar.host.url=$SONAR_HOST_URL \
-          -Dsonar.sources="src/main/java,src/main/resources/META-INF/resources/webjars" \
           -Dsonar.organization=ligoj-github \
           -Dsonar.login=$SONAR_TOKEN \
           -Dsonar.projectVersion=$PROJECT_VERSION \
