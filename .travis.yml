@@ -1,8 +1,4 @@
 addons:
-   sonarcloud:
-      organization: ligoj-github
-      token:
-         secure: v01YbLVH20NnS6fZlZdzepGJTn6uiz7jiXQeXUfMCQKGUMFIeCbyzuKhQeqpyUQCDx60kde65XKXjN5dU3OG2z7fr0cG8m2OxQbGqfj1TZF8PNkqfJX0PoqrKlxBL5yhuSSE87ui0vNyD15da4zqRe3DV2VU34MDkAjq6ShkXocROfHIhPb/1g0PsyFh+qJb+jQz0szqgpjavbI/2XnubPErUdfMs2UC4ZzE3MsONr1t5iZuUftc3JufoH5eSmERTgi+Jp0+rtAsrY5HjMF50X6r+/GMPQ50+ZPV0lgx7ck6Zso1YKW+mjAVJXoKytATc73EK2nYqhldWS/3Xa5Dy3VIUlQx8VNfkDkFQXJhLiqjXIogMiQ3dGggmVWkMPcWDFw5qP39n0j7BnVhcimXCGrADb5/w/Uved8yBVgw0ToqB7uHI429d1sMQgNvGkpM3+07GI2w2fHw+jtERjE4M/94d/tyACMXc5XtQdc6LdNbZx1YBO+JkVLuNkahZXeIfg9Gzx44k6vluX10TRGuG2miCL5wLr6FtctRsetxBC6RU58sxMuAPBoDpw9ZaS7+duN9oC1KAtRkLSKLqLzdTI+HJj8zNgtN6IxlecXPIvFVEnyZmCZBjvaOSgzvk8AZgiSZmxwCodHqHj7hFwoXUBgkkqXapaB45kHtPo8axBE=
    apt:
       packages:
       - graphviz
@@ -11,11 +7,6 @@ before_cache:
 before_install:
 - chmod +x ./travis.sh
 install: java --version
-cache:
-   directories:
-   - $HOME/.m2/repository
-   - $HOME/.cache
-   - $HOME/maven
 jdk: openjdk15
 dist: xenial
 env:
