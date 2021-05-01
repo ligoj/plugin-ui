@@ -108,6 +108,7 @@ BUILD)
           $MAVEN_ARGS \
           -Pjacoco -Djacoco.includes=org.ligoj.app.plugin.ui.* \
           -Dsonar.host.url=$SONAR_HOST_URL \
+          -Dsonar.sources="src/main/java,src/main/resources/META-INF/resources/webjars" \
           -Dsonar.organization=ligoj-github \
           -Dsonar.login=$SONAR_TOKEN \
           -Dsonar.projectVersion=$PROJECT_VERSION \
