@@ -46,12 +46,10 @@ define(['cascade'], function ($cascade) {
 				var $matches = $tr.closest('tbody').find('tr').filter(function () {
 					return this !== $tr[0];
 				});
-				for (var i = 0; i < classes.length; i++) {
-					if (classes[i].startsWith('service-')) {
-						$matches = $matches.filter('.' + classes[i]);
-					}
-				}
-				$matches.find('[data-slide-to="' + slideTo + '"]').trigger('click', 'synchronize');
+				classes.filter(c => c.startsWith('service-'))
+					.reduce(($m, c) => $m.filter('.' + c), $matches)
+					.find('[data-slide-to="' + slideTo + '"]')
+					.trigger('click', 'synchronize');
 			});
 
 			// QR Code management
@@ -224,7 +222,6 @@ define(['cascade'], function ($cascade) {
 				},
 				query: function (query) {
 					var pkeys;
-					var index;
 					var data = {
 						results: []
 					};
@@ -238,13 +235,10 @@ define(['cascade'], function ($cascade) {
 						}
 					}
 					if (_('name').val()) {
-						pkeys = current.generatePKeys(_('name').val());
-						for (index = 0; index < pkeys.length; index++) {
-							data.results.push({
-								id: pkeys[index],
-								text: pkeys[index]
-							});
-						}
+						data.results.push(...current.generatePKeys(_('name').val()).map(pkey => ({
+							id: pkey,
+							text: pkey
+						})));
 					}
 					query.callback(data);
 				}
@@ -261,8 +255,7 @@ define(['cascade'], function ($cascade) {
 		generatePKeys: function (name) {
 			var result = [];
 			var words = current.$main.normalize(name).split(' ');
-			var index;
-			for (index = 1; index <= words.length; index++) {
+			for (let index = 1; index <= words.length; index++) {
 				result.splice(0, 0, words.slice(0, index).join('-'));
 			}
 			return result;
@@ -520,14 +513,11 @@ define(['cascade'], function ($cascade) {
 					});
 					var cursor = size;
 					while (size > 20 && cursor > 2) {
-						for (var index = groups.length; index-- > 0;) {
-							group = groups[index];
-							if (sizes[group] === cursor) {
-								// Reduce the remaining size
-								size -= cursor;
-								current.collapseGroup($groups.filter('[data-group="' + group + '"]'));
-							}
-						}
+						groups.filter(g => sizes[g] === cursor).forEach(g => {
+							// Reduce the remaining size
+							size -= cursor;
+							current.collapseGroup($groups.filter(`[data-group="${g}"]`));
+						});
 						cursor--;
 					}
 				}
@@ -564,10 +554,10 @@ define(['cascade'], function ($cascade) {
 			for (depth = 0; depth < current.dataSrcs.length; depth++) {
 				mode = { ids: {}, depth: depth };
 				modes.push(mode);
-				for (var i = 0; i < subscriptions.length; i++) {
-					nodeId = current.dataSrcGetter(subscriptions[i].node, depth);
+				subscriptions.forEach(s => {
+					nodeId = current.dataSrcGetter(s.node, depth);
 					mode.ids[nodeId] = (mode.ids[nodeId] || 0) + 1;
-				}
+				});
 				// Remove groups where there is only one subscription
 				mode.nbGrouped = current.pruneUselessGroups(mode.ids);
 
@@ -596,11 +586,11 @@ define(['cascade'], function ($cascade) {
 			if (maxDepth !== null && (subscriptions.length - mode.nbGrouped) > 1) {
 				// More than 1 subscription is not within a group, create a special compact group
 				maxDepth = 'compact-' + maxDepth.replace(/\./g, '__');
-				for (var j = 0; j < subscriptions.length; j++) {
-					nodeId = current.dataSrcGetter(subscriptions[j].node, maxMode.depth);
-					subscriptions[j][maxDepth] = maxMode.ids[nodeId] ? nodeId : 'z_orphan_';
-					subscriptions[j].compact = subscriptions[j][maxDepth];
-				}
+				subscriptions.forEach(s => {
+					nodeId = current.dataSrcGetter(s.node, maxMode.depth);
+					s[maxDepth] = maxMode.ids[nodeId] ? nodeId : 'z_orphan_';
+					s.compact = s[maxDepth];
+				});
 			}
 			return maxDepth;
 		},
@@ -748,9 +738,7 @@ define(['cascade'], function ($cascade) {
 			current.groupBy(groupBy);
 
 			// Launch Ajax requests to refresh statuses just after the table has been rendered
-			for (var index = 0; index < project.subscriptions.length; index++) {
-				current.$parent.refreshSubscription(project.subscriptions[index]);
-			}
+			project.subscriptions.forEach(s => current.$parent.refreshSubscription(s));
 
 			// Remove the spin
 			$cascade.removeSpin(current.$view);
@@ -765,15 +753,11 @@ define(['cascade'], function ($cascade) {
 			var id = $tr.attr('data-group');
 			$tr.nextUntil('.dtrg-start')[f]('hidden');
 			$tr[f]('row-group-collapsed');
-			var subscriptions = current.model.subscriptions;
 			var $subscriptions = _('subscriptions');
-			for (var i = 0; i < subscriptions.length; i++) {
-				var subscription = current.model.subscriptions[i];
-				if (subscription.node.id === id || subscription.node.id.startsWith(id + ':')) {
-					// Hide the related row
-					$subscriptions.find('tr[data-subscription="' + subscription.id + '"]')[f]('hidden');
-				}
-			}
+			// Hide the related row
+			current.model.subscriptions
+				.filter(s => s.node.id === id || s.node.id.startsWith(id + ':'))
+				.forEach(s => $subscriptions.find(`tr[data-subscription="[${s.id}"]`)[f]('hidden'));
 		},
 
 		/**

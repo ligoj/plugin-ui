@@ -88,28 +88,12 @@ define(['cascade'], function ($cascade) {
 					}
 				},
 				values: {
-					select: function (value, $element) {
-						$element.select2('val', value.text); // Not fully implemented
-					},
-					multiple: function (value, $element) {
-						var selections = [];
-						for (var index = 0; index < value.selections.length; index++) {
-							selections.push(value.parameter.values[value.selections[index]]);
-						}
-						$element.select2('val', selections);
-					},
-					bool: function (value, $element, parameter, n) {
-						$element.prop('checked', n ? value.bool : !!parameter.defaultValue);
-					},
-					tags: function (value, $element) {
-						$element.select2('tags', value.split(','));
-					},
-					text: function (value, $element, parameter, n) {
-						$element.val(n ? value.text : (parameter.defaultValue || ''));
-					},
-					integer: function (value, $element, parameter, n) {
-						$element.val((n || (typeof parameter.defaultValue === 'undefined') || parameter.defaultValue === null) ? value.integer : parameter.defaultValue);
-					}
+					select: (value, $element) => $element.select2('val', value.text), // Not fully implemented
+					multiple: (value, $element) => $element.select2('val', value.selections.map(s => value.parameter.values[s])),
+					bool: (value, $element, parameter, n) => $element.prop('checked', n ? value.bool : !!parameter.defaultValue),
+					tags: (value, $element) => $element.select2('tags', value.split(',')),
+					text: (value, $element, parameter, n) => $element.val(n ? value.text : (parameter.defaultValue || '')),
+					integer: (value, $element, parameter, n) => $element.val((n || (typeof parameter.defaultValue === 'undefined') || parameter.defaultValue === null) ? value.integer : parameter.defaultValue)
 				},
 				renderers: {
 					select: function (parameter, $input) {
@@ -196,16 +180,7 @@ define(['cascade'], function ($cascade) {
 				var $fieldset = previousProvider(parameter, $container, $input);
 				$input = $fieldset.find('input');
 
-				var customQuery = function () {
-					var pvalues = current.getParameterValues($container);
-					var queryParameters = [];
-					for (var index = 0; index < pvalues.length; index++) {
-						var pv = pvalues[index];
-						var value = pv.text || pv.date || pv.tags || pv.index || pv.bool || pv.integer;
-						queryParameters.push(pv.parameter + '=' + encodeURIComponent(value));
-					}
-					return queryParameters.join('&');
-				};
+				var customQuery = () => current.getParameterValues($container).map(pv => `${pv.parameter}=${encodeURIComponent(pv.text || pv.date || pv.tags || pv.index || pv.bool || pv.integer)}`).join('&');
 
 				// Create the select2 suggestion a LIKE %criteria% for project name, display name and description
 				current.newNodeSelect2($input, restUrl, current.$super('toName'), function (e) {
@@ -232,14 +207,13 @@ define(['cascade'], function ($cascade) {
 
 			// Drop required flag for nodes
 			var parameters = [];
-			for (var index = 0; index < values.length; index++) {
-				var pvp = values[index].parameter;
+			values.forEach(value => {
+				var pvp = value.parameter;
 				parameters.push(pvp);
 				delete pvp.mandatory;
-			}
+			});
 			current.configureParameters($container, parameters, node, mode, id, function (configuration) {
-				for (var pi = 0; pi < values.length; pi++) {
-					var value = values[pi];
+				values.forEach(value => {
 					var parameter = value.parameter;
 					var $element = _(parameter.id);
 					var $group = $element.closest('.form-group');
@@ -254,7 +228,7 @@ define(['cascade'], function ($cascade) {
 						// Add touch flag for secured values
 						$group.addClass('untouched');
 					}
-				}
+				});
 
 				// Notify the configuration is ready and all parameters are rendered
 				callback && callback(configuration);
@@ -285,8 +259,7 @@ define(['cascade'], function ($cascade) {
 				var renderers = configuration.renderers;
 				var iProviders = providers.input;
 				var cProviders = providers['form-group'];
-				for (var index = 0; index < parameters.length; index++) {
-					var parameter = parameters[index];
+				parameters.forEach(parameter => {
 					var $input = (iProviders[parameter.id] || iProviders[parameter.type] || iProviders.standard)(parameter, $container);
 					(cProviders[parameter.id] || cProviders[parameter.type] || cProviders.standard)(parameter, $container, $input);
 
@@ -299,7 +272,7 @@ define(['cascade'], function ($cascade) {
 
 					// Save the id based parameter store
 					configuration.parameters[parameter.id] = parameter;
-				}
+				});
 
 				// Notify the configuration is ready and all parameters are rendered
 				callback && callback(configuration);
@@ -361,15 +334,9 @@ define(['cascade'], function ($cascade) {
 				var validators = current.configuration.validators;
 
 				// Specific parameter validation
-				if (validators[id] && !validators[id]($that)) {
+				// and data type validation
+				if (validators[id] && !validators[id]($that) || validators[type] && !validators[type]($that)) {
 					validate = false;
-					return;
-				}
-
-				// Data type validation
-				if (validators[type] && !validators[type]($that)) {
-					validate = false;
-					return;
 				}
 			});
 			return validate;

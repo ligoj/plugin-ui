@@ -8,12 +8,9 @@ define(['cascade'], function ($cascade) {
 	var current = {
 
 		initialize: function () {
-			// Load global tools
-			var globalTools = current.$session.userSettings.globalTools || [];
 			current.$view.find('.global-configuration').remove();
-			for (var index = 0; index < globalTools.length; index++) {
-				current.renderGlobal(globalTools[index]);
-			}
+			// Load global tools
+			(current.$session.userSettings.globalTools || []).forEach(tool => current.renderGlobal(globalTools[index]));
 		},
 
 		/**
@@ -74,7 +71,7 @@ define(['cascade'], function ($cascade) {
 		 */
 		requireService: function (context, node, callback) {
 			// Check the plugin is enabled
-			if (node && typeof securityManager.plugins !== 'undefined' && $.inArray(node.split(':').slice(0,2).join(':'), securityManager.plugins) < 0) {
+			if (node && typeof securityManager.plugins !== 'undefined' && $.inArray(node.split(':').slice(0, 2).join(':'), securityManager.plugins) < 0) {
 				callback && callback();
 				return;
 			}
@@ -86,11 +83,11 @@ define(['cascade'], function ($cascade) {
 				return callback && callback(context);
 			}
 			$cascade.loadFragment(context, context.$transaction, path, service, {
-				callback: function($context) {
+				callback: function ($context) {
 					$context.node = 'service:' + service;
 					callback && callback($context);
 				},
-				errorCallback: function(err) {
+				errorCallback: function (err) {
 					errorManager.ignoreRequireModuleError(err.requireModules);
 					errorManager.ignoreRequireModuleError(['main/service/' + service + '/nls/messages']);
 					callback && callback();
@@ -115,9 +112,9 @@ define(['cascade'], function ($cascade) {
 		requireTool: function (context, node, callback) {
 			// First, load service dependencies
 			var transaction = context.$transaction;
-			
+
 			// Check the plugin is enabled
-			if (node && typeof securityManager.plugins !== 'undefined' && $.inArray(node.split(':').slice(0,3).join(':'), securityManager.plugins) < 0) {
+			if (node && typeof securityManager.plugins !== 'undefined' && $.inArray(node.split(':').slice(0, 3).join(':'), securityManager.plugins) < 0) {
 				callback && callback();
 				return;
 			}
@@ -136,11 +133,11 @@ define(['cascade'], function ($cascade) {
 					return callback && callback(context);
 				}
 				$cascade.loadFragment($service, transaction, path, tool, {
-					callback: function($tool) {
+					callback: function ($tool) {
 						$tool.node = 'service:' + service + ':' + ':' + tool;
 						callback && callback($tool, $service);
 					},
-					errorCallback: function(err) {
+					errorCallback: function (err) {
 						errorManager.ignoreRequireModuleError(err.requireModules);
 						errorManager.ignoreRequireModuleError(['main/service/' + service + '/' + tool + '/nls/messages']);
 						callback && callback(null, $service);
@@ -366,8 +363,8 @@ define(['cascade'], function ($cascade) {
 			// Build the content
 			current.$child && current.requireTool(current.$child, subscription.node.id, function ($tool, $service) {
 				// Render common UI of this tool/service
-				current.renderOnce($service, 'service');				
-				current.renderOnce($tool, 'tool');				
+				current.renderOnce($service, 'service');
+				current.renderOnce($tool, 'tool');
 
 				var renderDetailsFunction = 'renderDetails' + filter.capitalize();
 				var renderFunction = 'render' + filter.capitalize();
@@ -375,10 +372,10 @@ define(['cascade'], function ($cascade) {
 					// Add minimum data
 					$cascade.removeSpin($td).addClass('rendered').prepend(((renderCallback && renderCallback(subscription, filter, $tool, $td)) || '') + current.render(subscription, renderFunction, $tool, $tr, $td));
 				}
-				
+
 				// Generate the detailed part
 				var newContent = subscription.status === 'up' && current.render(subscription, renderDetailsFunction, $tool, $tr, $td);
-				
+
 				// Update the UI is managed
 				$tool && $tool.$parent.configurerFeatures && $tool.$parent.configurerFeatures($td, subscription);
 				$tool && $tool.configurerFeatures && $tool.configurerFeatures($td, subscription);
@@ -390,20 +387,20 @@ define(['cascade'], function ($cascade) {
 					var callbak = renderDetailsFunction + 'Callback';
 					$tool && $tool.$parent[callbak] && $tool.$parent[callbak](subscription, $details);
 					$tool && $tool[callbak] && $tool[callbak](subscription, $details);
-					
+
 					// Also start the carousel if needed
-					$details.find('.carousel').carousel({interval: false});
+					$details.find('.carousel').carousel({ interval: false });
 					renderCallback && renderCallback(subscription, filter, $tool, $details);
 				}
 			});
 		},
-		
+
 		/**
 		 * Render the tool or service feature, only once per tool or service.
 		 * @param {object} $context The tool or service's context.
 		 * @param {string} scope 'tool' or 'service'.
 		 */
-		renderOnce: function($context, scope) {
+		renderOnce: function ($context, scope) {
 			var sopeClass = 'render-' + scope;
 			var sopeSelector = '.' + sopeClass;
 			if ((typeof $context === 'undefined') || $context === null || (!$context.$view.is(sopeSelector) && $context.$view.find(sopeSelector).length === 0) || current.$view.find(sopeSelector + '.' + $context.node.replace(/:/g, '-')).length === 1) {
@@ -425,7 +422,7 @@ define(['cascade'], function ($cascade) {
 		 * @param faIcon FontAwesome icon name.Provided CSS class will be prefixed by "fas fa-", unless is starts with 'fas ', 'fab ', 'far ' or space.
 		 */
 		icon: function (faIcon, tooltip) {
-			faIcon = (faIcon||'').match(/^(fa[brs] | |fa-)/) ? faIcon : 'fas fa-' + faIcon;
+			faIcon = (faIcon || '').match(/^(fa[brs] | |fa-)/) ? faIcon : 'fas fa-' + faIcon;
 			return '<i class="' + faIcon + '"' + current.tooltip(tooltip) + '></i>&nbsp;';
 		},
 
@@ -494,7 +491,7 @@ define(['cascade'], function ($cascade) {
 			var result = '<div id="' + id + '" class="carousel carousel-part' + part + '"';
 			var groupBySubscription = subscription.node && (typeof subscription.node.subscriptions !== 'undefined');
 			var $carousel = _(id);
-			startIndex = $carousel.length ? -1 : current.getVisibleCarouselStartIndex(items,startIndex || 0);
+			startIndex = $carousel.length ? -1 : current.getVisibleCarouselStartIndex(items, startIndex || 0);
 			var baseIndex = $carousel.find('.carousel-inner > .item').length;
 
 			// Too much carousel items -> disable auto scroll
@@ -512,7 +509,7 @@ define(['cascade'], function ($cascade) {
 				// This carousel is independent
 				result += current.generateCarouselIndicators(items, id, startIndex, baseIndex, $carousel);
 			}
-			
+
 			result += current.generateCarouselInner(items, startIndex, baseIndex, $carousel);
 
 			if ($carousel.length) {
@@ -525,12 +522,12 @@ define(['cascade'], function ($cascade) {
 			}
 			return result + '</div>';
 		},
-		
+
 		/**
 		 * Generate the carousel items.
 		 * The content can also be merged into an existing carousel.
 		 */
-		generateCarouselInner: function(items, startIndex, baseIndex, $carousel) {
+		generateCarouselInner: function (items, startIndex, baseIndex, $carousel) {
 			var merge = $carousel.length;
 			var result = merge ? '' : '<div class="carousel-inner" role="listbox">';
 			var value;
@@ -543,21 +540,21 @@ define(['cascade'], function ($cascade) {
 					result += '<div class="item item-' + (baseIndex + i) + ((merge === 0 && (startIndex ? i === startIndex : i === 0)) ? ' active' : '') + '">' + current.toCarouselText(value) + '</div>';
 				}
 			}
-			
+
 			if (merge === 0) {
 				return result + '</div>';
 			}
 			$carousel.find('.carousel-inner').append(result);
 		},
 
-		toCarouselText: function(item) {
+		toCarouselText: function (item) {
 			return typeof item === 'undefined' ? '?' : item;
 		},
 
 		/**
 		 * Return the start index if visible and not out the bounds of the available carousel items.
 		 */
-		getVisibleCarouselStartIndex : function(items, startIndex) {
+		getVisibleCarouselStartIndex: function (items, startIndex) {
 			// Find the real visible start index
 			var i;
 			for (i = 0; i < items.length; i++) {
@@ -652,14 +649,14 @@ define(['cascade'], function ($cascade) {
 			options = options || {};
 			var size = zoom ? options.zoomSize || '128px' : options.size || '20px';
 			var mOptions = $.extend({
-					type: 'pie',
-					width: size,
-					offset: '-90',
-					height: size,
-					fillColor: 'black',
-					borderWidth: size === "128px" ? 4 : 2,
-					borderColor: '#ffffff',
-				}, options);
+				type: 'pie',
+				width: size,
+				offset: '-90',
+				height: size,
+				fillColor: 'black',
+				borderWidth: size === "128px" ? 4 : 2,
+				borderColor: '#ffffff',
+			}, options);
 			$spark.sparkline(data, mOptions);
 			if (options.sparklineClick) {
 				$spark.off('sparklineClick').on('sparklineClick', options.sparklineClick);
