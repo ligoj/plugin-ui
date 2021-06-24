@@ -402,8 +402,7 @@ define([
 				if (node.refined && node.refined.refined === undefined) {
 					// Wrapper
 					var counters = current.toCounter(node.subscriptions.length, node.nbProjects);
-					nodeContent = '<div class="node show ' + current.gridClass + ' ' + current.$parent.getHierarchyId(node.id) + '" data-id="' + node.id + '"><div class="thumbnail"><div class="main"><div class="counters"><span class="badge nb-total" data-toggle="tooltip" data-container="#_ucDiv"  title="' + current.$messages['node-subscriptions'] + '">' + counters + '</span><span class="badge nb-filtered hidden" data-toggle="tooltip" data-container="#_ucDiv" title="' + current.$messages['node-subscriptions-filtered'] + '"></span></div>' + current.$parent.toIcon(node, 'x64w', true) + '<div class="caption"><h3>' + node.name + ' <i class="fas fa-caret-right" data-toggle="tooltip" data-container="#_ucDiv" title="' + current.$messages['toggle-thumbnail'] + '"></i></h3></div>';
-
+					nodeContent = '<div class="node show ' + current.gridClass + ' ' + current.$parent.getHierarchyId(node.id) + '" data-id="' + node.id + '"><div class="thumbnail"><div class="main"><div class="counters"> '+ `<span class="badge nb-total ${counters > 1 ? "" : "hidden"}  </span>` + '  data-toggle="tooltip" data-container="#_ucDiv"  title="' + current.$messages['node-subscriptions'] + '">' + counters + '</span><span class="badge nb-filtered hidden" data-toggle="tooltip" data-container="#_ucDiv" title="' + current.$messages['node-subscriptions-filtered'] + '"></span></div>' + current.$parent.toIcon(node, 'x64w', true) + '<div class="caption"><h3>' + node.name + ' <i class="fas fa-caret-right" data-toggle="tooltip" data-container="#_ucDiv" title="' + current.$messages['toggle-thumbnail'] + '"></i></h3></div>';
 					// Tag
 					tagUiClasses = node.tag && (node.tagUiClasses || (node.refined && (node.refined.tagUiClasses || (node.refined.refined && node.refined.tagUiClasses))));
 					if (tagUiClasses) {
