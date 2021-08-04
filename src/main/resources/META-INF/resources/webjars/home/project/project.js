@@ -51,7 +51,7 @@ define(['cascade'], function ($cascade) {
 						$matches = $matches.filter('.' + classes[i]);
 					}
 				}
-				$matches.find('[data-slide-to="' + slideTo + '"]').trigger('click', 'synchronize');
+				$tr.find('[data-slide-to="' + slideTo + '"]').trigger('click', 'synchronize');
 			});
 
 			// QR Code management
