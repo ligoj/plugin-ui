@@ -832,7 +832,7 @@ define(['cascade'], function ($cascade) {
 			$subscribeWrapper.data('service', $context);
 			current.$view.append($subscribeWrapper);
 
-			if (typeof current.$parent.getRestrictedUrl() === 'string') {
+			if (typeof current.$super('getRestrictedHash')() === 'string') {
 				$subscribe.find('.cancel-subscription').remove();
 			}
 

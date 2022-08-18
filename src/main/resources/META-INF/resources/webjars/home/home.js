@@ -11,7 +11,7 @@ define(['cascade'], function ($cascade) {
 			current.$view.find('.global-configuration').remove();
 			// Load global tools
 			(current.$session.userSettings.globalTools || []).forEach(current.renderGlobal);
-			const restrictedUrl = current.getRestrictedUrl();
+			const restrictedUrl = current.getRestrictedHash();
 			if (typeof restrictedUrl === 'string') {
 				// Display only one link
 				$('#main-menu').remove();
@@ -19,8 +19,8 @@ define(['cascade'], function ($cascade) {
 			}
 		},
 
-		getRestrictedUrl: function(){
-			return current.$session.userSettings['restricted-url'];
+		getRestrictedHash: function(){
+			return current.$session.userSettings['restricted-hash'];
 		},
 
 		/**
