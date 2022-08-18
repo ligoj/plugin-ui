@@ -5,12 +5,22 @@
  * Manager used to populate and manage SaaS features.
  */
 define(['cascade'], function ($cascade) {
-	var current = {
+	const current = {
 
 		initialize: function () {
 			current.$view.find('.global-configuration').remove();
 			// Load global tools
-			(current.$session.userSettings.globalTools || []).forEach(tool => current.renderGlobal(globalTools[index]));
+			(current.$session.userSettings.globalTools || []).forEach(current.renderGlobal);
+			const restrictedUrl = current.getRestrictedUrl();
+			if (typeof restrictedUrl === 'string') {
+				// Display only one link
+				$('#main-menu').remove();
+				$('a[href="#/"]').attr('href', restrictedUrl);
+			}
+		},
+
+		getRestrictedUrl: function(){
+			return current.$session.userSettings['restricted-url'];
 		},
 
 		/**
@@ -19,7 +29,7 @@ define(['cascade'], function ($cascade) {
 		 */
 		renderGlobal: function (globalTool) {
 			current.requireTool(current, globalTool.node.id, function ($tool) {
-				var $global = ($tool.$view.is('.global-configuration') ? $tool.$view : $tool.$view.find('.global-configuration')).clone();
+				const $global = ($tool.$view.is('.global-configuration') ? $tool.$view : $tool.$view.find('.global-configuration')).clone();
 				$tool.renderGlobal($global, globalTool);
 				$global.removeClass('hidden');
 			});
@@ -76,8 +86,8 @@ define(['cascade'], function ($cascade) {
 				return;
 			}
 
-			var service = current.getServiceNameFromId(node);
-			var path = 'main/service/' + service + '/';
+			const service = current.getServiceNameFromId(node);
+			const path = 'main/service/' + service + '/';
 			if (path === context.$path) {
 				// Current context is loaded
 				return callback && callback(context);
@@ -111,7 +121,7 @@ define(['cascade'], function ($cascade) {
 		 */
 		requireTool: function (context, node, callback) {
 			// First, load service dependencies
-			var transaction = context.$transaction;
+			const transaction = context.$transaction;
 
 			// Check the plugin is enabled
 			if (node && typeof securityManager.plugins !== 'undefined' && $.inArray(node.split(':').slice(0, 3).join(':'), securityManager.plugins) < 0) {
@@ -125,9 +135,9 @@ define(['cascade'], function ($cascade) {
 				}
 
 				// Then, load tool dependencies
-				var service = current.getServiceNameFromId(node);
-				var tool = current.getToolNameFromId(node);
-				var path = 'main/service/' + service + '/' + tool;
+				const service = current.getServiceNameFromId(node);
+				const tool = current.getToolNameFromId(node);
+				const path = 'main/service/' + service + '/' + tool;
 				if (path === context.$path) {
 					// Current context is loaded
 					return callback && callback(context);
@@ -153,7 +163,7 @@ define(['cascade'], function ($cascade) {
 		 */
 		getToolFromId: function (id) {
 			// Pattern is : service:{service name}:{tool name}(:whatever)
-			var data = id.split(':');
+			const data = id.split(':');
 			return data.length > 2 && data.slice(0, 3).join('-');
 		},
 
@@ -162,9 +172,9 @@ define(['cascade'], function ($cascade) {
 		 */
 		getHierarchyId: function (id) {
 			// Pattern is : service:{service name}:{tool name}(:whatever)
-			var data = id.split(':');
-			var index;
-			var result = '';
+			const data = id.split(':');
+			let index;
+			let result = '';
 			for (index = 2; index <= data.length; index++) {
 				result += ' ' + data.slice(0, index).join('-');
 			}
@@ -176,7 +186,7 @@ define(['cascade'], function ($cascade) {
 		 */
 		getServiceFromId: function (id) {
 			// Pattern is : service:{service name}:{tool name}(:whatever)
-			var data = id.split(':');
+			const data = id.split(':');
 			return data.length > 1 && data.slice(0, 2).join('-');
 		},
 
@@ -204,7 +214,7 @@ define(['cascade'], function ($cascade) {
 		},
 
 		toToolBaseIcon: function (node) {
-			var fragments = node.split(':');
+			const fragments = node.split(':');
 			return 'main/service/' + fragments[1] + '/' + fragments[2] + '/img/' + fragments[2];
 		},
 
@@ -256,8 +266,8 @@ define(['cascade'], function ($cascade) {
 				// Nothing to do
 				return;
 			}
-			var subscriptionsAsMap = [];
-			var ids = subscriptions.map(function (s) {
+			const subscriptionsAsMap = [];
+			const ids = subscriptions.map(function (s) {
 				subscriptionsAsMap[s.id] = s;
 				return s.id;
 			});
@@ -269,8 +279,8 @@ define(['cascade'], function ($cascade) {
 					// Process each result
 					ids.forEach(function (id) {
 						// Copy fresh data
-						var subscription = subscriptionsAsMap[id];
-						var freshSubscription = freshSubscriptions[id];
+						const subscription = subscriptionsAsMap[id];
+						const freshSubscription = freshSubscriptions[id];
 						subscription.parameters = freshSubscription.parameters;
 						subscription.data = freshSubscription.data;
 						subscription.status = freshSubscription.status;
@@ -308,10 +318,10 @@ define(['cascade'], function ($cascade) {
 		 * apply subscriptions style
 		 */
 		applySubscriptionStyle: function ($tr, subscription, refresh, renderCallback) {
-			var tdClass;
-			var tooltip;
-			var contentClass = '';
-			var id = subscription.id;
+			let tdClass;
+			let tooltip;
+			let contentClass = '';
+			const id = subscription.id;
 			$tr = $tr || $('[data-subscription="' + id + '"]');
 			if (subscription.status === 'up') {
 				tdClass = 'status-up';
@@ -347,9 +357,9 @@ define(['cascade'], function ($cascade) {
 		 * @param {function} renderCallback Callback called when the subscription data has been rendered.
 		 */
 		updateSubscriptionDetails: function ($tr, subscription, filter, replace, renderCallback) {
-			var $td = $tr.find('td.' + filter);
+			const $td = $tr.find('td.' + filter);
 			// Build the container
-			var $details;
+			let $details;
 			if (replace) {
 				$details = $td;
 			} else {
@@ -366,27 +376,27 @@ define(['cascade'], function ($cascade) {
 				current.renderOnce($service, 'service');
 				current.renderOnce($tool, 'tool');
 
-				var renderDetailsFunction = 'renderDetails' + filter.capitalize();
-				var renderFunction = 'render' + filter.capitalize();
+				const renderDetailsFunction = 'renderDetails' + filter.capitalize();
+				const renderFunction = 'render' + filter.capitalize();
 				if (!$td.is('.rendered')) {
 					// Add minimum data
 					$cascade.removeSpin($td).addClass('rendered').prepend(((renderCallback && renderCallback(subscription, filter, $tool, $td)) || '') + current.render(subscription, renderFunction, $tool, $tr, $td));
 				}
 
 				// Generate the detailed part
-				var newContent = subscription.status === 'up' && current.render(subscription, renderDetailsFunction, $tool, $tr, $td);
+				const newContent = subscription.status === 'up' && current.render(subscription, renderDetailsFunction, $tool, $tr, $td);
 
 				// Update the UI is managed
-				$tool && $tool.$parent.configurerFeatures && $tool.$parent.configurerFeatures($td, subscription);
-				$tool && $tool.configurerFeatures && $tool.configurerFeatures($td, subscription);
+				$tool && $tool.$parent.renderFeatures && $tool.$parent.renderFeatures(subscription);
+				$tool && $tool.renderFeatures && $tool.renderFeatures(subscription);
 
-				if (newContent && newContent !== '&nbsp;') {
+				if (typeof newContent === 'string' && newContent !== '&nbsp;') {
 					// Add generated detailed data
 					$details.empty().html(newContent);
 					// Render service and tool callbacks
-					var callbak = renderDetailsFunction + 'Callback';
-					$tool && $tool.$parent[callbak] && $tool.$parent[callbak](subscription, $details);
-					$tool && $tool[callbak] && $tool[callbak](subscription, $details);
+					const callback = renderDetailsFunction + 'Callback';
+					$tool && $tool.$parent[callback] && $tool.$parent[callback](subscription, $details);
+					$tool && $tool[callback] && $tool[callback](subscription, $details);
 
 					// Also start the carousel if needed
 					$details.find('.carousel').carousel({ interval: false });
@@ -401,19 +411,19 @@ define(['cascade'], function ($cascade) {
 		 * @param {string} scope 'tool' or 'service'.
 		 */
 		renderOnce: function ($context, scope) {
-			var sopeClass = 'render-' + scope;
-			var sopeSelector = '.' + sopeClass;
-			if ((typeof $context === 'undefined') || $context === null || (!$context.$view.is(sopeSelector) && $context.$view.find(sopeSelector).length === 0) || current.$view.find(sopeSelector + '.' + $context.node.replace(/:/g, '-')).length === 1) {
+			const scopeClass = 'render-' + scope;
+			const scopeSelector = '.' + scopeClass;
+			if ((typeof $context === 'undefined') || $context === null || (!$context.$view.is(scopeSelector) && $context.$view.find(scopeSelector).length === 0) || current.$view.find(scopeSelector + '.' + $context.node.replace(/:/g, '-')).length === 1) {
 				// This feature is not supported or has already been already rendered
 				return;
 			}
 			// Add the view of this scope
-			var $view = ($context.$view.is(sopeSelector) ? $context.$view : $context.$view.find(sopeSelector)).clone().addClass($context.node.replace(/:/g, '-'));
+			const $view = ($context.$view.is(scopeSelector) ? $context.$view : $context.$view.find(scopeSelector)).clone().addClass($context.node.replace(/:/g, '-'));
 			current.$view.append($view);
 
-			if (typeof $context[sopeClass] === 'function') {
+			if (typeof $context[scopeClass] === 'function') {
 				// Render this scope
-				$context[sopeClass]($view);
+				$context[scopeClass]($view);
 			}
 		},
 
@@ -438,7 +448,7 @@ define(['cascade'], function ($cascade) {
 		 * Namespace based dynamic call : tool and service specific.
 		 */
 		render: function (subscription, namespace, $tool, $tr, $td) {
-			var result = '';
+			let result = '';
 			if (subscription.parameters && $tool) { // TODO Simplify
 				// Render service
 				if ($tool.$parent[namespace]) {
@@ -454,7 +464,7 @@ define(['cascade'], function ($cascade) {
 		},
 
 		renderKey: function (subscription, parameter) {
-			var value = current.getData(subscription, parameter);
+			const value = current.getData(subscription, parameter);
 			return value && (current.icon('key', current.$messages[parameter] || parameter) + value);
 		},
 
@@ -466,20 +476,11 @@ define(['cascade'], function ($cascade) {
 			return '<a href="' + link + '"' + (attr || '') + ' class="feature ' + (clazz || '') + '"><i class="fas fa-' + icon + '" data-toggle="tooltip"' + (tooltipKey ? ' title="' + current.$messages[tooltipKey] + '"' : '') + '></i> ' + (textKey ? current.$messages[textKey] : '') + '</a>';
 		},
 
-		/**
-		 * @deprecated See #renderServiceLink
-		 */
-		renderServicelink: function (icon, link, tooltipKey, textKey, attr, clazz) {
-			return current.renderServiceLink(icon, link, tooltipKey, textKey, attr, clazz);
-		},
-
 		renderServiceHelpLink: function (parameters, serviceKey) {
-			var result = '';
-			// Help
 			if (parameters[serviceKey]) {
-				result += current.renderServiceLink('question-circle-o', parameters[serviceKey], 'service:help', undefined, 'target="_blank"');
+				return current.renderServiceLink('question-circle-o', parameters[serviceKey], 'service:help', undefined, 'target="_blank"');
 			}
-			return result;
+			return '';
 		},
 
 		/**
@@ -487,19 +488,19 @@ define(['cascade'], function ($cascade) {
 		 */
 		generateCarousel: function (subscription, items, startIndex, part) {
 			part = part || 0;
-			var id = 'subscription-details-' + subscription.id;
-			var result = '<div id="' + id + '" class="carousel carousel-part' + part + '"';
-			var groupBySubscription = subscription.node && (typeof subscription.node.subscriptions !== 'undefined');
-			var $carousel = _(id);
+			const id = 'subscription-details-' + subscription.id;
+			let result = '<div id="' + id + '" class="carousel carousel-part' + part + '"';
+			const groupBySubscription = subscription.node && (typeof subscription.node.subscriptions !== 'undefined');
+			const $carousel = _(id);
 			startIndex = $carousel.length ? -1 : current.getVisibleCarouselStartIndex(items, startIndex || 0);
-			var baseIndex = $carousel.find('.carousel-inner > .item').length;
+			const baseIndex = $carousel.find('.carousel-inner > .item').length;
 
 			// Too much carousel items -> disable auto scroll
 			result += (groupBySubscription && subscription.node.subscriptions.length > 50) ? ' data-interval=""' : ' data-ride="carousel"';
 			result += '> ';
 			if (groupBySubscription) {
 				// Carousel indicator is moved to header instead of each raw
-				var $group = $('tr[data-subscription="' + subscription.id + '"]').closest('.node').find('.group-carousel');
+				const $group = $('tr[data-subscription="' + subscription.id + '"]').closest('.node').find('.group-carousel');
 				if ($group.length && !$group.hasClass('carousel-part' + part)) {
 					// Add a global carousel indicator for this table
 					current.generateCarouselIndicators(items, null, startIndex, baseIndex, $group);
@@ -528,11 +529,11 @@ define(['cascade'], function ($cascade) {
 		 * The content can also be merged into an existing carousel.
 		 */
 		generateCarouselInner: function (items, startIndex, baseIndex, $carousel) {
-			var merge = $carousel.length;
-			var result = merge ? '' : '<div class="carousel-inner" role="listbox">';
-			var value;
-			var item;
-			for (var i = 0; i < items.length; i++) {
+			const merge = $carousel.length;
+			let result = merge ? '' : '<div class="carousel-inner" role="listbox">';
+			let value;
+			let item;
+			for (let i = 0; i < items.length; i++) {
 				item = items[i];
 				value = $.isArray(item) ? item[1] : item;
 				if (value) {
@@ -556,10 +557,10 @@ define(['cascade'], function ($cascade) {
 		 */
 		getVisibleCarouselStartIndex: function (items, startIndex) {
 			// Find the real visible start index
-			var i;
+			let i;
 			for (i = 0; i < items.length; i++) {
 				if (startIndex === i) {
-					var item = items[i];
+					const item = items[i];
 					if ($.isArray(item) ? item[1] : item) {
 						return startIndex;
 					}
@@ -576,11 +577,11 @@ define(['cascade'], function ($cascade) {
 		 * The content can also be merged into an existing carousel.
 		 */
 		generateCarouselIndicators: function (items, id, startIndex, baseIndex, $carousel) {
-			var merge = $carousel.length;
-			var mergeInd = merge && $carousel.has('.carousel-indicators').length;
-			var result = mergeInd ? '' : '<ol class="carousel-indicators">';
-			var item;
-			var i;
+			const merge = $carousel.length;
+			const mergeInd = merge && $carousel.has('.carousel-indicators').length;
+			let result = mergeInd ? '' : '<ol class="carousel-indicators">';
+			let item;
+			let i;
 			for (i = 0; i < items.length; i++) {
 				item = items[i];
 				if (id === null || $.isArray(item) ? item[1] : item) {
@@ -647,8 +648,8 @@ define(['cascade'], function ($cascade) {
 		setupSparkline: function ($spark, data, options, zoom) {
 			$spark.find('canvas').remove();
 			options = options || {};
-			var size = zoom ? options.zoomSize || '128px' : options.size || '20px';
-			var mOptions = $.extend({
+			const size = zoom ? options.zoomSize || '128px' : options.size || '20px';
+			const mOptions = $.extend({
 				type: 'pie',
 				width: size,
 				offset: '-90',
