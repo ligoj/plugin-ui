@@ -5,7 +5,7 @@ define(function () {
 	var current = {
 		/**
 		 * Return a cookie value.
-		 * @param  {Sring} name  Cookie name.
+		 * @param  {String} name  Cookie name.
 		 * @return {String}      Cookie value.
 		 */
 		getCookie: function (name) {

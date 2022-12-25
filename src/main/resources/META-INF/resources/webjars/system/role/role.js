@@ -195,7 +195,7 @@ define(function () {
 			});
 		},
 
-		// render an authorization in datagrid
+		// render an authorization in data grid
 		authorizationRenderer: function (item) {
 			var result = '';
 			for (var idx = 0; idx < item.length; idx++) {

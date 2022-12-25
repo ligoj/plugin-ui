@@ -715,7 +715,7 @@ define([
 			]);
 		},
 		/**
-		 * Generate a row for a statu.
+		 * Generate a row for a status.
 		 */
 		generateRow: function (loopStatus, service, tool, nodeEvent) {
 			var node = nodeEvent.node;

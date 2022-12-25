@@ -44,7 +44,7 @@ define(['cascade'], function ($cascade) {
 
 		/**
 		 * Icon of corresponding tool.
-		 * @param {Object|string} node The node : tool, service ... The priorit is : 'uiCLasses', then 3rd fragment of node's identifier ('id' or the string value itself), then 2nd fragment of the node's identifier
+		 * @param {Object|string} node The node : tool, service ... The priority is : 'uiCLasses', then 3rd fragment of node's identifier ('id' or the string value itself), then 2nd fragment of the node's identifier
 		 * @param {string} suffix For URL icon, the suffix to add to the path.
 		 * @param {boolean} dataSrc When defined, the resolved "img" source ("src") is also stored to "data-src". It permits a reset to the original src image after alter.
 		 * @param {array} fragments Identifier fragments built from the node.
@@ -139,7 +139,7 @@ define(['cascade'], function ($cascade) {
 		 * Return a link targeting the user page. Display the full name in the link.
 		 * When there are not enough data to build it, no first name or no last name, then the first later of the login and the the remaining are used to build the full name.
 		 * For sample 'aeinstein' will be display as fail-safe value : 'A. Einstein'.
-		 * @param {Object|string} user The user data : login, fullname, etc... The identifier is required, either in 'id' attribute, either as a string.
+		 * @param {Object|string} user The user data : login, full name, etc... The identifier is required, either in 'id' attribute, either as a string.
 		 * @param {string} text The optional text to display. When empty, full name is used.
 		 * @return {string} The user link markup.
 		 */

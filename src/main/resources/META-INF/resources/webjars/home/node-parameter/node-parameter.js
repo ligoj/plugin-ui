@@ -195,7 +195,7 @@ define(['cascade'], function ($cascade) {
 
 		/**
 		 * Build node/subscription parameter values: UI and configuration.
-		 * Note this is an asynchronous function thats requires the related node's context to render the parameter.
+		 * Note this is an asynchronous function that requires the related node's context to render the parameter.
 		 * @param {jQuery} $container Target container where the parameters will be rendered..
 		 * @param {Array} values Parameter values with parameter definition.
 		 * @param {string} node Node identifier to use for the target subscription.
