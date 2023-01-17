@@ -124,7 +124,7 @@ define(['cascade'], function ($cascade) {
 			model = model || {};
 			current.model = model;
 			_('node-tool').disable(model.id).select2('data', model.refined || null);
-			_('node-id').disable(model.id);
+			_('node-id').readonly(model.id);
 			_('node-name').val(model.name || '');
 			_('node-delete')[model.id ? 'removeClass' : 'addClass']('hidden');
 			_('node-parameters').collapse('hide').find('.panel-body').data('dirty', true);
