@@ -26,6 +26,7 @@ define({
 		'configuration-source-systemProperties': 'System property',
 		'configuration-source-applicationConfig': 'File: {{this}}',
 		'configuration-source-database': 'Database persistent',
+		'configuration-source-classpath': 'Classpath: {{this}}',
 		'configuration-source-unknown': 'Unknown source: {{this}}',
 		'configuration-override' : 'This property is defined at both levels : persisted (ignored) and system (used)',
 		'configuration-type-persisted': 'Database persistent configuration',

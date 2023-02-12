@@ -32,6 +32,7 @@ define(function () {
 			systemProperties: 'fab fa-java',
 			applicationConfig: 'far fa-file-code',
 			database: 'fas fa-database',
+			classpath: 'fas fa-file-code',
 			DEFAULT: 'fas fa-question',
 		},
 
@@ -171,12 +172,19 @@ define(function () {
 						width: '16px',
 						render: function (data, mode, model) {
 							if (mode === 'display' && data) {
-								var fragments = data.split(':');
-								var source = fragments.shift();
-								var i18nSource = current.$messages['configuration-source-' + source];
-								var tooltip = i18nSource ? Handlebars.compile(i18nSource)(fragments.join(':')) : Handlebars.compile(current.$messages['configuration-source-unknown'])(fragments.join(':'));
-								var result = '<i class="fa-fw ' + (current.sourceMapping[source] || current.sourceMapping.DEFAULT) + '" data-toggle="tooltip" title="' + tooltip + '"></i>';
-								result += model.override ? ' <i class="fas fa-exclamation-triangle text-warning" data-toggle="tooltip" title="' + current.$messages['configuration-override'] + '"></i>' : '';
+								const fragments = data.split(':');
+								const source = fragments.includes('classpath') ? 'classpath' : fragments.shift();
+								const i18nSource = current.$messages['configuration-source-' + source];
+								let tooltip = null
+								if (i18nSource) {
+                                    tooltip = Handlebars.compile(i18nSource)(fragments.join(':'));
+                                } else {
+                                    tooltip = Handlebars.compile(current.$messages['configuration-source-unknown'])(data);
+                                }
+								let result = `<i class="fa-fw ${(current.sourceMapping[source] || current.sourceMapping.DEFAULT)}" data-toggle="tooltip" title="${tooltip.replaceAll('"',"'")}"></i>`;
+								if (model.override) {
+								    result += ` <i class="fas fa-exclamation-triangle text-warning" data-toggle="tooltip" title="${current.$messages['configuration-override']}"></i>`;
+								}
 								return result;
 							}
 							return data;
