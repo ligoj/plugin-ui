@@ -73,7 +73,7 @@ define(function () {
 								result += result ? '' : ' ';
 								result += '<a class="label label-primary cancel-local" data-toggle="tooltip" title="' + current.$messages['plugin-cancel-' + (version ? 'update' : 'install')] + '"><i class="fas fa-times-circle"></i> ' + plugin.latestLocalVersion + '</a>';
 							}
-							if (plugin.newVersion) {
+							if (plugin.newVersion && plugin.latestLocalVersion != plugin.newVersion) {
 								// Upgrade is available
 								result += result ? '' : ' ';
 								result += '<a class="label label-success update" data-toggle="tooltip" title="' + current.$messages['plugin-update'] + '"><i class="fas fa-arrow-circle-o-up"></i> ' + plugin.newVersion + '</a>';
