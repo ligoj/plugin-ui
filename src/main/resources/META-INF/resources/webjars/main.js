@@ -232,15 +232,15 @@ define(['cascade'], function ($cascade) {
 		 * Fill audit data in the UI
 		 */
 		fillAuditData: function (data) {
-            if (data && (data.createdBy || data.lastModifiedDate || data.lastModifiedBy || data.createdDate)) {
-                $('.project-name').attr('title',Handlebars.compile(current.$messages.audit)([
-                    current.getUserLink(data.createdBy),
-                    moment(data.createdDate).format(formatManager.messages.shortdateMomentJs),
-                    current.getUserLink(data.lastModifiedBy),
-                    moment(data.lastModifiedDate).format(formatManager.messages.shortdateMomentJs)
-                ]))
-            } 
-        },
+			if (data && (data.createdBy || data.lastModifiedDate || data.lastModifiedBy || data.createdDate)) {
+				$('.project-name').attr('title', Handlebars.compile(current.$messages.audit)([
+					current.getUserLink(data.createdBy),
+					moment(data.createdDate).format(formatManager.messages.shortdateMomentJs),
+					current.getUserLink(data.lastModifiedBy),
+					moment(data.lastModifiedDate).format(formatManager.messages.shortdateMomentJs)
+				]))
+			}
+		},
 
 
 		/**
@@ -405,19 +405,19 @@ define(['cascade'], function ($cascade) {
 			tree: 'resource fas fa-code-branch fa-rotate-90',
 			node: 'resource fas fa-wrench'
 		},
-		
+
 		/**
 		 * Escape HTML content. From "<b>Value'&amp;"</b>" gives "&lt;b&gt;Value&#39;&amp;amp;&quot;&gt;/b&gt;"
 		 * @param {string} str  Markup string to protect.
 		 * @return {string}     Protected string.
 		 */
-		htmlEscape: function(str) {
-		    return str
-		        .replace(/&/g, '&amp;')
-		        .replace(/"/g, '&quot;')
-		        .replace(/'/g, '&#39;')
-		        .replace(/</g, '&lt;')
-		        .replace(/>/g, '&gt;');
+		htmlEscape: function (str) {
+			return str
+				.replace(/&/g, '&amp;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#39;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;');
 		},
 
 		/**
@@ -425,13 +425,13 @@ define(['cascade'], function ($cascade) {
 		 * @param {string} str  Protected markup string to retrieve.
 		 * @return {string}     Unprotected string.
 		 */
-		htmlUnescape: function(str){
-		    return str
-		        .replace(/&quot;/g, '"')
-		        .replace(/&#39;/g, "'")
-		        .replace(/&lt;/g, '<')
-		        .replace(/&gt;/g, '>')
-		        .replace(/&amp;/g, '&');
+		htmlUnescape: function (str) {
+			return str
+				.replace(/&quot;/g, '"')
+				.replace(/&#39;/g, "'")
+				.replace(/&lt;/g, '<')
+				.replace(/&gt;/g, '>')
+				.replace(/&amp;/g, '&');
 		}
 	};
 	return current;
