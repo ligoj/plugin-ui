@@ -123,14 +123,14 @@ define(['cascade'], function ($cascade) {
 					},
 					secured: function (parameter, $input) {
 						// Add a tiny unlocker
-						$input.after('<span class="secured-mode"><i class="fas fa-lock text-warning" title="' + current.$messages['secured-untouched'] + '" data-toggle="tooltip"></i><i class="fas fa-unlock-alt text-info" title="' + current.$messages['secured-touched'] + '" data-toggle="tooltip"></i><i title="' + current.$messages['secured-empty'] + '" data-toggle="tooltip" class="fas fa-unlock"></i></span>');
+						$input.after(`<span class="secured-mode"><i class="fas fa-lock text-warning" title="${current.$messages['secured-untouched']}" data-toggle="tooltip"></i><i class="fas fa-unlock-alt text-info" title="${current.$messages['secured-touched']}" data-toggle="tooltip"></i><i title="${current.$messages['secured-empty']}" data-toggle="tooltip" class="fas fa-unlock"></i></span>`);
 					}
 				},
 				providers: {
 					'input': {
 						standard: function (parameter, $container) {
 							// Create a basic input, manages type, id, required
-							return $('<input class="form-control parameter" type="' + (/(password|secret)/.test(parameter.id) ? 'password' : 'text') + '" autocomplete="off" data-type="' + parameter.type + '" id="' + parameter.id + '"' + ((parameter.mandatory && !current.isNodeMode($container)) ? ' required' : '') + '>');
+							return $(`<input class="form-control parameter" type="${/(password|secret)/.test(parameter.id) ? 'password' : 'text'}" autocomplete="off" data-type="${parameter.type}" id="${parameter.id}" ${(parameter.mandatory && !current.isNodeMode($container)) ? ' required' : ''}>`);
 						},
 						date: function (parameter) {
 							// Create a data input
@@ -150,7 +150,7 @@ define(['cascade'], function ($cascade) {
 							var name = current.$messages[id] || parameter.name || '';
 							var description = current.$messages[id + '-description'] || parameter.description;
 							description = description ? ('<span class="help-block">' + description + '</span>') : '';
-							var $dom = $('<div class="form-group' + required + secured + '"><label class="control-label col-md-4" for="' + id + '">' + name + '</label><div class="col-md-8">' + description + '</div></div>');
+							var $dom = $(`<div class="form-group' ${required} ${secured}"><label class="control-label col-md-4" for="${id}">${name}</label><div class="col-md-8">${description}</div></div>`);
 							$dom.children('div').prepend($input);
 							$container.append($dom);
 							validator && $input.on('change keyup', validator);
@@ -177,8 +177,8 @@ define(['cascade'], function ($cascade) {
 			var previousProvider = cProviders[id] || cProviders.standard;
 			cProviders[id] = function (parameter, $container, $input) {
 				// Render the normal input
-				var $fieldset = previousProvider(parameter, $container, $input);
-				$input = $fieldset.find('input');
+				var $fieldSet = previousProvider(parameter, $container, $input);
+				$input = $fieldSet.find('input');
 
 				var customQuery = () => current.getParameterValues($container).map(pv => `${pv.parameter}=${encodeURIComponent(pv.text || pv.date || pv.tags || pv.index || pv.bool || pv.integer)}`).join('&');
 
