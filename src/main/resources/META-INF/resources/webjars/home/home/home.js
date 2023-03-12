@@ -30,7 +30,7 @@ define([
 			// Project/Subscription mode
 			_('grid-mode').on('change', 'input[type="radio"]', function (e) {
 				var mode = $(e.target).closest('label').index();
-				$('.masonry-container').children('.node').removeClass(current.gridClasses.join(' ')).addClass(current.gridClasses[mode]);
+				$('.masonry-container').children('.node').removeClass(current.gridClasses).addClass(current.gridClasses[mode]);
 				current.masonry();
 				current.checkVisibleSubscriptionsAsync();
 			});
