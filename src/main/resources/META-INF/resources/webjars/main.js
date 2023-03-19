@@ -412,12 +412,12 @@ define(['cascade'], function ($cascade) {
 		 * @return {string}     Protected string.
 		 */
 		htmlEscape: function (str) {
-			return str
+			return typeof str === 'string' ? str
 				.replace(/&/g, '&amp;')
 				.replace(/"/g, '&quot;')
 				.replace(/'/g, '&#39;')
 				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;');
+				.replace(/>/g, '&gt;') : '';
 		},
 
 		/**
