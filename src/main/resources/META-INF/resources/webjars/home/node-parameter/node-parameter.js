@@ -134,8 +134,8 @@ define(['cascade'], function ($cascade) {
 						},
 						date: function (parameter) {
 							// Create a data input
-							var $input = configuration.providers.input.standard(parameter).addClass('date');
-							var $wrapper = $('<div class="input-group"><span class="add-on"><i class="fas fa-calendar"></i></span></div>');
+							const $input = configuration.providers.input.standard(parameter).addClass('date');
+							const $wrapper = $('<div class="input-group"><span class="add-on"><i class="fas fa-calendar"></i></span></div>');
 							$wrapper.find('.input-group').prepend($input);
 							return $wrapper;
 						}
@@ -143,14 +143,14 @@ define(['cascade'], function ($cascade) {
 					'form-group': {
 						standard: function (parameter, $container, $input) {
 							// Create a "form-group" with empty "controls", manages name, id, description, required
-							var required = parameter.mandatory && !current.isNodeMode($container) ? ' required' : '';
-							var secured = parameter.secured ? ' secured' : '';
-							var id = parameter.id;
-							var validator = configuration.validators[id];
-							var name = current.$messages[id] || parameter.name || '';
-							var description = current.$messages[id + '-description'] || parameter.description;
+							const required = parameter.mandatory && !current.isNodeMode($container) ? 'required' : '';
+							const secured = parameter.secured ? 'secured' : '';
+							const id = parameter.id;
+							const validator = configuration.validators[id];
+							const name = current.$messages[id] || parameter.name || '';
+							let description = current.$messages[id + '-description'] || parameter.description;
 							description = description ? ('<span class="help-block">' + description + '</span>') : '';
-							var $dom = $(`<div class="form-group' ${required} ${secured}"><label class="control-label col-md-4" for="${id}">${name}</label><div class="col-md-8">${description}</div></div>`);
+							const $dom = $(`<div class="form-group ${required} ${secured}"><label class="control-label col-md-4" for="${id}">${name}</label><div class="col-md-8">${description}</div></div>`);
 							$dom.children('div').prepend($input);
 							$container.append($dom);
 							validator && $input.on('change keyup', validator);
