@@ -40,13 +40,12 @@ define([
 			name && $.ajax({
 				type: 'POST',
 				url: REST_PATH + 'api/token/' + encodeURIComponent(name),
-				dataType: 'text',
 				contentType: 'application/json',
-				success: function (token) {
+				success: function (tokenData) {
 					notifyManager.notify(Handlebars.compile(current.$messages.created)(name));
 					_('popup').modal('show', {
 						name: name,
-						token: token
+						token: tokenData.id || tokenData
 					});
 					current.table && current.table.api().ajax.reload();
 				}
