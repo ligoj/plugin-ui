@@ -99,8 +99,9 @@ html {
 	top: 35px !important;
 }
 [data-group] .input-group .input-group-btn .btn {
-	padding-left: 0;
-	padding-right: 0;
+    padding-left: 4px;
+    padding-right: 6px;
+    margin-bottom: 0px;
 }
 [data-group] .input-group .input-group-btn {
 	padding-left: 0;
