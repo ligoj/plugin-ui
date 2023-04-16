@@ -121,8 +121,7 @@ define(['cascade'], function ($cascade) {
 		 * Search mode
 		 */
 		loadProjects: function () {
-			document.title = current.$messages.title;
-			$('.cascade-title').text(document.title);
+			current.$cascade.setTitle(current.$messages.title);
 			current.initializeSearch();
 			_('details').addClass('hidden');
 			current.unloadConfiguration();
@@ -412,7 +411,7 @@ define(['cascade'], function ($cascade) {
 			current.currentId = project ? project.id : 0;
 			const name = project ? project.name + ' (' + project.pkey + ')' : '';
 			$('.project-name').text(name);
-			$('.cascade-title').text(current.$messages.title + (project ? ' / ' + project.name : ''));
+			current.$cascade.setTitle(current.$messages.title + (project ? ' / ' + project.name : ''));
 
 			if (project.description) {
 				_('detail-description').html(project.description).removeClass('hidden');
