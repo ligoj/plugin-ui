@@ -21,6 +21,10 @@
 	    width: 64px;
 	}
 }
+.subscription-icon-tool img.tool {
+    width: 24px;
+    height: 24px;
+}
 .qrcode-toggle {
 	float: right;
 	top: -28px;

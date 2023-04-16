@@ -138,10 +138,7 @@ define(['cascade'], function ($cascade) {
 		unloadConfiguration: function () {
 			$('.subscribe-configuration').addClass('hidden');
 			current.$view.find('.configuration-wrapper').each(function () {
-				const $service = $(this).data('service');
-				if ($service && $service.unload) {
-					$service.unload();
-				}
+				$(this).data('service')?.unload?.();
 			});
 		},
 
@@ -202,7 +199,7 @@ define(['cascade'], function ($cascade) {
 				validationManager.reset(_('popup'));
 				const $source = $(event.relatedTarget);
 				let uc = $source.length && current.table.fnGetData($source.closest('tr')[0]);
-				uc = uc && uc.id ? uc : {};
+				uc = uc?.id ? uc : {};
 				_('name').val(uc.name || '');
 				_('pkey').disable(uc.nbSubscriptions > 0).select2('val', uc.pkey || '');
 				_('teamLeader').select2('data', uc.id ? uc.teamLeader : {
@@ -301,17 +298,11 @@ define(['cascade'], function ($cascade) {
 					data: 'teamLeader',
 					className: 'hidden-xs truncate responsive-user',
 					orderable: false,
-					render: function (_i, _j, data) {
-						if (data.teamLeader && data.teamLeader.id) {
-							return current.$main.getUserLink(data.teamLeader);
-						}
-					}
+					render: (_i, _j, data) => data.teamLeader?.id && current.$main.getUserLink(data.teamLeader)
 				}, {
 					data: 'createdDate',
 					className: 'hidden-xs hidden-sm hidden-md truncate responsive-date',
-					render: function (_i, _j, data) {
-						return moment(data.createdDate).format(formatManager.messages.shortdateMomentJs);
-					}
+					render: (_i, _j, data) => moment(data.createdDate).format(formatManager.messages.shortdateMomentJs)
 				}, {
 					data: 'nbSubscriptions',
 					width: '16px'
@@ -353,7 +344,7 @@ define(['cascade'], function ($cascade) {
 				success: function (id) {
 					notifyManager.notify(Handlebars.compile(current.$messages[current.currentId ? 'updated' : 'created'])(data.name + ' (' + (data.id || id) + ')'));
 					_('popup').modal('hide');
-					current.table && current.table.api().ajax.reload();
+					current.table?.api().ajax.reload();
 					if (id) {
 						window.location.replace(current.$url + '/' + id);
 					}
@@ -381,7 +372,7 @@ define(['cascade'], function ($cascade) {
 					url: REST_PATH + 'project/' + id,
 					success: function () {
 						notifyManager.notify(Handlebars.compile(current.$messages.deleted)(name));
-						current.table && current.table.api().ajax.reload();
+						current.table?.api().ajax.reload();
 					}
 				});
 			} else {
@@ -709,7 +700,7 @@ define(['cascade'], function ($cascade) {
 						if (group === 'z_orphan_') {
 							// Orphan group case
 							dataSrc = group;
-						} else if (dataSrc && dataSrc.startsWith('compact-')) {
+						} else if (dataSrc?.startsWith('compact-')) {
 							// Not the orphan group
 							dataSrc = dataSrc.substring('compact-'.length).replace(/__/g, '.');
 						}
@@ -837,12 +828,13 @@ define(['cascade'], function ($cascade) {
 			}
 
 			$subscribeWrapper.html($subscribe);
-			if ($context && $context.configure) {
+			if ($context?.configure) {
 				// Delegate the configuration to the service
 				$context.configure(data);
 				callback && callback(data);
 
-				// Inject the project name
+				// Inject the icon
+                $subscribeWrapper.find('.subscription-icon-tool').html(`${current.$parent.toIcon(service)} <i class="fas fa-chevron-right"></i> ${current.$parent.toIcon(data.node, 'x64')}`);
 			} else {
 				// Not managed configuration for this service
 				traceLog('No managed configuration for service ' + service.id);
