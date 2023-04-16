@@ -192,3 +192,6 @@ img.tool.broken {
 	-webkit-filter: drop-shadow(1px 1px 1px rgba(0,0,0,.5));
 	filter: drop-shadow(1px 1px 1px rgba(0,0,0,.5));
 }
+.has-feedback label .form-control-feedback {
+    line-height: 38px;
+}
