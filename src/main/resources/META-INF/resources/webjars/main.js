@@ -6,6 +6,25 @@
  */
 define(['cascade'], function ($cascade) {
 	var current = {
+		/**
+		 * Update the message counter.
+		 */
+		initialize: function () {
+			current.updateMessageCounter();
+		},
+		/**
+		 * Update the message counter.
+		 */
+		updateMessageCounter: function () {
+			// Display unread messages counter
+			var count = $cascade.session.userSettings.unreadMessages || 0;
+			if (count) {
+				var text = count > 99 ? '&#8734;' : count;
+				current.$view.find('.bs-inbox .count').html(text).closest('.label').removeClass('hidden');
+			} else {
+				current.$view.find('.bs-inbox .count').empty().closest('.label').addClass('hidden');
+			}
+		},
 
 		/**
 		 * Trim the given object by removing properties either 'null', either 'undefined' either an empty String.
@@ -238,10 +257,11 @@ define(['cascade'], function ($cascade) {
 					moment(data.createdDate).format(formatManager.messages.shortdateMomentJs),
 					current.getUserLink(data.lastModifiedBy),
 					moment(data.lastModifiedDate).format(formatManager.messages.shortdateMomentJs)
-				]))
+				])).removeClass('hidden');
+			} else {
+				_('detail-audit').addClass('hidden');
 			}
 		},
-
 
 		/**
 		 * Diacritics mapping
