@@ -9,38 +9,38 @@
 	line-height: 36px;
 }
 
-.status .status-content {
+td.status {
 	background-color: #5cb85c;
 	cursor: default;
 }
 
-.status.status-up .status-content {
+.status.status-up {
 	background-color: #5cb85c;
 }
-
-.status.status-down .status-content {
+.status.status-down {
 	background: #d9534f;
+}
+.status.status-down .status-content {
 	font-size: 7px;
     color: white;
 	padding-left: 1px;
 }
 
-.status.status-unknown .status-content {
+.status.status-unknown {
 	background-color: #337ab7;
 }
 
-.refresh .status .status-content {
+.refresh .status {
 	background-size: 40px 40px;
 	-moz-animation: progress-bar-stripes 2s linear infinite;
 	-webkit-animation: progress-bar-stripes 2s linear infinite;
 	-o-animation: progress-bar-stripes 2s linear infinite;
 	animation: progress-bar-stripes 2s linear infinite;
 	cursor: progress;
-	position: relative;
 	transition: border-color 0.25s;
 }
 
-.refresh .status.status-down .status-content {
+.refresh .status.status-down {
 	background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
 	background-image: -webkit-gradient(linear, left top, right top, from(rgba(255, 255, 255, .15)), to(rgba(255, 255, 255, .15)));
 	background-image: -ms-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
@@ -49,7 +49,7 @@
 	background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
 }
 
-.refresh .status.status-up .status-content {
+.refresh .status.status-up {
 	background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
 	background-image: -webkit-gradient(linear, left top, right top, from(rgba(255, 255, 255, .15)), to(rgba(255, 255, 255, .15)));
 	background-image: -ms-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
@@ -58,7 +58,7 @@
 	background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
 }
 
-.refresh .status.status-unknown .status-content {
+.refresh .status.status-unknown {
 	background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
 	background-image: -webkit-gradient(linear, left top, right top, from(rgba(255, 255, 255, .15)), to(rgba(255, 255, 255, .15)));
 	background-image: -ms-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
@@ -67,8 +67,8 @@
 	background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
 }
 
-.refresh .status .status-content:before,
-.refresh .status .status-content:after {
+.refresh .status:before,
+.refresh .status:after {
 	position: absolute;
 	z-index: 1;
 	border: 2px solid transparent;
@@ -76,7 +76,7 @@
 	content: '';
  }
 
-.refresh .status .status-content:before {
+.refresh .status:before {
 	width: 100%;
 	height: 100%;
 	top: 0;
@@ -84,7 +84,7 @@
 	animation: 1s top-left-border 0s infinite;
 }
 
-.refresh .status .status-content:after {
+.refresh .status:after {
 	width: 0;
 	height: 0;
 	bottom: 0;
@@ -179,19 +179,11 @@
 .subscriptions td.key:hover {
 	overflow: visible;
 }
-.subscriptions td.key {
-	padding-top: 0;
-	padding-bottom: 0;
-	vertical-align: middle;
-}
 .subscriptions .carousel .sub-item {
 	white-space: nowrap;	
 }
 .subscriptions td.key .carousel {
 	height: 36px;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
 }
 .subscriptions .carousel-inner>.item {
 	text-overflow: ellipsis;
