@@ -473,7 +473,7 @@ define(['cascade'], function ($cascade) {
 		},
 
 		renderServiceLink: function (icon, link, tooltipKey, textKey, attr, clazz) {
-			return '<a href="' + link + '"' + (attr || '') + ' class="feature ' + (clazz || '') + '"><i class="fas fa-' + icon + '" data-toggle="tooltip"' + (tooltipKey ? ' title="' + current.$messages[tooltipKey] + '"' : '') + '></i> ' + (textKey ? current.$messages[textKey] : '') + '</a>';
+			return `<a href="${link}" ${attr || ''} class="feature ${clazz || ''}"><i class="fas fa-${icon}" ${tooltipKey ? `data-toggle="tooltip" title="${current.$messages[tooltipKey] || tooltipKey}"` : ''}></i> ${textKey ? current.$messages[textKey] || textKey : ''}</a>`;
 		},
 
 		renderServiceHelpLink: function (parameters, serviceKey) {
