@@ -259,7 +259,7 @@ define(['cascade'], function ($cascade) {
 		 * @param {function} renderCallback     Callback called for each refreshed subscription.
 		 */
 		refreshSubscription: function (subscriptions, renderCallback) {
-			if (!$.isArray(subscriptions)) {
+			if (!Array.isArray(subscriptions)) {
 				subscriptions = [subscriptions];
 			}
 			if (subscriptions.length === 0) {
@@ -535,7 +535,7 @@ define(['cascade'], function ($cascade) {
 			let item;
 			for (let i = 0; i < items.length; i++) {
 				item = items[i];
-				value = $.isArray(item) ? item[1] : item;
+				value = Array.isArray(item) ? item[1] : item;
 				if (value) {
 					// Item is well defined, and worth to be displayed
 					result += '<div class="item item-' + (baseIndex + i) + ((merge === 0 && (startIndex ? i === startIndex : i === 0)) ? ' active' : '') + '">' + current.toCarouselText(value) + '</div>';
@@ -561,7 +561,7 @@ define(['cascade'], function ($cascade) {
 			for (i = 0; i < items.length; i++) {
 				if (startIndex === i) {
 					const item = items[i];
-					if ($.isArray(item) ? item[1] : item) {
+					if (Array.isArray(item) ? item[1] : item) {
 						return startIndex;
 					}
 					return 0;
@@ -584,7 +584,7 @@ define(['cascade'], function ($cascade) {
 			let i;
 			for (i = 0; i < items.length; i++) {
 				item = items[i];
-				if (id === null || $.isArray(item) ? item[1] : item) {
+				if (id === null || Array.isArray(item) ? item[1] : item) {
 					// Item is well defined, and worth to be displayed
 					result += '<li';
 					if (id) {
@@ -592,7 +592,7 @@ define(['cascade'], function ($cascade) {
 					}
 					result += ' data-slide-to="' + baseIndex + '"';
 					result += (mergeInd === 0 && (startIndex ? i === startIndex : i === 0)) ? ' class="active"' : '';
-					result += $.isArray(item) ? ' data-toggle="tooltip" data-container="body" title="' + (current.$messages[item[0]] || item[0]) + '"' : '';
+					result += Array.isArray(item) ? ' data-toggle="tooltip" data-container="body" title="' + (current.$messages[item[0]] || item[0]) + '"' : '';
 					result += '></li>';
 					baseIndex++;
 				}

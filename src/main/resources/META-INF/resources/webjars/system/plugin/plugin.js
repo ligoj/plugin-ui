@@ -295,7 +295,7 @@ define(function () {
 		 * @param {number} index The starting plug-in index within the given array. When undefined, is 0.
 		 */
 		installNext: function (plugins, index) {
-			plugins = $.isArray(plugins) ? plugins : [plugins];
+			plugins = Array.isArray(plugins) ? plugins : [plugins];
 			index = index || 0;
 			if (index >= plugins.length) {
 				// All plug-ins are installed

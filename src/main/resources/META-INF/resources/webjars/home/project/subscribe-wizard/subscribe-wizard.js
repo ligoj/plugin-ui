@@ -196,7 +196,7 @@ define(['cascade'], function ($cascade) {
 				url: REST_PATH + url + (url.indexOf('?') === -1 ? '?' : '&') + 'rows=1000',
 				type: 'GET',
 				success: function (nodes) {
-					nodes = $.isArray(nodes.data) ? nodes.data : nodes;
+					nodes = Array.isArray(nodes.data) ? nodes.data : nodes;
 					$description.addClass('hidden').empty();
 					if (renderData) {
 						$container.empty();
