@@ -134,11 +134,7 @@ define(function () {
 				}, {
 					data: null,
 					orderable: false,
-					render: function (_i, _j, data) {
-						return $.makeArray($(data.roles).map(function () {
-							return this.name;
-						})).join();
-					}
+					render: (_i, _j, data) => data.roles.map(r=> r.name).join()
 				}, {
 					data: null,
 					width: '32px',
