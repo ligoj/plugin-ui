@@ -43,6 +43,7 @@ define([
 				contentType: 'application/json',
 				success: function (tokenData) {
 					notifyManager.notify(Handlebars.compile(current.$messages.created)(name));
+					_('popup-new').modal('hide');
 					_('popup').modal('show', {
 						name: name,
 						token: tokenData.id || tokenData
@@ -122,6 +123,17 @@ define([
 				notifyManager.notify(current.$messages.copied);
 			});
 
+			_('popup-new').on('shown.bs.modal', function () {
+				_('new-name').focus();
+			}).on('show.bs.modal', function (event) {
+				validationManager.reset($(this));
+				_('new-name').val(null);
+			}).on('submit', function (event) {
+                event.preventDefault();
+                validationManager.reset($(this));
+                current.create(_('new-name').val());
+                return false;
+            });
 			// Setup table
 			current.table = _('table').dataTable({
 				dom: '<"row"<"col-sm-6"B><"col-sm-6"f>r>t',
@@ -156,7 +168,7 @@ define([
 					{
 						extend: 'create',
 						action: function () {
-							bootbox.prompt(current.$messages.name, current.create);
+						_('popup-new').modal("show")
 						}
 					}
 				]
