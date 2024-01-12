@@ -147,7 +147,8 @@ define(function () {
 					],
 					columns: [{
 						width: '300px',
-						data: 'name'
+						data: 'name',
+						className: 'truncate'
 					}, {
 						data: 'value',
 						render: function (data, mode, model) {
