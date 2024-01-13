@@ -1,7 +1,7 @@
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
  */
-define(function () {
+define(['cascade'], function ($cascade) {
 	var current = {
 		/**
 		 * Return a cookie value.
@@ -40,29 +40,23 @@ define(function () {
 		 * Load session data.
 		 */
 		initialize: function () {
-			$.ajax({
-				type: 'GET',
-				url: REST_PATH + 'session',
-				dataType: 'json',
-				success: function (data) {
-					_('userName').val(data.userName);
-					_('session').val(current.getCookie('JSESSIONID'));
-					if (data.applicationSettings) {
-						_('buildNumber').val(parseInt(data.applicationSettings.buildNumber, 10));
-						var timestamp = parseInt(data.applicationSettings.buildTimestamp, 10);
-						if (isNaN(timestamp)) {
-							_('buildTimestamp').val(data.applicationSettings.buildTimestamp);
-							_('buildDate').val(formatManager.formatDate(NaN));
-						} else {
-							_('buildTimestamp').val(timestamp);
-							_('buildDate').val(formatManager.formatDate(timestamp));
-						}
-						_('buildVersion').val(data.applicationSettings.buildVersion);
-					} else {
-						notifyManager.notifyDanger(current.$messages.noBuildInformation);
-					}
-				}
-			});
+		    const data = $cascade.session
+            _('userName').val(data.userName);
+            _('session').val(current.getCookie('JSESSIONID'));
+            if (data.applicationSettings) {
+                _('buildNumber').val(parseInt(data.applicationSettings.buildNumber, 10));
+                var timestamp = parseInt(data.applicationSettings.buildTimestamp, 10);
+                if (isNaN(timestamp)) {
+                    _('buildTimestamp').val(data.applicationSettings.buildTimestamp);
+                    _('buildDate').val(formatManager.formatDate(NaN));
+                } else {
+                    _('buildTimestamp').val(timestamp);
+                    _('buildDate').val(formatManager.formatDate(timestamp));
+                }
+                _('buildVersion').val(data.applicationSettings.buildVersion);
+            } else {
+                notifyManager.notifyDanger(current.$messages.noBuildInformation);
+			};
 			current.fetchSystem();
 			_('defaultTimeZone').on('blur change', function () {
 				current.updateTimeZone('default', 'defaultTimeZone', $(this).val());
