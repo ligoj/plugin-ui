@@ -94,18 +94,19 @@ define(['cascade'], function ($cascade) {
 
 		configureParameters: function ($container, node, mode, id) {
 			$container.html('<i class="loader fas fa-spin fa-sync-alt fa-5"></i>');
+			current.$transaction = $cascade.transaction;
 			$.ajax({
 				dataType: 'json',
-				url: REST_PATH + 'node/' + node + '/parameter-value/' + mode.toUpperCase(),
+				url: `${REST_PATH}node/${node}/parameter-value/${mode.toUpperCase()}`,
 				type: 'GET',
 				success: function (parameterValues) {
 					// Load parameter configuration context
 					$cascade.loadFragment(current, current.$transaction, 'main/home/node-parameter', 'node-parameter', {
 						plugins: ['i18n', 'css', 'js'],
-						callback: function (context) {
+						callback: context => {
 							current.parameterContext = context;
 							$container.empty();
-							context.configureParameterValues($container, parameterValues, node, mode, id, function () {
+							context.configureParameterValues($container, parameterValues, node, mode, id, () => {
 								// Configuration and validators are available
 								$container.data('dirty', false);
 								_('node-create').enable();
