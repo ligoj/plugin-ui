@@ -20,14 +20,14 @@ define(['cascade'], function ($cascade) {
 		 * Return the parameter values inside the given container and configure the validation mapping.
 		 */
 		getParameterValues: function ($container) {
-			var values = [];
-			var i = 0;
+			const values = [];
+			let i = 0;
 			$container.find('.parameter[data-type]').each(function () {
-				var $input = $(this);
-				var $group = $input.closest('.form-group');
-				var id = $input.attr('id');
-				var parameter = current.configuration.parameters[id];
-				var type = parameter.type;
+				const $input = $(this);
+				const $group = $input.closest('.form-group');
+				const id = $input.attr('id');
+				const parameter = current.configuration.parameters[id];
+				const type = parameter.type;
 				validationManager.mapping['parameters[' + i + '].parameter'] = id;
 				validationManager.mapping[id] = id;
 				if (parameter.secured && $group.is('.untouched')) {
@@ -37,7 +37,7 @@ define(['cascade'], function ($cascade) {
 						untouched: true
 					});
 				} else {
-					var value = {
+					const value = {
 						parameter: id,
 						selections: type === 'multiple' ? $input.select2('val') : null,
 						tags: type === 'tags' ? $input.select2('val') : null,
@@ -206,17 +206,17 @@ define(['cascade'], function ($cascade) {
 		configureParameterValues: function ($container, values, node, mode, id, callback) {
 
 			// Drop required flag for nodes
-			var parameters = [];
+			const parameters = [];
 			values.forEach(value => {
-				var pvp = value.parameter;
+				const pvp = value.parameter;
 				parameters.push(pvp);
 				delete pvp.mandatory;
 			});
 			current.configureParameters($container, parameters, node, mode, id, function (configuration) {
 				values.forEach(value => {
-					var parameter = value.parameter;
-					var $element = _(parameter.id);
-					var $group = $element.closest('.form-group');
+					const parameter = value.parameter;
+					const $element = _(parameter.id);
+					const $group = $element.closest('.form-group');
 
 					// Set the input value
 					configuration.values[parameter.type](value, $element, parameter, id);
@@ -251,16 +251,16 @@ define(['cascade'], function ($cascade) {
 				/*
 				 * Parameter configuration of new subscription wizard : validators, type of parameters, renderer,...
 				 */
-				var configuration = current.newSubscriptionParameterConfiguration(node, mode);
+				const configuration = current.newSubscriptionParameterConfiguration(node, mode);
 				current.configuration = configuration;
 				configuration.parameters = {};
 				$tool.configureSubscriptionParameters && $tool.configureSubscriptionParameters(configuration, $container);
-				var providers = configuration.providers;
-				var renderers = configuration.renderers;
-				var iProviders = providers.input;
-				var cProviders = providers['form-group'];
+				const providers = configuration.providers;
+				const renderers = configuration.renderers;
+				const iProviders = providers.input;
+				const cProviders = providers['form-group'];
 				parameters.forEach(parameter => {
-					var $input = (iProviders[parameter.id] || iProviders[parameter.type] || iProviders.standard)(parameter, $container);
+					const $input = (iProviders[parameter.id] || iProviders[parameter.type] || iProviders.standard)(parameter, $container);
 					(cProviders[parameter.id] || cProviders[parameter.type] || cProviders.standard)(parameter, $container, $input);
 
 					// Post transformations
