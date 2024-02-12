@@ -10,6 +10,7 @@ define(['cascade'], function ($cascade) {
 				e.preventDefault();
 				current.initResult();
 				current.benchInsert();
+				return false;
 			});
 		},
 
@@ -43,9 +44,9 @@ define(['cascade'], function ($cascade) {
 		benchInsert: function () {
 			current.spin('insert');
 			_('details').ajaxSubmit({
-				url: REST_PATH + 'system/bench',
+				url: REST_PATH + 'system/bench/prepare',
 				type: 'POST',
-				dataType: $cascade.isOldIE ? 'text' : 'json',
+				dataType: 'text',
 				iframe: $cascade.isOldIE,
 				success: function (data) {
 					_('insert').val(data.duration);
@@ -79,7 +80,7 @@ define(['cascade'], function ($cascade) {
 			current.spin('select');
 			$.ajax({
 				type: 'GET',
-				url: REST_PATH + 'system/bench',
+				url: REST_PATH + 'system/bench/read',
 				dataType: 'json',
 				success: function (data) {
 					_('select').val(data.duration);
@@ -98,7 +99,7 @@ define(['cascade'], function ($cascade) {
 			current.spin('select-all');
 			$.ajax({
 				type: 'GET',
-				url: REST_PATH + 'system/bench/all',
+				url: REST_PATH + 'system/bench/read/all',
 				dataType: 'json',
 				success: function (data) {
 					_('select-all').val(data.duration);
@@ -117,7 +118,7 @@ define(['cascade'], function ($cascade) {
 			current.spin('update');
 			$.ajax({
 				type: 'PUT',
-				url: REST_PATH + 'system/bench',
+				url: REST_PATH + 'system/bench/update',
 				dataType: 'json',
 				success: function (data) {
 					_('update').val(data.duration);
@@ -136,7 +137,7 @@ define(['cascade'], function ($cascade) {
 			current.spin('delete');
 			$.ajax({
 				type: 'DELETE',
-				url: REST_PATH + 'system/bench',
+				url: REST_PATH + 'system/bench/delete',
 				dataType: 'json',
 				success: function (data) {
 					_('delete').val(data.duration);
