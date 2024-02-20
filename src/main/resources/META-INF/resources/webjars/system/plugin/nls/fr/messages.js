@@ -8,6 +8,8 @@ define({
 	'downloaded': 'Plug-in {{[0]}} téléchargé ({{[1]}}/{{[2]}}), un redémarrage est requis',
 	'subscriptions': 'Souscriptions',
 	'plugin-installing': 'Plug-in installé, mais non activé. Nécessite un redémarrage.',
+    'plugin-javadoc': 'Installer JavaDoc',
+    'plugin-javadoc-help': 'Les JavaDocs téléchargées contribuent à la documentation OpenAPI dans les formulaires Swagger',
 	'plugin-update': 'Mettre à jour ce plug-in',
 	'plugin-cancel-update': 'Anuler cette mise à jour',
 	'plugin-cancel-install': 'Anuler cette installation',

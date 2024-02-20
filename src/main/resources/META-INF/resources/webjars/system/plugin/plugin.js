@@ -14,9 +14,22 @@ define(function () {
 		table: null,
 
 		initialize: function () {
+		    function installJavadoc() {
+                $.ajax({
+                    type: 'POST',
+                    url: `${REST_PATH}system/plugin/javadoc/install?repository=${current.repository}`,
+                    dataType: 'text',
+                    contentType: 'application/json',
+                    success: function (data) {
+                        notifyManager.notify(Handlebars.compile(current.$messages['plugin-javadoc-downloaded'])([data]));
+                        // Refresh after this batch update
+                        current.clearAndReload();
+                    }
+                });
+            }
 			current.table = _('table').on('click', '.update', function () {
 				// Update the plug-in
-				current.installNext(_('table').dataTable().fnGetData($(this).closest('tr')[0]).plugin.artifact, 0);
+				current.installNext(_('table').dataTable().fnGetData($(this).closest('tr')[0]).plugin.artifact, 0, true);
 			}).on('click', '.cancel-local', function () {
 				// Update the plug-in
 				var plugin = _('table').dataTable().fnGetData($(this).closest('tr')[0]);
@@ -24,9 +37,7 @@ define(function () {
 			}).on('click', '.delete', function () {
 				current.delete(_('table').dataTable().fnGetData($(this).closest('tr')[0]).plugin.artifact);
 			}).dataTable({
-				ajax: function () {
-					return REST_PATH + 'system/plugin?repository=' + current.repository;
-				},
+				ajax: () => `${REST_PATH}system/plugin?repository=${current.repository}`,
 				dataSrc: '',
 				sAjaxDataProp: '',
 				dom: '<"row"<"col-sm-11"B><"col-sm-1"f>r>t',
@@ -119,12 +130,33 @@ define(function () {
 					}
 				}],
 				buttons: [{
-					extend: 'create',
-					text: 'install',
-					action: function () {
-						_('popup').modal('show');
-					}
-				}, {
+                    extend: 'collection',
+                    className: 'btn-success btn-raised plugin-install',
+                    text: current.$messages['plugin-install'],
+                    autoClose: true,
+                    buttons: [{
+                        text: current.$messages['plugin-install-from-repository'],
+                        attr: {
+                            'title': current.$messages['plugin-install-from-repository-help'],
+                            'data-toggle': 'tooltip'
+                        },
+                        action: () => _('popup').modal('show')
+                    }, {
+                        text: current.$messages['upload-plugin'],
+                        attr: {
+                            'title': current.$messages['upload-plugin-help'],
+                            'data-toggle': 'tooltip'
+                        },
+                        action: () => _('popup-plugin-upload').modal('show')
+                    }, {
+                         text: current.$messages['plugin-install-javadoc-all'],
+                         attr: {
+                             'title': current.$messages['plugin-install-javadoc-all-help'],
+                             'data-toggle': 'tooltip'
+                         },
+                         action: () => installJavadoc()
+                     }]
+                }, {
 					text: current.$messages.restart,
 					className: 'btn-danger',
 					action: current.restart
@@ -134,15 +166,6 @@ define(function () {
 					attr: {
 						'title': current.$messages['check-new-version-help'],
 						'data-toggle': 'tooltip'
-					}
-				}, {
-					text: current.$messages['upload-plugin'],
-					attr: {
-						'title': current.$messages['upload-plugin-help'],
-						'data-toggle': 'tooltip'
-					},
-					action: function() {
-						_('popup-plugin-upload').modal('show');
 					}
 				}, {
 					extend: 'collection',
@@ -203,7 +226,7 @@ define(function () {
 			});
 
 			_('save').click(function () {
-				current.install(_('search').select2('val'));
+				current.install(_('search').select2('val'), _('plugin-install-javadoc').is(':checked'));
 				_('popup').modal('hide');
 			});
 			_('popup').on('show.bs.modal', function () {
@@ -282,9 +305,9 @@ define(function () {
 		 * Install the requested plug-ins.
 		 * @param pluginsAsString The plug-in identifiers (comma separated) or null. When null, a prompt is displayed.
 		 */
-		install: function (plugins) {
+		install: function (plugins, javadoc) {
 			if (plugins) {
-				current.installNext(plugins, 0);
+				current.installNext(plugins, 0, javadoc);
 			}
 		},
 
@@ -293,8 +316,9 @@ define(function () {
 		 * There is one AJAX call by plug-in, and stops at any error.
 		 * @param {string[]|string} plugins The plug-in identifiers array to install. Accept a sole plugin string too.
 		 * @param {number} index The starting plug-in index within the given array. When undefined, is 0.
+		 * @param {javadoc} Option to install javadoc along the plugin.
 		 */
-		installNext: function (plugins, index) {
+		installNext: function (plugins, index, javadoc) {
 			plugins = Array.isArray(plugins) ? plugins : [plugins];
 			index = index || 0;
 			if (index >= plugins.length) {
@@ -308,7 +332,7 @@ define(function () {
 			if (plugin) {
 				$.ajax({
 					type: 'POST',
-					url: REST_PATH + 'system/plugin/' + encodeURIComponent(plugin) + '?repository=' + current.repository,
+					url: `${REST_PATH}system/plugin/${encodeURIComponent(plugin)}?repository=${current.repository}&javadoc=${javadoc}`,
 					dataType: 'text',
 					contentType: 'application/json',
 					success: function () {
@@ -317,7 +341,7 @@ define(function () {
 
 						// Install the next plug-in
 						if (next) {
-							current.installNext(plugins, index + 1);
+							current.installNext(plugins, index + 1, javadoc);
 						} else {
 							// Refresh after this batch update
 							current.clearAndReload();
@@ -326,7 +350,7 @@ define(function () {
 				});
 			} else {
 				// The token was empty, install the next real plug-in
-				current.installNext(plugins, index + 1);
+				current.installNext(plugins, index + 1, javadoc);
 			}
 		},
 
