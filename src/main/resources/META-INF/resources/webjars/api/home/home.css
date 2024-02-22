@@ -1,0 +1,10 @@
+.swagger-ui .topbar {
+    display: none;
+}
+.swagger-ui .schemes-server-container {
+    visibility: hidden;
+}
+.swagger-ui .version {
+    background-color: transparent!important;
+    border-color: transparent;
+}
