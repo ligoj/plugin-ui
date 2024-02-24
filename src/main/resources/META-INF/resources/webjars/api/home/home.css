@@ -8,3 +8,24 @@
     background-color: transparent!important;
     border-color: transparent;
 }
+.swagger-ui .opblock-tag-section {
+    box-shadow: 0 0 3px rgba(0,0,0,.19);
+    background-color: #edf0f8;
+    border-color: #3b4151;
+    border-style: solid;
+    border-radius: 5px;
+    margin-bottom: 8px;
+}
+.swagger-ui .opblock-tag-section .opblock-tag {
+   margin-bottom: -1px;
+}
+.swagger-ui .opblock-tag-section.is-open .opblock-tag {
+   margin-bottom: 6px;
+}
+.swagger-ui .opblock-tag-section .opblock {
+    margin-right: 4px;
+    margin-left: 4px;
+}
+.swagger-ui .opblock-tag-section .opblock:last-child {
+    margin-bottom: 4px;
+}
