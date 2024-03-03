@@ -64,7 +64,7 @@
 </form>
 <form id="details" class="hidden form-horizontal">
 	<div class="alert alert-info" role="alert">
-		<button class="btn btn-default qrcode-toggle" type="button"><i class="fas fa-qrcode" title="QRCode" data-toggle="tooltip"></i><div class="hidden qrcode"></div></button>
+		<button class="btn btn-default qrcode-toggle" type="button"><i class="fas fa-qrcode" title="QRCode" data-toggle="tooltip"></i><span class="hidden qrcode"></span></button>
 		<h4 class="project-name" data-toggle="tooltip">...</h4>
 		<small id="detail-audit">...</small>
 		<div id="detail-description"></div>
@@ -88,4 +88,41 @@
 			</tr>
 		</tbody>
 	</table>
+</form>
+<form id="popup-delete" class="modal fade form-horizontal" tabindex="-1" role="dialog" aria-labelledby="modal-delete-title">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="{{cancel}}">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title" id="modal-delete-title">{{delete}}</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="form-group">
+						<div class="col-sm-11 col-sm-offset-1">
+							<span class="project-delete-confirm"></span>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="form-group">
+						<div class="checkbox" data-toggle="tooltip" data-container="body">
+							<label for="project-delete-with-data">
+								<input type="checkbox" id="project-delete-with-data">
+								<span>{{{delete-project-subscriptions}}}</span>
+							</label>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<input type="submit" class="btn btn-danger btn-raised" value="{{delete}}" data-loading-text="{{delete}} ..." data-complete-text="{{delete}}">
+				<button class="btn btn-link" data-dismiss="modal" aria-hidden="true" type="button">
+					{{cancel}}
+				</button>
+			</div>
+		</div>
+	</div>
 </form>

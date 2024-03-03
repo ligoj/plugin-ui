@@ -213,6 +213,17 @@ define(['cascade'], function ($cascade) {
 				current.currentId = 0;
 			});
 
+			_('popup-delete').on('show.bs.modal', function (event) {
+			    const $source = $(event.relatedTarget);
+                const uc = $source.length && current.table.fnGetData($source.closest('tr')[0]);
+				_('popup-delete').data('project', uc).find(".project-delete-confirm").html(Handlebars.compile(current.$messages['delete-confirm'])(uc.name));
+			}).on('submit', function (e) {
+                // Requires a confirmation
+				const entity = $(this).data('project');
+                $('project-delete').modal('show');
+                current.deleteProject(entity.id, entity.name, _('project-delete-with-data').is(':checked'));
+            });
+
 			_('name').on('change', function () {
 				if (!_('pkey').prop('disabled')) {
 					const pKeys = current.generatePKeys(_('name').val());
@@ -277,9 +288,6 @@ define(['cascade'], function ($cascade) {
 				serverSide: true,
 				searching: true,
 				ajax: REST_PATH + 'project',
-				createdRow: function (nRow) {
-					$(nRow).find('.delete').on('click', current.deleteProject);
-				},
 				columns: [{
 					data: 'name',
 					width: '200px',
@@ -311,7 +319,7 @@ define(['cascade'], function ($cascade) {
 					orderable: false,
 					render: function () {
 						const link = '<a class="update" data-toggle="modal" data-target="#popup"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a>';
-						return link + '<a class="delete"><i class="fas fa-times" data-toggle="tooltip" title="' + current.$messages['delete'] + '"></i></a>';
+						return link + '<a class="delete" data-toggle="modal" data-target="#popup-delete"><i class="fas fa-times" data-toggle="tooltip" title="' + current.$messages['delete'] + '"></i></a>';
 					}
 				}],
 				buttons: securityManager.isAllowedApi('project', 'post,put') ? [{
@@ -363,24 +371,16 @@ define(['cascade'], function ($cascade) {
 		/**
 		 * Delete the selected project after popup confirmation, or directly from its identifier.
 		 */
-		deleteProject: function (id, name) {
-			if ((typeof id) === 'number') {
-				// Delete without confirmation
-				$.ajax({
-					type: 'DELETE',
-					url: REST_PATH + 'project/' + id,
-					success: function () {
-						notifyManager.notify(Handlebars.compile(current.$messages.deleted)(name));
-						current.table?.api().ajax.reload();
-					}
-				});
-			} else {
-				// Requires a confirmation
-				const entity = current.table.fnGetData($(this).closest('tr')[0]);
-				bootbox.confirmDelete(function (confirmed) {
-					confirmed && current.deleteProject(entity.id, entity.name);
-				}, entity.name);
-			}
+		deleteProject: function (id, name, withData) {
+            // Delete without confirmation
+            $.ajax({
+                type: 'DELETE',
+                url: `${REST_PATH}project/${id}${withData?'?deleteRemoteData=true':''}`,
+                success: function () {
+                    notifyManager.notify(Handlebars.compile(current.$messages.deleted)(name));
+                    current.table?.api().ajax.reload();
+                }
+            });
 		},
 
 		/**
