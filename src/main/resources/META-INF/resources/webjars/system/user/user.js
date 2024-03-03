@@ -81,7 +81,7 @@ define(function () {
 
 			_('roles').select2();
 
-			// update focus when modal popup is dhown
+			// update focus when modal popup is down
 			_('popup').on('shown.bs.modal', function () {
 				_('login').focus();
 			}).on('show.bs.modal', function (event) {

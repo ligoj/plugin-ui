@@ -301,7 +301,7 @@ define(['cascade'], function ($cascade) {
 				}, {
 					data: 'createdDate',
 					className: 'hidden-xs hidden-sm hidden-md truncate responsive-date',
-					render: (_i, _j, data) => moment(data.createdDate).format(formatManager.messages.shortdateMomentJs)
+					render: (_i, _j, data) => moment(data.createdDate).format(formatManager.messages.shortDateMomentJs)
 				}, {
 					data: 'nbSubscriptions',
 					width: '16px'

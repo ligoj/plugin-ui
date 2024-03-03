@@ -3,6 +3,6 @@
  */
 define({
 	'title': 'Gestion des jetons',
-	'regenerate': 'Regénérer',
+	'regenerate': 'Régénérer',
 	'show': 'Montrer la clé'
 });

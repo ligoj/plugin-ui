@@ -20,7 +20,7 @@ define({
 	'toggle-thumbnail': 'Cliquer ici pour forcer l\'affichage permanent',
 	'global-statuses': 'Statuts globaux',
 	'news': 'Nouveautés',
-	'new-details': 'Ligoj est un gestionnaire de dépendences pour vos projets. Vous êtes les bienvenues pour contribuer sur la plus grosse plateforme Open Source',
+	'new-details': 'Ligoj est un gestionnaire de dépendances pour vos projets. Vous êtes les bienvenues pour contribuer sur la plus grosse plateforme Open Source',
 	'redirect': 'Redirection',
 	'redirect-details': 'Vous pouvez sélectionner un outil qui sera associé par défaut à l\'adresse',
 	'configure': 'Configurer',

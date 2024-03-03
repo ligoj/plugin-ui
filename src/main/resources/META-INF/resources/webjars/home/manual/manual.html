@@ -36,10 +36,10 @@
 	</li>
 	<li id="subscription">
 		<h2>Souscription</h2><span>Chaque responsable de projet peut souscrire à un nouveau service. Les souscriptions
-			ne peuvent être supprimées par la suite; il sagit d'une limitation technique temporaire, les souscriptions doivent
+			ne peuvent être supprimées par la suite ; il s'agit d'une limitation technique temporaire, les souscriptions doivent
 			donc se faire de manière réfléchie.</span><span>Une souscription à un service peut requérir une autre souscription
-			dans le cas d'une dépendance de services. Par exemple JIRA 6 nécessite LDAP, donc le projet doit souscrire à ce
-			service avant de pouvoir bénéficier de JIRA 6.</span><span>Il existe 2 à 3 niveaux de raffinement des service : le
+			dans le cas d'une dépendance de services. Par exemple JIRA 6 nécessite LDAP, le projet doit donc souscrire à ce
+			service avant de pouvoir bénéficier de JIRA 6.</span><span>Il existe 2 à 3 niveaux de raffinement des services : le
 			service (ex. "Bug Tracking"), l'outil (ex. JIRA) et l'instance (ex. JIRA 6). Les niveaux inférieurs peuvent fixer des
 			propriétés exigées par les niveaux supérieurs. À chaque niveau, de nouvelles propriétés peuvent être ajoutées. Lors
 			d'une souscription, l'utilisateur sera invité à renseigner toutes propriétés définies non fixées. Ce système permet
@@ -58,9 +58,9 @@
 							<li>
 								Import CSV
 								<div>
-									Ce service permet d'importer un historique de workflow de plusieurs tickets. Le fichier de utiliser
+									Ce service permet d'importer un historique de workflow de plusieurs tickets. Le fichier d'utiliser
 									est de type CSV dont les spécifications sont décrites dans le tableau ci-dessous. L'encodage du fichier
-									(UTF-8,..) peut être configuré.
+									(UTF-8,...) peut être configuré.
 								</div>
 								<h5>Règles de gestion par champ</h5>
 								<table class="table table-striped table-bordered">
@@ -89,8 +89,8 @@
 											<td>gJTR468</td>
 										</tr>
 										<tr>
-											<td>issue</td>
-											<td>identifiant du nouveau. La clé du projet est ignorée mais si présente doit être constante.
+											<td>Issue</td>
+											<td>Identifiant du nouveau. La clé du projet est ignorée, mais si présente doit être constante.
 											<br>
 											Le mode mise à jour n'est pas encore supporté. </td>
 											<td>Oui</td>
@@ -126,7 +126,7 @@
 										</tr>
 										<tr>
 											<td>priority</td>
-											<td>Priorité du ticket, peut être en français ou en anglais, la casse n'est pas importante</td>
+											<td>Priorité du ticket. Peut être en français ou en anglais, la casse n'est pas importante</td>
 											<td>Oui</td>
 											<td>.{2,}</td>
 											<td>Simple</td>
@@ -152,7 +152,7 @@
 										<tr>
 											<td>labels</td>
 											<td>Liste des étiquettes "," en séparateur. La casse doit être exacte, et ne doit pas être traduit.
-											Seules les étiquettes du dernier changement sont prises en compte car ce n'est pas une donnée historisées.</td>
+											Seules les étiquettes du dernier changement sont prises en compte, car ce n'est pas une donnée historisées.</td>
 											<td>Non</td>
 											<td>[^,]+(,[^,]+)*</td>
 											<td>Urgence,TGC3,MI0A</td>
@@ -199,9 +199,9 @@
 										</tr>
 										<tr>
 											<td>resolution</td>
-											<td>Etat de résolution. La casse doit être exacte, et ne doit pas être traduit. Si non renseignée et si
+											<td>État de résolution. La casse doit être exacte, et ne doit pas être traduit. Si non renseignée et si
 											la "<strong>resolutionDate</strong>" est renseignée, alors la valeur par défaut est "Fixed". Ne doit pas être
-											renseignée sans avoir rencontré le "<strong>status</strong>" "Resolved" ou "Closed". A l'inverse lorsque ce statuts
+											renseignée sans avoir rencontré le "<strong>status</strong>" "Resolved" ou "Closed". A l'inverse lorsque ce statut
 											sont rencontré la résolution "Fixed" ou celle définie sera positionnée. </td>
 											<td>Non</td>
 											<td>.{2,}</td>
@@ -341,7 +341,7 @@
 										</li>
 										<li>
 											Un statut de début de chronomètres. Si le nom du statut est modifié dans JIRA, l'outil gardera sa
-											trace. Un rapprochement de nom est également effectué pour faciliter les projet multi-workflow.
+											trace. Un rapprochement de nom est également effectué pour faciliter les projets multi-workflow.
 										</li>
 										<li>
 											Un statut de fin de chronomètres
@@ -354,7 +354,7 @@
 										restituant à la seconde près les temps, le tout dans un format <a
 										href="main/saas/manual/MANTMA-16003-2014-06-20.csv">CSV</a> ou <a
 										href="main/saas/manual/MANTMA-16003-2014-06-20.xml">XLS</a> (Open XML) </span>
-									<span>Le temps de génération de ces rapport est entre 1 et 5 secondes pour quelques milliers de
+									<span>Le temps de génération de ces rapports est entre 1 et 5 secondes pour quelques milliers de
 										changements</span>
 								</p>
 								<p>
@@ -372,7 +372,7 @@
 										</ul></li>
 										<li>Une valeur de calcul numérique et donc comparable
 										<ul><li>Pour une duré, exprimée en millisecondes </li>
-										<li>Pour une date  "timestamp", exprimée selon la norme unix (epoc millisecondes) Voir : https://currentmillis.com/</li>
+										<li>Pour une date "timestamp", exprimée selon la norme unix (epoc millisecondes) Voir : https://currentmillis.com/</li>
 										</ul></li>
 									</ul>
 									Exemple pour un SLA nommé "MONSLA"
