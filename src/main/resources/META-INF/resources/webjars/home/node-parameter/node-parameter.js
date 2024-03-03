@@ -45,7 +45,7 @@ define(['cascade'], function ($cascade) {
 						bool: type === 'bool' ? $input.is(':checked') : null,
 						integer: (type === 'integer' && $input.val() !== '') ? parseInt($input.val(), 10) : null,
 						text: (type === 'text' && $input.val() !== '') ? $input.val() : null,
-						date: (type === 'date' && $input.val() !== '') ? moment($input.val(), formatManager.messages.shortdateMomentJs).valueOf() : null
+						date: (type === 'date' && $input.val() !== '') ? moment($input.val(), formatManager.messages.shortDateMomentJs).valueOf() : null
 					};
 					current.$main.trimObject(value);
 					if (Object.keys(value).length === 2) {
@@ -66,6 +66,24 @@ define(['cascade'], function ($cascade) {
 		isNodeMode: function ($container) {
 			return $container.closest('.modal').length === 1;
 		},
+
+		/**
+		 * Set the configuration's parameters to a specific order with optional grouping layout.
+		 * @param {object} configuration The current configuration containing parameter definitions.
+		 * @param {string[]} parameterIdsWithSections Ordered list of parameter identifiers. When item is an object like '{'section': 'server'}', a sibling group is created. No nested group.
+		 * @return {boolean} True when the given container corresponds to a node configuration.
+		 */
+		layoutParameters: function (configuration, parameterIdsWithSections) {
+            let currentSection = null;
+            parameterIdsWithSections.forEach((p, index) => {
+                if (typeof p == 'string') {
+                    configuration.parameters[p].order = index;
+                    configuration.parameters[p].section = currentSection;
+                } else {
+                    currentSection = p.section;
+                }
+            });
+        },
 
 		/**
 		 * Hold the parameter generation configuration : UI input, validator, UI component
@@ -152,7 +170,23 @@ define(['cascade'], function ($cascade) {
 							description = description ? ('<span class="help-block">' + description + '</span>') : '';
 							const $dom = $(`<div class="form-group ${required} ${secured}"><label class="control-label col-md-4" for="${id}">${name}</label><div class="col-md-8">${description}</div></div>`);
 							$dom.children('div').prepend($input);
-							$container.append($dom);
+
+							if (typeof parameter.section === 'string') {
+							    const section = parameter.section;
+							    const sectionCLass = `section-${section}`;
+							    let $section = $container.find(`.section.${sectionCLass}`);
+							    if (!$section.length) {
+							        $section = $(`<fieldset class="card section ${sectionCLass}"><legend>${current.$messages[`${parameter.owner.id}-section-${section}`] || section.capitalize()}</legend></fieldset>`);
+							        $container.append($section);
+							    }
+							    $container = $section;
+                            }
+							if (parameter.layout === 'prepend') {
+							    $container.prepend($dom);
+							} else {
+							    $container.append($dom);
+							}
+
 							validator && $input.on('change keyup', validator);
 							return $dom;
 						}
@@ -185,10 +219,10 @@ define(['cascade'], function ($cascade) {
 				// Create the select2 suggestion a LIKE %criteria% for project name, display name and description
 				current.newNodeSelect2($input, restUrl, current.$super('toName'), function (e) {
 					_(id + '_alert').parent().remove();
-					if (e.added && e.added.id) {
+					if (e.added?.id) {
 						$input.next().after('<div><br><div id="' + id + '_alert" class="well">' + current.$messages.id + ': ' + e.added.id + (e.added.name ? '<br>' + current.$messages.name + ': ' + e.added.name : '') + (e.added.key || e.added.pkey ? '<br>' + current.$messages.pkey + ': ' + (e.added.key || e.added.pkey) : '') + (e.added.description ? '<br>' + current.$messages.description + ': ' + e.added.description : '') + (e.added['new'] ? '<br><i class="fas fa-warning"></i> ' + current.$messages['new'] : '') + '</div></div>');
 					}
-					changeHandler && changeHandler();
+					changeHandler?.();
 				}, parameter, customPath, allowNew, lowercase, customQuery);
 			};
 		},
@@ -231,13 +265,13 @@ define(['cascade'], function ($cascade) {
 				});
 
 				// Notify the configuration is ready and all parameters are rendered
-				callback && callback(configuration);
+				callback?.(configuration);
 			});
 		},
 
 		/**
 		 * Build node/subscription parameters: UI and configuration.
-		 * Note this is an asynchronous function thats requires the related node's context to render the parameter.
+		 * Note this is an asynchronous function that requires the related node's context to render the parameter.
 		 * @param {jQuery} $container Target container where the parameters will be rendered..
 		 * @param {Array} parameters Required parameters to complete the subscription.
 		 * @param {string} node Node identifier to use for the target subscription.
@@ -248,34 +282,45 @@ define(['cascade'], function ($cascade) {
 		configureParameters: function ($container, parameters, node, mode, id, callback) {
 			current.configuration = null;
 			current.$super('requireTool')(current, node, function ($tool) {
+
 				/*
 				 * Parameter configuration of new subscription wizard : validators, type of parameters, renderer,...
 				 */
 				const configuration = current.newSubscriptionParameterConfiguration(node, mode);
 				current.configuration = configuration;
-				configuration.parameters = {};
-				$tool.configureSubscriptionParameters && $tool.configureSubscriptionParameters(configuration, $container);
+
+                // Save the id based parameter store
+				configuration.parameters = parameters.reduce((acc,p)=> {
+                    acc[p.id] = p;
+                    return acc;
+				},{});
+
+				$tool.configureSubscriptionParameters?.(configuration, $container);
 				const providers = configuration.providers;
 				const renderers = configuration.renderers;
 				const iProviders = providers.input;
 				const cProviders = providers['form-group'];
-				parameters.forEach(parameter => {
+				parameters.sort((p1,p2) => {
+                    const order1 = typeof p1.order === 'number' ? p1.order : 1000;
+                    const order2 = typeof p2.order === 'number' ? p2.order : 1000;
+                    if (order1 === order2) {
+                        return ((p1.id||'') > (p2.id||'')) ? 1 : -1;
+                    }
+                    return order1 > order2 ? 1 : -1;
+                }).forEach(parameter => {
 					const $input = (iProviders[parameter.id] || iProviders[parameter.type] || iProviders.standard)(parameter, $container);
 					(cProviders[parameter.id] || cProviders[parameter.type] || cProviders.standard)(parameter, $container, $input);
 
 					// Post transformations
-					renderers[parameter.type] && renderers[parameter.type](parameter, $input);
-					renderers[parameter.id] && renderers[parameter.id](parameter, $input);
+					renderers[parameter.type]?.(parameter, $input);
+					renderers[parameter.id]?.(parameter, $input);
 
 					// Secured
 					parameter.secured && renderers.secured(parameter, $input);
-
-					// Save the id based parameter store
-					configuration.parameters[parameter.id] = parameter;
 				});
 
 				// Notify the configuration is ready and all parameters are rendered
-				callback && callback(configuration);
+				callback?.(configuration);
 			});
 		},
 
