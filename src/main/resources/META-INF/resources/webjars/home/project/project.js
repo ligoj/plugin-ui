@@ -379,6 +379,7 @@ define(['cascade'], function ($cascade) {
                 success: function () {
                     notifyManager.notify(Handlebars.compile(current.$messages.deleted)(name));
                     current.table?.api().ajax.reload();
+                    _('popup-delete').modal('hide');
                 }
             });
 		},
