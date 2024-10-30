@@ -680,7 +680,7 @@ define(['cascade'], function ($cascade) {
 					bVisible: project.manageSubscriptions,
 					render: function (_i, _j, subscription) {
 						if (project.manageSubscriptions) {
-							return '<a class="unsubscribe"><i class="fas fa-times" data-toggle="tooltip" title="' + current.$messages.unsubscribe + '"></i></a>' + ((subscription.node.refined.mode === 'create' || subscription.node.mode === 'create') ? '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages['delete-subscription'] + '"></i></a>' : '');
+							return '<a class="unsubscribe"><i class="fas fa-times" data-toggle="tooltip" title="' + current.$messages.unsubscribe + '"></i></a>' + ((subscription.mode === 'create' || (typeof subscription.mode === 'undefined' && (subscription.node.refined.mode === 'create' || subscription.node.mode === 'create' || subscription.node.refined.mode === 'all' || subscription.node.mode === 'all'))) ? '<a class="delete"><i class="fas fa-trash-alt" data-toggle="tooltip" title="' + current.$messages['delete-subscription'] + '"></i></a>' : '');
 						}
 						return '&nbsp';
 					}
