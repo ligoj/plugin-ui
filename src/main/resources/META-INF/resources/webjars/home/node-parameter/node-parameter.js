@@ -76,7 +76,7 @@ define(['cascade'], function ($cascade) {
 		layoutParameters: function (configuration, parameterIdsWithSections) {
             let currentSection = null;
             parameterIdsWithSections.forEach((p, index) => {
-                if (typeof p == 'string') {
+                if (typeof p === 'string' && configuration.parameters[p]) {
                     configuration.parameters[p].order = index;
                     configuration.parameters[p].section = currentSection;
                 } else {
