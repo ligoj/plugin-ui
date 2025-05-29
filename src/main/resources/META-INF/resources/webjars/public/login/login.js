@@ -28,7 +28,11 @@ define([
 					current.success();
 					if (result && result.success && result.redirect) {
 						// Success login, use the provided redirection URL
-						window.location.replace('//' + location.host + result.redirect + (current.target || '#/'));
+						const url = new URL(window.location.href);
+                        const pathParts = url.pathname.split('/').filter(function(part) {return part;});
+                        pathParts.pop(); // remove the last part of the path
+                        const newPath = '/' + pathParts.join('/');
+                        window.location.href = `${url.origin}${newPath}`+ (current.target || '#/');
 					} else {
 						window.location.replace('?' + mode);
 					}
