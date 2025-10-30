@@ -676,6 +676,7 @@ define(['cascade'], function ($cascade) {
 				}, {
 					data: null,
 					className: 'hidden-xs hidden-sm',
+					width: '48px',
 					orderable: false,
 					bVisible: project.manageSubscriptions,
 					render: function (_i, _j, subscription) {
