@@ -137,7 +137,7 @@ define(function () {
 					render: (_i, _j, data) => data.roles.map(r=> r.name).join()
 				}, {
 					data: null,
-					width: '32px',
+					width: '48px',
 					orderable: false,
 					render: function () {
 						return '<a data-toggle="modal" data-target="#popup"><i class="fas fa-pencil-alt" data-toggle="tooltip" title="' + current.$messages.update + '"></i></a><a class="delete"><i class="far fa-trash-alt" data-toggle="tooltip" title="' + current.$messages['delete'] + '"></i></a>';
