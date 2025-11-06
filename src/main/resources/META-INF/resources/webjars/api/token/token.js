@@ -154,7 +154,7 @@ define([
 						}
 					}, {
 						data: null,
-						width: '60px',
+						width: '72px',
 						orderable: false,
 						render: function () {
 							var row = '<a class="show-token" data-toggle="modal" data-target="#popup"><i class="fas fa-eye-slash" data-toggle="tooltip" title="' + current.$messages.show + '"></i></a>';
