@@ -643,7 +643,7 @@ define(['cascade'], function ($cascade) {
 					className: 'hidden-xs service',
 					render: function (_i, mode, subscription) {
 						if (mode === 'display') {
-							return current.$parent.toIcon(subscription.node.refined.refined);
+							return current.$main.toIcon(subscription.node.refined.refined);
 						}
 						return subscription.node.refined.refined.name;
 					}
@@ -652,7 +652,7 @@ define(['cascade'], function ($cascade) {
 					className: 'responsive-tool icon-xs tool truncate',
 					render: function (_i, mode, subscription) {
 						if (mode === 'display') {
-							return current.$parent.toIconNameTool(subscription.node.refined);
+							return current.$main.toIconNameTool(subscription.node.refined);
 						}
 						return subscription.node.refined.name;
 					}
@@ -709,16 +709,16 @@ define(['cascade'], function ($cascade) {
 						// Add service/too/node TD
 						if (dataSrc === 'node.id') {
 							// Node mode
-							$tr.append('<td>' + current.$parent.toIcon(subscription.node.refined.refined) + '</td>');
-							$tr.append('<td>' + current.$parent.toIconNameTool(subscription.node.refined) + '</td>');
+							$tr.append('<td>' + current.$main.toIcon(subscription.node.refined.refined) + '</td>');
+							$tr.append('<td>' + current.$main.toIconNameTool(subscription.node.refined) + '</td>');
 							$tr.append('<td colspan="' + (project.manageSubscriptions ? 4 : 3) + '">' + subscription.node.name + '</td>');
 						} else if (dataSrc === 'node.refined.id' || dataSrc === 'node.id') {
 							// Tool mode
-							$tr.append('<td>' + current.$parent.toIcon(subscription.node.refined.refined) + '</td>');
-							$tr.append('<td colspan="' + (project.manageSubscriptions ? 5 : 4) + '">' + current.$parent.toIconNameTool(subscription.node.refined) + '</td>');
+							$tr.append('<td>' + current.$main.toIcon(subscription.node.refined.refined) + '</td>');
+							$tr.append('<td colspan="' + (project.manageSubscriptions ? 5 : 4) + '">' + current.$main.toIconNameTool(subscription.node.refined) + '</td>');
 						} else if (dataSrc === 'node.refined.refined.id') {
 							// Service mode
-							$tr.append('<td colspan="' + (project.manageSubscriptions ? 6 : 5) + '">' + current.$parent.toIcon(subscription.node.refined.refined) + '&nbsp;' + subscription.node.refined.refined.name + '</td>');
+							$tr.append('<td colspan="' + (project.manageSubscriptions ? 6 : 5) + '">' + current.$main.toIcon(subscription.node.refined.refined) + '&nbsp;' + subscription.node.refined.refined.name + '</td>');
 						} else {
 							// Orphan group
 							$tr.append('<td colspan="' + (project.manageSubscriptions ? 6 : 5) + '">' + current.$messages['group-by-other'] + '</td>');
@@ -779,7 +779,7 @@ define(['cascade'], function ($cascade) {
 			_('details').addClass('hidden');
 			current.unloadConfiguration()
 
-			$cascade.loadFragment(current, current.$transaction, 'main/home/project/subscribe-wizard', 'subscribe-wizard', {
+			$cascade.loadFragment(current, current.$transaction, 'main/subscribe-wizard', 'subscribe-wizard', {
 				callback: function (context) {
 					context.setModel(project);
 				},
@@ -835,7 +835,7 @@ define(['cascade'], function ($cascade) {
 				callback && callback(data);
 
 				// Inject the icon
-                $subscribeWrapper.find('.subscription-icon-tool').html(`${current.$parent.toIcon(service)} <i class="fas fa-chevron-right"></i> ${current.$parent.toIcon(data.node, 'x64')}`);
+                $subscribeWrapper.find('.subscription-icon-tool').html(`${current.$main.toIcon(service)} <i class="fas fa-chevron-right"></i> ${current.$main.toIcon(data.node, 'x64')}`);
 			} else {
 				// Not managed configuration for this service
 				traceLog('No managed configuration for service ' + service.id);

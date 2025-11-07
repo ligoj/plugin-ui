@@ -415,6 +415,67 @@ define(['cascade'], function ($cascade) {
 		},
 
 		/**
+		 * Return the tool identifier part from a node identifier. It's the first level of refinement, just
+		 * after service. This corresponds to the first implementation of a service.
+		 */
+		getToolFromId: function (id) {
+			// Pattern is : service:{service name}:{tool name}(:whatever)
+			const data = id.split(':');
+			return data.length > 2 && data.slice(0, 3).join('-');
+		},
+
+		/**
+		 * Return the identifier of each hierarchy nodes until the service.
+		 */
+		getHierarchyId: function (id) {
+			// Pattern is : service:{service name}:{tool name}(:whatever)
+			const data = id.split(':');
+			let index;
+			let result = '';
+			for (index = 2; index <= data.length; index++) {
+				result += ' ' + data.slice(0, index).join('-');
+			}
+			return result;
+		},
+
+		/**
+		 * Return the service identifier part from a node identifier.
+		 */
+		getServiceFromId: function (id) {
+			// Pattern is : service:{service name}:{tool name}(:whatever)
+			const data = id.split(':');
+			return data.length > 1 && data.slice(0, 2).join('-');
+		},
+
+		/**
+		 * Return the service simple name part from a node identifier.
+		 */
+		getServiceNameFromId: function (id) {
+			// Pattern is : service:{service name}:{tool name}(:whatever)
+			return id.split(':')[1];
+		},
+
+		/**
+		 * Return the service simple name part from a node identifier.
+		 */
+		getToolNameFromId: function (id) {
+			// Pattern is : service:{service name}:{tool name}(:whatever)
+			return id.split(':')[2];
+		},
+
+		/**
+		 * Icon of corresponding tool, and entity's "name".
+		 */
+		toIconNameTool: function (node) {
+			return current.toIcon(node) + '<span class="hidden-xs"' + (node.description ? ' title="' + node.description + '"' : '') + '> ' + current.getNodeName(node) + '</span>';
+		},
+
+		toToolBaseIcon: function (node) {
+			const fragments = node.split(':');
+			return 'main/service/' + fragments[1] + '/' + fragments[2] + '/img/' + fragments[2];
+		},
+
+		/**
 		 * Object type to class mapping.
 		 */
 		targetTypeClass: {

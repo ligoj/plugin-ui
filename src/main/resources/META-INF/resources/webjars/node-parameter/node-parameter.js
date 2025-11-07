@@ -217,7 +217,7 @@ define(['cascade'], function ($cascade) {
 				var customQuery = () => current.getParameterValues($container).map(pv => `${pv.parameter}=${encodeURIComponent(pv.text || pv.date || pv.tags || pv.index || pv.bool || pv.integer)}`).join('&');
 
 				// Create the select2 suggestion a LIKE %criteria% for project name, display name and description
-				current.newNodeSelect2($input, restUrl, current.$super('toName'), function (e) {
+				current.newNodeSelect2($input, restUrl, current.$main.toName(), function (e) {
 					_(id + '_alert').parent().remove();
 					if (e.added?.id) {
 						$input.next().after('<div><br><div id="' + id + '_alert" class="well">' + current.$messages.id + ': ' + e.added.id + (e.added.name ? '<br>' + current.$messages.name + ': ' + e.added.name : '') + (e.added.key || e.added.pkey ? '<br>' + current.$messages.pkey + ': ' + (e.added.key || e.added.pkey) : '') + (e.added.description ? '<br>' + current.$messages.description + ': ' + e.added.description : '') + (e.added['new'] ? '<br><i class="fas fa-warning"></i> ' + current.$messages['new'] : '') + '</div></div>');
@@ -281,7 +281,7 @@ define(['cascade'], function ($cascade) {
 		 */
 		configureParameters: function ($container, parameters, node, mode, id, callback) {
 			current.configuration = null;
-			current.$super('requireTool')(current, node, function ($tool) {
+			current.$main.requireTool(current, node, function ($tool) {
 
 				/*
 				 * Parameter configuration of new subscription wizard : validators, type of parameters, renderer,...

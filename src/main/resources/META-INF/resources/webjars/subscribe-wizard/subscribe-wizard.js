@@ -65,7 +65,15 @@ define(['cascade'], function ($cascade) {
 
 		setModel: function (project) {
 			current.model = project;
-
+            var $projectLevelContents = $(current.$view.find('.subscribe-project'));
+            var $noProjectLevelContents = $(current.$view.find('.subscribe-no-project'));
+            if (current.model) {
+                $projectLevelContents.removeClass('hidden');
+                $noProjectLevelContents.addClass('hidden');
+            } else {
+                $projectLevelContents.addClass('hidden');
+                $noProjectLevelContents.removeClass('hidden');
+            }
 			// Reset the UI
 			validationManager.reset(_('subscribe-definition'));
 			_('project').text(project.name);
@@ -74,7 +82,14 @@ define(['cascade'], function ($cascade) {
 
 			// Show first tab
 			_('subscribe-definition').find('.nav-pills li').first().find('a').tab('show');
-			current.$view.find('.cancel-subscription').attr('href', current.$parent.$url + '/' + project.id);
+			if (project?.id) {
+    			current.$view.find('.cancel-subscription').attr('href', current.$parent.$url + '/' + project.id);
+			} else {
+			    current.$view.find('.cancel-subscription').attr('href', current.$parent.$url);
+            }
+            current.$view.find('.cancel-subscription').off('click.subscribe-cancel').on('click.subscribe-cancel', function() {
+                $(this).trigger("subscribe:cancel");
+            });
 		},
 
 		/**
@@ -104,7 +119,11 @@ define(['cascade'], function ($cascade) {
 		},
 
 		availableNextStep: function () {
-			_('subscription-next').removeClass('hidden');
+            var $step = _('subscribe-definition').find('.nav-pills li.active');
+            var step = $step.next().length && ($step.index() + 1);
+            if (step <= 2 || current.model) {
+                _('subscription-next').removeClass('hidden');
+            }
 		},
 
 		/**
@@ -146,7 +165,7 @@ define(['cascade'], function ($cascade) {
 				var mode = _('subscribe-mode').find('input:checked').val();
 				_('subscription-create').removeClass('hidden').disable();
 				current.renderChoices('parameters', 'node/' + parent + '/parameter/' + mode.toUpperCase(), false, function (data) {
-					$cascade.loadFragment(current, current.$transaction, 'main/home/node-parameter', 'node-parameter', {
+					$cascade.loadFragment(current, current.$transaction, 'main/node-parameter', 'node-parameter', {
 						callback: function (context) {
 							current.parameterContext = context;
 							_('subscribe-parameters').find('.choices').empty();
@@ -296,9 +315,9 @@ define(['cascade'], function ($cascade) {
 				_('subscribe-mode').removeClass('mode-create').removeClass('mode-link').addClass('mode-' + mode);
 				$description.addClass('hidden').empty();
 				node.description && $description.html(node.description).removeClass('hidden');
-				if (current.$super('getToolFromId')(node.id)) {
+				if (current.$main.getToolFromId(node.id)) {
 					// Use provided image for 'img' node
-					$name.html(current.$super('toIconNameTool')(node));
+					$name.html(current.$main.toIconNameTool(node));
 				} else {
 					// Use classes of 'i' node
 					$name.html('<span><i class="' + (node.uiClasses || 'fas fa-cloud') + '"></i></span><span>' + current.$main.getNodeName(node) + '</span>');

@@ -1,5 +1,5 @@
 <form id="subscribe-definition" class="form-horizontal hidden subscribe-configuration">
-	<div class="alert alert-info" role="alert">
+	<div class="alert alert-info subscribe-project" role="alert">
 		<h3>
 			<span id="project">...</span> : {{subscribe}}</h3>
 		<p>
@@ -17,10 +17,10 @@
 			<li class="disabled" role="navigation">
 				<a href="#subscribe-node" data-toggle="tab" aria-expanded="false">3. {{node}}</a>
 			</li>
-			<li class="disabled" role="navigation">
+			<li class="disabled subscribe-project" role="navigation">
 				<a href="#subscribe-mode" data-toggle="tab" aria-expanded="false">4. {{mode}}</a>
 			</li>
-			<li class="disabled" role="navigation">
+			<li class="disabled subscribe-project" role="navigation">
 				<a href="#subscribe-parameters" data-toggle="tab" aria-expanded="false">5. {{parameters}}</a>
 			</li>
 		</ul>
@@ -32,8 +32,8 @@
 						<div class="choice-description"></div>
 					</div>
 					<div class="col-sm-9">
-						<h3>Select the service you want to subscribe for your project</h3>
-						<h4> A service is a set of features for your project. They may differ depending on the available tool you will choose. </h4>
+						<h3>Select the service</h3>
+						<h4>A service is a set of features that each tool implements</h4>
 						<div class="choices btn-group" data-toggle="buttons"></div>
 					</div>
 				</div>
@@ -47,7 +47,7 @@
 					</div>
 					<div class="col-sm-9">
 						<h3>Select a tool providing the selected service.</h3>
-						<h4> A tool is specific implementation of a service, and several instances (or nodes) can be deployed. </h4>
+						<h4>A tool is specific implementation of a service, and several instances (or nodes) can be deployed. </h4>
 						<div class="choices btn-group" data-toggle="buttons"></div>
 					</div>
 				</div>
@@ -105,9 +105,10 @@
 	<div class="form-actions">
 		<input type="submit" class="btn btn-success btn-raised" id="subscription-create" value="{{create}}">
 		<input type="button" class="btn btn-link" id="subscription-previous" value="{{previous}}">
-		<input type="button" class="btn btn-default pull-left node-popup-trigger" id="subscription-new-node" value="{{node-new}}" data-toggle="modal-ajax" data-cascade="true" data-target="#node-popup" data-ajax="/main/home/node-popup" data-plugins="css,i18n,html,js">
-		<input type="button" class="btn btn-default pull-left node-popup-trigger" id="subscription-update-node" value="{{node-update}}" data-toggle="modal-ajax" data-cascade="true" data-target="#node-popup" data-ajax="/main/home/node-popup" data-plugins="css,i18n,html,js">
+		<input type="button" class="btn btn-default pull-left node-popup-trigger" id="subscription-new-node" value="{{node-new}}" data-toggle="modal-ajax" data-cascade="true" data-target="#node-popup" data-ajax="/main/node-popup" data-plugins="css,i18n,html,js">
+		<input type="button" class="btn btn-default pull-left node-popup-trigger" id="subscription-update-node" value="{{node-update}}" data-toggle="modal-ajax" data-cascade="true" data-target="#node-popup" data-ajax="/main/node-popup" data-plugins="css,i18n,html,js">
 		<input type="submit" class="btn btn-primary btn-raised" id="subscription-next" value="{{next}}">
-		<a class="btn btn-link cancel-subscription">{{cancel}}</a>
+        <a class="btn btn-link cancel-subscription subscribe-project">{{cancel}}</a>
+        <a class="btn btn-link cancel-subscription subscribe-no-project">{{close}}</a>
 	</div>
 </form>

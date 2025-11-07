@@ -5,7 +5,6 @@ define({
 	root: {
 		'title': 'Plug-in',
 		'vendor': 'Vendor',
-		'nodes': 'Nodes',
 		'version': 'Version',
 		'type': 'Type',
 		'downloaded-continue': 'Plug-in {{[0]}} downloaded ({{[1]}}/{{[2]}}),',

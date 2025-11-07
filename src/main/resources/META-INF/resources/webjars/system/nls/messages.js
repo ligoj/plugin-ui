@@ -10,6 +10,7 @@ define({
 		'role' : 'Role',
 		'plug-in' : 'Plug-in',
 		'bench' : 'Benchmark',
+		'nodes': 'Nodes',
 		'data' : 'Data',
 		'assignment-role' : 'Assignment Roles',
 		'user' : 'User',

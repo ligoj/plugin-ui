@@ -101,7 +101,7 @@ define(['cascade'], function ($cascade) {
 				type: 'GET',
 				success: function (parameterValues) {
 					// Load parameter configuration context
-					$cascade.loadFragment(current, current.$transaction, 'main/home/node-parameter', 'node-parameter', {
+					$cascade.loadFragment(current, current.$transaction, 'main/node-parameter', 'node-parameter', {
 						plugins: ['i18n', 'css', 'js'],
 						callback: context => {
 							current.parameterContext = context;

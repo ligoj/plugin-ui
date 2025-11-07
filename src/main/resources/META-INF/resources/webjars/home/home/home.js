@@ -402,7 +402,7 @@ define([
 				if (node.refined && node.refined.refined === undefined) {
 					// Wrapper
 					var counters = current.toCounter(node.subscriptions.length, node.nbProjects);
-					nodeContent = '<div class="node show ' + current.gridClass + ' ' + current.$parent.getHierarchyId(node.id) + '" data-id="' + node.id + '"><div class="thumbnail"><div class="main"><div class="counters"> '+ `<span class="badge nb-total ${counters > 1 ? "" : "hidden"}  </span>` + '  data-toggle="tooltip" data-container="#_ucDiv"  title="' + current.$messages['node-subscriptions'] + '">' + counters + '</span><span class="badge nb-filtered hidden" data-toggle="tooltip" data-container="#_ucDiv" title="' + current.$messages['node-subscriptions-filtered'] + '"></span></div>' + current.$parent.toIcon(node, 'x64w', true) + '<div class="caption"><h3>' + node.name + ' <i class="fas fa-caret-right" data-toggle="tooltip" data-container="#_ucDiv" title="' + current.$messages['toggle-thumbnail'] + '"></i></h3></div>';
+					nodeContent = '<div class="node show ' + current.gridClass + ' ' + current.$main.getHierarchyId(node.id) + '" data-id="' + node.id + '"><div class="thumbnail"><div class="main"><div class="counters"> '+ `<span class="badge nb-total ${counters > 1 ? "" : "hidden"}  </span>` + '  data-toggle="tooltip" data-container="#_ucDiv"  title="' + current.$messages['node-subscriptions'] + '">' + counters + '</span><span class="badge nb-filtered hidden" data-toggle="tooltip" data-container="#_ucDiv" title="' + current.$messages['node-subscriptions-filtered'] + '"></span></div>' + current.$main.toIcon(node, 'x64w', true) + '<div class="caption"><h3>' + node.name + ' <i class="fas fa-caret-right" data-toggle="tooltip" data-container="#_ucDiv" title="' + current.$messages['toggle-thumbnail'] + '"></i></h3></div>';
 					// Tag
 					tagUiClasses = node.tag && (node.tagUiClasses || (node.refined && (node.refined.tagUiClasses || (node.refined.refined && node.refined.tagUiClasses))));
 					if (tagUiClasses) {
@@ -728,7 +728,7 @@ define([
 			if (!loopStatus.toolDisplayed) {
 				loopStatus.toolDisplayed = true;
 				tr += '<td rowspan="' + tool.specifics.length + '" class="status status-' + tool.value.toLowerCase() + '"><div class="status-content">&nbsp;</div></td>';
-				tr += '<td class="icon-xs" rowspan="' + tool.specifics.length + '">' + current.$parent.toIcon(tool.node) + '<span class="hidden-xs" title="' + tool.description + '"> ' + tool.node.name + '</span></td>';
+				tr += '<td class="icon-xs" rowspan="' + tool.specifics.length + '">' + current.$main.toIcon(tool.node) + '<span class="hidden-xs" title="' + tool.description + '"> ' + tool.node.name + '</span></td>';
 			}
 			tr += '<td class="status status-' + nodeEvent.value.toLowerCase() + '"><div class="status-content">&nbsp;</div></td>';
 			tr += '<td>' + node.name + '<a class="refresh-node pull-right"><i class="fas fa-sync-alt"></i></a></td><td data-id="' + node.id + '"></td></tr>';
