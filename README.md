@@ -1,4 +1,4 @@
-## :link: Ligoj UI [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.ligoj.plugin/plugin-ui/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.ligoj.plugin/plugin-ui)
+## :link: Ligoj UI ![Maven Central](https://img.shields.io/maven-central/v/org.ligoj.plugin/plugin-ui)
 
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.ligoj.plugin%3Aplugin-ui&metric=coverage)](https://sonarcloud.io/dashboard?id=org.ligoj.plugin%3Aplugin-ui)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?metric=alert_status&project=org.ligoj.plugin:plugin-ui)](https://sonarcloud.io/dashboard/index/org.ligoj.plugin:plugin-ui)
