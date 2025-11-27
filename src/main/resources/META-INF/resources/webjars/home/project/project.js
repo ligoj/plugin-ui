@@ -441,7 +441,7 @@ define(['cascade'], function ($cascade) {
 					const subscription = project.subscriptions[index];
 					const node = subscription.node.id;
 					subscription.project = project.id;
-					current.$parent.requireTool(current, node, function ($tool) {
+					current.$main.requireTool(current, node, function ($tool) {
 						$nodes[node] = $tool;
 						if (counter-- === 1) {
 							current.fillSubscriptionsTable(project, $nodes);
@@ -806,8 +806,8 @@ define(['cascade'], function ($cascade) {
 				type: 'GET',
 				success: function (data) {
 					data.id = parseInt(id, 10);
-					const service = current.$parent.getService(data.node);
-					current.$parent.requireService(current, service.id, function ($service) {
+					const service = current.$main.getService(data.node);
+					current.$main.requireService(current, service.id, function ($service) {
 						current.configurePluginView($service, service, data, callback);
 					});
 				}
@@ -815,7 +815,7 @@ define(['cascade'], function ($cascade) {
 		},
 
 		configurePluginView: function ($context, service, data, callback) {
-			const tool = current.$parent.getTool(data.node);
+			const tool = current.$main.getTool(data.node);
 			// Destroy the previous view, some cache could be performed there ...
 			current.$view.find('.subscribe-configuration').not('#subscribe-definition').remove();
 			// Inject the partial of this service in the current view
