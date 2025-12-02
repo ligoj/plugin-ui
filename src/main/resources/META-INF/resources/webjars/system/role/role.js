@@ -173,7 +173,8 @@ define(function () {
 					$(nRow).find('.delete').on('click', current.deleteButton);
 				},
 				columns: [{
-					data: 'name'
+					data: 'name',
+					width: '150px',
 				}, {
 					data: 'authorizations-api',
 					render: current.authorizationRenderer
