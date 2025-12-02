@@ -147,7 +147,7 @@ define(['cascade'], function ($cascade) {
 						data: 'value',
 						render: function (data, mode, model) {
 							if (mode === 'display') {
-								return '<div class="configuration-value">' + (model.secured ? '<i class="fas fa-ellipsis-h"></i><i class="fas fa-ellipsis-h"></i>' : current.$super('htmlEscape')(data)) + '</div>';
+								return '<div class="configuration-value">' + (model.secured ? '<i class="fas fa-ellipsis-h"></i><i class="fas fa-ellipsis-h"></i>' : current.$main.htmlEscape(data)) + '</div>';
 							}
 							return data;
 						}

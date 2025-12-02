@@ -281,7 +281,7 @@ define(['cascade'], function ($cascade) {
 					icon = current.toUiClassIcon(node.refined.refined.uiClasses);
 				} else {
 					// Use a provided picture
-					icon = current.$main.getToolFromId(node.id) ? current.$super('toIcon')(node, 'x64w') : '<i class="fas fa-cloud"></i>';
+					icon = current.$main.getToolFromId(node.id) ? current.$main.toIcon(node, 'x64w') : '<i class="fas fa-cloud"></i>';
 				}
 				var $choice = $('<label class="choice btn"><input data-index="' + index + '" type="radio" name="s-choice-' + type + '" value="' + node.id + '" autocomplete="off"><div class="icon img-circle">' + icon + '</div>' + current.$main.getNodeName(node) + '</label>');
 				$container.append($choice);
