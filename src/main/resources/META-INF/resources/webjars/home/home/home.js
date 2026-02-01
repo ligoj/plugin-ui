@@ -138,13 +138,13 @@ define([
 				newVisibleSubscriptions.push(current.model.subscriptions[parseInt($owner.removeClass('trigger-visibility').attr('data-subscription'), 10)]);
 				$owner.find('.features').html('<i class="fas spin fa-spinner fa-pulse"></i>');
 			});
-			newVisibleSubscriptions.length && current.refreshSubcriptionStatus(newVisibleSubscriptions);
+			newVisibleSubscriptions.length && current.refreshSubscriptionStatus(newVisibleSubscriptions);
 		},
 
 		/**
 		 * Refresh the status of given subscription objects.
 		 */
-		refreshSubcriptionStatus: function (subscriptions) {
+		refreshSubscriptionStatus: function (subscriptions) {
 			var renderCallback = function (subscription, filter, $tool, $target) {
 				var $td = $target.closest('td').addClass('detailed');
 				if (filter === 'features') {
@@ -401,12 +401,27 @@ define([
 				// Consider only a tool
 				if (node.refined && node.refined.refined === undefined) {
 					// Wrapper
-					var counters = current.toCounter(node.subscriptions.length, node.nbProjects);
-					nodeContent = '<div class="node show ' + current.gridClass + ' ' + current.$main.getHierarchyId(node.id) + '" data-id="' + node.id + '"><div class="thumbnail"><div class="main"><div class="counters"> '+ `<span class="badge nb-total ${counters > 1 ? "" : "hidden"}  </span>` + '  data-toggle="tooltip" data-container="#_ucDiv"  title="' + current.$messages['node-subscriptions'] + '">' + counters + '</span><span class="badge nb-filtered hidden" data-toggle="tooltip" data-container="#_ucDiv" title="' + current.$messages['node-subscriptions-filtered'] + '"></span></div>' + current.$main.toIcon(node, 'x64w', true) + '<div class="caption"><h3>' + node.name + ' <i class="fas fa-caret-right" data-toggle="tooltip" data-container="#_ucDiv" title="' + current.$messages['toggle-thumbnail'] + '"></i></h3></div>';
+					var countersMarkup = current.toCounter(node.subscriptions.length, node.nbProjects);
+					nodeContent = `
+					<div class="node show ${current.gridClass} ${current.$main.getHierarchyId(node.id)}" data-id="${node.id}">
+					    <div class="thumbnail">
+					        <div class="main">
+					            <div class="counters">
+					                <span class="badge nb-total ${node.subscriptions.length > 1 ? "" : "hidden"}" data-toggle="tooltip" data-container="#_ucDiv"  title="${current.$messages['node-subscriptions']}">${countersMarkup}</span>
+					                <span class="badge nb-filtered hidden" data-toggle="tooltip" data-container="#_ucDiv" title="${current.$messages['node-subscriptions-filtered']}"></span>
+                                </div>
+                                ${current.$main.toIcon(node, 'x64w', true)}
+                                <div class="caption">
+                                    <h3>${node.name} <i class="fas fa-caret-right" data-toggle="tooltip" data-container="#_ucDiv" title="${current.$messages['toggle-thumbnail']}"></i>
+                                    </h3>
+                                </div>`;
 					// Tag
 					tagUiClasses = node.tag && (node.tagUiClasses || (node.refined && (node.refined.tagUiClasses || (node.refined.refined && node.refined.tagUiClasses))));
 					if (tagUiClasses) {
-						nodeContent += '<div class="tag" data-id="' + node.tag + '"><i class="' + tagUiClasses + '" alt="' + node.tag + '" title="' + node.tag.capitalize() + '" data-toggle="tooltip" data-container="#_ucDiv"></i></div>';
+						nodeContent += `
+						<div class="tag" data-id="${node.tag}">
+						    <i class="${tagUiClasses}" alt="${node.tag}" title="${node.tag.capitalize()}" data-toggle="tooltip" data-container="#_ucDiv"></i>
+                        </div>`;
 					}
 					nodeContent += '</div></div></div>';
 					$container.append(nodeContent);
@@ -446,7 +461,7 @@ define([
 		 * Return the counter markup from a node.
 		 * @param {number} nbSubscription Amount of subscriptions.
 		 * @param {number} nbProjects Amount of projects.
-		 * @return {string}     The counter markup : projets and subscription.
+		 * @return {string}     The counter markup : projects and subscription.
 		 */
 		toCounter: function (nbSubscription, nbProjects) {
 			if (nbSubscription !== nbProjects) {
@@ -500,7 +515,7 @@ define([
 			// Pack with the new set of visible nodes
 			current.masonry();
 
-			// Asynchrone : check subscription visibility
+			// Asynchronous : check subscription visibility
 			current.checkVisibleSubscriptionsAsync($context);
 		},
 
@@ -647,7 +662,7 @@ define([
 		 * load pies
 		 */
 		loadPies: function (nodes) {
-			// load statistics and higcharts
+			// load statistics and highcharts
 			require(['sparkline'], function () {
 				$.ajax({
 					dataType: 'json',
