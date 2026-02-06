@@ -404,7 +404,7 @@ define(['cascade'], function ($cascade) {
 				current.collapseGroup($(this));
 			});
 
-			$cascade.trigger('html', _('details'));
+			$cascade.trigger('html:after:project', {target: _('details'), content: []});
 		},
 
 		fillProject: function (project) {
