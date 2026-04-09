@@ -111,7 +111,7 @@ define(function () {
 				serverSide: true,
 				processing: true,
 				searchDelay: 500,
-				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-3"i><"col-xs-3"l><"col-xs-6"p>>',
 				ajax: REST_PATH + 'system/user/roles',
 				fnServerData: function () {
 					dataTableFilterManager.addFilterData.apply(dataTableFilterManager, arguments);

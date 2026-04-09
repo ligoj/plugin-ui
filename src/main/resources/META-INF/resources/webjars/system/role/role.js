@@ -148,7 +148,7 @@ define(function () {
 		initializeDataTable: function () {
 			current.table = _('table').dataTable({
 				searching: true,
-				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-6"i><"col-xs-6"p>>',
+				dom: '<"row"<"col-xs-6"B><"col-xs-6"f>r>t<"row"<"col-xs-3"i><"col-xs-3"l><"col-xs-6"p>>',
 				ajax: {
 					url : REST_PATH + 'system/security/role/withAuth',
 					callback :function (json, callback) {
