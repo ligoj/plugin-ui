@@ -1,4 +1,4 @@
-// noinspection JSUnusedGlobalSymbols
+// noinspection JSUnusedGlobalSymbols,JSUnresolvedReference
 
 /*
  * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
@@ -673,7 +673,7 @@ define(['cascade'], function ($cascade) {
 			// Delete without confirmation
 			$.ajax({
 				type: 'DELETE',
-				url: REST_PATH + url + id,
+				url: REST_PATH + url + '/' + id,
 				success: function () {
 					notifyManager.notify(Handlebars.compile(current.$messages.deleted)(text + '(' + id + ')'));
 					table?.api().ajax.reload();
@@ -681,7 +681,7 @@ define(['cascade'], function ($cascade) {
 			});
 		},
 
-        confirmDeleteTableEntry: function ($this, table, url, id, displayFunction) {
+        confirmDeleteTableEntry: function ($this, table, url, displayFunction) {
             // Requires a confirmation
             const entity = table?.fnGetData($this.closest('tr')[0]);
             const text = typeof displayFunction === 'function' ? displayFunction(entity) : (entity.name + '/' + entity.type);
