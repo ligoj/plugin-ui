@@ -164,7 +164,7 @@ define(['cascade'], function ($cascade) {
 					}, {
 						data: 'source',
 						className: 'hidden-xs hidden-sm',
-						width: '16px',
+						width: '32px',
 						render: function (data, mode, model) {
 							if (mode === 'display' && data) {
 								const fragments = data.split(':');
@@ -177,7 +177,7 @@ define(['cascade'], function ($cascade) {
                                     tooltip = Handlebars.compile(current.$messages['configuration-source-unknown'])(data);
                                 }
 								let result = `<i class="fa-fw ${(current.sourceMapping[source] || current.sourceMapping.DEFAULT)}" data-toggle="tooltip" title="${tooltip.replaceAll('"',"'")}"></i>`;
-								if (model.override) {
+								if (model.overridden) {
 								    result += ` <i class="fas fa-exclamation-triangle text-warning" data-toggle="tooltip" title="${current.$messages['configuration-override']}"></i>`;
 								}
 								return result;
