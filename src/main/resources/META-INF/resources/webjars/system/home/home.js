@@ -40,22 +40,22 @@ define(['cascade'], function ($cascade) {
 		 * Load session data.
 		 */
 		initialize: function () {
-		    const data = $cascade.session
-            _('userName').val(data.userName);
-            _('session').val(current.getCookie('JSESSIONID'));
-            if (data.applicationSettings) {
-                _('buildNumber').val(parseInt(data.applicationSettings.buildNumber, 10));
-                var timestamp = parseInt(data.applicationSettings.buildTimestamp, 10);
-                if (isNaN(timestamp)) {
-                    _('buildTimestamp').val(data.applicationSettings.buildTimestamp);
-                    _('buildDate').val(formatManager.formatDate(NaN));
-                } else {
-                    _('buildTimestamp').val(timestamp);
-                    _('buildDate').val(formatManager.formatDate(timestamp));
-                }
-                _('buildVersion').val(data.applicationSettings.buildVersion);
-            } else {
-                notifyManager.notifyDanger(current.$messages.noBuildInformation);
+			const data = $cascade.session
+			_('userName').val(data.userName);
+			_('session').val(current.getCookie('JSESSIONID'));
+			if (data.applicationSettings) {
+				_('buildNumber').val(parseInt(data.applicationSettings.buildNumber, 10));
+				var timestamp = parseInt(data.applicationSettings.buildTimestamp, 10);
+				if (isNaN(timestamp)) {
+					_('buildTimestamp').val(data.applicationSettings.buildTimestamp);
+					_('buildDate').val(formatManager.formatDate(NaN));
+				} else {
+					_('buildTimestamp').val(timestamp);
+					_('buildDate').val(formatManager.formatDate(timestamp));
+				}
+				_('buildVersion').val(data.applicationSettings.buildVersion);
+			} else {
+				notifyManager.notifyDanger(current.$messages.noBuildInformation);
 			};
 			current.fetchSystem();
 			_('defaultTimeZone').on('blur change', function () {
@@ -172,13 +172,13 @@ define(['cascade'], function ($cascade) {
 								const i18nSource = current.$messages['configuration-source-' + source];
 								let tooltip = null
 								if (i18nSource) {
-                                    tooltip = Handlebars.compile(i18nSource)(fragments.join(':'));
-                                } else {
-                                    tooltip = Handlebars.compile(current.$messages['configuration-source-unknown'])(data);
-                                }
-								let result = `<i class="fa-fw ${(current.sourceMapping[source] || current.sourceMapping.DEFAULT)}" data-toggle="tooltip" title="${tooltip.replaceAll('"',"'")}"></i>`;
+									tooltip = Handlebars.compile(i18nSource)(fragments.join(':'));
+								} else {
+									tooltip = Handlebars.compile(current.$messages['configuration-source-unknown'])(data);
+								}
+								let result = `<i class="fa-fw ${(current.sourceMapping[source] || current.sourceMapping.DEFAULT)}" data-toggle="tooltip" title="${tooltip.replaceAll('"', "'")}"></i>`;
 								if (model.overridden) {
-								    result += ` <i class="fas fa-exclamation-triangle text-warning" data-toggle="tooltip" title="${current.$messages['configuration-override']}"></i>`;
+									result += ` <i class="fas fa-exclamation-triangle text-warning" data-toggle="tooltip" title="${current.$messages['configuration-override']}"></i>`;
 								}
 								return result;
 							}
@@ -210,7 +210,8 @@ define(['cascade'], function ($cascade) {
 				url: REST_PATH + 'system',
 				dataType: 'json',
 				success: function (data) {
-					_('date').val(moment.utc(data.date.date).local().format('L-LT:ss') + ' / ' + data.date.date);
+					_('date-iso').val(moment.utc(data.date.date).local());
+					_('date-timestamp').val(data.date.date);
 					_('cpu').val(data.cpu.total);
 					_('timeZone').val(data.date.timeZone);
 					_('defaultTimeZone').val(data.date.defaultTimeZone);
