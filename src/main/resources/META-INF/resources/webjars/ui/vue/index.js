@@ -1,88 +1,88 @@
-import { resolveComponent as n, openBlock as y, createElementBlock as T, createVNode as e, withCtx as t, createTextVNode as l, onMounted as le, createElementVNode as p, ref as v, computed as be, unref as M, createBlock as q, toDisplayString as k, createCommentVNode as E, withDirectives as $e, withModifiers as de, Fragment as ue, vShow as Se, watch as Pe, renderList as ce } from "vue";
-import { useAppStore as ae, useI18nStore as ke, useApi as ie, useDataTable as we, useErrorStore as De } from "@ligoj/host";
-import { useRouter as xe, useRoute as ze } from "vue-router";
-const pe = (o, u) => {
-  const f = o.__vccOpts || o;
-  for (const [c, g] of u)
-    f[c] = g;
-  return f;
-}, Te = { class: "plugin-ui-shell" }, Ue = {
+import { resolveComponent as n, openBlock as b, createElementBlock as j, createVNode as e, withCtx as t, createTextVNode as l, onMounted as oe, createElementVNode as v, ref as r, computed as be, unref as Y, createBlock as W, toDisplayString as w, createCommentVNode as M, withDirectives as $e, withModifiers as ce, Fragment as pe, vShow as he, watch as Pe, renderList as ve, onBeforeUnmount as Ue } from "vue";
+import { useAppStore as se, useI18nStore as we, useApi as re, useDataTable as xe, useErrorStore as De, useAuthStore as ze } from "@ligoj/host";
+import { useRouter as Ce, useRoute as Ne } from "vue-router";
+const fe = (o, m) => {
+  const _ = o.__vccOpts || o;
+  for (const [g, x] of m)
+    _[g] = x;
+  return _;
+}, Te = { class: "plugin-ui-shell" }, Ae = {
   __name: "UiPlugin",
   setup(o) {
-    return (u, f) => {
-      const c = n("v-alert"), g = n("v-list-subheader"), s = n("v-list-item"), S = n("v-list");
-      return y(), T("div", Te, [
-        e(c, {
+    return (m, _) => {
+      const g = n("v-alert"), x = n("v-list-subheader"), i = n("v-list-item"), P = n("v-list");
+      return b(), j("div", Te, [
+        e(g, {
           type: "warning",
           variant: "tonal",
           density: "compact",
           class: "mb-4"
         }, {
-          default: t(() => [...f[0] || (f[0] = [
+          default: t(() => [..._[0] || (_[0] = [
             l(" plugin-ui is being migrated from the legacy Cascade.js implementation — most views below are placeholders and link back to their legacy sources. ", -1)
           ])]),
           _: 1
         }),
-        e(S, {
+        e(P, {
           density: "compact",
           class: "mb-4"
         }, {
           default: t(() => [
-            e(g, null, {
-              default: t(() => [...f[1] || (f[1] = [
+            e(x, null, {
+              default: t(() => [..._[1] || (_[1] = [
                 l("Dashboard", -1)
               ])]),
               _: 1
             }),
-            e(s, {
+            e(i, {
               to: "/home",
               "prepend-icon": "mdi-view-dashboard",
               title: "Overview"
             }),
-            e(s, {
+            e(i, {
               to: "/home/project",
               "prepend-icon": "mdi-folder-multiple",
               title: "Projects"
             }),
-            e(s, {
+            e(i, {
               to: "/home/manual",
               "prepend-icon": "mdi-book-open-page-variant",
               title: "Manual"
             }),
-            e(g, null, {
-              default: t(() => [...f[2] || (f[2] = [
+            e(x, null, {
+              default: t(() => [..._[2] || (_[2] = [
                 l("System", -1)
               ])]),
               _: 1
             }),
-            e(s, {
+            e(i, {
               to: "/system",
               "prepend-icon": "mdi-cog",
               title: "System administration"
             }),
-            e(g, null, {
-              default: t(() => [...f[3] || (f[3] = [
+            e(x, null, {
+              default: t(() => [..._[3] || (_[3] = [
                 l("API", -1)
               ])]),
               _: 1
             }),
-            e(s, {
+            e(i, {
               to: "/api",
               "prepend-icon": "mdi-api",
               title: "API reference"
             }),
-            e(s, {
+            e(i, {
               to: "/api/token",
               "prepend-icon": "mdi-key-variant",
               title: "API tokens"
             }),
-            e(g, null, {
-              default: t(() => [...f[4] || (f[4] = [
+            e(x, null, {
+              default: t(() => [..._[4] || (_[4] = [
                 l("Onboarding", -1)
               ])]),
               _: 1
             }),
-            e(s, {
+            e(i, {
               to: "/subscribe",
               "prepend-icon": "mdi-playlist-plus",
               title: "Subscribe wizard"
@@ -93,29 +93,29 @@ const pe = (o, u) => {
       ]);
     };
   }
-}, Ne = /* @__PURE__ */ pe(Ue, [["__scopeId", "data-v-9cfeae95"]]), Ve = {
+}, Re = /* @__PURE__ */ fe(Ae, [["__scopeId", "data-v-9cfeae95"]]), Ve = {
   /** Placeholder — replaced once real utilities are ported. */
   sample() {
     return "plugin-ui: sample feature called";
   }
-}, Ae = { class: "pa-4" }, je = {
+}, Ie = { class: "pa-4" }, Le = {
   __name: "HomeView",
   setup(o) {
-    const u = ae(), { t: f } = ke();
-    return le(() => {
-      u.setTitle(f("nav.home") || "Home"), u.setBreadcrumbs([{ title: f("nav.home") || "Home" }]);
-    }), (c, g) => {
-      const s = n("v-alert");
-      return y(), T("div", Ae, [
-        g[1] || (g[1] = p("h1", { class: "text-h4 mb-4" }, "Dashboard", -1)),
-        e(s, {
+    const m = se(), { t: _ } = we();
+    return oe(() => {
+      m.setTitle(_("nav.home") || "Home"), m.setBreadcrumbs([{ title: _("nav.home") || "Home" }]);
+    }), (g, x) => {
+      const i = n("v-alert");
+      return b(), j("div", Ie, [
+        x[1] || (x[1] = v("h1", { class: "text-h4 mb-4" }, "Dashboard", -1)),
+        e(i, {
           type: "info",
           variant: "tonal",
           density: "compact"
         }, {
-          default: t(() => [...g[0] || (g[0] = [
+          default: t(() => [...x[0] || (x[0] = [
             l(" Dashboard view — port from legacy ", -1),
-            p("code", null, "webjars/home/home.js", -1),
+            v("code", null, "webjars/home/home.js", -1),
             l(" (projects grid, quick actions). TODO. ", -1)
           ])]),
           _: 1
@@ -124,183 +124,183 @@ const pe = (o, u) => {
     };
   }
 };
-function Et(o) {
+function Mt(o) {
   if (!o || typeof o != "object") return o;
-  for (const u of Object.keys(o)) {
-    const f = o[u];
-    (f == null || f === "" || f === !1) && delete o[u];
+  for (const m of Object.keys(o)) {
+    const _ = o[m];
+    (_ == null || _ === "" || _ === !1) && delete o[m];
   }
   return o;
 }
-function Bt(o) {
+function Ft(o) {
   return typeof o != "string" ? "" : o.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
-function Ot(o) {
+function Gt(o) {
   return typeof o != "string" ? "" : o.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 }
-function Ie(o) {
+function je(o) {
   if (!o) return "??";
   if (o.firstName && o.lastName)
     return o.firstName.charAt(0) + o.lastName.charAt(0);
   if (o.fullName) {
-    const f = o.fullName.split(" ");
-    return f.length === 1 ? o.fullName.charAt(0) + (o.fullName.length >= 2 ? o.fullName.charAt(1) : "") : f[0].charAt(0) + f[f.length - 1].charAt(0);
+    const _ = o.fullName.split(" ");
+    return _.length === 1 ? o.fullName.charAt(0) + (o.fullName.length >= 2 ? o.fullName.charAt(1) : "") : _[0].charAt(0) + _[_.length - 1].charAt(0);
   }
-  const u = (o.id || o || "??").toString();
-  return (u.length === 1 ? u + u : u).slice(0, 2);
+  const m = (o.id || o || "??").toString();
+  return (m.length === 1 ? m + m : m).slice(0, 2);
 }
-function he(o) {
+function Se(o) {
   if (!o) return "";
   if (o.fullName) return o.fullName;
   if (o.firstName && o.lastName) return `${o.firstName} ${o.lastName}`;
   if (o.firstName) return `${o.firstName} ${(o.id || "").substring(1)}`;
-  if (o.lastName) return `${ve((o.id || "").charAt(0))}. ${o.lastName}`;
-  const u = (o.id || o || "??").toString();
-  return `${ve(u.charAt(0))}. ${ve(u.substring(1))}`;
+  if (o.lastName) return `${ye((o.id || "").charAt(0))}. ${o.lastName}`;
+  const m = (o.id || o || "??").toString();
+  return `${ye(m.charAt(0))}. ${ye(m.substring(1))}`;
 }
-function ve(o) {
+function ye(o) {
   return o && o.charAt(0).toUpperCase() + o.slice(1);
 }
-function qt(o) {
-  if (!o) return null;
-  const u = o.split(":");
-  return u.length > 2 ? u.slice(0, 3).join("-") : null;
-}
-function Mt(o) {
-  if (!o) return null;
-  const u = o.split(":");
-  return u.length > 1 ? u.slice(0, 2).join("-") : null;
-}
 function Ht(o) {
+  if (!o) return null;
+  const m = o.split(":");
+  return m.length > 2 ? m.slice(0, 3).join("-") : null;
+}
+function Wt(o) {
+  if (!o) return null;
+  const m = o.split(":");
+  return m.length > 1 ? m.slice(0, 2).join("-") : null;
+}
+function Jt(o) {
   return (o || "").split(":")[1] || null;
 }
-function Ft(o) {
+function Xt(o) {
   return (o || "").split(":")[2] || null;
 }
-function Gt(o) {
+function Yt(o) {
   if (!o) return [];
-  const u = o.split(":"), f = [];
-  for (let c = 2; c <= u.length; c++)
-    f.push(u.slice(0, c).join("-"));
-  return f;
+  const m = o.split(":"), _ = [];
+  for (let g = 2; g <= m.length; g++)
+    _.push(m.slice(0, g).join("-"));
+  return _;
 }
-function Le(o) {
-  return o ? (o.service || (o.service = o.refined && Le(o.refined) || o), o.service) : null;
+function Ee(o) {
+  return o ? (o.service || (o.service = o.refined && Ee(o.refined) || o), o.service) : null;
 }
-function Re(o) {
-  return o ? o.tool ? o.tool : o.refined ? (o.tool = o.refined.refined ? Re(o.refined) : o, o.tool) : null : null;
-}
-const Ee = /( (de|du|des|l'|d'|le|la|les|au|aux))+ /gi;
 function Be(o) {
-  return o ? o.replace(/[-[()\]${},;_:]/g, " ").replace(Ee, " ").replace(/ {2,}/g, " ").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+  return o ? o.tool ? o.tool : o.refined ? (o.tool = o.refined.refined ? Be(o.refined) : o, o.tool) : null : null;
 }
-const Wt = {
+const qe = /( (de|du|des|l'|d'|le|la|les|au|aux))+ /gi;
+function Oe(o) {
+  return o ? o.replace(/[-[()\]${},;_:]/g, " ").replace(qe, " ").replace(/ {2,}/g, " ").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+}
+const Kt = {
   company: "mdi-domain",
   group: "mdi-account-group",
   project: "mdi-folder",
   user: "mdi-account",
   tree: "mdi-source-branch",
   node: "mdi-wrench"
-}, Oe = { class: "d-flex flex-wrap align-center mb-4 ga-2" }, qe = { class: "text-caption" }, Me = {
+}, Me = { class: "d-flex flex-wrap align-center mb-4 ga-2" }, Fe = { class: "text-caption" }, Ge = {
   key: 1,
   class: "text-disabled"
-}, He = { class: "mb-4" }, Fe = {
+}, He = { class: "mb-4" }, We = {
   __name: "ProjectListView",
   setup(o) {
-    const u = xe(), f = ie(), c = ae(), { t: g } = ke(), s = we("project", { defaultSort: "name" }), S = v(25);
-    let U = null, x = {};
-    const _ = v(null), z = v(!1), b = v(null), V = v({ name: "", pkey: "", teamLeader: "", description: "" }), j = v(!1), D = v(!1), C = v(null), N = v(!1), J = v(!1);
-    let X = "";
-    const I = be(() => [
+    const m = Ce(), _ = re(), g = se(), { t: x } = we(), i = xe("project", { defaultSort: "name" }), P = r(25);
+    let R = null, S = {};
+    const f = r(null), U = r(!1), k = r(null), C = r({ name: "", pkey: "", teamLeader: "", description: "" }), L = r(!1), D = r(!1), y = r(null), V = r(!1), I = r(!1);
+    let Q = "";
+    const z = be(() => [
       { title: "Name", key: "name", sortable: !0, width: "220px" },
       { title: "Description", key: "description", sortable: !1 },
       { title: "Manager", key: "teamLeader", sortable: !1, width: "220px" },
       { title: "Created", key: "createdDate", sortable: !0, width: "140px" },
       { title: "Subs", key: "nbSubscriptions", sortable: !1, width: "80px", align: "center" },
       { title: "", key: "actions", sortable: !1, width: "100px", align: "end" }
-    ]), Y = {
-      required: ($) => !!$ || "Required",
-      pkey: ($) => /^[a-z0-9][-a-z0-9]{0,99}$/.test($ || "") || "Use lowercase letters, digits, dash"
+    ]), B = {
+      required: (N) => !!N || "Required",
+      pkey: (N) => /^[a-z0-9][-a-z0-9]{0,99}$/.test(N || "") || "Use lowercase letters, digits, dash"
     };
-    function ne($) {
-      if (!$) return "";
-      const d = typeof $ == "number" ? new Date($) : new Date($);
-      return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+    function ee(N) {
+      if (!N) return "";
+      const p = typeof N == "number" ? new Date(N) : new Date(N);
+      return isNaN(p.getTime()) ? "" : p.toISOString().slice(0, 10);
     }
-    function O($) {
-      x = $, s.load($);
+    function q(N) {
+      S = N, i.load(N);
     }
-    function m() {
-      clearTimeout(U), U = setTimeout(
-        () => s.load({ page: 1, itemsPerPage: S.value, sortBy: x.sortBy }),
+    function c() {
+      clearTimeout(R), R = setTimeout(
+        () => i.load({ page: 1, itemsPerPage: P.value, sortBy: S.sortBy }),
         300
       );
     }
-    function i($) {
-      const d = Be($ || "").split(" ").filter(Boolean);
-      return d.length ? d.join("-") : "";
+    function u(N) {
+      const p = Oe(N || "").split(" ").filter(Boolean);
+      return p.length ? p.join("-") : "";
     }
     function a() {
-      var d;
-      if (((d = b.value) == null ? void 0 : d.nbSubscriptions) > 0) return;
-      const $ = i(V.value.name);
-      (!V.value.pkey || V.value.pkey === X) && (V.value.pkey = $, X = $);
+      var p;
+      if (((p = k.value) == null ? void 0 : p.nbSubscriptions) > 0) return;
+      const N = u(C.value.name);
+      (!C.value.pkey || C.value.pkey === Q) && (C.value.pkey = N, Q = N);
     }
-    function w() {
-      b.value = null, V.value = { name: "", pkey: "", teamLeader: "", description: "" }, X = "", z.value = !0;
+    function $() {
+      k.value = null, C.value = { name: "", pkey: "", teamLeader: "", description: "" }, Q = "", U.value = !0;
     }
-    function r($) {
-      var d;
-      b.value = $, V.value = {
-        name: $.name || "",
-        pkey: $.pkey || "",
-        teamLeader: ((d = $.teamLeader) == null ? void 0 : d.id) || "",
-        description: $.description || ""
-      }, X = $.pkey || "", z.value = !0;
+    function d(N) {
+      var p;
+      k.value = N, C.value = {
+        name: N.name || "",
+        pkey: N.pkey || "",
+        teamLeader: ((p = N.teamLeader) == null ? void 0 : p.id) || "",
+        description: N.description || ""
+      }, Q = N.pkey || "", U.value = !0;
     }
-    function R($) {
-      C.value = $, J.value = !1, D.value = !0;
+    function G(N) {
+      y.value = N, I.value = !1, D.value = !0;
     }
-    async function H() {
-      var G, Z, A;
-      const { valid: $ } = await _.value.validate();
-      if (!$) return;
-      if (s.demoMode.value) {
-        z.value = !1;
+    async function K() {
+      var O, s, A;
+      const { valid: N } = await f.value.validate();
+      if (!N) return;
+      if (i.demoMode.value) {
+        U.value = !1;
         return;
       }
-      j.value = !0;
-      const d = {
-        id: (G = b.value) == null ? void 0 : G.id,
-        name: V.value.name,
-        pkey: V.value.pkey,
-        teamLeader: V.value.teamLeader,
-        description: V.value.description
-      }, ee = (Z = b.value) != null && Z.id ? "put" : "post", Q = await f[ee]("rest/project", d);
-      j.value = !1, Q !== null && (z.value = !1, !((A = b.value) != null && A.id) && typeof Q != "object" ? u.push(`/home/project/${Q}`) : s.load(x));
+      L.value = !0;
+      const p = {
+        id: (O = k.value) == null ? void 0 : O.id,
+        name: C.value.name,
+        pkey: C.value.pkey,
+        teamLeader: C.value.teamLeader,
+        description: C.value.description
+      }, ne = (s = k.value) != null && s.id ? "put" : "post", te = await _[ne]("rest/project", p);
+      L.value = !1, te !== null && (U.value = !1, !((A = k.value) != null && A.id) && typeof te != "object" ? m.push(`/home/project/${te}`) : i.load(S));
     }
-    async function F() {
-      if (s.demoMode.value) {
+    async function Z() {
+      if (i.demoMode.value) {
         D.value = !1;
         return;
       }
-      N.value = !0;
-      const $ = J.value ? "?deleteRemoteData=true" : "";
-      await f.del(`rest/project/${C.value.id}${$}`), N.value = !1, D.value = !1, s.load(x);
+      V.value = !0;
+      const N = I.value ? "?deleteRemoteData=true" : "";
+      await _.del(`rest/project/${y.value.id}${N}`), V.value = !1, D.value = !1, i.load(S);
     }
-    return le(() => {
-      c.setTitle("Projects"), c.setBreadcrumbs([{ title: "Home", to: "/" }, { title: "Projects" }]);
-    }), ($, d) => {
-      const ee = n("v-spacer"), Q = n("v-text-field"), G = n("v-btn"), Z = n("v-alert"), A = n("v-skeleton-loader"), K = n("v-avatar"), P = n("v-chip"), W = n("v-icon"), te = n("v-data-table-server"), h = n("v-card-title"), B = n("v-textarea"), se = n("v-form"), me = n("v-card-text"), fe = n("v-card-actions"), _e = n("v-card"), ye = n("v-dialog"), Ce = n("v-checkbox");
-      return y(), T("div", null, [
-        p("div", Oe, [
-          d[13] || (d[13] = p("h1", { class: "text-h4" }, "Projects", -1)),
-          e(ee),
-          e(Q, {
-            modelValue: M(s).search.value,
+    return oe(() => {
+      g.setTitle("Projects"), g.setBreadcrumbs([{ title: "Home", to: "/" }, { title: "Projects" }]);
+    }), (N, p) => {
+      const ne = n("v-spacer"), te = n("v-text-field"), O = n("v-btn"), s = n("v-alert"), A = n("v-skeleton-loader"), E = n("v-avatar"), T = n("v-chip"), X = n("v-icon"), le = n("v-data-table-server"), h = n("v-card-title"), J = n("v-textarea"), ae = n("v-form"), ue = n("v-card-text"), _e = n("v-card-actions"), de = n("v-card"), me = n("v-dialog"), ge = n("v-checkbox");
+      return b(), j("div", null, [
+        v("div", Me, [
+          p[13] || (p[13] = v("h1", { class: "text-h4" }, "Projects", -1)),
+          e(ne),
+          e(te, {
+            modelValue: Y(i).search.value,
             "onUpdate:modelValue": [
-              d[0] || (d[0] = (L) => M(s).search.value = L),
-              m
+              p[0] || (p[0] = (F) => Y(i).search.value = F),
+              c
             ],
             "prepend-inner-icon": "mdi-magnify",
             label: "Search",
@@ -309,100 +309,100 @@ const Wt = {
             "hide-details": "",
             class: "search-field"
           }, null, 8, ["modelValue"]),
-          e(G, {
+          e(O, {
             color: "primary",
             "prepend-icon": "mdi-plus",
-            onClick: w
+            onClick: $
           }, {
-            default: t(() => [...d[12] || (d[12] = [
+            default: t(() => [...p[12] || (p[12] = [
               l(" New ", -1)
             ])]),
             _: 1
           })
         ]),
-        M(s).error.value ? (y(), q(Z, {
+        Y(i).error.value ? (b(), W(s, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(k(M(s).error.value), 1)
+            l(w(Y(i).error.value), 1)
           ]),
           _: 1
-        })) : E("", !0),
-        M(s).demoMode.value ? (y(), q(Z, {
+        })) : M("", !0),
+        Y(i).demoMode.value ? (b(), W(s, {
           key: 1,
           type: "info",
           variant: "tonal",
           density: "compact",
           class: "mb-4"
         }, {
-          default: t(() => [...d[14] || (d[14] = [
+          default: t(() => [...p[14] || (p[14] = [
             l(" Running without a live backend — results below are sample data. ", -1)
           ])]),
           _: 1
-        })) : E("", !0),
-        M(s).loading.value && M(s).items.value.length === 0 ? (y(), q(A, {
+        })) : M("", !0),
+        Y(i).loading.value && Y(i).items.value.length === 0 ? (b(), W(A, {
           key: 2,
           type: "table-heading, table-row@5",
           class: "mb-4"
-        })) : E("", !0),
-        M(s).error.value ? E("", !0) : $e((y(), q(te, {
+        })) : M("", !0),
+        Y(i).error.value ? M("", !0) : $e((b(), W(le, {
           key: 3,
-          "items-per-page": S.value,
-          "onUpdate:itemsPerPage": d[1] || (d[1] = (L) => S.value = L),
-          headers: I.value,
-          items: M(s).items.value,
-          "items-length": M(s).totalItems.value,
-          loading: M(s).loading.value,
+          "items-per-page": P.value,
+          "onUpdate:itemsPerPage": p[1] || (p[1] = (F) => P.value = F),
+          headers: z.value,
+          items: Y(i).items.value,
+          "items-length": Y(i).totalItems.value,
+          loading: Y(i).loading.value,
           "item-value": "id",
           hover: "",
-          "onUpdate:options": O,
-          "onClick:row": d[2] || (d[2] = (L, { item: oe }) => M(u).push(`/home/project/${oe.id}`))
+          "onUpdate:options": q,
+          "onClick:row": p[2] || (p[2] = (F, { item: H }) => Y(m).push(`/home/project/${H.id}`))
         }, {
-          "item.teamLeader": t(({ item: L }) => {
-            var oe;
+          "item.teamLeader": t(({ item: F }) => {
+            var H;
             return [
-              (oe = L.teamLeader) != null && oe.id ? (y(), T(ue, { key: 0 }, [
-                e(K, {
+              (H = F.teamLeader) != null && H.id ? (b(), j(pe, { key: 0 }, [
+                e(E, {
                   size: "24",
                   color: "primary",
                   class: "mr-2"
                 }, {
                   default: t(() => [
-                    p("span", qe, k(M(Ie)(L.teamLeader)), 1)
+                    v("span", Fe, w(Y(je)(F.teamLeader)), 1)
                   ]),
                   _: 2
                 }, 1024),
-                l(" " + k(M(he)(L.teamLeader)), 1)
-              ], 64)) : (y(), T("span", Me, "—"))
+                l(" " + w(Y(Se)(F.teamLeader)), 1)
+              ], 64)) : (b(), j("span", Ge, "—"))
             ];
           }),
-          "item.createdDate": t(({ item: L }) => [
-            l(k(ne(L.createdDate)), 1)
+          "item.createdDate": t(({ item: F }) => [
+            l(w(ee(F.createdDate)), 1)
           ]),
-          "item.nbSubscriptions": t(({ item: L }) => [
-            e(P, {
+          "item.nbSubscriptions": t(({ item: F }) => [
+            e(T, {
               size: "small",
               variant: "tonal"
             }, {
               default: t(() => [
-                l(k(L.nbSubscriptions || 0), 1)
+                l(w(F.nbSubscriptions || 0), 1)
               ]),
               _: 2
             }, 1024)
           ]),
-          "item.actions": t(({ item: L }) => [
-            e(G, {
+          "item.actions": t(({ item: F }) => [
+            e(O, {
               icon: "",
               size: "small",
               variant: "text",
-              onClick: de((oe) => r(L), ["stop"])
+              onClick: ce((H) => d(F), ["stop"])
             }, {
               default: t(() => [
-                e(W, { size: "small" }, {
-                  default: t(() => [...d[15] || (d[15] = [
+                e(X, { size: "small" }, {
+                  default: t(() => [...p[15] || (p[15] = [
                     l("mdi-pencil", -1)
                   ])]),
                   _: 1
@@ -410,16 +410,16 @@ const Wt = {
               ]),
               _: 1
             }, 8, ["onClick"]),
-            e(G, {
+            e(O, {
               icon: "",
               size: "small",
               variant: "text",
               color: "error",
-              onClick: de((oe) => R(L), ["stop"])
+              onClick: ce((H) => G(F), ["stop"])
             }, {
               default: t(() => [
-                e(W, { size: "small" }, {
-                  default: t(() => [...d[16] || (d[16] = [
+                e(X, { size: "small" }, {
+                  default: t(() => [...p[16] || (p[16] = [
                     l("mdi-delete", -1)
                   ])]),
                   _: 1
@@ -430,72 +430,72 @@ const Wt = {
           ]),
           _: 1
         }, 8, ["items-per-page", "headers", "items", "items-length", "loading"])), [
-          [Se, M(s).items.value.length > 0 || !M(s).loading.value]
+          [he, Y(i).items.value.length > 0 || !Y(i).loading.value]
         ]),
-        e(ye, {
-          modelValue: z.value,
-          "onUpdate:modelValue": d[8] || (d[8] = (L) => z.value = L),
+        e(me, {
+          modelValue: U.value,
+          "onUpdate:modelValue": p[8] || (p[8] = (F) => U.value = F),
           "max-width": "600",
           persistent: ""
         }, {
           default: t(() => [
-            e(_e, null, {
+            e(de, null, {
               default: t(() => [
                 e(h, null, {
                   default: t(() => {
-                    var L;
+                    var F;
                     return [
-                      l(k((L = b.value) != null && L.id ? "Edit project" : "New project"), 1)
+                      l(w((F = k.value) != null && F.id ? "Edit project" : "New project"), 1)
                     ];
                   }),
                   _: 1
                 }),
-                e(me, null, {
+                e(ue, null, {
                   default: t(() => [
-                    e(se, {
+                    e(ae, {
                       ref_key: "formRef",
-                      ref: _,
-                      onSubmit: de(H, ["prevent"])
+                      ref: f,
+                      onSubmit: ce(K, ["prevent"])
                     }, {
                       default: t(() => {
-                        var L, oe;
+                        var F, H;
                         return [
-                          e(Q, {
-                            modelValue: V.value.name,
+                          e(te, {
+                            modelValue: C.value.name,
                             "onUpdate:modelValue": [
-                              d[3] || (d[3] = (re) => V.value.name = re),
+                              p[3] || (p[3] = (ie) => C.value.name = ie),
                               a
                             ],
                             label: "Name",
-                            rules: [Y.required],
+                            rules: [B.required],
                             variant: "outlined",
                             class: "mb-2",
                             autofocus: ""
                           }, null, 8, ["modelValue", "rules"]),
-                          e(Q, {
-                            modelValue: V.value.pkey,
-                            "onUpdate:modelValue": d[4] || (d[4] = (re) => V.value.pkey = re),
+                          e(te, {
+                            modelValue: C.value.pkey,
+                            "onUpdate:modelValue": p[4] || (p[4] = (ie) => C.value.pkey = ie),
                             label: "Project key (pkey)",
-                            rules: [Y.required, Y.pkey],
-                            disabled: ((L = b.value) == null ? void 0 : L.nbSubscriptions) > 0,
-                            hint: ((oe = b.value) == null ? void 0 : oe.nbSubscriptions) > 0 ? "Locked — project has subscriptions" : "lowercase, digits, dash",
+                            rules: [B.required, B.pkey],
+                            disabled: ((F = k.value) == null ? void 0 : F.nbSubscriptions) > 0,
+                            hint: ((H = k.value) == null ? void 0 : H.nbSubscriptions) > 0 ? "Locked — project has subscriptions" : "lowercase, digits, dash",
                             "persistent-hint": "",
                             variant: "outlined",
                             class: "mb-2"
                           }, null, 8, ["modelValue", "rules", "disabled", "hint"]),
-                          e(Q, {
-                            modelValue: V.value.teamLeader,
-                            "onUpdate:modelValue": d[5] || (d[5] = (re) => V.value.teamLeader = re),
+                          e(te, {
+                            modelValue: C.value.teamLeader,
+                            "onUpdate:modelValue": p[5] || (p[5] = (ie) => C.value.teamLeader = ie),
                             label: "Team leader (user id)",
-                            rules: [Y.required],
+                            rules: [B.required],
                             hint: "Identifier of the user managing this project",
                             "persistent-hint": "",
                             variant: "outlined",
                             class: "mb-2"
                           }, null, 8, ["modelValue", "rules"]),
-                          e(B, {
-                            modelValue: V.value.description,
-                            "onUpdate:modelValue": d[6] || (d[6] = (re) => V.value.description = re),
+                          e(J, {
+                            modelValue: C.value.description,
+                            "onUpdate:modelValue": p[6] || (p[6] = (ie) => C.value.description = ie),
                             label: "Description",
                             rows: "3",
                             variant: "outlined",
@@ -508,25 +508,25 @@ const Wt = {
                   ]),
                   _: 1
                 }),
-                e(fe, null, {
+                e(_e, null, {
                   default: t(() => [
-                    e(ee),
-                    e(G, {
+                    e(ne),
+                    e(O, {
                       variant: "text",
-                      onClick: d[7] || (d[7] = (L) => z.value = !1)
+                      onClick: p[7] || (p[7] = (F) => U.value = !1)
                     }, {
-                      default: t(() => [...d[17] || (d[17] = [
+                      default: t(() => [...p[17] || (p[17] = [
                         l("Cancel", -1)
                       ])]),
                       _: 1
                     }),
-                    e(G, {
+                    e(O, {
                       color: "primary",
                       variant: "elevated",
-                      loading: j.value,
-                      onClick: H
+                      loading: L.value,
+                      onClick: K
                     }, {
-                      default: t(() => [...d[18] || (d[18] = [
+                      default: t(() => [...p[18] || (p[18] = [
                         l("Save", -1)
                       ])]),
                       _: 1
@@ -540,32 +540,32 @@ const Wt = {
           ]),
           _: 1
         }, 8, ["modelValue"]),
-        e(ye, {
+        e(me, {
           modelValue: D.value,
-          "onUpdate:modelValue": d[11] || (d[11] = (L) => D.value = L),
+          "onUpdate:modelValue": p[11] || (p[11] = (F) => D.value = F),
           "max-width": "500"
         }, {
           default: t(() => [
-            e(_e, null, {
+            e(de, null, {
               default: t(() => [
                 e(h, null, {
-                  default: t(() => [...d[19] || (d[19] = [
+                  default: t(() => [...p[19] || (p[19] = [
                     l("Delete project", -1)
                   ])]),
                   _: 1
                 }),
-                e(me, null, {
+                e(ue, null, {
                   default: t(() => {
-                    var L;
+                    var F;
                     return [
-                      p("p", He, [
-                        d[20] || (d[20] = l(" Are you sure you want to delete ", -1)),
-                        p("strong", null, k((L = C.value) == null ? void 0 : L.name), 1),
-                        d[21] || (d[21] = l("? ", -1))
+                      v("p", He, [
+                        p[20] || (p[20] = l(" Are you sure you want to delete ", -1)),
+                        v("strong", null, w((F = y.value) == null ? void 0 : F.name), 1),
+                        p[21] || (p[21] = l("? ", -1))
                       ]),
-                      e(Ce, {
-                        modelValue: J.value,
-                        "onUpdate:modelValue": d[9] || (d[9] = (oe) => J.value = oe),
+                      e(ge, {
+                        modelValue: I.value,
+                        "onUpdate:modelValue": p[9] || (p[9] = (H) => I.value = H),
                         label: "Also remove remote data associated with this project's subscriptions",
                         density: "compact",
                         "hide-details": ""
@@ -574,25 +574,25 @@ const Wt = {
                   }),
                   _: 1
                 }),
-                e(fe, null, {
+                e(_e, null, {
                   default: t(() => [
-                    e(ee),
-                    e(G, {
+                    e(ne),
+                    e(O, {
                       variant: "text",
-                      onClick: d[10] || (d[10] = (L) => D.value = !1)
+                      onClick: p[10] || (p[10] = (F) => D.value = !1)
                     }, {
-                      default: t(() => [...d[22] || (d[22] = [
+                      default: t(() => [...p[22] || (p[22] = [
                         l("Cancel", -1)
                       ])]),
                       _: 1
                     }),
-                    e(G, {
+                    e(O, {
                       color: "error",
                       variant: "elevated",
-                      loading: N.value,
-                      onClick: F
+                      loading: V.value,
+                      onClick: Z
                     }, {
-                      default: t(() => [...d[23] || (d[23] = [
+                      default: t(() => [...p[23] || (p[23] = [
                         l("Delete", -1)
                       ])]),
                       _: 1
@@ -609,121 +609,121 @@ const Wt = {
       ]);
     };
   }
-}, Ge = /* @__PURE__ */ pe(Fe, [["__scopeId", "data-v-6023d08b"]]), We = { class: "d-flex align-start flex-wrap ga-2 mb-4" }, Je = { class: "text-h4" }, Ye = { class: "text-h6 text-medium-emphasis" }, Ke = {
+}, Je = /* @__PURE__ */ fe(We, [["__scopeId", "data-v-6023d08b"]]), Xe = { class: "d-flex align-start flex-wrap ga-2 mb-4" }, Ye = { class: "text-h4" }, Ke = { class: "text-h6 text-medium-emphasis" }, Qe = {
   key: 0,
   class: "text-body-2 text-medium-emphasis mt-1"
-}, Qe = { class: "d-flex flex-wrap ga-4 text-body-2 text-medium-emphasis" }, Xe = { key: 0 }, Ze = {
+}, Ze = { class: "d-flex flex-wrap ga-4 text-body-2 text-medium-emphasis" }, et = { key: 0 }, tt = {
   key: 0,
   class: "ml-1"
-}, et = { key: 1 }, tt = {
+}, lt = { key: 1 }, nt = {
   key: 0,
   class: "ml-1"
-}, lt = { key: 2 }, at = {
+}, at = { key: 2 }, ot = {
   key: 0,
   class: "ml-1"
-}, nt = { class: "d-flex align-center mb-2" }, ot = { class: "mb-3" }, st = {
+}, st = { class: "d-flex align-center mb-2" }, it = { class: "mb-3" }, rt = {
   __name: "ProjectDetailView",
   setup(o) {
-    const u = ze();
-    xe();
-    const f = ie(), c = ae();
+    const m = Ne();
+    Ce();
+    const _ = re(), g = se();
     De();
-    const g = v(!1), s = v(null), S = be(() => {
-      var i;
-      return ((i = s.value) == null ? void 0 : i.subscriptions) || [];
-    }), U = v(null), x = v(!1), _ = v({ name: "", pkey: "", teamLeader: "", description: "" }), z = v(!1), b = v(!1), V = v(null), j = v(!1), D = v(!1), C = {
-      required: (i) => !!i || "Required"
-    }, N = [
+    const x = r(!1), i = r(null), P = be(() => {
+      var u;
+      return ((u = i.value) == null ? void 0 : u.subscriptions) || [];
+    }), R = r(null), S = r(!1), f = r({ name: "", pkey: "", teamLeader: "", description: "" }), U = r(!1), k = r(!1), C = r(null), L = r(!1), D = r(!1), y = {
+      required: (u) => !!u || "Required"
+    }, V = [
       { title: "Service", key: "service", sortable: !1, width: "180px" },
       { title: "Tool", key: "tool", sortable: !1, width: "180px" },
       { title: "Node", key: "node", sortable: !1 },
       { title: "", key: "actions", sortable: !1, width: "60px", align: "end" }
     ];
-    function J(i) {
-      if (!i) return "";
-      const a = new Date(i);
+    function I(u) {
+      if (!u) return "";
+      const a = new Date(u);
       return isNaN(a.getTime()) ? "" : a.toISOString().slice(0, 16).replace("T", " ");
     }
-    function X(i) {
-      var R, H, F;
-      const a = ((F = (H = (R = i.node) == null ? void 0 : R.refined) == null ? void 0 : H.refined) == null ? void 0 : F.id) || "", w = ["primary", "teal", "indigo", "purple", "orange", "blue-grey"];
-      let r = 0;
-      for (const $ of a) r += $.charCodeAt(0);
-      return w[r % w.length];
+    function Q(u) {
+      var G, K, Z;
+      const a = ((Z = (K = (G = u.node) == null ? void 0 : G.refined) == null ? void 0 : K.refined) == null ? void 0 : Z.id) || "", $ = ["primary", "teal", "indigo", "purple", "orange", "blue-grey"];
+      let d = 0;
+      for (const N of a) d += N.charCodeAt(0);
+      return $[d % $.length];
     }
-    function I(i) {
-      var w, r, R;
-      const a = ((R = (r = (w = i.node) == null ? void 0 : w.refined) == null ? void 0 : r.refined) == null ? void 0 : R.id) || "";
+    function z(u) {
+      var $, d, G;
+      const a = ((G = (d = ($ = u.node) == null ? void 0 : $.refined) == null ? void 0 : d.refined) == null ? void 0 : G.id) || "";
       return a.includes(":scm:") ? "mdi-source-branch" : a.includes(":build:") ? "mdi-hammer-wrench" : a.includes(":bt") ? "mdi-bug" : a.includes(":km:") ? "mdi-book-open-variant" : a.includes(":vm") ? "mdi-server" : a.includes(":prov") ? "mdi-cloud" : a.includes(":id") ? "mdi-account-group" : a.includes(":inbox:") ? "mdi-email" : "mdi-puzzle";
     }
-    async function Y() {
-      var w;
-      g.value = !0;
-      const i = u.params.id, a = await f.get(`rest/project/${i}`);
-      s.value = a || null, g.value = !1, a && (_.value = {
+    async function B() {
+      var $;
+      x.value = !0;
+      const u = m.params.id, a = await _.get(`rest/project/${u}`);
+      i.value = a || null, x.value = !1, a && (f.value = {
         name: a.name || "",
         pkey: a.pkey || "",
-        teamLeader: ((w = a.teamLeader) == null ? void 0 : w.id) || "",
+        teamLeader: (($ = a.teamLeader) == null ? void 0 : $.id) || "",
         description: a.description || ""
-      }, c.setTitle(a.name), c.setBreadcrumbs([
+      }, g.setTitle(a.name), g.setBreadcrumbs([
         { title: "Home", to: "/" },
         { title: "Projects", to: "/home/project" },
         { title: a.name }
       ]));
     }
-    async function ne() {
-      const { valid: i } = await U.value.validate();
-      if (!i) return;
-      z.value = !0;
+    async function ee() {
+      const { valid: u } = await R.value.validate();
+      if (!u) return;
+      U.value = !0;
       const a = {
-        id: s.value.id,
-        name: _.value.name,
-        pkey: _.value.pkey,
-        teamLeader: _.value.teamLeader,
-        description: _.value.description
+        id: i.value.id,
+        name: f.value.name,
+        pkey: f.value.pkey,
+        teamLeader: f.value.teamLeader,
+        description: f.value.description
       };
-      await f.put("rest/project", a), z.value = !1, x.value = !1, await Y();
+      await _.put("rest/project", a), U.value = !1, S.value = !1, await B();
     }
-    function O(i) {
-      V.value = i, j.value = !1, b.value = !0;
+    function q(u) {
+      C.value = u, L.value = !1, k.value = !0;
     }
-    async function m() {
-      D.value = !0, await f.del(`rest/subscription/${V.value.id}/${j.value ? "true" : "false"}`), D.value = !1, b.value = !1, await Y();
+    async function c() {
+      D.value = !0, await _.del(`rest/subscription/${C.value.id}/${L.value ? "true" : "false"}`), D.value = !1, k.value = !1, await B();
     }
-    return Pe(() => u.params.id, (i) => {
-      i && Y();
-    }), le(Y), (i, a) => {
-      const w = n("v-skeleton-loader"), r = n("v-spacer"), R = n("v-btn"), H = n("v-icon"), F = n("v-card-text"), $ = n("v-card"), d = n("v-chip"), ee = n("v-alert"), Q = n("v-data-table"), G = n("v-card-title"), Z = n("v-text-field"), A = n("v-textarea"), K = n("v-form"), P = n("v-card-actions"), W = n("v-dialog"), te = n("v-checkbox");
-      return y(), T("div", null, [
-        g.value && !s.value ? (y(), q(w, {
+    return Pe(() => m.params.id, (u) => {
+      u && B();
+    }), oe(B), (u, a) => {
+      const $ = n("v-skeleton-loader"), d = n("v-spacer"), G = n("v-btn"), K = n("v-icon"), Z = n("v-card-text"), N = n("v-card"), p = n("v-chip"), ne = n("v-alert"), te = n("v-data-table"), O = n("v-card-title"), s = n("v-text-field"), A = n("v-textarea"), E = n("v-form"), T = n("v-card-actions"), X = n("v-dialog"), le = n("v-checkbox");
+      return b(), j("div", null, [
+        x.value && !i.value ? (b(), W($, {
           key: 0,
           type: "card, list-item-two-line@3"
-        })) : E("", !0),
-        s.value ? (y(), T(ue, { key: 1 }, [
-          p("div", We, [
-            p("div", null, [
-              p("h1", Je, [
-                l(k(s.value.name) + " ", 1),
-                p("span", Ye, "(" + k(s.value.pkey) + ")", 1)
+        })) : M("", !0),
+        i.value ? (b(), j(pe, { key: 1 }, [
+          v("div", Xe, [
+            v("div", null, [
+              v("h1", Ye, [
+                l(w(i.value.name) + " ", 1),
+                v("span", Ke, "(" + w(i.value.pkey) + ")", 1)
               ]),
-              s.value.description ? (y(), T("p", Ke, k(s.value.description), 1)) : E("", !0)
+              i.value.description ? (b(), j("p", Qe, w(i.value.description), 1)) : M("", !0)
             ]),
-            e(r),
-            s.value.manageSubscriptions ? (y(), q(R, {
+            e(d),
+            i.value.manageSubscriptions ? (b(), W(G, {
               key: 0,
               color: "primary",
               "prepend-icon": "mdi-plus",
-              to: `/home/project/${s.value.id}/subscription`
+              to: `/home/project/${i.value.id}/subscription`
             }, {
               default: t(() => [...a[10] || (a[10] = [
                 l(" Add subscription ", -1)
               ])]),
               _: 1
-            }, 8, ["to"])) : E("", !0),
-            e(R, {
+            }, 8, ["to"])) : M("", !0),
+            e(G, {
               variant: "outlined",
               "prepend-icon": "mdi-pencil",
-              onClick: a[0] || (a[0] = (h) => x.value = !0)
+              onClick: a[0] || (a[0] = (h) => S.value = !0)
             }, {
               default: t(() => [...a[11] || (a[11] = [
                 l(" Edit ", -1)
@@ -731,16 +731,16 @@ const Wt = {
               _: 1
             })
           ]),
-          e($, {
+          e(N, {
             variant: "tonal",
             class: "mb-4"
           }, {
             default: t(() => [
-              e(F, { class: "py-2" }, {
+              e(Z, { class: "py-2" }, {
                 default: t(() => [
-                  p("div", Qe, [
-                    s.value.teamLeader ? (y(), T("span", Xe, [
-                      e(H, {
+                  v("div", Ze, [
+                    i.value.teamLeader ? (b(), j("span", et, [
+                      e(K, {
                         size: "small",
                         class: "mr-1"
                       }, {
@@ -749,12 +749,12 @@ const Wt = {
                         ])]),
                         _: 1
                       }),
-                      a[13] || (a[13] = p("strong", null, "Manager:", -1)),
-                      l(" " + k(M(he)(s.value.teamLeader)) + " ", 1),
-                      s.value.teamLeader.id ? (y(), T("span", Ze, "(" + k(s.value.teamLeader.id) + ")", 1)) : E("", !0)
-                    ])) : E("", !0),
-                    s.value.createdDate ? (y(), T("span", et, [
-                      e(H, {
+                      a[13] || (a[13] = v("strong", null, "Manager:", -1)),
+                      l(" " + w(Y(Se)(i.value.teamLeader)) + " ", 1),
+                      i.value.teamLeader.id ? (b(), j("span", tt, "(" + w(i.value.teamLeader.id) + ")", 1)) : M("", !0)
+                    ])) : M("", !0),
+                    i.value.createdDate ? (b(), j("span", lt, [
+                      e(K, {
                         size: "small",
                         class: "mr-1"
                       }, {
@@ -763,12 +763,12 @@ const Wt = {
                         ])]),
                         _: 1
                       }),
-                      a[15] || (a[15] = p("strong", null, "Created:", -1)),
-                      l(" " + k(J(s.value.createdDate)) + " ", 1),
-                      s.value.createdBy ? (y(), T("span", tt, " by " + k(s.value.createdBy.id || s.value.createdBy), 1)) : E("", !0)
-                    ])) : E("", !0),
-                    s.value.lastModifiedDate ? (y(), T("span", lt, [
-                      e(H, {
+                      a[15] || (a[15] = v("strong", null, "Created:", -1)),
+                      l(" " + w(I(i.value.createdDate)) + " ", 1),
+                      i.value.createdBy ? (b(), j("span", nt, " by " + w(i.value.createdBy.id || i.value.createdBy), 1)) : M("", !0)
+                    ])) : M("", !0),
+                    i.value.lastModifiedDate ? (b(), j("span", at, [
+                      e(K, {
                         size: "small",
                         class: "mr-1"
                       }, {
@@ -777,10 +777,10 @@ const Wt = {
                         ])]),
                         _: 1
                       }),
-                      a[17] || (a[17] = p("strong", null, "Updated:", -1)),
-                      l(" " + k(J(s.value.lastModifiedDate)) + " ", 1),
-                      s.value.lastModifiedBy ? (y(), T("span", at, " by " + k(s.value.lastModifiedBy.id || s.value.lastModifiedBy), 1)) : E("", !0)
-                    ])) : E("", !0)
+                      a[17] || (a[17] = v("strong", null, "Updated:", -1)),
+                      l(" " + w(I(i.value.lastModifiedDate)) + " ", 1),
+                      i.value.lastModifiedBy ? (b(), j("span", ot, " by " + w(i.value.lastModifiedBy.id || i.value.lastModifiedBy), 1)) : M("", !0)
+                    ])) : M("", !0)
                   ])
                 ]),
                 _: 1
@@ -788,20 +788,20 @@ const Wt = {
             ]),
             _: 1
           }),
-          p("div", nt, [
-            a[18] || (a[18] = p("h2", { class: "text-h6" }, "Subscriptions", -1)),
-            e(d, {
+          v("div", st, [
+            a[18] || (a[18] = v("h2", { class: "text-h6" }, "Subscriptions", -1)),
+            e(p, {
               class: "ml-2",
               size: "small",
               variant: "tonal"
             }, {
               default: t(() => [
-                l(k(S.value.length), 1)
+                l(w(P.value.length), 1)
               ]),
               _: 1
             })
           ]),
-          S.value.length === 0 ? (y(), q(ee, {
+          P.value.length === 0 ? (b(), W(ne, {
             key: 0,
             type: "info",
             variant: "tonal",
@@ -811,63 +811,63 @@ const Wt = {
               l(" No subscriptions attached to this project. ", -1)
             ])]),
             _: 1
-          })) : (y(), q(Q, {
+          })) : (b(), W(te, {
             key: 1,
-            headers: N,
-            items: S.value,
+            headers: V,
+            items: P.value,
             "item-value": "id",
             "items-per-page": -1,
             "hide-default-footer": "",
             density: "compact"
           }, {
             "item.service": t(({ item: h }) => [
-              e(d, {
+              e(p, {
                 size: "small",
                 variant: "tonal",
-                color: X(h)
+                color: Q(h)
               }, {
                 default: t(() => {
-                  var B, se, me;
+                  var J, ae, ue;
                   return [
-                    e(H, {
+                    e(K, {
                       start: "",
                       size: "small"
                     }, {
                       default: t(() => [
-                        l(k(I(h)), 1)
+                        l(w(z(h)), 1)
                       ]),
                       _: 2
                     }, 1024),
-                    l(" " + k(((me = (se = (B = h.node) == null ? void 0 : B.refined) == null ? void 0 : se.refined) == null ? void 0 : me.name) || "—"), 1)
+                    l(" " + w(((ue = (ae = (J = h.node) == null ? void 0 : J.refined) == null ? void 0 : ae.refined) == null ? void 0 : ue.name) || "—"), 1)
                   ];
                 }),
                 _: 2
               }, 1032, ["color"])
             ]),
             "item.tool": t(({ item: h }) => {
-              var B, se;
+              var J, ae;
               return [
-                l(k(((se = (B = h.node) == null ? void 0 : B.refined) == null ? void 0 : se.name) || "—"), 1)
+                l(w(((ae = (J = h.node) == null ? void 0 : J.refined) == null ? void 0 : ae.name) || "—"), 1)
               ];
             }),
             "item.node": t(({ item: h }) => {
-              var B;
+              var J;
               return [
-                p("code", null, k((B = h.node) == null ? void 0 : B.id), 1)
+                v("code", null, w((J = h.node) == null ? void 0 : J.id), 1)
               ];
             }),
             "item.actions": t(({ item: h }) => [
-              s.value.manageSubscriptions ? (y(), q(R, {
+              i.value.manageSubscriptions ? (b(), W(G, {
                 key: 0,
                 icon: "",
                 size: "small",
                 variant: "text",
                 color: "error",
-                onClick: (B) => O(h),
+                onClick: (J) => q(h),
                 title: "Unsubscribe"
               }, {
                 default: t(() => [
-                  e(H, { size: "small" }, {
+                  e(K, { size: "small" }, {
                     default: t(() => [...a[20] || (a[20] = [
                       l("mdi-close", -1)
                     ])]),
@@ -875,64 +875,64 @@ const Wt = {
                   })
                 ]),
                 _: 1
-              }, 8, ["onClick"])) : E("", !0)
+              }, 8, ["onClick"])) : M("", !0)
             ]),
             _: 1
           }, 8, ["items"]))
-        ], 64)) : E("", !0),
-        e(W, {
-          modelValue: x.value,
-          "onUpdate:modelValue": a[6] || (a[6] = (h) => x.value = h),
+        ], 64)) : M("", !0),
+        e(X, {
+          modelValue: S.value,
+          "onUpdate:modelValue": a[6] || (a[6] = (h) => S.value = h),
           "max-width": "600",
           persistent: ""
         }, {
           default: t(() => [
-            e($, null, {
+            e(N, null, {
               default: t(() => [
-                e(G, null, {
+                e(O, null, {
                   default: t(() => [...a[21] || (a[21] = [
                     l("Edit project", -1)
                   ])]),
                   _: 1
                 }),
-                e(F, null, {
+                e(Z, null, {
                   default: t(() => [
-                    e(K, {
+                    e(E, {
                       ref_key: "formRef",
-                      ref: U,
-                      onSubmit: de(ne, ["prevent"])
+                      ref: R,
+                      onSubmit: ce(ee, ["prevent"])
                     }, {
                       default: t(() => {
                         var h;
                         return [
-                          e(Z, {
-                            modelValue: _.value.name,
-                            "onUpdate:modelValue": a[1] || (a[1] = (B) => _.value.name = B),
+                          e(s, {
+                            modelValue: f.value.name,
+                            "onUpdate:modelValue": a[1] || (a[1] = (J) => f.value.name = J),
                             label: "Name",
-                            rules: [C.required],
+                            rules: [y.required],
                             variant: "outlined",
                             class: "mb-2"
                           }, null, 8, ["modelValue", "rules"]),
-                          e(Z, {
-                            modelValue: _.value.pkey,
-                            "onUpdate:modelValue": a[2] || (a[2] = (B) => _.value.pkey = B),
+                          e(s, {
+                            modelValue: f.value.pkey,
+                            "onUpdate:modelValue": a[2] || (a[2] = (J) => f.value.pkey = J),
                             label: "Project key (pkey)",
-                            rules: [C.required],
-                            disabled: (((h = s.value) == null ? void 0 : h.nbSubscriptions) || S.value.length) > 0,
+                            rules: [y.required],
+                            disabled: (((h = i.value) == null ? void 0 : h.nbSubscriptions) || P.value.length) > 0,
                             variant: "outlined",
                             class: "mb-2"
                           }, null, 8, ["modelValue", "rules", "disabled"]),
-                          e(Z, {
-                            modelValue: _.value.teamLeader,
-                            "onUpdate:modelValue": a[3] || (a[3] = (B) => _.value.teamLeader = B),
+                          e(s, {
+                            modelValue: f.value.teamLeader,
+                            "onUpdate:modelValue": a[3] || (a[3] = (J) => f.value.teamLeader = J),
                             label: "Team leader (user id)",
-                            rules: [C.required],
+                            rules: [y.required],
                             variant: "outlined",
                             class: "mb-2"
                           }, null, 8, ["modelValue", "rules"]),
                           e(A, {
-                            modelValue: _.value.description,
-                            "onUpdate:modelValue": a[4] || (a[4] = (B) => _.value.description = B),
+                            modelValue: f.value.description,
+                            "onUpdate:modelValue": a[4] || (a[4] = (J) => f.value.description = J),
                             label: "Description",
                             rows: "3",
                             variant: "outlined",
@@ -945,23 +945,23 @@ const Wt = {
                   ]),
                   _: 1
                 }),
-                e(P, null, {
+                e(T, null, {
                   default: t(() => [
-                    e(r),
-                    e(R, {
+                    e(d),
+                    e(G, {
                       variant: "text",
-                      onClick: a[5] || (a[5] = (h) => x.value = !1)
+                      onClick: a[5] || (a[5] = (h) => S.value = !1)
                     }, {
                       default: t(() => [...a[22] || (a[22] = [
                         l("Cancel", -1)
                       ])]),
                       _: 1
                     }),
-                    e(R, {
+                    e(G, {
                       color: "primary",
                       variant: "elevated",
-                      loading: z.value,
-                      onClick: ne
+                      loading: U.value,
+                      onClick: ee
                     }, {
                       default: t(() => [...a[23] || (a[23] = [
                         l("Save", -1)
@@ -977,32 +977,32 @@ const Wt = {
           ]),
           _: 1
         }, 8, ["modelValue"]),
-        e(W, {
-          modelValue: b.value,
-          "onUpdate:modelValue": a[9] || (a[9] = (h) => b.value = h),
+        e(X, {
+          modelValue: k.value,
+          "onUpdate:modelValue": a[9] || (a[9] = (h) => k.value = h),
           "max-width": "480"
         }, {
           default: t(() => [
-            e($, null, {
+            e(N, null, {
               default: t(() => [
-                e(G, null, {
+                e(O, null, {
                   default: t(() => [...a[24] || (a[24] = [
                     l("Unsubscribe", -1)
                   ])]),
                   _: 1
                 }),
-                e(F, null, {
+                e(Z, null, {
                   default: t(() => {
-                    var h, B;
+                    var h, J;
                     return [
-                      p("p", ot, [
+                      v("p", it, [
                         a[25] || (a[25] = l(" Remove subscription to ", -1)),
-                        p("strong", null, k((B = (h = V.value) == null ? void 0 : h.node) == null ? void 0 : B.name), 1),
+                        v("strong", null, w((J = (h = C.value) == null ? void 0 : h.node) == null ? void 0 : J.name), 1),
                         a[26] || (a[26] = l("? ", -1))
                       ]),
-                      e(te, {
-                        modelValue: j.value,
-                        "onUpdate:modelValue": a[7] || (a[7] = (se) => j.value = se),
+                      e(le, {
+                        modelValue: L.value,
+                        "onUpdate:modelValue": a[7] || (a[7] = (ae) => L.value = ae),
                         label: "Also delete remote data on the target service",
                         density: "compact",
                         "hide-details": ""
@@ -1011,23 +1011,23 @@ const Wt = {
                   }),
                   _: 1
                 }),
-                e(P, null, {
+                e(T, null, {
                   default: t(() => [
-                    e(r),
-                    e(R, {
+                    e(d),
+                    e(G, {
                       variant: "text",
-                      onClick: a[8] || (a[8] = (h) => b.value = !1)
+                      onClick: a[8] || (a[8] = (h) => k.value = !1)
                     }, {
                       default: t(() => [...a[27] || (a[27] = [
                         l("Cancel", -1)
                       ])]),
                       _: 1
                     }),
-                    e(R, {
+                    e(G, {
                       color: "error",
                       variant: "elevated",
                       loading: D.value,
-                      onClick: m
+                      onClick: c
                     }, {
                       default: t(() => [...a[28] || (a[28] = [
                         l(" Remove ", -1)
@@ -1046,24 +1046,24 @@ const Wt = {
       ]);
     };
   }
-}, it = { class: "pa-4" }, rt = {
+}, ut = { class: "pa-4" }, dt = {
   __name: "ManualView",
   setup(o) {
-    const u = ae();
-    return le(() => {
-      u.setTitle("Manual"), u.setBreadcrumbs([{ title: "Home", to: "/" }, { title: "Manual" }]);
-    }), (f, c) => {
-      const g = n("v-alert");
-      return y(), T("div", it, [
-        c[1] || (c[1] = p("h1", { class: "text-h4 mb-4" }, "User manual", -1)),
-        e(g, {
+    const m = se();
+    return oe(() => {
+      m.setTitle("Manual"), m.setBreadcrumbs([{ title: "Home", to: "/" }, { title: "Manual" }]);
+    }), (_, g) => {
+      const x = n("v-alert");
+      return b(), j("div", ut, [
+        g[1] || (g[1] = v("h1", { class: "text-h4 mb-4" }, "User manual", -1)),
+        e(x, {
           type: "info",
           variant: "tonal",
           density: "compact"
         }, {
-          default: t(() => [...c[0] || (c[0] = [
+          default: t(() => [...g[0] || (g[0] = [
             l(" Embedded user manual — legacy ", -1),
-            p("code", null, "webjars/home/manual/", -1),
+            v("code", null, "webjars/home/manual/", -1),
             l(". TODO. ", -1)
           ])]),
           _: 1
@@ -1071,10 +1071,10 @@ const Wt = {
       ]);
     };
   }
-}, ut = { class: "pa-4" }, dt = {
+}, mt = { class: "pa-4" }, ct = {
   __name: "SystemView",
   setup(o) {
-    const u = ae(), f = [
+    const m = se(), _ = [
       { to: "/system/user", icon: "mdi-account-multiple", title: "Users", subtitle: "Active sessions and accounts" },
       { to: "/system/role", icon: "mdi-shield-account", title: "Roles", subtitle: "Authorization rules" },
       { to: "/system/plugin", icon: "mdi-puzzle", title: "Plugins", subtitle: "Installed feature plugins" },
@@ -1082,20 +1082,20 @@ const Wt = {
       { to: "/system/cache", icon: "mdi-database-refresh", title: "Cache", subtitle: "Invalidate application caches" },
       { to: "/system/bench", icon: "mdi-speedometer", title: "Bench", subtitle: "Diagnostics" }
     ];
-    return le(() => {
-      u.setTitle("System"), u.setBreadcrumbs([{ title: "System" }]);
-    }), (c, g) => {
-      const s = n("v-list-item"), S = n("v-list");
-      return y(), T("div", ut, [
-        g[0] || (g[0] = p("h1", { class: "text-h4 mb-4" }, "System administration", -1)),
-        e(S, null, {
+    return oe(() => {
+      m.setTitle("System"), m.setBreadcrumbs([{ title: "System" }]);
+    }), (g, x) => {
+      const i = n("v-list-item"), P = n("v-list");
+      return b(), j("div", mt, [
+        x[0] || (x[0] = v("h1", { class: "text-h4 mb-4" }, "System administration", -1)),
+        e(P, null, {
           default: t(() => [
-            (y(), T(ue, null, ce(f, (U) => e(s, {
-              key: U.to,
-              to: U.to,
-              "prepend-icon": U.icon,
-              title: U.title,
-              subtitle: U.subtitle
+            (b(), j(pe, null, ve(_, (R) => e(i, {
+              key: R.to,
+              to: R.to,
+              "prepend-icon": R.icon,
+              title: R.title,
+              subtitle: R.subtitle
             }, null, 8, ["to", "prepend-icon", "title", "subtitle"])), 64))
           ]),
           _: 1
@@ -1103,67 +1103,67 @@ const Wt = {
       ]);
     };
   }
-}, mt = { class: "d-flex flex-wrap align-center mb-4 ga-2" }, ct = {
+}, pt = { class: "d-flex flex-wrap align-center mb-4 ga-2" }, vt = {
   __name: "SystemUserView",
   setup(o) {
-    const u = ie(), f = ae(), c = we("system/user/roles", { defaultSort: "login" }), g = v(25);
-    let s = null, S = {};
-    const U = v([]), x = v(null), _ = v(!1), z = v(null), b = v({ login: "", roles: [] }), V = v(!1), j = v(!1), D = v(null), C = v(!1), N = {
-      required: (w) => !!w || "Required",
-      requiredArray: (w) => Array.isArray(w) && w.length > 0 || "Pick at least one role"
-    }, J = [
+    const m = re(), _ = se(), g = xe("system/user/roles", { defaultSort: "login" }), x = r(25);
+    let i = null, P = {};
+    const R = r([]), S = r(null), f = r(!1), U = r(null), k = r({ login: "", roles: [] }), C = r(!1), L = r(!1), D = r(null), y = r(!1), V = {
+      required: ($) => !!$ || "Required",
+      requiredArray: ($) => Array.isArray($) && $.length > 0 || "Pick at least one role"
+    }, I = [
       { title: "Login", key: "login", sortable: !0, width: "220px" },
       { title: "Roles", key: "roles", sortable: !1 },
       { title: "", key: "actions", sortable: !1, width: "100px", align: "end" }
     ];
-    function X(w) {
-      S = w, c.load(w);
+    function Q($) {
+      P = $, g.load($);
     }
-    function I() {
-      clearTimeout(s), s = setTimeout(
-        () => c.load({ page: 1, itemsPerPage: g.value, sortBy: S.sortBy }),
+    function z() {
+      clearTimeout(i), i = setTimeout(
+        () => g.load({ page: 1, itemsPerPage: x.value, sortBy: P.sortBy }),
         300
       );
     }
-    async function Y() {
-      const w = await u.get("rest/system/security/role");
-      Array.isArray(w) ? U.value = w : Array.isArray(w == null ? void 0 : w.data) && (U.value = w.data);
+    async function B() {
+      const $ = await m.get("rest/system/security/role");
+      Array.isArray($) ? R.value = $ : Array.isArray($ == null ? void 0 : $.data) && (R.value = $.data);
     }
-    function ne() {
-      z.value = null, b.value = { login: "", roles: [] }, _.value = !0;
+    function ee() {
+      U.value = null, k.value = { login: "", roles: [] }, f.value = !0;
     }
-    function O(w) {
-      z.value = w, b.value = {
-        login: w.login,
-        roles: (w.roles || []).map((r) => r.id)
-      }, _.value = !0;
+    function q($) {
+      U.value = $, k.value = {
+        login: $.login,
+        roles: ($.roles || []).map((d) => d.id)
+      }, f.value = !0;
     }
-    function m(w) {
-      D.value = w, j.value = !0;
+    function c($) {
+      D.value = $, L.value = !0;
     }
-    async function i() {
-      const { valid: w } = await x.value.validate();
-      if (!w) return;
-      V.value = !0;
-      const r = { login: b.value.login, roles: b.value.roles }, R = z.value ? "put" : "post";
-      await u[R]("rest/system/user", r), V.value = !1, _.value = !1, c.load(S);
+    async function u() {
+      const { valid: $ } = await S.value.validate();
+      if (!$) return;
+      C.value = !0;
+      const d = { login: k.value.login, roles: k.value.roles }, G = U.value ? "put" : "post";
+      await m[G]("rest/system/user", d), C.value = !1, f.value = !1, g.load(P);
     }
     async function a() {
-      C.value = !0, await u.del(`rest/system/user/${encodeURIComponent(D.value.login)}`), C.value = !1, j.value = !1, c.load(S);
+      y.value = !0, await m.del(`rest/system/user/${encodeURIComponent(D.value.login)}`), y.value = !1, L.value = !1, g.load(P);
     }
-    return le(() => {
-      f.setTitle("System users"), f.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Users" }]), Y();
-    }), (w, r) => {
-      const R = n("v-spacer"), H = n("v-text-field"), F = n("v-btn"), $ = n("v-alert"), d = n("v-chip"), ee = n("v-icon"), Q = n("v-data-table-server"), G = n("v-card-title"), Z = n("v-autocomplete"), A = n("v-form"), K = n("v-card-text"), P = n("v-card-actions"), W = n("v-card"), te = n("v-dialog");
-      return y(), T("div", null, [
-        p("div", mt, [
-          r[9] || (r[9] = p("h1", { class: "text-h4" }, "System users", -1)),
-          e(R),
-          e(H, {
-            modelValue: M(c).search.value,
+    return oe(() => {
+      _.setTitle("System users"), _.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Users" }]), B();
+    }), ($, d) => {
+      const G = n("v-spacer"), K = n("v-text-field"), Z = n("v-btn"), N = n("v-alert"), p = n("v-chip"), ne = n("v-icon"), te = n("v-data-table-server"), O = n("v-card-title"), s = n("v-autocomplete"), A = n("v-form"), E = n("v-card-text"), T = n("v-card-actions"), X = n("v-card"), le = n("v-dialog");
+      return b(), j("div", null, [
+        v("div", pt, [
+          d[9] || (d[9] = v("h1", { class: "text-h4" }, "System users", -1)),
+          e(G),
+          e(K, {
+            modelValue: Y(g).search.value,
             "onUpdate:modelValue": [
-              r[0] || (r[0] = (h) => M(c).search.value = h),
-              I
+              d[0] || (d[0] = (h) => Y(g).search.value = h),
+              z
             ],
             "prepend-inner-icon": "mdi-magnify",
             label: "Search",
@@ -1172,62 +1172,62 @@ const Wt = {
             "hide-details": "",
             class: "search-field"
           }, null, 8, ["modelValue"]),
-          e(F, {
+          e(Z, {
             color: "primary",
             "prepend-icon": "mdi-plus",
-            onClick: ne
+            onClick: ee
           }, {
-            default: t(() => [...r[8] || (r[8] = [
+            default: t(() => [...d[8] || (d[8] = [
               l("New", -1)
             ])]),
             _: 1
           })
         ]),
-        M(c).error.value ? (y(), q($, {
+        Y(g).error.value ? (b(), W(N, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(k(M(c).error.value), 1)
+            l(w(Y(g).error.value), 1)
           ]),
           _: 1
-        })) : E("", !0),
-        e(Q, {
-          headers: J,
-          items: M(c).items.value,
-          "items-length": M(c).totalItems.value,
-          loading: M(c).loading.value,
-          "items-per-page": g.value,
-          "onUpdate:itemsPerPage": r[1] || (r[1] = (h) => g.value = h),
+        })) : M("", !0),
+        e(te, {
+          headers: I,
+          items: Y(g).items.value,
+          "items-length": Y(g).totalItems.value,
+          loading: Y(g).loading.value,
+          "items-per-page": x.value,
+          "onUpdate:itemsPerPage": d[1] || (d[1] = (h) => x.value = h),
           "item-value": "login",
           hover: "",
-          "onUpdate:options": X
+          "onUpdate:options": Q
         }, {
           "item.roles": t(({ item: h }) => [
-            (y(!0), T(ue, null, ce(h.roles || [], (B) => (y(), q(d, {
-              key: B.id,
+            (b(!0), j(pe, null, ve(h.roles || [], (J) => (b(), W(p, {
+              key: J.id,
               size: "x-small",
               variant: "tonal",
               class: "mr-1"
             }, {
               default: t(() => [
-                l(k(B.name), 1)
+                l(w(J.name), 1)
               ]),
               _: 2
             }, 1024))), 128))
           ]),
           "item.actions": t(({ item: h }) => [
-            e(F, {
+            e(Z, {
               icon: "",
               size: "small",
               variant: "text",
-              onClick: (B) => O(h)
+              onClick: (J) => q(h)
             }, {
               default: t(() => [
-                e(ee, { size: "small" }, {
-                  default: t(() => [...r[10] || (r[10] = [
+                e(ne, { size: "small" }, {
+                  default: t(() => [...d[10] || (d[10] = [
                     l("mdi-pencil", -1)
                   ])]),
                   _: 1
@@ -1235,16 +1235,16 @@ const Wt = {
               ]),
               _: 1
             }, 8, ["onClick"]),
-            e(F, {
+            e(Z, {
               icon: "",
               size: "small",
               variant: "text",
               color: "error",
-              onClick: (B) => m(h)
+              onClick: (J) => c(h)
             }, {
               default: t(() => [
-                e(ee, { size: "small" }, {
-                  default: t(() => [...r[11] || (r[11] = [
+                e(ne, { size: "small" }, {
+                  default: t(() => [...d[11] || (d[11] = [
                     l("mdi-delete", -1)
                   ])]),
                   _: 1
@@ -1255,51 +1255,51 @@ const Wt = {
           ]),
           _: 1
         }, 8, ["items", "items-length", "loading", "items-per-page"]),
-        e(te, {
-          modelValue: _.value,
-          "onUpdate:modelValue": r[5] || (r[5] = (h) => _.value = h),
+        e(le, {
+          modelValue: f.value,
+          "onUpdate:modelValue": d[5] || (d[5] = (h) => f.value = h),
           "max-width": "520",
           persistent: ""
         }, {
           default: t(() => [
-            e(W, null, {
+            e(X, null, {
               default: t(() => [
-                e(G, null, {
+                e(O, null, {
                   default: t(() => [
-                    l(k(z.value ? "Edit system user" : "New system user"), 1)
+                    l(w(U.value ? "Edit system user" : "New system user"), 1)
                   ]),
                   _: 1
                 }),
-                e(K, null, {
+                e(E, null, {
                   default: t(() => [
                     e(A, {
                       ref_key: "formRef",
-                      ref: x,
-                      onSubmit: de(i, ["prevent"])
+                      ref: S,
+                      onSubmit: ce(u, ["prevent"])
                     }, {
                       default: t(() => [
-                        e(H, {
-                          modelValue: b.value.login,
-                          "onUpdate:modelValue": r[2] || (r[2] = (h) => b.value.login = h),
+                        e(K, {
+                          modelValue: k.value.login,
+                          "onUpdate:modelValue": d[2] || (d[2] = (h) => k.value.login = h),
                           label: "Login",
-                          rules: [N.required],
-                          disabled: !!z.value,
+                          rules: [V.required],
+                          disabled: !!U.value,
                           variant: "outlined",
                           class: "mb-2",
                           autofocus: ""
                         }, null, 8, ["modelValue", "rules", "disabled"]),
-                        e(Z, {
-                          modelValue: b.value.roles,
-                          "onUpdate:modelValue": r[3] || (r[3] = (h) => b.value.roles = h),
+                        e(s, {
+                          modelValue: k.value.roles,
+                          "onUpdate:modelValue": d[3] || (d[3] = (h) => k.value.roles = h),
                           label: "Roles",
-                          items: U.value,
+                          items: R.value,
                           "item-value": "id",
                           "item-title": "name",
                           multiple: "",
                           chips: "",
                           "closable-chips": "",
                           variant: "outlined",
-                          rules: [N.requiredArray]
+                          rules: [V.requiredArray]
                         }, null, 8, ["modelValue", "items", "rules"])
                       ]),
                       _: 1
@@ -1307,25 +1307,25 @@ const Wt = {
                   ]),
                   _: 1
                 }),
-                e(P, null, {
+                e(T, null, {
                   default: t(() => [
-                    e(R),
-                    e(F, {
+                    e(G),
+                    e(Z, {
                       variant: "text",
-                      onClick: r[4] || (r[4] = (h) => _.value = !1)
+                      onClick: d[4] || (d[4] = (h) => f.value = !1)
                     }, {
-                      default: t(() => [...r[12] || (r[12] = [
+                      default: t(() => [...d[12] || (d[12] = [
                         l("Cancel", -1)
                       ])]),
                       _: 1
                     }),
-                    e(F, {
+                    e(Z, {
                       color: "primary",
                       variant: "elevated",
-                      loading: V.value,
-                      onClick: i
+                      loading: C.value,
+                      onClick: u
                     }, {
-                      default: t(() => [...r[13] || (r[13] = [
+                      default: t(() => [...d[13] || (d[13] = [
                         l("Save", -1)
                       ])]),
                       _: 1
@@ -1339,50 +1339,50 @@ const Wt = {
           ]),
           _: 1
         }, 8, ["modelValue"]),
-        e(te, {
-          modelValue: j.value,
-          "onUpdate:modelValue": r[7] || (r[7] = (h) => j.value = h),
+        e(le, {
+          modelValue: L.value,
+          "onUpdate:modelValue": d[7] || (d[7] = (h) => L.value = h),
           "max-width": "420"
         }, {
           default: t(() => [
-            e(W, null, {
+            e(X, null, {
               default: t(() => [
-                e(G, null, {
-                  default: t(() => [...r[14] || (r[14] = [
+                e(O, null, {
+                  default: t(() => [...d[14] || (d[14] = [
                     l("Delete system user", -1)
                   ])]),
                   _: 1
                 }),
-                e(K, null, {
+                e(E, null, {
                   default: t(() => {
                     var h;
                     return [
-                      r[15] || (r[15] = l("Remove ", -1)),
-                      p("strong", null, k((h = D.value) == null ? void 0 : h.login), 1),
-                      r[16] || (r[16] = l(" from system accounts?", -1))
+                      d[15] || (d[15] = l("Remove ", -1)),
+                      v("strong", null, w((h = D.value) == null ? void 0 : h.login), 1),
+                      d[16] || (d[16] = l(" from system accounts?", -1))
                     ];
                   }),
                   _: 1
                 }),
-                e(P, null, {
+                e(T, null, {
                   default: t(() => [
-                    e(R),
-                    e(F, {
+                    e(G),
+                    e(Z, {
                       variant: "text",
-                      onClick: r[6] || (r[6] = (h) => j.value = !1)
+                      onClick: d[6] || (d[6] = (h) => L.value = !1)
                     }, {
-                      default: t(() => [...r[17] || (r[17] = [
+                      default: t(() => [...d[17] || (d[17] = [
                         l("Cancel", -1)
                       ])]),
                       _: 1
                     }),
-                    e(F, {
+                    e(Z, {
                       color: "error",
                       variant: "elevated",
-                      loading: C.value,
+                      loading: y.value,
                       onClick: a
                     }, {
-                      default: t(() => [...r[18] || (r[18] = [
+                      default: t(() => [...d[18] || (d[18] = [
                         l("Delete", -1)
                       ])]),
                       _: 1
@@ -1399,113 +1399,113 @@ const Wt = {
       ]);
     };
   }
-}, pt = /* @__PURE__ */ pe(ct, [["__scopeId", "data-v-3bd83da2"]]), vt = { class: "d-flex align-center mb-4" }, ft = {
+}, ft = /* @__PURE__ */ fe(vt, [["__scopeId", "data-v-3bd83da2"]]), _t = { class: "d-flex align-center mb-4" }, gt = {
   __name: "SystemRoleView",
   setup(o) {
-    const u = ie(), f = ae(), c = v([]), g = v(!1), s = v(null), S = v(null), U = v(!1), x = v(null), _ = v({ name: "", apiPatterns: [], uiPatterns: [] }), z = v(!1), b = v(!1), V = v(null), j = v(!1), D = { required: (O) => !!O || "Required" }, C = [
+    const m = re(), _ = se(), g = r([]), x = r(!1), i = r(null), P = r(null), R = r(!1), S = r(null), f = r({ name: "", apiPatterns: [], uiPatterns: [] }), U = r(!1), k = r(!1), C = r(null), L = r(!1), D = { required: (q) => !!q || "Required" }, y = [
       { title: "Name", key: "name", sortable: !0, width: "180px" },
       { title: "API patterns", key: "authApi", sortable: !1 },
       { title: "UI patterns", key: "authUi", sortable: !1 },
       { title: "", key: "actions", sortable: !1, width: "100px", align: "end" }
     ];
-    async function N() {
-      g.value = !0, s.value = null;
-      const O = await u.get("rest/system/security/role/withAuth"), m = (O == null ? void 0 : O.data) || O || [];
-      for (const i of m)
-        i["authorizations-api"] = (i.authorizations || []).filter((a) => a.type === "api"), i["authorizations-ui"] = (i.authorizations || []).filter((a) => a.type === "ui");
-      c.value = m, g.value = !1;
+    async function V() {
+      x.value = !0, i.value = null;
+      const q = await m.get("rest/system/security/role/withAuth"), c = (q == null ? void 0 : q.data) || q || [];
+      for (const u of c)
+        u["authorizations-api"] = (u.authorizations || []).filter((a) => a.type === "api"), u["authorizations-ui"] = (u.authorizations || []).filter((a) => a.type === "ui");
+      g.value = c, x.value = !1;
     }
-    function J() {
-      x.value = null, _.value = { name: "", apiPatterns: [], uiPatterns: [] }, U.value = !0;
+    function I() {
+      S.value = null, f.value = { name: "", apiPatterns: [], uiPatterns: [] }, R.value = !0;
     }
-    function X(O) {
-      x.value = O, _.value = {
-        name: O.name,
-        apiPatterns: (O["authorizations-api"] || []).map((m) => m.pattern),
-        uiPatterns: (O["authorizations-ui"] || []).map((m) => m.pattern)
-      }, U.value = !0;
+    function Q(q) {
+      S.value = q, f.value = {
+        name: q.name,
+        apiPatterns: (q["authorizations-api"] || []).map((c) => c.pattern),
+        uiPatterns: (q["authorizations-ui"] || []).map((c) => c.pattern)
+      }, R.value = !0;
     }
-    function I(O) {
-      V.value = O, b.value = !0;
+    function z(q) {
+      C.value = q, k.value = !0;
     }
-    async function Y() {
+    async function B() {
       var a;
-      const { valid: O } = await S.value.validate();
-      if (!O) return;
-      z.value = !0;
-      const m = {
-        id: (a = x.value) == null ? void 0 : a.id,
-        name: _.value.name,
+      const { valid: q } = await P.value.validate();
+      if (!q) return;
+      U.value = !0;
+      const c = {
+        id: (a = S.value) == null ? void 0 : a.id,
+        name: f.value.name,
         authorizations: [
-          ..._.value.apiPatterns.map((w) => ({ pattern: w, type: "api" })),
-          ..._.value.uiPatterns.map((w) => ({ pattern: w, type: "ui" }))
+          ...f.value.apiPatterns.map(($) => ({ pattern: $, type: "api" })),
+          ...f.value.uiPatterns.map(($) => ({ pattern: $, type: "ui" }))
         ]
-      }, i = x.value ? "put" : "post";
-      await u[i]("rest/system/security/role", m), z.value = !1, U.value = !1, N();
+      }, u = S.value ? "put" : "post";
+      await m[u]("rest/system/security/role", c), U.value = !1, R.value = !1, V();
     }
-    async function ne() {
-      j.value = !0, await u.del(`rest/system/security/role/${V.value.id}`), j.value = !1, b.value = !1, N();
+    async function ee() {
+      L.value = !0, await m.del(`rest/system/security/role/${C.value.id}`), L.value = !1, k.value = !1, V();
     }
-    return le(() => {
-      f.setTitle("Roles"), f.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Roles" }]), N();
-    }), (O, m) => {
-      const i = n("v-spacer"), a = n("v-btn"), w = n("v-alert"), r = n("v-icon"), R = n("v-data-table"), H = n("v-card-title"), F = n("v-text-field"), $ = n("v-combobox"), d = n("v-form"), ee = n("v-card-text"), Q = n("v-card-actions"), G = n("v-card"), Z = n("v-dialog");
-      return y(), T("div", null, [
-        p("div", vt, [
-          m[8] || (m[8] = p("h1", { class: "text-h4" }, "Roles", -1)),
-          e(i),
+    return oe(() => {
+      _.setTitle("Roles"), _.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Roles" }]), V();
+    }), (q, c) => {
+      const u = n("v-spacer"), a = n("v-btn"), $ = n("v-alert"), d = n("v-icon"), G = n("v-data-table"), K = n("v-card-title"), Z = n("v-text-field"), N = n("v-combobox"), p = n("v-form"), ne = n("v-card-text"), te = n("v-card-actions"), O = n("v-card"), s = n("v-dialog");
+      return b(), j("div", null, [
+        v("div", _t, [
+          c[8] || (c[8] = v("h1", { class: "text-h4" }, "Roles", -1)),
+          e(u),
           e(a, {
             color: "primary",
             "prepend-icon": "mdi-plus",
-            onClick: J
+            onClick: I
           }, {
-            default: t(() => [...m[7] || (m[7] = [
+            default: t(() => [...c[7] || (c[7] = [
               l("New", -1)
             ])]),
             _: 1
           })
         ]),
-        s.value ? (y(), q(w, {
+        i.value ? (b(), W($, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(k(s.value), 1)
+            l(w(i.value), 1)
           ]),
           _: 1
-        })) : E("", !0),
-        e(R, {
-          headers: C,
-          items: c.value,
-          loading: g.value,
+        })) : M("", !0),
+        e(G, {
+          headers: y,
+          items: g.value,
+          loading: x.value,
           "items-per-page": -1,
           "hide-default-footer": "",
           density: "compact"
         }, {
           "item.authApi": t(({ item: A }) => [
-            (y(!0), T(ue, null, ce(A["authorizations-api"], (K) => (y(), T("code", {
-              key: K.id || K.pattern,
+            (b(!0), j(pe, null, ve(A["authorizations-api"], (E) => (b(), j("code", {
+              key: E.id || E.pattern,
               class: "auth-token"
-            }, k(K.pattern), 1))), 128))
+            }, w(E.pattern), 1))), 128))
           ]),
           "item.authUi": t(({ item: A }) => [
-            (y(!0), T(ue, null, ce(A["authorizations-ui"], (K) => (y(), T("code", {
-              key: K.id || K.pattern,
+            (b(!0), j(pe, null, ve(A["authorizations-ui"], (E) => (b(), j("code", {
+              key: E.id || E.pattern,
               class: "auth-token"
-            }, k(K.pattern), 1))), 128))
+            }, w(E.pattern), 1))), 128))
           ]),
           "item.actions": t(({ item: A }) => [
             e(a, {
               icon: "",
               size: "small",
               variant: "text",
-              onClick: (K) => X(A)
+              onClick: (E) => Q(A)
             }, {
               default: t(() => [
-                e(r, { size: "small" }, {
-                  default: t(() => [...m[9] || (m[9] = [
+                e(d, { size: "small" }, {
+                  default: t(() => [...c[9] || (c[9] = [
                     l("mdi-pencil", -1)
                   ])]),
                   _: 1
@@ -1518,11 +1518,11 @@ const Wt = {
               size: "small",
               variant: "text",
               color: "error",
-              onClick: (K) => I(A)
+              onClick: (E) => z(A)
             }, {
               default: t(() => [
-                e(r, { size: "small" }, {
-                  default: t(() => [...m[10] || (m[10] = [
+                e(d, { size: "small" }, {
+                  default: t(() => [...c[10] || (c[10] = [
                     l("mdi-delete", -1)
                   ])]),
                   _: 1
@@ -1533,43 +1533,43 @@ const Wt = {
           ]),
           _: 1
         }, 8, ["items", "loading"]),
-        e(Z, {
-          modelValue: U.value,
-          "onUpdate:modelValue": m[4] || (m[4] = (A) => U.value = A),
+        e(s, {
+          modelValue: R.value,
+          "onUpdate:modelValue": c[4] || (c[4] = (A) => R.value = A),
           "max-width": "640",
           persistent: ""
         }, {
           default: t(() => [
-            e(G, null, {
+            e(O, null, {
               default: t(() => [
-                e(H, null, {
+                e(K, null, {
                   default: t(() => [
-                    l(k(x.value ? "Edit role" : "New role"), 1)
+                    l(w(S.value ? "Edit role" : "New role"), 1)
                   ]),
                   _: 1
                 }),
-                e(ee, null, {
+                e(ne, null, {
                   default: t(() => [
-                    e(d, {
+                    e(p, {
                       ref_key: "formRef",
-                      ref: S,
-                      onSubmit: de(Y, ["prevent"])
+                      ref: P,
+                      onSubmit: ce(B, ["prevent"])
                     }, {
                       default: t(() => [
-                        e(F, {
-                          modelValue: _.value.name,
-                          "onUpdate:modelValue": m[0] || (m[0] = (A) => _.value.name = A),
+                        e(Z, {
+                          modelValue: f.value.name,
+                          "onUpdate:modelValue": c[0] || (c[0] = (A) => f.value.name = A),
                           label: "Name",
                           rules: [D.required],
                           variant: "outlined",
                           class: "mb-4",
                           autofocus: ""
                         }, null, 8, ["modelValue", "rules"]),
-                        e($, {
-                          modelValue: _.value.apiPatterns,
-                          "onUpdate:modelValue": m[1] || (m[1] = (A) => _.value.apiPatterns = A),
+                        e(N, {
+                          modelValue: f.value.apiPatterns,
+                          "onUpdate:modelValue": c[1] || (c[1] = (A) => f.value.apiPatterns = A),
                           label: "API authorization patterns (regex)",
-                          items: _.value.apiPatterns,
+                          items: f.value.apiPatterns,
                           chips: "",
                           "closable-chips": "",
                           multiple: "",
@@ -1578,11 +1578,11 @@ const Wt = {
                           "persistent-hint": "",
                           class: "mb-4"
                         }, null, 8, ["modelValue", "items"]),
-                        e($, {
-                          modelValue: _.value.uiPatterns,
-                          "onUpdate:modelValue": m[2] || (m[2] = (A) => _.value.uiPatterns = A),
+                        e(N, {
+                          modelValue: f.value.uiPatterns,
+                          "onUpdate:modelValue": c[2] || (c[2] = (A) => f.value.uiPatterns = A),
                           label: "UI authorization patterns (regex)",
-                          items: _.value.uiPatterns,
+                          items: f.value.uiPatterns,
                           chips: "",
                           "closable-chips": "",
                           multiple: "",
@@ -1597,14 +1597,14 @@ const Wt = {
                   ]),
                   _: 1
                 }),
-                e(Q, null, {
+                e(te, null, {
                   default: t(() => [
-                    e(i),
+                    e(u),
                     e(a, {
                       variant: "text",
-                      onClick: m[3] || (m[3] = (A) => U.value = !1)
+                      onClick: c[3] || (c[3] = (A) => R.value = !1)
                     }, {
-                      default: t(() => [...m[11] || (m[11] = [
+                      default: t(() => [...c[11] || (c[11] = [
                         l("Cancel", -1)
                       ])]),
                       _: 1
@@ -1612,10 +1612,10 @@ const Wt = {
                     e(a, {
                       color: "primary",
                       variant: "elevated",
-                      loading: z.value,
-                      onClick: Y
+                      loading: U.value,
+                      onClick: B
                     }, {
-                      default: t(() => [...m[12] || (m[12] = [
+                      default: t(() => [...c[12] || (c[12] = [
                         l("Save", -1)
                       ])]),
                       _: 1
@@ -1629,39 +1629,39 @@ const Wt = {
           ]),
           _: 1
         }, 8, ["modelValue"]),
-        e(Z, {
-          modelValue: b.value,
-          "onUpdate:modelValue": m[6] || (m[6] = (A) => b.value = A),
+        e(s, {
+          modelValue: k.value,
+          "onUpdate:modelValue": c[6] || (c[6] = (A) => k.value = A),
           "max-width": "420"
         }, {
           default: t(() => [
-            e(G, null, {
+            e(O, null, {
               default: t(() => [
-                e(H, null, {
-                  default: t(() => [...m[13] || (m[13] = [
+                e(K, null, {
+                  default: t(() => [...c[13] || (c[13] = [
                     l("Delete role", -1)
                   ])]),
                   _: 1
                 }),
-                e(ee, null, {
+                e(ne, null, {
                   default: t(() => {
                     var A;
                     return [
-                      m[14] || (m[14] = l("Delete role ", -1)),
-                      p("strong", null, k((A = V.value) == null ? void 0 : A.name), 1),
-                      m[15] || (m[15] = l("?", -1))
+                      c[14] || (c[14] = l("Delete role ", -1)),
+                      v("strong", null, w((A = C.value) == null ? void 0 : A.name), 1),
+                      c[15] || (c[15] = l("?", -1))
                     ];
                   }),
                   _: 1
                 }),
-                e(Q, null, {
+                e(te, null, {
                   default: t(() => [
-                    e(i),
+                    e(u),
                     e(a, {
                       variant: "text",
-                      onClick: m[5] || (m[5] = (A) => b.value = !1)
+                      onClick: c[5] || (c[5] = (A) => k.value = !1)
                     }, {
-                      default: t(() => [...m[16] || (m[16] = [
+                      default: t(() => [...c[16] || (c[16] = [
                         l("Cancel", -1)
                       ])]),
                       _: 1
@@ -1669,10 +1669,10 @@ const Wt = {
                     e(a, {
                       color: "error",
                       variant: "elevated",
-                      loading: j.value,
-                      onClick: ne
+                      loading: L.value,
+                      onClick: ee
                     }, {
-                      default: t(() => [...m[17] || (m[17] = [
+                      default: t(() => [...c[17] || (c[17] = [
                         l("Delete", -1)
                       ])]),
                       _: 1
@@ -1689,13 +1689,13 @@ const Wt = {
       ]);
     };
   }
-}, _t = /* @__PURE__ */ pe(ft, [["__scopeId", "data-v-e3ba71a8"]]), yt = { class: "d-flex flex-wrap align-center mb-4 ga-2" }, gt = { key: 0 }, bt = { key: 0 }, kt = {
+}, yt = /* @__PURE__ */ fe(gt, [["__scopeId", "data-v-e3ba71a8"]]), bt = { class: "d-flex flex-wrap align-center mb-4 ga-2" }, kt = { key: 0 }, wt = { key: 0 }, xt = {
   __name: "SystemPluginView",
   setup(o) {
-    const u = ie(), f = ae(), c = [
+    const m = re(), _ = se(), g = [
       { id: "central", label: "Maven Central" },
       { id: "nexus", label: "OSSRH Nexus" }
-    ], g = v("central"), s = v([]), S = v(!1), U = v(null), x = v(!1), _ = v(!1), z = v(!1), b = v(""), V = v(!1), j = v(!1), D = [
+    ], x = r("central"), i = r([]), P = r(!1), R = r(null), S = r(!1), f = r(!1), U = r(!1), k = r(""), C = r(!1), L = r(!1), D = [
       { title: "", key: "type", sortable: !1, width: "40px" },
       { title: "Artifact", key: "id", sortable: !0 },
       { title: "Name", key: "name", sortable: !0 },
@@ -1705,51 +1705,51 @@ const Wt = {
       { title: "Subs", key: "subscriptions", sortable: !0, width: "80px", align: "center" },
       { title: "", key: "actions", sortable: !1, width: "60px", align: "end" }
     ];
-    function C(m) {
-      var a, w;
-      const i = (w = (a = m.plugin) == null ? void 0 : a.type) == null ? void 0 : w.toLowerCase();
-      return i ? i === "feature" ? "mdi-wrench" : i === "service" ? "mdi-puzzle" : i === "tool" ? "mdi-hammer-wrench" : "mdi-puzzle" : "mdi-link-off";
+    function y(c) {
+      var a, $;
+      const u = ($ = (a = c.plugin) == null ? void 0 : a.type) == null ? void 0 : $.toLowerCase();
+      return u ? u === "feature" ? "mdi-wrench" : u === "service" ? "mdi-puzzle" : u === "tool" ? "mdi-hammer-wrench" : "mdi-puzzle" : "mdi-link-off";
     }
-    async function N() {
-      S.value = !0, U.value = null;
-      const m = await u.get(`rest/system/plugin?repository=${g.value}`);
-      s.value = Array.isArray(m) ? m : (m == null ? void 0 : m.data) || [], S.value = !1;
+    async function V() {
+      P.value = !0, R.value = null;
+      const c = await m.get(`rest/system/plugin?repository=${x.value}`);
+      i.value = Array.isArray(c) ? c : (c == null ? void 0 : c.data) || [], P.value = !1;
     }
-    async function J() {
-      x.value = !0, await u.put(`rest/system/plugin/cache?repository=${g.value}`), x.value = !1, N();
+    async function I() {
+      S.value = !0, await m.put(`rest/system/plugin/cache?repository=${x.value}`), S.value = !1, V();
     }
-    async function X() {
-      _.value = !0, await u.put("rest/system/plugin/restart"), _.value = !1;
+    async function Q() {
+      f.value = !0, await m.put("rest/system/plugin/restart"), f.value = !1;
     }
-    async function I(m, i = !1) {
-      j.value = !0;
-      const a = `repository=${g.value}&javadoc=${i ? !1 : V.value}`;
-      await u.post(`rest/system/plugin/${encodeURIComponent(m)}?${a}`), j.value = !1, z.value = !1, b.value = "", V.value = !1, N();
+    async function z(c, u = !1) {
+      L.value = !0;
+      const a = `repository=${x.value}&javadoc=${u ? !1 : C.value}`;
+      await m.post(`rest/system/plugin/${encodeURIComponent(c)}?${a}`), L.value = !1, U.value = !1, k.value = "", C.value = !1, V();
     }
-    function Y() {
-      b.value && I(b.value.trim());
+    function B() {
+      k.value && z(k.value.trim());
     }
-    async function ne(m) {
-      await u.del(`rest/system/plugin/${m.plugin.artifact}/${m.latestLocalVersion}`), N();
+    async function ee(c) {
+      await m.del(`rest/system/plugin/${c.plugin.artifact}/${c.latestLocalVersion}`), V();
     }
-    async function O(m) {
-      confirm(`Delete plug-in ${m}?`) && (await u.del(`rest/system/plugin/${m}`), N());
+    async function q(c) {
+      confirm(`Delete plug-in ${c}?`) && (await m.del(`rest/system/plugin/${c}`), V());
     }
-    return le(() => {
-      f.setTitle("Plug-ins"), f.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Plug-ins" }]), N();
-    }), (m, i) => {
-      const a = n("v-spacer"), w = n("v-select"), r = n("v-btn"), R = n("v-alert"), H = n("v-icon"), F = n("v-chip"), $ = n("v-data-table"), d = n("v-card-title"), ee = n("v-text-field"), Q = n("v-checkbox"), G = n("v-card-text"), Z = n("v-card-actions"), A = n("v-card"), K = n("v-dialog");
-      return y(), T("div", null, [
-        p("div", yt, [
-          i[9] || (i[9] = p("h1", { class: "text-h4" }, "Plugins", -1)),
+    return oe(() => {
+      _.setTitle("Plug-ins"), _.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Plug-ins" }]), V();
+    }), (c, u) => {
+      const a = n("v-spacer"), $ = n("v-select"), d = n("v-btn"), G = n("v-alert"), K = n("v-icon"), Z = n("v-chip"), N = n("v-data-table"), p = n("v-card-title"), ne = n("v-text-field"), te = n("v-checkbox"), O = n("v-card-text"), s = n("v-card-actions"), A = n("v-card"), E = n("v-dialog");
+      return b(), j("div", null, [
+        v("div", bt, [
+          u[9] || (u[9] = v("h1", { class: "text-h4" }, "Plugins", -1)),
           e(a),
-          e(w, {
-            modelValue: g.value,
+          e($, {
+            modelValue: x.value,
             "onUpdate:modelValue": [
-              i[0] || (i[0] = (P) => g.value = P),
-              N
+              u[0] || (u[0] = (T) => x.value = T),
+              V
             ],
-            items: c,
+            items: g,
             "item-value": "id",
             "item-title": "label",
             label: "Repository",
@@ -1758,150 +1758,150 @@ const Wt = {
             variant: "outlined",
             style: { "max-width": "200px" }
           }, null, 8, ["modelValue"]),
-          e(r, {
+          e(d, {
             variant: "outlined",
             "prepend-icon": "mdi-magnify-plus",
-            onClick: J,
-            loading: x.value
+            onClick: I,
+            loading: S.value
           }, {
-            default: t(() => [...i[6] || (i[6] = [
+            default: t(() => [...u[6] || (u[6] = [
               l(" Check versions ", -1)
             ])]),
             _: 1
           }, 8, ["loading"]),
-          e(r, {
+          e(d, {
             color: "error",
             variant: "outlined",
             "prepend-icon": "mdi-restart",
-            onClick: X,
-            loading: _.value
+            onClick: Q,
+            loading: f.value
           }, {
-            default: t(() => [...i[7] || (i[7] = [
+            default: t(() => [...u[7] || (u[7] = [
               l(" Restart ", -1)
             ])]),
             _: 1
           }, 8, ["loading"]),
-          e(r, {
+          e(d, {
             color: "primary",
             "prepend-icon": "mdi-plus",
-            onClick: i[1] || (i[1] = (P) => z.value = !0)
+            onClick: u[1] || (u[1] = (T) => U.value = !0)
           }, {
-            default: t(() => [...i[8] || (i[8] = [
+            default: t(() => [...u[8] || (u[8] = [
               l("Install", -1)
             ])]),
             _: 1
           })
         ]),
-        U.value ? (y(), q(R, {
+        R.value ? (b(), W(G, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(k(U.value), 1)
+            l(w(R.value), 1)
           ]),
           _: 1
-        })) : E("", !0),
-        e($, {
+        })) : M("", !0),
+        e(N, {
           headers: D,
-          items: s.value,
-          loading: S.value,
+          items: i.value,
+          loading: P.value,
           "items-per-page": -1,
           "hide-default-footer": "",
           density: "compact"
         }, {
-          "item.type": t(({ item: P }) => {
-            var W;
+          "item.type": t(({ item: T }) => {
+            var X;
             return [
-              e(H, {
+              e(K, {
                 size: "small",
-                title: (W = P.plugin) == null ? void 0 : W.type
+                title: (X = T.plugin) == null ? void 0 : X.type
               }, {
                 default: t(() => [
-                  l(k(C(P)), 1)
+                  l(w(y(T)), 1)
                 ]),
                 _: 2
               }, 1032, ["title"])
             ];
           }),
-          "item.version": t(({ item: P }) => {
-            var W;
+          "item.version": t(({ item: T }) => {
+            var X;
             return [
-              p("span", null, k(((W = P.plugin) == null ? void 0 : W.version) || "—"), 1),
-              P.latestLocalVersion ? (y(), q(F, {
+              v("span", null, w(((X = T.plugin) == null ? void 0 : X.version) || "—"), 1),
+              T.latestLocalVersion ? (b(), W(Z, {
                 key: 0,
                 size: "x-small",
                 color: "primary",
                 class: "ml-1",
                 closable: "",
-                "onClick:close": (te) => ne(P),
+                "onClick:close": (le) => ee(T),
                 title: "Cancel local install"
               }, {
                 default: t(() => [
-                  l(k(P.latestLocalVersion), 1)
+                  l(w(T.latestLocalVersion), 1)
                 ]),
                 _: 2
-              }, 1032, ["onClick:close"])) : E("", !0),
-              P.newVersion && P.newVersion !== P.latestLocalVersion ? (y(), q(F, {
+              }, 1032, ["onClick:close"])) : M("", !0),
+              T.newVersion && T.newVersion !== T.latestLocalVersion ? (b(), W(Z, {
                 key: 1,
                 size: "x-small",
                 color: "success",
                 class: "ml-1",
-                onClick: (te) => I(P.plugin.artifact, !0),
+                onClick: (le) => z(T.plugin.artifact, !0),
                 title: "Upgrade available — click to install"
               }, {
                 default: t(() => [
-                  e(H, {
+                  e(K, {
                     start: "",
                     size: "x-small"
                   }, {
-                    default: t(() => [...i[10] || (i[10] = [
+                    default: t(() => [...u[10] || (u[10] = [
                       l("mdi-arrow-up", -1)
                     ])]),
                     _: 1
                   }),
-                  l(k(P.newVersion), 1)
+                  l(w(T.newVersion), 1)
                 ]),
                 _: 2
-              }, 1032, ["onClick"])) : E("", !0)
+              }, 1032, ["onClick"])) : M("", !0)
             ];
           }),
-          "item.nodes": t(({ item: P }) => {
-            var W, te;
+          "item.nodes": t(({ item: T }) => {
+            var X, le;
             return [
-              ((te = (W = P.plugin) == null ? void 0 : W.type) == null ? void 0 : te.toLowerCase()) !== "feature" ? (y(), T("span", gt, k(P.nodes ?? 0), 1)) : E("", !0)
+              ((le = (X = T.plugin) == null ? void 0 : X.type) == null ? void 0 : le.toLowerCase()) !== "feature" ? (b(), j("span", kt, w(T.nodes ?? 0), 1)) : M("", !0)
             ];
           }),
-          "item.subscriptions": t(({ item: P }) => {
-            var W, te;
+          "item.subscriptions": t(({ item: T }) => {
+            var X, le;
             return [
-              ((te = (W = P.plugin) == null ? void 0 : W.type) == null ? void 0 : te.toLowerCase()) !== "feature" ? (y(), T("span", bt, k(P.subscriptions ?? 0), 1)) : E("", !0)
+              ((le = (X = T.plugin) == null ? void 0 : X.type) == null ? void 0 : le.toLowerCase()) !== "feature" ? (b(), j("span", wt, w(T.subscriptions ?? 0), 1)) : M("", !0)
             ];
           }),
-          "item.actions": t(({ item: P }) => [
-            P.deleted ? (y(), q(H, {
+          "item.actions": t(({ item: T }) => [
+            T.deleted ? (b(), W(K, {
               key: 0,
               size: "small",
               color: "warning",
               title: "Deletion scheduled"
             }, {
-              default: t(() => [...i[11] || (i[11] = [
+              default: t(() => [...u[11] || (u[11] = [
                 l("mdi-cancel", -1)
               ])]),
               _: 1
-            })) : (y(), q(r, {
+            })) : (b(), W(d, {
               key: 1,
               icon: "",
               size: "small",
               variant: "text",
               color: "error",
-              onClick: (W) => O(P.plugin.artifact),
+              onClick: (X) => q(T.plugin.artifact),
               title: "Delete plug-in"
             }, {
               default: t(() => [
-                e(H, { size: "small" }, {
-                  default: t(() => [...i[12] || (i[12] = [
+                e(K, { size: "small" }, {
+                  default: t(() => [...u[12] || (u[12] = [
                     l("mdi-delete", -1)
                   ])]),
                   _: 1
@@ -1912,35 +1912,35 @@ const Wt = {
           ]),
           _: 1
         }, 8, ["items", "loading"]),
-        e(K, {
-          modelValue: z.value,
-          "onUpdate:modelValue": i[5] || (i[5] = (P) => z.value = P),
+        e(E, {
+          modelValue: U.value,
+          "onUpdate:modelValue": u[5] || (u[5] = (T) => U.value = T),
           "max-width": "520"
         }, {
           default: t(() => [
             e(A, null, {
               default: t(() => [
-                e(d, null, {
-                  default: t(() => [...i[13] || (i[13] = [
+                e(p, null, {
+                  default: t(() => [...u[13] || (u[13] = [
                     l("Install plug-in", -1)
                   ])]),
                   _: 1
                 }),
-                e(G, null, {
+                e(O, null, {
                   default: t(() => [
-                    e(ee, {
-                      modelValue: b.value,
-                      "onUpdate:modelValue": i[2] || (i[2] = (P) => b.value = P),
+                    e(ne, {
+                      modelValue: k.value,
+                      "onUpdate:modelValue": u[2] || (u[2] = (T) => k.value = T),
                       label: "Artifact id (e.g. plugin-prov-aws)",
                       variant: "outlined",
-                      hint: `Repository: ${g.value}`,
+                      hint: `Repository: ${x.value}`,
                       "persistent-hint": "",
                       class: "mb-2",
                       autofocus: ""
                     }, null, 8, ["modelValue", "hint"]),
-                    e(Q, {
-                      modelValue: V.value,
-                      "onUpdate:modelValue": i[3] || (i[3] = (P) => V.value = P),
+                    e(te, {
+                      modelValue: C.value,
+                      "onUpdate:modelValue": u[3] || (u[3] = (T) => C.value = T),
                       label: "Install Javadoc bundle",
                       density: "compact",
                       "hide-details": ""
@@ -1948,26 +1948,26 @@ const Wt = {
                   ]),
                   _: 1
                 }),
-                e(Z, null, {
+                e(s, null, {
                   default: t(() => [
                     e(a),
-                    e(r, {
+                    e(d, {
                       variant: "text",
-                      onClick: i[4] || (i[4] = (P) => z.value = !1)
+                      onClick: u[4] || (u[4] = (T) => U.value = !1)
                     }, {
-                      default: t(() => [...i[14] || (i[14] = [
+                      default: t(() => [...u[14] || (u[14] = [
                         l("Cancel", -1)
                       ])]),
                       _: 1
                     }),
-                    e(r, {
+                    e(d, {
                       color: "primary",
                       variant: "elevated",
-                      loading: j.value,
-                      disabled: !b.value,
-                      onClick: Y
+                      loading: L.value,
+                      disabled: !k.value,
+                      onClick: B
                     }, {
-                      default: t(() => [...i[15] || (i[15] = [
+                      default: t(() => [...u[15] || (u[15] = [
                         l("Install", -1)
                       ])]),
                       _: 1
@@ -1984,96 +1984,96 @@ const Wt = {
       ]);
     };
   }
-}, wt = { class: "d-flex align-center mb-4" }, xt = {
+}, Ct = { class: "d-flex align-center mb-4" }, Vt = {
   __name: "SystemNodeView",
   setup(o) {
-    const u = ie(), f = ae(), c = v([]), g = v(!1), s = v(null), S = v(!1), U = v(null), x = v(!1), _ = [
+    const m = re(), _ = se(), g = r([]), x = r(!1), i = r(null), P = r(!1), R = r(null), S = r(!1), f = [
       { title: "Identifier", key: "id", sortable: !0 },
       { title: "Name", key: "name", sortable: !0, width: "260px" },
       { title: "Status", key: "status", sortable: !0, width: "120px" },
       { title: "", key: "actions", sortable: !1, width: "60px", align: "end" }
     ];
-    function z(D) {
-      var N;
-      const C = (N = D == null ? void 0 : D.toLowerCase) == null ? void 0 : N.call(D);
-      return C === "up" ? "success" : C === "down" ? "error" : C === "unknown" ? "warning" : "grey";
+    function U(D) {
+      var V;
+      const y = (V = D == null ? void 0 : D.toLowerCase) == null ? void 0 : V.call(D);
+      return y === "up" ? "success" : y === "down" ? "error" : y === "unknown" ? "warning" : "grey";
     }
-    async function b() {
-      g.value = !0, s.value = null;
-      const D = await u.get("rest/node");
-      c.value = Array.isArray(D) ? D : (D == null ? void 0 : D.data) || [], g.value = !1;
+    async function k() {
+      x.value = !0, i.value = null;
+      const D = await m.get("rest/node");
+      g.value = Array.isArray(D) ? D : (D == null ? void 0 : D.data) || [], x.value = !1;
     }
-    function V(D) {
-      U.value = D, S.value = !0;
+    function C(D) {
+      R.value = D, P.value = !0;
     }
-    async function j() {
-      x.value = !0, await u.del(`rest/node/${encodeURIComponent(U.value.id)}`), x.value = !1, S.value = !1, b();
+    async function L() {
+      S.value = !0, await m.del(`rest/node/${encodeURIComponent(R.value.id)}`), S.value = !1, P.value = !1, k();
     }
-    return le(() => {
-      f.setTitle("Nodes"), f.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Nodes" }]), b();
-    }), (D, C) => {
-      const N = n("v-spacer"), J = n("v-btn"), X = n("v-alert"), I = n("v-chip"), Y = n("v-icon"), ne = n("v-data-table"), O = n("v-card-title"), m = n("v-card-text"), i = n("v-card-actions"), a = n("v-card"), w = n("v-dialog");
-      return y(), T("div", null, [
-        p("div", wt, [
-          C[3] || (C[3] = p("h1", { class: "text-h4" }, "Nodes", -1)),
-          e(N),
-          e(J, {
+    return oe(() => {
+      _.setTitle("Nodes"), _.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Nodes" }]), k();
+    }), (D, y) => {
+      const V = n("v-spacer"), I = n("v-btn"), Q = n("v-alert"), z = n("v-chip"), B = n("v-icon"), ee = n("v-data-table"), q = n("v-card-title"), c = n("v-card-text"), u = n("v-card-actions"), a = n("v-card"), $ = n("v-dialog");
+      return b(), j("div", null, [
+        v("div", Ct, [
+          y[3] || (y[3] = v("h1", { class: "text-h4" }, "Nodes", -1)),
+          e(V),
+          e(I, {
             color: "primary",
             "prepend-icon": "mdi-plus",
             to: "/subscribe"
           }, {
-            default: t(() => [...C[2] || (C[2] = [
+            default: t(() => [...y[2] || (y[2] = [
               l("New subscription", -1)
             ])]),
             _: 1
           })
         ]),
-        s.value ? (y(), q(X, {
+        i.value ? (b(), W(Q, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(k(s.value), 1)
+            l(w(i.value), 1)
           ]),
           _: 1
-        })) : E("", !0),
-        e(ne, {
-          headers: _,
-          items: c.value,
-          loading: g.value,
+        })) : M("", !0),
+        e(ee, {
+          headers: f,
+          items: g.value,
+          loading: x.value,
           "items-per-page": -1,
           "hide-default-footer": "",
           density: "compact"
         }, {
-          "item.id": t(({ item: r }) => [
-            p("code", null, k(r.id), 1)
+          "item.id": t(({ item: d }) => [
+            v("code", null, w(d.id), 1)
           ]),
-          "item.status": t(({ item: r }) => [
-            r.status ? (y(), q(I, {
+          "item.status": t(({ item: d }) => [
+            d.status ? (b(), W(z, {
               key: 0,
               size: "x-small",
-              color: z(r.status),
+              color: U(d.status),
               variant: "tonal"
             }, {
               default: t(() => [
-                l(k(r.status), 1)
+                l(w(d.status), 1)
               ]),
               _: 2
-            }, 1032, ["color"])) : E("", !0)
+            }, 1032, ["color"])) : M("", !0)
           ]),
-          "item.actions": t(({ item: r }) => [
-            e(J, {
+          "item.actions": t(({ item: d }) => [
+            e(I, {
               icon: "",
               size: "small",
               variant: "text",
               color: "error",
-              onClick: (R) => V(r)
+              onClick: (G) => C(d)
             }, {
               default: t(() => [
-                e(Y, { size: "small" }, {
-                  default: t(() => [...C[4] || (C[4] = [
+                e(B, { size: "small" }, {
+                  default: t(() => [...y[4] || (y[4] = [
                     l("mdi-delete", -1)
                   ])]),
                   _: 1
@@ -2084,52 +2084,52 @@ const Wt = {
           ]),
           _: 1
         }, 8, ["items", "loading"]),
-        e(w, {
-          modelValue: S.value,
-          "onUpdate:modelValue": C[1] || (C[1] = (r) => S.value = r),
+        e($, {
+          modelValue: P.value,
+          "onUpdate:modelValue": y[1] || (y[1] = (d) => P.value = d),
           "max-width": "460"
         }, {
           default: t(() => [
             e(a, null, {
               default: t(() => [
-                e(O, null, {
-                  default: t(() => [...C[5] || (C[5] = [
+                e(q, null, {
+                  default: t(() => [...y[5] || (y[5] = [
                     l("Delete node", -1)
                   ])]),
                   _: 1
                 }),
-                e(m, null, {
+                e(c, null, {
                   default: t(() => {
-                    var r, R;
+                    var d, G;
                     return [
-                      C[6] || (C[6] = l(" Delete ", -1)),
-                      p("strong", null, k((r = U.value) == null ? void 0 : r.name), 1),
-                      C[7] || (C[7] = l(" (", -1)),
-                      p("code", null, k((R = U.value) == null ? void 0 : R.id), 1),
-                      C[8] || (C[8] = l(")? ", -1))
+                      y[6] || (y[6] = l(" Delete ", -1)),
+                      v("strong", null, w((d = R.value) == null ? void 0 : d.name), 1),
+                      y[7] || (y[7] = l(" (", -1)),
+                      v("code", null, w((G = R.value) == null ? void 0 : G.id), 1),
+                      y[8] || (y[8] = l(")? ", -1))
                     ];
                   }),
                   _: 1
                 }),
-                e(i, null, {
+                e(u, null, {
                   default: t(() => [
-                    e(N),
-                    e(J, {
+                    e(V),
+                    e(I, {
                       variant: "text",
-                      onClick: C[0] || (C[0] = (r) => S.value = !1)
+                      onClick: y[0] || (y[0] = (d) => P.value = !1)
                     }, {
-                      default: t(() => [...C[9] || (C[9] = [
+                      default: t(() => [...y[9] || (y[9] = [
                         l("Cancel", -1)
                       ])]),
                       _: 1
                     }),
-                    e(J, {
+                    e(I, {
                       color: "error",
                       variant: "elevated",
-                      loading: x.value,
-                      onClick: j
+                      loading: S.value,
+                      onClick: L
                     }, {
-                      default: t(() => [...C[10] || (C[10] = [
+                      default: t(() => [...y[10] || (y[10] = [
                         l("Delete", -1)
                       ])]),
                       _: 1
@@ -2146,10 +2146,10 @@ const Wt = {
       ]);
     };
   }
-}, Vt = { class: "d-flex align-center mb-4" }, ht = { class: "d-flex align-center ga-2" }, Ct = { class: "d-flex align-center ga-2" }, $t = {
+}, St = { class: "d-flex align-center mb-4" }, $t = { class: "d-flex align-center ga-2" }, ht = { class: "d-flex align-center ga-2" }, Pt = {
   __name: "SystemCacheView",
   setup(o) {
-    const u = ie(), f = ae(), c = v([]), g = v(!1), s = v(null), S = v(null), U = [
+    const m = re(), _ = se(), g = r([]), x = r(!1), i = r(null), P = r(null), R = [
       { title: "Cache", key: "id", sortable: !0 },
       { title: "Size", key: "size", sortable: !0, width: "100px" },
       { title: "Hits", key: "hitCount", sortable: !0, width: "160px" },
@@ -2157,100 +2157,100 @@ const Wt = {
       { title: "Avg get (ms)", key: "averageGetTime", sortable: !0, width: "140px" },
       { title: "", key: "actions", sortable: !1, width: "60px", align: "end" }
     ];
-    function x(b, V, j) {
-      return V && j === 1 || b >= 90 ? "success" : b >= 80 ? "primary" : b >= 50 ? "warning" : "error";
+    function S(k, C, L) {
+      return C && L === 1 || k >= 90 ? "success" : k >= 80 ? "primary" : k >= 50 ? "warning" : "error";
     }
-    async function _() {
-      g.value = !0, s.value = null;
-      const b = await u.get("rest/system/cache");
-      Array.isArray(b) ? c.value = b : b === null && (s.value = "Unable to load caches"), g.value = !1;
+    async function f() {
+      x.value = !0, i.value = null;
+      const k = await m.get("rest/system/cache");
+      Array.isArray(k) ? g.value = k : k === null && (i.value = "Unable to load caches"), x.value = !1;
     }
-    async function z(b) {
-      S.value = b.id, await u.post(`rest/system/cache/${encodeURIComponent(b.id)}`), S.value = null, _();
+    async function U(k) {
+      P.value = k.id, await m.post(`rest/system/cache/${encodeURIComponent(k.id)}`), P.value = null, f();
     }
-    return le(() => {
-      f.setTitle("Caches"), f.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Caches" }]), _();
-    }), (b, V) => {
-      const j = n("v-spacer"), D = n("v-btn"), C = n("v-alert"), N = n("v-chip"), J = n("v-icon"), X = n("v-data-table");
-      return y(), T("div", null, [
-        p("div", Vt, [
-          V[1] || (V[1] = p("h1", { class: "text-h4" }, "Caches", -1)),
-          e(j),
+    return oe(() => {
+      _.setTitle("Caches"), _.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Caches" }]), f();
+    }), (k, C) => {
+      const L = n("v-spacer"), D = n("v-btn"), y = n("v-alert"), V = n("v-chip"), I = n("v-icon"), Q = n("v-data-table");
+      return b(), j("div", null, [
+        v("div", St, [
+          C[1] || (C[1] = v("h1", { class: "text-h4" }, "Caches", -1)),
+          e(L),
           e(D, {
             variant: "outlined",
             "prepend-icon": "mdi-refresh",
-            onClick: _
+            onClick: f
           }, {
-            default: t(() => [...V[0] || (V[0] = [
+            default: t(() => [...C[0] || (C[0] = [
               l("Refresh", -1)
             ])]),
             _: 1
           })
         ]),
-        s.value ? (y(), q(C, {
+        i.value ? (b(), W(y, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(k(s.value), 1)
+            l(w(i.value), 1)
           ]),
           _: 1
-        })) : E("", !0),
-        e(X, {
-          headers: U,
-          items: c.value,
-          loading: g.value,
+        })) : M("", !0),
+        e(Q, {
+          headers: R,
+          items: g.value,
+          loading: x.value,
           "items-per-page": -1,
           "hide-default-footer": "",
           density: "compact"
         }, {
-          "item.hitCount": t(({ item: I }) => [
-            p("div", ht, [
-              p("span", null, k(I.hitCount ?? 0), 1),
-              I.hitPercentage != null && (I.hitCount ?? 0) > 0 ? (y(), q(N, {
+          "item.hitCount": t(({ item: z }) => [
+            v("div", $t, [
+              v("span", null, w(z.hitCount ?? 0), 1),
+              z.hitPercentage != null && (z.hitCount ?? 0) > 0 ? (b(), W(V, {
                 key: 0,
                 size: "x-small",
-                color: x(I.hitPercentage, !0, I.hitCount)
+                color: S(z.hitPercentage, !0, z.hitCount)
               }, {
                 default: t(() => [
-                  l(k(Math.round(I.hitPercentage)) + "%", 1)
+                  l(w(Math.round(z.hitPercentage)) + "%", 1)
                 ]),
                 _: 2
-              }, 1032, ["color"])) : E("", !0)
+              }, 1032, ["color"])) : M("", !0)
             ])
           ]),
-          "item.missCount": t(({ item: I }) => [
-            p("div", Ct, [
-              p("span", null, k(I.missCount ?? 0), 1),
-              I.missPercentage != null && (I.missCount ?? 0) > 1 ? (y(), q(N, {
+          "item.missCount": t(({ item: z }) => [
+            v("div", ht, [
+              v("span", null, w(z.missCount ?? 0), 1),
+              z.missPercentage != null && (z.missCount ?? 0) > 1 ? (b(), W(V, {
                 key: 0,
                 size: "x-small",
-                color: x(100 - I.missPercentage, !1)
+                color: S(100 - z.missPercentage, !1)
               }, {
                 default: t(() => [
-                  l(k(Math.round(I.missPercentage)) + "%", 1)
+                  l(w(Math.round(z.missPercentage)) + "%", 1)
                 ]),
                 _: 2
-              }, 1032, ["color"])) : E("", !0)
+              }, 1032, ["color"])) : M("", !0)
             ])
           ]),
-          "item.averageGetTime": t(({ item: I }) => [
-            l(k(I.averageGetTime ?? "—"), 1)
+          "item.averageGetTime": t(({ item: z }) => [
+            l(w(z.averageGetTime ?? "—"), 1)
           ]),
-          "item.actions": t(({ item: I }) => [
+          "item.actions": t(({ item: z }) => [
             e(D, {
               icon: "",
               size: "small",
               variant: "text",
-              loading: S.value === I.id,
-              onClick: (Y) => z(I),
+              loading: P.value === z.id,
+              onClick: (B) => U(z),
               title: "Invalidate cache"
             }, {
               default: t(() => [
-                e(J, { size: "small" }, {
-                  default: t(() => [...V[2] || (V[2] = [
+                e(I, { size: "small" }, {
+                  default: t(() => [...C[2] || (C[2] = [
                     l("mdi-broom", -1)
                   ])]),
                   _: 1
@@ -2264,55 +2264,55 @@ const Wt = {
       ]);
     };
   }
-}, St = { key: 1 }, Pt = {
+}, Ut = { key: 1 }, Dt = {
   __name: "SystemBenchView",
   setup(o) {
-    const u = ie(), f = ae(), c = [
+    const m = re(), _ = se(), g = [
       { key: "insert", step: "INSERT", method: "post", url: "rest/system/bench/prepare" },
       { key: "select", step: "SELECT", method: "get", url: "rest/system/bench/read" },
       { key: "select-all", step: "SELECT *", method: "get", url: "rest/system/bench/read/all" },
       { key: "update", step: "UPDATE", method: "put", url: "rest/system/bench/update" },
       { key: "delete", step: "DELETE", method: "del", url: "rest/system/bench/delete" }
-    ], g = v(!1), s = v(null), S = v(c.map((x) => ({ step: x.step, duration: null, loading: !1 })));
-    async function U() {
-      g.value = !0, s.value = null, S.value = c.map((x) => ({ step: x.step, duration: null, loading: !1 }));
-      for (let x = 0; x < c.length; x++) {
-        S.value[x].loading = !0;
+    ], x = r(!1), i = r(null), P = r(g.map((S) => ({ step: S.step, duration: null, loading: !1 })));
+    async function R() {
+      x.value = !0, i.value = null, P.value = g.map((S) => ({ step: S.step, duration: null, loading: !1 }));
+      for (let S = 0; S < g.length; S++) {
+        P.value[S].loading = !0;
         try {
-          const _ = c[x].method === "post" || c[x].method === "put" ? void 0 : null, z = _ === null ? await u[c[x].method](c[x].url) : await u[c[x].method](c[x].url, _);
-          S.value[x].duration = (z == null ? void 0 : z.duration) ?? "—";
-        } catch (_) {
-          s.value = `${c[x].step} failed: ${_.message || _}`;
+          const f = g[S].method === "post" || g[S].method === "put" ? void 0 : null, U = f === null ? await m[g[S].method](g[S].url) : await m[g[S].method](g[S].url, f);
+          P.value[S].duration = (U == null ? void 0 : U.duration) ?? "—";
+        } catch (f) {
+          i.value = `${g[S].step} failed: ${f.message || f}`;
           break;
         } finally {
-          S.value[x].loading = !1;
+          P.value[S].loading = !1;
         }
       }
-      g.value = !1;
+      x.value = !1;
     }
-    return le(() => {
-      f.setTitle("Bench"), f.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Bench" }]);
-    }), (x, _) => {
-      const z = n("v-card-text"), b = n("v-card"), V = n("v-btn"), j = n("v-alert"), D = n("v-progress-circular"), C = n("v-table");
-      return y(), T("div", null, [
-        _[3] || (_[3] = p("h1", { class: "text-h4 mb-4" }, "Database bench", -1)),
-        e(b, {
+    return oe(() => {
+      _.setTitle("Bench"), _.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Bench" }]);
+    }), (S, f) => {
+      const U = n("v-card-text"), k = n("v-card"), C = n("v-btn"), L = n("v-alert"), D = n("v-progress-circular"), y = n("v-table");
+      return b(), j("div", null, [
+        f[3] || (f[3] = v("h1", { class: "text-h4 mb-4" }, "Database bench", -1)),
+        e(k, {
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            e(z, null, {
-              default: t(() => [..._[0] || (_[0] = [
+            e(U, null, {
+              default: t(() => [...f[0] || (f[0] = [
                 l(" Runs a sequence of ", -1),
-                p("code", null, "INSERT", -1),
+                v("code", null, "INSERT", -1),
                 l(" → ", -1),
-                p("code", null, "SELECT", -1),
+                v("code", null, "SELECT", -1),
                 l(" → ", -1),
-                p("code", null, "SELECT *", -1),
+                v("code", null, "SELECT *", -1),
                 l(" → ", -1),
-                p("code", null, "UPDATE", -1),
+                v("code", null, "UPDATE", -1),
                 l(" → ", -1),
-                p("code", null, "DELETE", -1),
+                v("code", null, "DELETE", -1),
                 l(" calls and reports each step's duration. Handy to validate that the backend's persistence layer is responsive. ", -1)
               ])]),
               _: 1
@@ -2320,134 +2320,617 @@ const Wt = {
           ]),
           _: 1
         }),
-        e(V, {
+        e(C, {
           color: "primary",
           "prepend-icon": "mdi-play",
-          loading: g.value,
-          onClick: U
+          loading: x.value,
+          onClick: R
         }, {
-          default: t(() => [..._[1] || (_[1] = [
+          default: t(() => [...f[1] || (f[1] = [
             l(" Run bench ", -1)
           ])]),
           _: 1
         }, 8, ["loading"]),
-        s.value ? (y(), q(j, {
+        i.value ? (b(), W(L, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mt-4"
         }, {
           default: t(() => [
-            l(k(s.value), 1)
+            l(w(i.value), 1)
           ]),
           _: 1
-        })) : E("", !0),
-        S.value.length ? (y(), q(C, {
+        })) : M("", !0),
+        P.value.length ? (b(), W(y, {
           key: 1,
           density: "compact",
           class: "mt-4",
           style: { "max-width": "600px" }
         }, {
           default: t(() => [
-            _[2] || (_[2] = p("thead", null, [
-              p("tr", null, [
-                p("th", null, "Step"),
-                p("th", null, "Duration (ms)")
+            f[2] || (f[2] = v("thead", null, [
+              v("tr", null, [
+                v("th", null, "Step"),
+                v("th", null, "Duration (ms)")
               ])
             ], -1)),
-            p("tbody", null, [
-              (y(!0), T(ue, null, ce(S.value, (N) => (y(), T("tr", {
-                key: N.step
+            v("tbody", null, [
+              (b(!0), j(pe, null, ve(P.value, (V) => (b(), j("tr", {
+                key: V.step
               }, [
-                p("td", null, k(N.step), 1),
-                p("td", null, [
-                  N.loading ? (y(), q(D, {
+                v("td", null, w(V.step), 1),
+                v("td", null, [
+                  V.loading ? (b(), W(D, {
                     key: 0,
                     size: "16",
                     width: "2",
                     indeterminate: ""
-                  })) : (y(), T("span", St, k(N.duration ?? "—"), 1))
+                  })) : (b(), j("span", Ut, w(V.duration ?? "—"), 1))
                 ])
               ]))), 128))
             ])
           ]),
           _: 1
-        })) : E("", !0)
+        })) : M("", !0)
       ]);
     };
   }
-}, Dt = { class: "pa-4" }, zt = {
+}, zt = { class: "d-flex align-center mb-4" }, Nt = {
   __name: "ApiHomeView",
   setup(o) {
-    const u = ae();
-    return le(() => {
-      u.setTitle("API"), u.setBreadcrumbs([{ title: "API" }]);
-    }), (f, c) => {
-      const g = n("v-alert");
-      return y(), T("div", Dt, [
-        c[1] || (c[1] = p("h1", { class: "text-h4 mb-4" }, "API", -1)),
-        e(g, {
-          type: "info",
+    const m = se(), _ = r(!0), g = r(null), x = "/", i = `${x}rest/swagger-ui-bundle.js`, P = `${x}rest/swagger-ui-standalone-preset.js`, R = `${x}rest/swagger-ui.css`, S = `${x}rest/index.css`, f = `${x}rest/openapi.json`;
+    function U() {
+      return () => ({
+        fn: {
+          opsFilter(y, V) {
+            const I = V.toLowerCase();
+            return y.map((z) => (z._root.entries[1][1] = z._root.entries[1][1].filter((B) => {
+              const ee = JSON.parse(JSON.stringify(B)), q = (ee.operation.summary || "").toString().toLowerCase(), c = (ee.operation.description || "").toString().toLowerCase();
+              return ee.path.toLowerCase().includes(I) || q.includes(I) || c.includes(I);
+            }), z)).filter((z) => z._root.entries[1][1].size > 0);
+          }
+        }
+      });
+    }
+    function k(y, V) {
+      if (document.getElementById(V)) return;
+      const I = document.createElement("link");
+      I.id = V, I.rel = "stylesheet", I.href = y, document.head.appendChild(I);
+    }
+    function C(y) {
+      var V;
+      (V = document.getElementById(y)) == null || V.remove();
+    }
+    function L(y, V) {
+      return new Promise((I, Q) => {
+        if (document.getElementById(V)) {
+          I();
+          return;
+        }
+        const B = document.createElement("script");
+        B.id = V, B.src = y, B.async = !0, B.onload = I, B.onerror = () => Q(new Error(`Failed to load ${y}`)), document.head.appendChild(B);
+      });
+    }
+    function D() {
+      const { SwaggerUIBundle: y, SwaggerUIStandalonePreset: V } = window;
+      if (!y) {
+        g.value = "Swagger UI bundle is unavailable.";
+        return;
+      }
+      window.ui = y({
+        url: f,
+        dom_id: "#swagger-ui",
+        displayRequestDuration: !0,
+        deepLinking: !1,
+        presets: [y.presets.apis, V],
+        plugins: [y.plugins.FiltrePreset, U()].filter(Boolean),
+        filter: !0,
+        layout: "StandaloneLayout",
+        validatorUrl: "https://validator.swagger.io/validator"
+      });
+    }
+    return oe(async () => {
+      m.setTitle("API"), m.setBreadcrumbs([{ title: "API" }]), k(R, "swagger-ui-css"), k(S, "swagger-ui-extra-css");
+      try {
+        await Promise.all([
+          L(i, "swagger-ui-bundle"),
+          L(P, "swagger-ui-preset")
+        ]), D();
+      } catch (y) {
+        g.value = y.message || "Unable to load Swagger UI.";
+      } finally {
+        _.value = !1;
+      }
+    }), Ue(() => {
+      C("swagger-ui-css"), C("swagger-ui-extra-css"), delete window.ui;
+    }), (y, V) => {
+      const I = n("v-spacer"), Q = n("v-btn"), z = n("v-alert"), B = n("v-progress-linear");
+      return b(), j("div", null, [
+        v("div", zt, [
+          V[1] || (V[1] = v("h1", { class: "text-h4" }, "API reference", -1)),
+          e(I),
+          e(Q, {
+            variant: "outlined",
+            "prepend-icon": "mdi-code-tags",
+            href: `${Y(x)}rest/openapi.json`,
+            target: "_blank"
+          }, {
+            default: t(() => [...V[0] || (V[0] = [
+              l(" Download OpenAPI ", -1)
+            ])]),
+            _: 1
+          }, 8, ["href"])
+        ]),
+        g.value ? (b(), W(z, {
+          key: 0,
+          type: "warning",
           variant: "tonal",
-          density: "compact"
+          class: "mb-4"
         }, {
-          default: t(() => [...c[0] || (c[0] = [
-            l(" Legacy ", -1),
-            p("code", null, "webjars/api/", -1),
-            l(". TODO: OpenAPI/Swagger rendering or static docs panel. ", -1)
-          ])]),
+          default: t(() => [
+            l(w(g.value), 1)
+          ]),
           _: 1
-        })
+        })) : M("", !0),
+        _.value ? (b(), W(B, {
+          key: 1,
+          indeterminate: "",
+          color: "primary",
+          class: "mb-4"
+        })) : M("", !0),
+        V[2] || (V[2] = v("div", {
+          id: "swagger-ui",
+          class: "swagger-container"
+        }, null, -1))
       ]);
     };
   }
-}, Tt = { class: "pa-4" }, Ut = {
+}, Tt = /* @__PURE__ */ fe(Nt, [["__scopeId", "data-v-f74586ba"]]), At = { class: "d-flex align-center mb-4" }, Rt = { class: "mb-0 text-body-2" }, It = {
   __name: "ApiTokenView",
   setup(o) {
-    const u = ae();
-    return le(() => {
-      u.setTitle("API tokens"), u.setBreadcrumbs([{ title: "API", to: "/api" }, { title: "Tokens" }]);
-    }), (f, c) => {
-      const g = n("v-alert");
-      return y(), T("div", Tt, [
-        c[1] || (c[1] = p("h1", { class: "text-h4 mb-4" }, "API — Tokens", -1)),
-        e(g, {
-          type: "info",
+    const m = re(), _ = se(), g = ze(), x = "/", i = typeof window < "u" ? window.location.origin : "", P = be(() => g.userName || "<you>"), R = r([]), S = r(!1), f = r(null), U = r(!1), k = r(null), C = r(""), L = r(!1), D = r(!1), y = r(""), V = r(""), I = r(!1), Q = r(""), z = r(""), B = r(!1), ee = r(!1), q = r(!1), c = r(""), u = r(!1), a = { required: (O) => !!O || "Required" }, $ = [
+      { title: "Name", key: "name", sortable: !0 },
+      { title: "", key: "actions", sortable: !1, width: "140px", align: "end" }
+    ];
+    async function d() {
+      S.value = !0, f.value = null;
+      const O = await m.get("rest/api/token");
+      R.value = Array.isArray(O) ? O.map((s) => ({ name: s })) : [], S.value = !1;
+    }
+    function G() {
+      C.value = "", U.value = !0;
+    }
+    async function K() {
+      const { valid: O } = await k.value.validate();
+      if (!O) return;
+      L.value = !0;
+      const s = await m.post(`rest/api/token/${encodeURIComponent(C.value)}`);
+      L.value = !1, s !== null && (y.value = C.value, V.value = typeof s == "string" ? s : (s == null ? void 0 : s.id) || "", U.value = !1, D.value = !0, d());
+    }
+    async function Z(O, s) {
+      Q.value = O, z.value = "", ee.value = !1, I.value = !0, B.value = !0;
+      const A = `rest/api/token/${encodeURIComponent(O)}`, E = s === "regen" ? await m.put(A) : await m.get(A);
+      z.value = typeof E == "string" ? E : (E == null ? void 0 : E.id) || "", B.value = !1;
+    }
+    async function N() {
+      try {
+        await navigator.clipboard.writeText(z.value), ee.value = !0, setTimeout(() => {
+          ee.value = !1;
+        }, 2e3);
+      } catch {
+      }
+    }
+    async function p() {
+      try {
+        await navigator.clipboard.writeText(V.value);
+      } catch {
+      }
+    }
+    function ne(O) {
+      c.value = O, q.value = !0;
+    }
+    async function te() {
+      u.value = !0, await m.del(`rest/api/token/${encodeURIComponent(c.value)}`), u.value = !1, q.value = !1, d();
+    }
+    return oe(() => {
+      _.setTitle("API tokens"), _.setBreadcrumbs([{ title: "API", to: "/api" }, { title: "Tokens" }]), d();
+    }), (O, s) => {
+      const A = n("v-spacer"), E = n("v-btn"), T = n("v-card-text"), X = n("v-card"), le = n("v-alert"), h = n("v-icon"), J = n("v-data-table"), ae = n("v-card-title"), ue = n("v-text-field"), _e = n("v-form"), de = n("v-card-actions"), me = n("v-dialog"), ge = n("v-progress-linear"), F = n("v-textarea");
+      return b(), j("div", null, [
+        v("div", At, [
+          s[11] || (s[11] = v("h1", { class: "text-h4" }, "API tokens", -1)),
+          e(A),
+          e(E, {
+            color: "primary",
+            "prepend-icon": "mdi-plus",
+            onClick: G
+          }, {
+            default: t(() => [...s[10] || (s[10] = [
+              l("New token", -1)
+            ])]),
+            _: 1
+          })
+        ]),
+        e(X, {
           variant: "tonal",
+          class: "mb-4"
+        }, {
+          default: t(() => [
+            e(T, null, {
+              default: t(() => [
+                s[13] || (s[13] = v("p", { class: "mb-2" }, [
+                  l(" Tokens let you call the Ligoj API without a password. Pass the token in the "),
+                  v("code", null, "api-key"),
+                  l(" parameter along with your user id in "),
+                  v("code", null, "api-user"),
+                  l(". ")
+                ], -1)),
+                v("p", Rt, [
+                  s[12] || (s[12] = l(" Example: ", -1)),
+                  v("code", null, " GET " + w(Y(i)) + w(Y(x)) + "rest/project?api-key=<token>&api-user=" + w(P.value), 1)
+                ])
+              ]),
+              _: 1
+            })
+          ]),
+          _: 1
+        }),
+        f.value ? (b(), W(le, {
+          key: 0,
+          type: "warning",
+          variant: "tonal",
+          class: "mb-4"
+        }, {
+          default: t(() => [
+            l(w(f.value), 1)
+          ]),
+          _: 1
+        })) : M("", !0),
+        e(J, {
+          headers: $,
+          items: R.value,
+          loading: S.value,
+          "items-per-page": -1,
+          "hide-default-footer": "",
           density: "compact"
         }, {
-          default: t(() => [...c[0] || (c[0] = [
-            l(" Legacy ", -1),
-            p("code", null, "webjars/api/token/", -1),
-            l(". TODO: personal API token management (create / revoke) via ", -1),
-            p("code", null, "rest/security/api-token", -1),
-            l(". ", -1)
-          ])]),
+          "item.actions": t(({ item: H }) => [
+            e(E, {
+              icon: "",
+              size: "small",
+              variant: "text",
+              title: "Show token",
+              onClick: (ie) => Z(H.name, "load")
+            }, {
+              default: t(() => [
+                e(h, { size: "small" }, {
+                  default: t(() => [...s[14] || (s[14] = [
+                    l("mdi-eye", -1)
+                  ])]),
+                  _: 1
+                })
+              ]),
+              _: 1
+            }, 8, ["onClick"]),
+            e(E, {
+              icon: "",
+              size: "small",
+              variant: "text",
+              title: "Regenerate",
+              onClick: (ie) => Z(H.name, "regen")
+            }, {
+              default: t(() => [
+                e(h, { size: "small" }, {
+                  default: t(() => [...s[15] || (s[15] = [
+                    l("mdi-refresh", -1)
+                  ])]),
+                  _: 1
+                })
+              ]),
+              _: 1
+            }, 8, ["onClick"]),
+            e(E, {
+              icon: "",
+              size: "small",
+              variant: "text",
+              color: "error",
+              title: "Delete",
+              onClick: (ie) => ne(H.name)
+            }, {
+              default: t(() => [
+                e(h, { size: "small" }, {
+                  default: t(() => [...s[16] || (s[16] = [
+                    l("mdi-delete", -1)
+                  ])]),
+                  _: 1
+                })
+              ]),
+              _: 1
+            }, 8, ["onClick"])
+          ]),
           _: 1
-        })
+        }, 8, ["items", "loading"]),
+        e(me, {
+          modelValue: U.value,
+          "onUpdate:modelValue": s[2] || (s[2] = (H) => U.value = H),
+          "max-width": "480",
+          persistent: ""
+        }, {
+          default: t(() => [
+            e(X, null, {
+              default: t(() => [
+                e(ae, null, {
+                  default: t(() => [...s[17] || (s[17] = [
+                    l("New API token", -1)
+                  ])]),
+                  _: 1
+                }),
+                e(T, null, {
+                  default: t(() => [
+                    e(_e, {
+                      ref_key: "createFormRef",
+                      ref: k,
+                      onSubmit: ce(K, ["prevent"])
+                    }, {
+                      default: t(() => [
+                        e(ue, {
+                          modelValue: C.value,
+                          "onUpdate:modelValue": s[0] || (s[0] = (H) => C.value = H),
+                          label: "Name",
+                          rules: [a.required],
+                          variant: "outlined",
+                          autofocus: "",
+                          maxlength: "250"
+                        }, null, 8, ["modelValue", "rules"])
+                      ]),
+                      _: 1
+                    }, 512)
+                  ]),
+                  _: 1
+                }),
+                e(de, null, {
+                  default: t(() => [
+                    e(A),
+                    e(E, {
+                      variant: "text",
+                      onClick: s[1] || (s[1] = (H) => U.value = !1)
+                    }, {
+                      default: t(() => [...s[18] || (s[18] = [
+                        l("Cancel", -1)
+                      ])]),
+                      _: 1
+                    }),
+                    e(E, {
+                      color: "primary",
+                      variant: "elevated",
+                      loading: L.value,
+                      onClick: K
+                    }, {
+                      default: t(() => [...s[19] || (s[19] = [
+                        l("Create", -1)
+                      ])]),
+                      _: 1
+                    }, 8, ["loading"])
+                  ]),
+                  _: 1
+                })
+              ]),
+              _: 1
+            })
+          ]),
+          _: 1
+        }, 8, ["modelValue"]),
+        e(me, {
+          modelValue: I.value,
+          "onUpdate:modelValue": s[5] || (s[5] = (H) => I.value = H),
+          "max-width": "520"
+        }, {
+          default: t(() => [
+            e(X, null, {
+              default: t(() => [
+                e(ae, null, {
+                  default: t(() => [
+                    s[20] || (s[20] = l(" Token: ", -1)),
+                    v("code", null, w(Q.value), 1)
+                  ]),
+                  _: 1
+                }),
+                e(T, null, {
+                  default: t(() => [
+                    B.value ? (b(), W(ge, {
+                      key: 0,
+                      indeterminate: "",
+                      color: "primary",
+                      class: "mb-3"
+                    })) : M("", !0),
+                    e(F, {
+                      modelValue: z.value,
+                      "onUpdate:modelValue": s[3] || (s[3] = (H) => z.value = H),
+                      readonly: "",
+                      rows: "3",
+                      variant: "outlined",
+                      "hide-details": "",
+                      "append-inner-icon": "mdi-content-copy",
+                      "onClick:appendInner": N
+                    }, null, 8, ["modelValue"]),
+                    ee.value ? (b(), W(le, {
+                      key: 1,
+                      type: "success",
+                      variant: "tonal",
+                      density: "compact",
+                      class: "mt-2"
+                    }, {
+                      default: t(() => [...s[21] || (s[21] = [
+                        l(" Copied to clipboard. ", -1)
+                      ])]),
+                      _: 1
+                    })) : M("", !0)
+                  ]),
+                  _: 1
+                }),
+                e(de, null, {
+                  default: t(() => [
+                    e(A),
+                    e(E, {
+                      variant: "text",
+                      onClick: s[4] || (s[4] = (H) => I.value = !1)
+                    }, {
+                      default: t(() => [...s[22] || (s[22] = [
+                        l("Close", -1)
+                      ])]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                })
+              ]),
+              _: 1
+            })
+          ]),
+          _: 1
+        }, 8, ["modelValue"]),
+        e(me, {
+          modelValue: D.value,
+          "onUpdate:modelValue": s[7] || (s[7] = (H) => D.value = H),
+          "max-width": "520",
+          persistent: ""
+        }, {
+          default: t(() => [
+            e(X, null, {
+              default: t(() => [
+                e(ae, null, {
+                  default: t(() => [
+                    s[23] || (s[23] = l(" New token: ", -1)),
+                    v("code", null, w(y.value), 1)
+                  ]),
+                  _: 1
+                }),
+                e(T, null, {
+                  default: t(() => [
+                    e(le, {
+                      type: "info",
+                      variant: "tonal",
+                      density: "compact",
+                      class: "mb-3"
+                    }, {
+                      default: t(() => [...s[24] || (s[24] = [
+                        l(" Save this value now — you can re-display it later through ", -1),
+                        v("strong", null, "Show token", -1),
+                        l(". ", -1)
+                      ])]),
+                      _: 1
+                    }),
+                    e(F, {
+                      "model-value": V.value,
+                      readonly: "",
+                      rows: "3",
+                      variant: "outlined",
+                      "hide-details": "",
+                      "append-inner-icon": "mdi-content-copy",
+                      "onClick:appendInner": p
+                    }, null, 8, ["model-value"])
+                  ]),
+                  _: 1
+                }),
+                e(de, null, {
+                  default: t(() => [
+                    e(A),
+                    e(E, {
+                      color: "primary",
+                      onClick: s[6] || (s[6] = (H) => D.value = !1)
+                    }, {
+                      default: t(() => [...s[25] || (s[25] = [
+                        l("Done", -1)
+                      ])]),
+                      _: 1
+                    })
+                  ]),
+                  _: 1
+                })
+              ]),
+              _: 1
+            })
+          ]),
+          _: 1
+        }, 8, ["modelValue"]),
+        e(me, {
+          modelValue: q.value,
+          "onUpdate:modelValue": s[9] || (s[9] = (H) => q.value = H),
+          "max-width": "420"
+        }, {
+          default: t(() => [
+            e(X, null, {
+              default: t(() => [
+                e(ae, null, {
+                  default: t(() => [...s[26] || (s[26] = [
+                    l("Delete token", -1)
+                  ])]),
+                  _: 1
+                }),
+                e(T, null, {
+                  default: t(() => [
+                    s[27] || (s[27] = l("Revoke token ", -1)),
+                    v("code", null, w(c.value), 1),
+                    s[28] || (s[28] = l("?", -1))
+                  ]),
+                  _: 1
+                }),
+                e(de, null, {
+                  default: t(() => [
+                    e(A),
+                    e(E, {
+                      variant: "text",
+                      onClick: s[8] || (s[8] = (H) => q.value = !1)
+                    }, {
+                      default: t(() => [...s[29] || (s[29] = [
+                        l("Cancel", -1)
+                      ])]),
+                      _: 1
+                    }),
+                    e(E, {
+                      color: "error",
+                      variant: "elevated",
+                      loading: u.value,
+                      onClick: te
+                    }, {
+                      default: t(() => [...s[30] || (s[30] = [
+                        l("Revoke", -1)
+                      ])]),
+                      _: 1
+                    }, 8, ["loading"])
+                  ]),
+                  _: 1
+                })
+              ]),
+              _: 1
+            })
+          ]),
+          _: 1
+        }, 8, ["modelValue"])
       ]);
     };
   }
-}, Nt = { class: "pa-4" }, At = {
+}, Lt = { class: "pa-4" }, jt = {
   __name: "SubscribeWizardView",
   setup(o) {
-    const u = ae();
-    return le(() => {
-      u.setTitle("Subscribe"), u.setBreadcrumbs([{ title: "Subscribe" }]);
-    }), (f, c) => {
-      const g = n("v-alert");
-      return y(), T("div", Nt, [
-        c[1] || (c[1] = p("h1", { class: "text-h4 mb-4" }, "Subscribe wizard", -1)),
-        e(g, {
+    const m = se();
+    return oe(() => {
+      m.setTitle("Subscribe"), m.setBreadcrumbs([{ title: "Subscribe" }]);
+    }), (_, g) => {
+      const x = n("v-alert");
+      return b(), j("div", Lt, [
+        g[1] || (g[1] = v("h1", { class: "text-h4 mb-4" }, "Subscribe wizard", -1)),
+        e(x, {
           type: "info",
           variant: "tonal",
           density: "compact"
         }, {
-          default: t(() => [...c[0] || (c[0] = [
+          default: t(() => [...g[0] || (g[0] = [
             l(" Legacy ", -1),
-            p("code", null, "webjars/subscribe-wizard/", -1),
+            v("code", null, "webjars/subscribe-wizard/", -1),
             l(". TODO: multi-step flow (select project → pick service → pick tool → configure parameters) backing ", -1),
-            p("code", null, "rest/subscription", -1),
+            v("code", null, "rest/subscription", -1),
             l(". ", -1)
           ])]),
           _: 1
@@ -2455,55 +2938,55 @@ const Wt = {
       ]);
     };
   }
-}, jt = {
+}, Et = {
   sample: Ve.sample
-}, ge = [
-  { path: "/home", name: "ui-home", component: je },
-  { path: "/home/manual", name: "ui-manual", component: rt },
-  { path: "/home/project", name: "ui-project-list", component: Ge },
-  { path: "/home/project/:id", name: "ui-project-detail", component: st },
-  { path: "/system", name: "ui-system", component: dt },
-  { path: "/system/user", name: "ui-system-user", component: pt },
-  { path: "/system/role", name: "ui-system-role", component: _t },
-  { path: "/system/plugin", name: "ui-system-plugin", component: kt },
-  { path: "/system/node", name: "ui-system-node", component: xt },
-  { path: "/system/cache", name: "ui-system-cache", component: $t },
-  { path: "/system/bench", name: "ui-system-bench", component: Pt },
-  { path: "/api", name: "ui-api", component: zt },
-  { path: "/api/token", name: "ui-api-token", component: Ut },
-  { path: "/subscribe", name: "ui-subscribe", component: At }
-], Jt = {
+}, ke = [
+  { path: "/home", name: "ui-home", component: Le },
+  { path: "/home/manual", name: "ui-manual", component: dt },
+  { path: "/home/project", name: "ui-project-list", component: Je },
+  { path: "/home/project/:id", name: "ui-project-detail", component: rt },
+  { path: "/system", name: "ui-system", component: ct },
+  { path: "/system/user", name: "ui-system-user", component: ft },
+  { path: "/system/role", name: "ui-system-role", component: yt },
+  { path: "/system/plugin", name: "ui-system-plugin", component: xt },
+  { path: "/system/node", name: "ui-system-node", component: Vt },
+  { path: "/system/cache", name: "ui-system-cache", component: Pt },
+  { path: "/system/bench", name: "ui-system-bench", component: Dt },
+  { path: "/api", name: "ui-api", component: Tt },
+  { path: "/api/token", name: "ui-api-token", component: It },
+  { path: "/subscribe", name: "ui-subscribe", component: jt }
+], Qt = {
   id: "ui",
   label: "UI",
-  component: Ne,
-  routes: ge,
+  component: Re,
+  routes: ke,
   install({ router: o }) {
-    for (const u of ge)
-      o.addRoute(u);
+    for (const m of ke)
+      o.addRoute(m);
   },
-  feature(o, ...u) {
-    const f = jt[o];
-    if (!f) throw new Error(`Plugin "ui" has no feature "${o}"`);
-    return f(...u);
+  feature(o, ...m) {
+    const _ = Et[o];
+    if (!_) throw new Error(`Plugin "ui" has no feature "${o}"`);
+    return _(...m);
   },
   service: Ve,
   meta: { icon: "mdi-view-dashboard", color: "indigo-darken-2" }
 };
 export {
-  Wt as TARGET_TYPE_ICON,
-  Jt as default,
-  he as getFullName,
-  Gt as getHierarchyIds,
-  Le as getService,
-  Mt as getServiceFromId,
-  Ht as getServiceNameFromId,
-  Re as getTool,
-  qt as getToolFromId,
-  Ft as getToolNameFromId,
-  Bt as htmlEscape,
-  Ot as htmlUnescape,
-  Be as normalize,
+  Kt as TARGET_TYPE_ICON,
+  Qt as default,
+  Se as getFullName,
+  Yt as getHierarchyIds,
+  Ee as getService,
+  Wt as getServiceFromId,
+  Jt as getServiceNameFromId,
+  Be as getTool,
+  Ht as getToolFromId,
+  Xt as getToolNameFromId,
+  Ft as htmlEscape,
+  Gt as htmlUnescape,
+  Oe as normalize,
   Ve as service,
-  Ie as toUser2Letters,
-  Et as trimObject
+  je as toUser2Letters,
+  Mt as trimObject
 };
