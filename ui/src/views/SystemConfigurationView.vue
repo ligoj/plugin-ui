@@ -67,7 +67,7 @@
     >
       <template #item.value="{ item }">
         <span v-if="item.secured" class="text-medium-emphasis">•••••</span>
-        <code v-else class="config-value">{{ item.value }}</code>
+        <code v-else class="config-value" :title="item.value">{{ item.value }}</code>
       </template>
       <template #item.secured="{ item }">
         <v-icon v-if="item.secured" size="small" color="primary" title="Secured">mdi-lock</v-icon>
@@ -91,7 +91,7 @@
         >mdi-alert</v-icon>
       </template>
       <template #item.sourceText="{ item }">
-        <span class="text-body-2 text-medium-emphasis">{{ item.source }}</span>
+        <span class="text-body-2 text-medium-emphasis cell-truncate" :title="item.source">{{ item.source }}</span>
       </template>
       <template #item.actions="{ item }">
         <v-btn icon size="small" variant="text" @click="openEdit(item)" title="Edit">
@@ -312,13 +312,36 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Pin the table to the viewport width and respect column `width` hints so
+ * the table renders without a horizontal scrollbar. */
+.configuration-table :deep(.v-table__wrapper) {
+  overflow-x: hidden;
+}
+.configuration-table :deep(table) {
+  table-layout: fixed;
+  width: 100%;
+}
+.configuration-table :deep(td) {
+  overflow: hidden;
+}
+
 .config-value {
   display: inline-block;
   background: rgba(0, 0, 0, 0.05);
   padding: 0.1em 0.35em;
   border-radius: 3px;
   max-width: 100%;
-  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
   font-size: 0.85em;
+}
+
+.cell-truncate {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
