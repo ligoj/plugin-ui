@@ -39,7 +39,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useApi, useAppStore } from '@ligoj/host'
+import { useApi, useAppStore, APP_BASE } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -68,7 +68,7 @@ const STEPS = [
  */
 async function runStep(step) {
   if (step.form) {
-    const resp = await fetch(`${import.meta.env.BASE_URL}${step.url}`, {
+    const resp = await fetch(`${APP_BASE}${step.url}`, {
       method: 'POST',
       credentials: 'include',
       body: new FormData(),

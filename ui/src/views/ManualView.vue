@@ -103,12 +103,12 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
-import { useAppStore, useAuthStore } from '@ligoj/host'
+import { useAppStore, useAuthStore, APP_BASE } from '@ligoj/host'
 
 const app = useAppStore()
 const auth = useAuthStore()
 
-const base = import.meta.env.BASE_URL
+const base = APP_BASE
 const origin = typeof window !== 'undefined' ? window.location.origin : ''
 const userName = computed(() => auth.userName || '<you>')
 

@@ -26,16 +26,18 @@
 
 <script setup>
 import { onMounted, onBeforeUnmount, ref } from 'vue'
-import { useAppStore } from '@ligoj/host'
+import { useAppStore, APP_BASE } from '@ligoj/host'
 
 const app = useAppStore()
 
 const loading = ref(true)
 const error = ref(null)
 
-// The backend serves the Swagger UI bundle + CSS at /ligoj/rest/* — keep the
-// URLs relative to the host base so dev-proxy and prod hit the same place.
-const base = import.meta.env.BASE_URL
+// The backend serves the Swagger UI bundle + CSS at /ligoj/rest/* — use
+// the host-exported base so dev-proxy and prod hit the same place (the
+// plugin's own import.meta.env.BASE_URL is `/` because the library build
+// has no base).
+const base = APP_BASE
 
 const SWAGGER_BUNDLE_URL   = `${base}rest/swagger-ui-bundle.js`
 const SWAGGER_PRESET_URL   = `${base}rest/swagger-ui-standalone-preset.js`

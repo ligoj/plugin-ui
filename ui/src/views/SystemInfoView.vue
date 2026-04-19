@@ -199,7 +199,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useAuthStore } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, APP_BASE } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -292,7 +292,7 @@ async function saveTimeZone(type, value) {
   // useApi stringifies JSON bodies; this endpoint wants a text/plain body
   // (the raw TZ name), so call fetch directly.
   try {
-    await fetch(`${import.meta.env.BASE_URL}rest/system/timezone/${type}`, {
+    await fetch(`${APP_BASE}rest/system/timezone/${type}`, {
       method: 'PUT',
       credentials: 'include',
       headers: { 'Content-Type': 'text/plain' },

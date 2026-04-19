@@ -100,7 +100,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useApi, useAppStore, LigojDataTable } from '@ligoj/host'
+import { useApi, useAppStore, LigojDataTable, APP_BASE } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -172,7 +172,7 @@ async function encrypt() {
   // Endpoint expects text/plain body; useApi always sets application/json when
   // body is a string, so fetch directly here.
   try {
-    const resp = await fetch(`${import.meta.env.BASE_URL}rest/system/security/crypto`, {
+    const resp = await fetch(`${APP_BASE}rest/system/security/crypto`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'text/plain' },
