@@ -1,24 +1,24 @@
-import { resolveComponent as n, openBlock as c, createElementBlock as J, createVNode as e, withCtx as t, createTextVNode as l, ref as s, computed as ce, onMounted as me, createElementVNode as u, Fragment as ve, renderList as ke, createBlock as q, toDisplayString as h, createCommentVNode as K, normalizeClass as Fe, mergeProps as je, unref as se, withDirectives as Oe, withModifiers as xe, vShow as Ge, watch as ze, reactive as Ve, normalizeProps as He, guardReactiveProps as We, withKeys as Se, onBeforeUnmount as Ke, h as be } from "vue";
+import { resolveComponent as n, openBlock as m, createElementBlock as J, createVNode as e, withCtx as t, createTextVNode as l, ref as s, computed as ce, onMounted as me, createElementVNode as u, Fragment as ve, renderList as ke, createBlock as q, toDisplayString as h, createCommentVNode as K, normalizeClass as Fe, mergeProps as Te, unref as se, withDirectives as Oe, withModifiers as xe, vShow as Ge, watch as ze, reactive as Ve, normalizeProps as He, guardReactiveProps as We, withKeys as Se, onBeforeUnmount as Ke, h as be } from "vue";
 import { useApi as fe, useAppStore as pe, useI18nStore as Je, useDataTable as Ie, useErrorStore as Ze, useAuthStore as he } from "@ligoj/host";
 import { useRouter as Ue, useRoute as Ae } from "vue-router";
-const we = (m, P) => {
-  const j = m.__vccOpts || m;
-  for (const [I, R] of P)
-    j[I] = R;
-  return j;
+const we = (d, U) => {
+  const T = d.__vccOpts || d;
+  for (const [I, R] of U)
+    T[I] = R;
+  return T;
 }, Xe = { class: "plugin-ui-shell" }, Ye = {
   __name: "UiPlugin",
-  setup(m) {
-    return (P, j) => {
-      const I = n("v-alert"), R = n("v-list-subheader"), d = n("v-list-item"), D = n("v-list");
-      return c(), J("div", Xe, [
+  setup(d) {
+    return (U, T) => {
+      const I = n("v-alert"), R = n("v-list-subheader"), c = n("v-list-item"), D = n("v-list");
+      return m(), J("div", Xe, [
         e(I, {
           type: "warning",
           variant: "tonal",
           density: "compact",
           class: "mb-4"
         }, {
-          default: t(() => [...j[0] || (j[0] = [
+          default: t(() => [...T[0] || (T[0] = [
             l(" plugin-ui is being migrated from the legacy Cascade.js implementation — most views below are placeholders and link back to their legacy sources. ", -1)
           ])]),
           _: 1
@@ -29,60 +29,60 @@ const we = (m, P) => {
         }, {
           default: t(() => [
             e(R, null, {
-              default: t(() => [...j[1] || (j[1] = [
+              default: t(() => [...T[1] || (T[1] = [
                 l("Dashboard", -1)
               ])]),
               _: 1
             }),
-            e(d, {
+            e(c, {
               to: "/home",
               "prepend-icon": "mdi-view-dashboard",
               title: "Overview"
             }),
-            e(d, {
+            e(c, {
               to: "/home/project",
               "prepend-icon": "mdi-folder-multiple",
               title: "Projects"
             }),
-            e(d, {
+            e(c, {
               to: "/home/manual",
               "prepend-icon": "mdi-book-open-page-variant",
               title: "Manual"
             }),
             e(R, null, {
-              default: t(() => [...j[2] || (j[2] = [
+              default: t(() => [...T[2] || (T[2] = [
                 l("System", -1)
               ])]),
               _: 1
             }),
-            e(d, {
+            e(c, {
               to: "/system",
               "prepend-icon": "mdi-cog",
               title: "System administration"
             }),
             e(R, null, {
-              default: t(() => [...j[3] || (j[3] = [
+              default: t(() => [...T[3] || (T[3] = [
                 l("API", -1)
               ])]),
               _: 1
             }),
-            e(d, {
+            e(c, {
               to: "/api",
               "prepend-icon": "mdi-api",
               title: "API reference"
             }),
-            e(d, {
+            e(c, {
               to: "/api/token",
               "prepend-icon": "mdi-key-variant",
               title: "API tokens"
             }),
             e(R, null, {
-              default: t(() => [...j[4] || (j[4] = [
+              default: t(() => [...T[4] || (T[4] = [
                 l("Onboarding", -1)
               ])]),
               _: 1
             }),
-            e(d, {
+            e(c, {
               to: "/subscribe",
               "prepend-icon": "mdi-playlist-plus",
               title: "Subscribe wizard"
@@ -109,11 +109,11 @@ const we = (m, P) => {
   class: "text-caption text-medium-emphasis ml-1"
 }, ut = { style: { width: "28px" } }, dt = { class: "truncate" }, ct = { class: "truncate text-medium-emphasis" }, mt = {
   __name: "HomeView",
-  setup(m) {
-    const P = fe(), j = pe(), I = s(!1), R = s(null), d = s([]), D = s(""), U = s(null), T = s("md"), C = ce(() => {
+  setup(d) {
+    const U = fe(), T = pe(), I = s(!1), R = s(null), c = s([]), D = s(""), P = s(null), j = s("md"), C = ce(() => {
       var N, G, z;
       const p = /* @__PURE__ */ new Map();
-      for (const A of d.value) {
+      for (const A of c.value) {
         const V = ((N = A.project) == null ? void 0 : N.id) ?? A.project;
         if (V == null) continue;
         let r = p.get(V);
@@ -128,7 +128,7 @@ const we = (m, P) => {
     }), i = ce(() => {
       var N, G, z;
       const p = /* @__PURE__ */ new Map();
-      for (const A of d.value) {
+      for (const A of c.value) {
         const V = ((z = (G = (N = A.node) == null ? void 0 : N.refined) == null ? void 0 : G.refined) == null ? void 0 : z.id) || "";
         V && p.set(V, (p.get(V) || 0) + 1);
       }
@@ -141,10 +141,10 @@ const we = (m, P) => {
     }), $ = ce(() => {
       var N;
       const p = (N = D.value) == null ? void 0 : N.trim().toLowerCase();
-      return C.value.filter((G) => U.value && !G.subscriptions.some(
+      return C.value.filter((G) => P.value && !G.subscriptions.some(
         (A) => {
           var V, r, v;
-          return ((v = (r = (V = A.node) == null ? void 0 : V.refined) == null ? void 0 : r.refined) == null ? void 0 : v.id) === U.value;
+          return ((v = (r = (V = A.node) == null ? void 0 : V.refined) == null ? void 0 : r.refined) == null ? void 0 : v.id) === P.value;
         }
       ) ? !1 : !p || G.name.toLowerCase().includes(p) || G.pkey.toLowerCase().includes(p) ? !0 : G.subscriptions.some(
         (z) => {
@@ -169,14 +169,14 @@ const we = (m, P) => {
     }
     async function f() {
       I.value = !0, R.value = null;
-      const p = await P.get("rest/subscription");
-      Array.isArray(p) ? d.value = p : Array.isArray(p == null ? void 0 : p.data) ? d.value = p.data : d.value = [], I.value = !1;
+      const p = await U.get("rest/subscription");
+      Array.isArray(p) ? c.value = p : Array.isArray(p == null ? void 0 : p.data) ? c.value = p.data : c.value = [], I.value = !1;
     }
     return me(() => {
-      j.setTitle("Dashboard"), j.setBreadcrumbs([{ title: "Home" }]), f();
+      T.setTitle("Dashboard"), T.setBreadcrumbs([{ title: "Home" }]), f();
     }), (p, N) => {
       const G = n("v-spacer"), z = n("v-text-field"), A = n("v-icon"), V = n("v-btn"), r = n("v-btn-toggle"), v = n("v-chip"), y = n("v-alert"), o = n("v-progress-linear"), L = n("v-tooltip"), x = n("v-table"), Q = n("v-card-text"), te = n("v-card");
-      return c(), J("div", null, [
+      return m(), J("div", null, [
         u("div", et, [
           N[6] || (N[6] = u("h1", { class: "text-h4" }, "Dashboard", -1)),
           e(G),
@@ -192,8 +192,8 @@ const we = (m, P) => {
             clearable: ""
           }, null, 8, ["modelValue"]),
           e(r, {
-            modelValue: T.value,
-            "onUpdate:modelValue": N[1] || (N[1] = (_) => T.value = _),
+            modelValue: j.value,
+            "onUpdate:modelValue": N[1] || (N[1] = (_) => j.value = _),
             mandatory: "",
             density: "compact",
             color: "primary"
@@ -255,13 +255,13 @@ const we = (m, P) => {
             _: 1
           })
         ]),
-        i.value.length ? (c(), J("div", tt, [
-          (c(!0), J(ve, null, ke(i.value, (_) => (c(), q(v, {
+        i.value.length ? (m(), J("div", tt, [
+          (m(!0), J(ve, null, ke(i.value, (_) => (m(), q(v, {
             key: _.id,
-            color: U.value === _.id ? "primary" : void 0,
-            variant: U.value === _.id ? "elevated" : "tonal",
+            color: P.value === _.id ? "primary" : void 0,
+            variant: P.value === _.id ? "elevated" : "tonal",
             size: "small",
-            onClick: (a) => U.value = U.value === _.id ? null : _.id
+            onClick: (a) => P.value = P.value === _.id ? null : _.id
           }, {
             default: t(() => [
               e(A, {
@@ -279,7 +279,7 @@ const we = (m, P) => {
             _: 2
           }, 1032, ["color", "variant", "onClick"]))), 128))
         ])) : K("", !0),
-        R.value ? (c(), q(y, {
+        R.value ? (m(), q(y, {
           key: 1,
           type: "warning",
           variant: "tonal",
@@ -290,13 +290,13 @@ const we = (m, P) => {
           ]),
           _: 1
         })) : K("", !0),
-        I.value ? (c(), q(o, {
+        I.value ? (m(), q(o, {
           key: 2,
           indeterminate: "",
           color: "primary",
           class: "mb-4"
         })) : K("", !0),
-        !I.value && $.value.length === 0 && !R.value ? (c(), q(y, {
+        !I.value && $.value.length === 0 && !R.value ? (m(), q(y, {
           key: 3,
           type: "info",
           variant: "tonal",
@@ -308,9 +308,9 @@ const we = (m, P) => {
           _: 1
         })) : K("", !0),
         u("div", {
-          class: Fe(["tile-grid", `size-${T.value}`])
+          class: Fe(["tile-grid", `size-${j.value}`])
         }, [
-          (c(!0), J(ve, null, ke($.value, (_) => (c(), q(te, {
+          (m(!0), J(ve, null, ke($.value, (_) => (m(), q(te, {
             key: _.id,
             class: "tile",
             hover: "",
@@ -334,16 +334,16 @@ const we = (m, P) => {
                       _: 2
                     }, 1024)
                   ]),
-                  T.value !== "lg" ? (c(), J("div", st, [
-                    (c(!0), J(ve, null, ke(_.subscriptions.slice(0, T.value === "sm" ? 4 : 8), (a) => {
+                  j.value !== "lg" ? (m(), J("div", st, [
+                    (m(!0), J(ve, null, ke(_.subscriptions.slice(0, j.value === "sm" ? 4 : 8), (a) => {
                       var k, ee, X, B;
-                      return c(), q(L, {
+                      return m(), q(L, {
                         key: a.id,
                         text: `${((ee = (k = a.node) == null ? void 0 : k.refined) == null ? void 0 : ee.name) || "—"} → ${((X = a.node) == null ? void 0 : X.name) || ((B = a.node) == null ? void 0 : B.id)}`,
                         location: "top"
                       }, {
                         activator: t(({ props: g }) => [
-                          e(A, je({ ref_for: !0 }, g, {
+                          e(A, Te({ ref_for: !0 }, g, {
                             size: "small",
                             color: E(a),
                             class: "mr-1"
@@ -357,8 +357,8 @@ const we = (m, P) => {
                         _: 2
                       }, 1032, ["text"]);
                     }), 128)),
-                    _.subscriptions.length > (T.value === "sm" ? 4 : 8) ? (c(), J("span", rt, " +" + h(_.subscriptions.length - (T.value === "sm" ? 4 : 8)), 1)) : K("", !0)
-                  ])) : (c(), q(x, {
+                    _.subscriptions.length > (j.value === "sm" ? 4 : 8) ? (m(), J("span", rt, " +" + h(_.subscriptions.length - (j.value === "sm" ? 4 : 8)), 1)) : K("", !0)
+                  ])) : (m(), q(x, {
                     key: 1,
                     density: "compact",
                     class: "mt-2",
@@ -366,9 +366,9 @@ const we = (m, P) => {
                   }, {
                     default: t(() => [
                       u("tbody", null, [
-                        (c(!0), J(ve, null, ke(_.subscriptions, (a) => {
+                        (m(!0), J(ve, null, ke(_.subscriptions, (a) => {
                           var k, ee, X, B;
-                          return c(), J("tr", {
+                          return m(), J("tr", {
                             key: a.id
                           }, [
                             u("td", ut, [
@@ -401,75 +401,75 @@ const we = (m, P) => {
     };
   }
 }, pt = /* @__PURE__ */ we(mt, [["__scopeId", "data-v-3f6316a9"]]);
-function Rl(m) {
-  if (!m || typeof m != "object") return m;
-  for (const P of Object.keys(m)) {
-    const j = m[P];
-    (j == null || j === "" || j === !1) && delete m[P];
+function Rl(d) {
+  if (!d || typeof d != "object") return d;
+  for (const U of Object.keys(d)) {
+    const T = d[U];
+    (T == null || T === "" || T === !1) && delete d[U];
   }
-  return m;
+  return d;
 }
-function Ll(m) {
-  return typeof m != "string" ? "" : m.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function Ll(d) {
+  return typeof d != "string" ? "" : d.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
-function El(m) {
-  return typeof m != "string" ? "" : m.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+function El(d) {
+  return typeof d != "string" ? "" : d.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 }
-function vt(m) {
-  if (!m) return "??";
-  if (m.firstName && m.lastName)
-    return m.firstName.charAt(0) + m.lastName.charAt(0);
-  if (m.fullName) {
-    const j = m.fullName.split(" ");
-    return j.length === 1 ? m.fullName.charAt(0) + (m.fullName.length >= 2 ? m.fullName.charAt(1) : "") : j[0].charAt(0) + j[j.length - 1].charAt(0);
+function vt(d) {
+  if (!d) return "??";
+  if (d.firstName && d.lastName)
+    return d.firstName.charAt(0) + d.lastName.charAt(0);
+  if (d.fullName) {
+    const T = d.fullName.split(" ");
+    return T.length === 1 ? d.fullName.charAt(0) + (d.fullName.length >= 2 ? d.fullName.charAt(1) : "") : T[0].charAt(0) + T[T.length - 1].charAt(0);
   }
-  const P = (m.id || m || "??").toString();
-  return (P.length === 1 ? P + P : P).slice(0, 2);
+  const U = (d.id || d || "??").toString();
+  return (U.length === 1 ? U + U : U).slice(0, 2);
 }
-function Re(m) {
-  if (!m) return "";
-  if (m.fullName) return m.fullName;
-  if (m.firstName && m.lastName) return `${m.firstName} ${m.lastName}`;
-  if (m.firstName) return `${m.firstName} ${(m.id || "").substring(1)}`;
-  if (m.lastName) return `${$e((m.id || "").charAt(0))}. ${m.lastName}`;
-  const P = (m.id || m || "??").toString();
-  return `${$e(P.charAt(0))}. ${$e(P.substring(1))}`;
+function Re(d) {
+  if (!d) return "";
+  if (d.fullName) return d.fullName;
+  if (d.firstName && d.lastName) return `${d.firstName} ${d.lastName}`;
+  if (d.firstName) return `${d.firstName} ${(d.id || "").substring(1)}`;
+  if (d.lastName) return `${$e((d.id || "").charAt(0))}. ${d.lastName}`;
+  const U = (d.id || d || "??").toString();
+  return `${$e(U.charAt(0))}. ${$e(U.substring(1))}`;
 }
-function $e(m) {
-  return m && m.charAt(0).toUpperCase() + m.slice(1);
+function $e(d) {
+  return d && d.charAt(0).toUpperCase() + d.slice(1);
 }
-function Bl(m) {
-  if (!m) return null;
-  const P = m.split(":");
-  return P.length > 2 ? P.slice(0, 3).join("-") : null;
+function Bl(d) {
+  if (!d) return null;
+  const U = d.split(":");
+  return U.length > 2 ? U.slice(0, 3).join("-") : null;
 }
-function ql(m) {
-  if (!m) return null;
-  const P = m.split(":");
-  return P.length > 1 ? P.slice(0, 2).join("-") : null;
+function ql(d) {
+  if (!d) return null;
+  const U = d.split(":");
+  return U.length > 1 ? U.slice(0, 2).join("-") : null;
 }
-function Ml(m) {
-  return (m || "").split(":")[1] || null;
+function Ml(d) {
+  return (d || "").split(":")[1] || null;
 }
-function Fl(m) {
-  return (m || "").split(":")[2] || null;
+function Fl(d) {
+  return (d || "").split(":")[2] || null;
 }
-function Ol(m) {
-  if (!m) return [];
-  const P = m.split(":"), j = [];
-  for (let I = 2; I <= P.length; I++)
-    j.push(P.slice(0, I).join("-"));
-  return j;
+function Ol(d) {
+  if (!d) return [];
+  const U = d.split(":"), T = [];
+  for (let I = 2; I <= U.length; I++)
+    T.push(U.slice(0, I).join("-"));
+  return T;
 }
-function ft(m) {
-  return m ? (m.service || (m.service = m.refined && ft(m.refined) || m), m.service) : null;
+function ft(d) {
+  return d ? (d.service || (d.service = d.refined && ft(d.refined) || d), d.service) : null;
 }
-function _t(m) {
-  return m ? m.tool ? m.tool : m.refined ? (m.tool = m.refined.refined ? _t(m.refined) : m, m.tool) : null : null;
+function _t(d) {
+  return d ? d.tool ? d.tool : d.refined ? (d.tool = d.refined.refined ? _t(d.refined) : d, d.tool) : null : null;
 }
 const yt = /( (de|du|des|l'|d'|le|la|les|au|aux))+ /gi;
-function gt(m) {
-  return m ? m.replace(/[-[()\]${},;_:]/g, " ").replace(yt, " ").replace(/ {2,}/g, " ").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+function gt(d) {
+  return d ? d.replace(/[-[()\]${},;_:]/g, " ").replace(yt, " ").replace(/ {2,}/g, " ").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
 }
 const Gl = {
   company: "mdi-domain",
@@ -483,9 +483,9 @@ const Gl = {
   class: "text-disabled"
 }, xt = { class: "mb-4" }, Vt = {
   __name: "ProjectListView",
-  setup(m) {
-    const P = Ue(), j = fe(), I = pe(), { t: R } = Je(), d = Ie("project", { defaultSort: "name" }), D = s(25);
-    let U = null, T = {};
+  setup(d) {
+    const U = Ue(), T = fe(), I = pe(), { t: R } = Je(), c = Ie("project", { defaultSort: "name" }), D = s(25);
+    let P = null, j = {};
     const C = s(null), i = s(!1), $ = s(null), S = s({ name: "", pkey: "", teamLeader: "", description: "" }), M = s(!1), E = s(!1), f = s(null), p = s(!1), N = s(!1);
     let G = "";
     const z = ce(() => [
@@ -505,11 +505,11 @@ const Gl = {
       return isNaN(k.getTime()) ? "" : k.toISOString().slice(0, 10);
     }
     function r(a) {
-      T = a, d.load(a);
+      j = a, c.load(a);
     }
     function v() {
-      clearTimeout(U), U = setTimeout(
-        () => d.load({ page: 1, itemsPerPage: D.value, sortBy: T.sortBy }),
+      clearTimeout(P), P = setTimeout(
+        () => c.load({ page: 1, itemsPerPage: D.value, sortBy: j.sortBy }),
         300
       );
     }
@@ -542,7 +542,7 @@ const Gl = {
       var B, g, H;
       const { valid: a } = await C.value.validate();
       if (!a) return;
-      if (d.demoMode.value) {
+      if (c.demoMode.value) {
         i.value = !1;
         return;
       }
@@ -553,30 +553,30 @@ const Gl = {
         pkey: S.value.pkey,
         teamLeader: S.value.teamLeader,
         description: S.value.description
-      }, ee = (g = $.value) != null && g.id ? "put" : "post", X = await j[ee]("rest/project", k);
-      M.value = !1, X !== null && (i.value = !1, !((H = $.value) != null && H.id) && typeof X != "object" ? P.push(`/home/project/${X}`) : d.load(T));
+      }, ee = (g = $.value) != null && g.id ? "put" : "post", X = await T[ee]("rest/project", k);
+      M.value = !1, X !== null && (i.value = !1, !((H = $.value) != null && H.id) && typeof X != "object" ? U.push(`/home/project/${X}`) : c.load(j));
     }
     async function _() {
-      if (d.demoMode.value) {
+      if (c.demoMode.value) {
         E.value = !1;
         return;
       }
       p.value = !0;
       const a = N.value ? "?deleteRemoteData=true" : "";
-      await j.del(`rest/project/${f.value.id}${a}`), p.value = !1, E.value = !1, d.load(T);
+      await T.del(`rest/project/${f.value.id}${a}`), p.value = !1, E.value = !1, c.load(j);
     }
     return me(() => {
       I.setTitle("Projects"), I.setBreadcrumbs([{ title: "Home", to: "/" }, { title: "Projects" }]);
     }), (a, k) => {
       const ee = n("v-spacer"), X = n("v-text-field"), B = n("v-btn"), g = n("v-alert"), H = n("v-skeleton-loader"), le = n("v-avatar"), W = n("v-chip"), oe = n("v-icon"), re = n("v-data-table-server"), O = n("v-card-title"), ie = n("v-textarea"), de = n("v-form"), _e = n("v-card-text"), w = n("v-card-actions"), b = n("v-card"), Y = n("v-dialog"), F = n("v-checkbox");
-      return c(), J("div", null, [
+      return m(), J("div", null, [
         u("div", bt, [
           k[13] || (k[13] = u("h1", { class: "text-h4" }, "Projects", -1)),
           e(ee),
           e(X, {
-            modelValue: se(d).search.value,
+            modelValue: se(c).search.value,
             "onUpdate:modelValue": [
-              k[0] || (k[0] = (ne) => se(d).search.value = ne),
+              k[0] || (k[0] = (ne) => se(c).search.value = ne),
               v
             ],
             "prepend-inner-icon": "mdi-magnify",
@@ -597,18 +597,18 @@ const Gl = {
             _: 1
           })
         ]),
-        se(d).error.value ? (c(), q(g, {
+        se(c).error.value ? (m(), q(g, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(h(se(d).error.value), 1)
+            l(h(se(c).error.value), 1)
           ]),
           _: 1
         })) : K("", !0),
-        se(d).demoMode.value ? (c(), q(g, {
+        se(c).demoMode.value ? (m(), q(g, {
           key: 1,
           type: "info",
           variant: "tonal",
@@ -620,28 +620,28 @@ const Gl = {
           ])]),
           _: 1
         })) : K("", !0),
-        se(d).loading.value && se(d).items.value.length === 0 ? (c(), q(H, {
+        se(c).loading.value && se(c).items.value.length === 0 ? (m(), q(H, {
           key: 2,
           type: "table-heading, table-row@5",
           class: "mb-4"
         })) : K("", !0),
-        se(d).error.value ? K("", !0) : Oe((c(), q(re, {
+        se(c).error.value ? K("", !0) : Oe((m(), q(re, {
           key: 3,
           "items-per-page": D.value,
           "onUpdate:itemsPerPage": k[1] || (k[1] = (ne) => D.value = ne),
           headers: z.value,
-          items: se(d).items.value,
-          "items-length": se(d).totalItems.value,
-          loading: se(d).loading.value,
+          items: se(c).items.value,
+          "items-length": se(c).totalItems.value,
+          loading: se(c).loading.value,
           "item-value": "id",
           hover: "",
           "onUpdate:options": r,
-          "onClick:row": k[2] || (k[2] = (ne, { item: ae }) => se(P).push(`/home/project/${ae.id}`))
+          "onClick:row": k[2] || (k[2] = (ne, { item: ae }) => se(U).push(`/home/project/${ae.id}`))
         }, {
           "item.teamLeader": t(({ item: ne }) => {
             var ae;
             return [
-              (ae = ne.teamLeader) != null && ae.id ? (c(), J(ve, { key: 0 }, [
+              (ae = ne.teamLeader) != null && ae.id ? (m(), J(ve, { key: 0 }, [
                 e(le, {
                   size: "24",
                   color: "primary",
@@ -653,7 +653,7 @@ const Gl = {
                   _: 2
                 }, 1024),
                 l(" " + h(se(Re)(ne.teamLeader)), 1)
-              ], 64)) : (c(), J("span", wt, "—"))
+              ], 64)) : (m(), J("span", wt, "—"))
             ];
           }),
           "item.createdDate": t(({ item: ne }) => [
@@ -707,7 +707,7 @@ const Gl = {
           ]),
           _: 1
         }, 8, ["items-per-page", "headers", "items", "items-length", "loading"])), [
-          [Ge, se(d).items.value.length > 0 || !se(d).loading.value]
+          [Ge, se(c).items.value.length > 0 || !se(c).loading.value]
         ]),
         e(Y, {
           modelValue: i.value,
@@ -889,10 +889,10 @@ const Gl = {
 }, Ct = /* @__PURE__ */ we(Vt, [["__scopeId", "data-v-6023d08b"]]), $t = { class: "d-flex align-start flex-wrap ga-2 mb-4" }, St = { class: "text-h4" }, ht = { class: "text-h6 text-medium-emphasis" }, Ut = {
   key: 0,
   class: "text-body-2 text-medium-emphasis mt-1"
-}, Pt = { class: "d-flex flex-wrap ga-4 text-body-2 text-medium-emphasis" }, Nt = { key: 0 }, Tt = {
+}, Pt = { class: "d-flex flex-wrap ga-4 text-body-2 text-medium-emphasis" }, Nt = { key: 0 }, jt = {
   key: 0,
   class: "ml-1"
-}, jt = { key: 1 }, zt = {
+}, Tt = { key: 1 }, zt = {
   key: 0,
   class: "ml-1"
 }, It = { key: 2 }, At = {
@@ -900,15 +900,15 @@ const Gl = {
   class: "ml-1"
 }, Dt = { class: "d-flex align-center mb-2" }, Rt = { class: "mb-3" }, Lt = {
   __name: "ProjectDetailView",
-  setup(m) {
-    const P = Ae();
+  setup(d) {
+    const U = Ae();
     Ue();
-    const j = fe(), I = pe();
+    const T = fe(), I = pe();
     Ze();
-    const R = s(!1), d = s(null), D = ce(() => {
+    const R = s(!1), c = s(null), D = ce(() => {
       var y;
-      return ((y = d.value) == null ? void 0 : y.subscriptions) || [];
-    }), U = s(null), T = s(!1), C = s({ name: "", pkey: "", teamLeader: "", description: "" }), i = s(!1), $ = s(!1), S = s(null), M = s(!1), E = s(!1), f = {
+      return ((y = c.value) == null ? void 0 : y.subscriptions) || [];
+    }), P = s(null), j = s(!1), C = s({ name: "", pkey: "", teamLeader: "", description: "" }), i = s(!1), $ = s(!1), S = s(null), M = s(!1), E = s(!1), f = {
       required: (y) => !!y || "Required"
     }, p = [
       { title: "Service", key: "service", sortable: !1, width: "180px" },
@@ -936,8 +936,8 @@ const Gl = {
     async function A() {
       var L;
       R.value = !0;
-      const y = P.params.id, o = await j.get(`rest/project/${y}`);
-      d.value = o || null, R.value = !1, o && (C.value = {
+      const y = U.params.id, o = await T.get(`rest/project/${y}`);
+      c.value = o || null, R.value = !1, o && (C.value = {
         name: o.name || "",
         pkey: o.pkey || "",
         teamLeader: ((L = o.teamLeader) == null ? void 0 : L.id) || "",
@@ -949,48 +949,48 @@ const Gl = {
       ]));
     }
     async function V() {
-      const { valid: y } = await U.value.validate();
+      const { valid: y } = await P.value.validate();
       if (!y) return;
       i.value = !0;
       const o = {
-        id: d.value.id,
+        id: c.value.id,
         name: C.value.name,
         pkey: C.value.pkey,
         teamLeader: C.value.teamLeader,
         description: C.value.description
       };
-      await j.put("rest/project", o), i.value = !1, T.value = !1, await A();
+      await T.put("rest/project", o), i.value = !1, j.value = !1, await A();
     }
     function r(y) {
       S.value = y, M.value = !1, $.value = !0;
     }
     async function v() {
-      E.value = !0, await j.del(`rest/subscription/${S.value.id}/${M.value ? "true" : "false"}`), E.value = !1, $.value = !1, await A();
+      E.value = !0, await T.del(`rest/subscription/${S.value.id}/${M.value ? "true" : "false"}`), E.value = !1, $.value = !1, await A();
     }
-    return ze(() => P.params.id, (y) => {
+    return ze(() => U.params.id, (y) => {
       y && A();
     }), me(A), (y, o) => {
       const L = n("v-skeleton-loader"), x = n("v-spacer"), Q = n("v-btn"), te = n("v-icon"), _ = n("v-card-text"), a = n("v-card"), k = n("v-chip"), ee = n("v-alert"), X = n("v-data-table"), B = n("v-card-title"), g = n("v-text-field"), H = n("v-textarea"), le = n("v-form"), W = n("v-card-actions"), oe = n("v-dialog"), re = n("v-checkbox");
-      return c(), J("div", null, [
-        R.value && !d.value ? (c(), q(L, {
+      return m(), J("div", null, [
+        R.value && !c.value ? (m(), q(L, {
           key: 0,
           type: "card, list-item-two-line@3"
         })) : K("", !0),
-        d.value ? (c(), J(ve, { key: 1 }, [
+        c.value ? (m(), J(ve, { key: 1 }, [
           u("div", $t, [
             u("div", null, [
               u("h1", St, [
-                l(h(d.value.name) + " ", 1),
-                u("span", ht, "(" + h(d.value.pkey) + ")", 1)
+                l(h(c.value.name) + " ", 1),
+                u("span", ht, "(" + h(c.value.pkey) + ")", 1)
               ]),
-              d.value.description ? (c(), J("p", Ut, h(d.value.description), 1)) : K("", !0)
+              c.value.description ? (m(), J("p", Ut, h(c.value.description), 1)) : K("", !0)
             ]),
             e(x),
-            d.value.manageSubscriptions ? (c(), q(Q, {
+            c.value.manageSubscriptions ? (m(), q(Q, {
               key: 0,
               color: "primary",
               "prepend-icon": "mdi-plus",
-              to: `/home/project/${d.value.id}/subscription`
+              to: `/home/project/${c.value.id}/subscription`
             }, {
               default: t(() => [...o[10] || (o[10] = [
                 l(" Add subscription ", -1)
@@ -1000,7 +1000,7 @@ const Gl = {
             e(Q, {
               variant: "outlined",
               "prepend-icon": "mdi-pencil",
-              onClick: o[0] || (o[0] = (O) => T.value = !0)
+              onClick: o[0] || (o[0] = (O) => j.value = !0)
             }, {
               default: t(() => [...o[11] || (o[11] = [
                 l(" Edit ", -1)
@@ -1016,7 +1016,7 @@ const Gl = {
               e(_, { class: "py-2" }, {
                 default: t(() => [
                   u("div", Pt, [
-                    d.value.teamLeader ? (c(), J("span", Nt, [
+                    c.value.teamLeader ? (m(), J("span", Nt, [
                       e(te, {
                         size: "small",
                         class: "mr-1"
@@ -1027,10 +1027,10 @@ const Gl = {
                         _: 1
                       }),
                       o[13] || (o[13] = u("strong", null, "Manager:", -1)),
-                      l(" " + h(se(Re)(d.value.teamLeader)) + " ", 1),
-                      d.value.teamLeader.id ? (c(), J("span", Tt, "(" + h(d.value.teamLeader.id) + ")", 1)) : K("", !0)
+                      l(" " + h(se(Re)(c.value.teamLeader)) + " ", 1),
+                      c.value.teamLeader.id ? (m(), J("span", jt, "(" + h(c.value.teamLeader.id) + ")", 1)) : K("", !0)
                     ])) : K("", !0),
-                    d.value.createdDate ? (c(), J("span", jt, [
+                    c.value.createdDate ? (m(), J("span", Tt, [
                       e(te, {
                         size: "small",
                         class: "mr-1"
@@ -1041,10 +1041,10 @@ const Gl = {
                         _: 1
                       }),
                       o[15] || (o[15] = u("strong", null, "Created:", -1)),
-                      l(" " + h(N(d.value.createdDate)) + " ", 1),
-                      d.value.createdBy ? (c(), J("span", zt, " by " + h(d.value.createdBy.id || d.value.createdBy), 1)) : K("", !0)
+                      l(" " + h(N(c.value.createdDate)) + " ", 1),
+                      c.value.createdBy ? (m(), J("span", zt, " by " + h(c.value.createdBy.id || c.value.createdBy), 1)) : K("", !0)
                     ])) : K("", !0),
-                    d.value.lastModifiedDate ? (c(), J("span", It, [
+                    c.value.lastModifiedDate ? (m(), J("span", It, [
                       e(te, {
                         size: "small",
                         class: "mr-1"
@@ -1055,8 +1055,8 @@ const Gl = {
                         _: 1
                       }),
                       o[17] || (o[17] = u("strong", null, "Updated:", -1)),
-                      l(" " + h(N(d.value.lastModifiedDate)) + " ", 1),
-                      d.value.lastModifiedBy ? (c(), J("span", At, " by " + h(d.value.lastModifiedBy.id || d.value.lastModifiedBy), 1)) : K("", !0)
+                      l(" " + h(N(c.value.lastModifiedDate)) + " ", 1),
+                      c.value.lastModifiedBy ? (m(), J("span", At, " by " + h(c.value.lastModifiedBy.id || c.value.lastModifiedBy), 1)) : K("", !0)
                     ])) : K("", !0)
                   ])
                 ]),
@@ -1078,7 +1078,7 @@ const Gl = {
               _: 1
             })
           ]),
-          D.value.length === 0 ? (c(), q(ee, {
+          D.value.length === 0 ? (m(), q(ee, {
             key: 0,
             type: "info",
             variant: "tonal",
@@ -1088,7 +1088,7 @@ const Gl = {
               l(" No subscriptions attached to this project. ", -1)
             ])]),
             _: 1
-          })) : (c(), q(X, {
+          })) : (m(), q(X, {
             key: 1,
             headers: p,
             items: D.value,
@@ -1134,7 +1134,7 @@ const Gl = {
               ];
             }),
             "item.actions": t(({ item: O }) => [
-              d.value.manageSubscriptions ? (c(), q(Q, {
+              c.value.manageSubscriptions ? (m(), q(Q, {
                 key: 0,
                 icon: "",
                 size: "small",
@@ -1158,8 +1158,8 @@ const Gl = {
           }, 8, ["items"]))
         ], 64)) : K("", !0),
         e(oe, {
-          modelValue: T.value,
-          "onUpdate:modelValue": o[6] || (o[6] = (O) => T.value = O),
+          modelValue: j.value,
+          "onUpdate:modelValue": o[6] || (o[6] = (O) => j.value = O),
           "max-width": "600",
           persistent: ""
         }, {
@@ -1176,7 +1176,7 @@ const Gl = {
                   default: t(() => [
                     e(le, {
                       ref_key: "formRef",
-                      ref: U,
+                      ref: P,
                       onSubmit: xe(V, ["prevent"])
                     }, {
                       default: t(() => {
@@ -1195,7 +1195,7 @@ const Gl = {
                             "onUpdate:modelValue": o[2] || (o[2] = (ie) => C.value.pkey = ie),
                             label: "Project key (pkey)",
                             rules: [f.required],
-                            disabled: (((O = d.value) == null ? void 0 : O.nbSubscriptions) || D.value.length) > 0,
+                            disabled: (((O = c.value) == null ? void 0 : O.nbSubscriptions) || D.value.length) > 0,
                             variant: "outlined",
                             class: "mb-2"
                           }, null, 8, ["modelValue", "rules", "disabled"]),
@@ -1227,7 +1227,7 @@ const Gl = {
                     e(x),
                     e(Q, {
                       variant: "text",
-                      onClick: o[5] || (o[5] = (O) => T.value = !1)
+                      onClick: o[5] || (o[5] = (O) => j.value = !1)
                     }, {
                       default: t(() => [...o[22] || (o[22] = [
                         l("Cancel", -1)
@@ -1325,16 +1325,16 @@ const Gl = {
   }
 }, Et = { class: "mb-3" }, Bt = { class: "code-sample" }, qt = {
   __name: "ManualView",
-  setup(m) {
-    const P = pe(), j = he(), I = "/", R = typeof window < "u" ? window.location.origin : "", d = ce(() => j.userName || "<you>");
+  setup(d) {
+    const U = pe(), T = he(), I = "/", R = typeof window < "u" ? window.location.origin : "", c = ce(() => T.userName || "<you>");
     return me(() => {
-      P.setTitle("Manual"), P.setBreadcrumbs([{ title: "Home", to: "/" }, { title: "Manual" }]);
-    }), (D, U) => {
-      const T = n("v-icon"), C = n("v-card-title"), i = n("v-card-text"), $ = n("v-card"), S = n("v-list-item"), M = n("v-list"), E = n("v-col"), f = n("router-link");
+      U.setTitle("Manual"), U.setBreadcrumbs([{ title: "Home", to: "/" }, { title: "Manual" }]);
+    }), (D, P) => {
+      const j = n("v-icon"), C = n("v-card-title"), i = n("v-card-text"), $ = n("v-card"), S = n("v-list-item"), M = n("v-list"), E = n("v-col"), f = n("router-link");
       n("v-code-block");
       const p = n("v-row");
-      return c(), J("div", null, [
-        U[12] || (U[12] = u("h1", { class: "text-h4 mb-4" }, "User manual", -1)),
+      return m(), J("div", null, [
+        P[12] || (P[12] = u("h1", { class: "text-h4 mb-4" }, "User manual", -1)),
         e(p, null, {
           default: t(() => [
             e(E, {
@@ -1349,18 +1349,18 @@ const Gl = {
                   default: t(() => [
                     e(C, { class: "d-flex align-center ga-2" }, {
                       default: t(() => [
-                        e(T, null, {
-                          default: t(() => [...U[0] || (U[0] = [
+                        e(j, null, {
+                          default: t(() => [...P[0] || (P[0] = [
                             l("mdi-book-open-page-variant", -1)
                           ])]),
                           _: 1
                         }),
-                        U[1] || (U[1] = l(" Getting started ", -1))
+                        P[1] || (P[1] = l(" Getting started ", -1))
                       ]),
                       _: 1
                     }),
                     e(i, null, {
-                      default: t(() => [...U[2] || (U[2] = [
+                      default: t(() => [...P[2] || (P[2] = [
                         u("p", { class: "mb-2" }, " Ligoj aggregates the tools your projects rely on (source control, bug tracking, continuous integration, knowledge base, cloud provisioning) behind a single dashboard and API. ", -1),
                         u("p", { class: "mb-0" }, " Create a project, attach subscriptions, and hand your team a single entry point for everything. ", -1)
                       ])]),
@@ -1418,37 +1418,37 @@ const Gl = {
                   default: t(() => [
                     e(C, { class: "d-flex align-center ga-2" }, {
                       default: t(() => [
-                        e(T, null, {
-                          default: t(() => [...U[3] || (U[3] = [
+                        e(j, null, {
+                          default: t(() => [...P[3] || (P[3] = [
                             l("mdi-api", -1)
                           ])]),
                           _: 1
                         }),
-                        U[4] || (U[4] = l(" Automation ", -1))
+                        P[4] || (P[4] = l(" Automation ", -1))
                       ]),
                       _: 1
                     }),
                     e(i, null, {
                       default: t(() => [
                         u("p", Et, [
-                          U[7] || (U[7] = l(" Every screen is backed by a REST endpoint. Browse the full catalogue on the ", -1)),
+                          P[7] || (P[7] = l(" Every screen is backed by a REST endpoint. Browse the full catalogue on the ", -1)),
                           e(f, { to: "/api" }, {
-                            default: t(() => [...U[5] || (U[5] = [
+                            default: t(() => [...P[5] || (P[5] = [
                               l("API reference page", -1)
                             ])]),
                             _: 1
                           }),
-                          U[8] || (U[8] = l(" (OpenAPI / Swagger UI), and generate an ", -1)),
+                          P[8] || (P[8] = l(" (OpenAPI / Swagger UI), and generate an ", -1)),
                           e(f, { to: "/api/token" }, {
-                            default: t(() => [...U[6] || (U[6] = [
+                            default: t(() => [...P[6] || (P[6] = [
                               l("API token", -1)
                             ])]),
                             _: 1
                           }),
-                          U[9] || (U[9] = l(" to call it from scripts without exposing your password. ", -1))
+                          P[9] || (P[9] = l(" to call it from scripts without exposing your password. ", -1))
                         ]),
                         K("", !0),
-                        u("pre", Bt, 'curl "' + h(se(R)) + h(se(I)) + "rest/project?api-key=<token>&api-user=" + h(d.value) + '"', 1)
+                        u("pre", Bt, 'curl "' + h(se(R)) + h(se(I)) + "rest/project?api-key=<token>&api-user=" + h(c.value) + '"', 1)
                       ]),
                       _: 1
                     })
@@ -1459,13 +1459,13 @@ const Gl = {
                   default: t(() => [
                     e(C, { class: "d-flex align-center ga-2" }, {
                       default: t(() => [
-                        e(T, null, {
-                          default: t(() => [...U[10] || (U[10] = [
+                        e(j, null, {
+                          default: t(() => [...P[10] || (P[10] = [
                             l("mdi-help-circle", -1)
                           ])]),
                           _: 1
                         }),
-                        U[11] || (U[11] = l(" More resources ", -1))
+                        P[11] || (P[11] = l(" More resources ", -1))
                       ]),
                       _: 1
                     }),
@@ -1513,8 +1513,8 @@ const Gl = {
   }
 }, Mt = /* @__PURE__ */ we(qt, [["__scopeId", "data-v-bfb1a017"]]), Ft = { class: "pa-4" }, Ot = {
   __name: "SystemView",
-  setup(m) {
-    const P = pe(), j = [
+  setup(d) {
+    const U = pe(), T = [
       { to: "/system/information", icon: "mdi-information-outline", title: "Information", subtitle: "Memory, CPU, timezone, build" },
       { to: "/system/configuration", icon: "mdi-tune", title: "Configuration", subtitle: "Key/value settings and encrypt helper" },
       { to: "/system/user", icon: "mdi-account-multiple", title: "Users", subtitle: "Active sessions and accounts" },
@@ -1525,19 +1525,19 @@ const Gl = {
       { to: "/system/bench", icon: "mdi-speedometer", title: "Bench", subtitle: "Diagnostics" }
     ];
     return me(() => {
-      P.setTitle("System"), P.setBreadcrumbs([{ title: "System" }]);
+      U.setTitle("System"), U.setBreadcrumbs([{ title: "System" }]);
     }), (I, R) => {
-      const d = n("v-list-item"), D = n("v-list");
-      return c(), J("div", Ft, [
+      const c = n("v-list-item"), D = n("v-list");
+      return m(), J("div", Ft, [
         R[0] || (R[0] = u("h1", { class: "text-h4 mb-4" }, "System administration", -1)),
         e(D, null, {
           default: t(() => [
-            (c(), J(ve, null, ke(j, (U) => e(d, {
-              key: U.to,
-              to: U.to,
-              "prepend-icon": U.icon,
-              title: U.title,
-              subtitle: U.subtitle
+            (m(), J(ve, null, ke(T, (P) => e(c, {
+              key: P.to,
+              to: P.to,
+              "prepend-icon": P.icon,
+              title: P.title,
+              subtitle: P.subtitle
             }, null, 8, ["to", "prepend-icon", "title", "subtitle"])), 64))
           ]),
           _: 1
@@ -1547,8 +1547,8 @@ const Gl = {
   }
 }, Gt = { class: "d-flex align-center mb-4" }, Ht = { class: "mb-3" }, Wt = { class: "d-flex align-center mb-1" }, Kt = { class: "text-caption" }, Jt = { class: "d-flex mt-1 text-caption text-medium-emphasis ga-3" }, Zt = {
   __name: "SystemInfoView",
-  setup(m) {
-    const P = fe(), j = pe(), I = he(), R = s(!1), d = s(null), D = s(null), U = s(""), T = s(""), C = s(""), i = Ve({
+  setup(d) {
+    const U = fe(), T = pe(), I = he(), R = s(!1), c = s(null), D = s(null), P = s(""), j = s(""), C = s(""), i = Ve({
       used: 0,
       committedFree: 0,
       free: 0,
@@ -1585,10 +1585,10 @@ const Gl = {
     }
     async function N() {
       var r, v, y, o, L, x, Q, te, _, a, k, ee;
-      R.value = !0, d.value = null;
-      const V = await P.get("rest/system");
+      R.value = !0, c.value = null;
+      const V = await U.get("rest/system");
       if (V) {
-        U.value = ((r = V.cpu) == null ? void 0 : r.total) ?? "", T.value = (v = V.date) != null && v.date ? new Date(V.date.date).toISOString() : "", C.value = ((y = V.date) == null ? void 0 : y.date) ?? "", $.application = ((o = V.date) == null ? void 0 : o.timeZone) ?? "", $.default = ((L = V.date) == null ? void 0 : L.defaultTimeZone) ?? "", $.original = ((x = V.date) == null ? void 0 : x.originalDefaultTimeZone) ?? "";
+        P.value = ((r = V.cpu) == null ? void 0 : r.total) ?? "", j.value = (v = V.date) != null && v.date ? new Date(V.date.date).toISOString() : "", C.value = ((y = V.date) == null ? void 0 : y.date) ?? "", $.application = ((o = V.date) == null ? void 0 : o.timeZone) ?? "", $.default = ((L = V.date) == null ? void 0 : L.defaultTimeZone) ?? "", $.original = ((x = V.date) == null ? void 0 : x.originalDefaultTimeZone) ?? "";
         const X = ((Q = V.memory) == null ? void 0 : Q.maxMemory) || (((te = V.memory) == null ? void 0 : te.totalMemory) || 0) + 1e6, B = (((_ = V.memory) == null ? void 0 : _.totalMemory) ?? 0) - (((a = V.memory) == null ? void 0 : a.freeMemory) ?? 0), g = ((k = V.memory) == null ? void 0 : k.freeMemory) ?? 0, H = Math.max(0, X - (((ee = V.memory) == null ? void 0 : ee.totalMemory) ?? 0));
         i.used = B, i.committedFree = g, i.free = H, i.max = X, i.pctUsed = G(B / X * 100), i.pctCommittedFree = G(g / X * 100), i.pctFree = G(100 - i.pctUsed - i.pctCommittedFree);
       }
@@ -1619,10 +1619,10 @@ const Gl = {
       }
     }
     return me(() => {
-      j.setTitle("System information"), j.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Information" }]), N();
+      T.setTitle("System information"), T.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Information" }]), N();
     }), (V, r) => {
       const v = n("v-spacer"), y = n("v-btn"), o = n("v-alert"), L = n("v-icon"), x = n("v-card-title"), Q = n("v-progress-linear"), te = n("v-tooltip"), _ = n("v-text-field"), a = n("v-col"), k = n("v-row"), ee = n("v-card-text"), X = n("v-card");
-      return c(), J("div", null, [
+      return m(), J("div", null, [
         u("div", Gt, [
           r[8] || (r[8] = u("h1", { class: "text-h4" }, "System information", -1)),
           e(v),
@@ -1638,14 +1638,14 @@ const Gl = {
             _: 1
           }, 8, ["loading"])
         ]),
-        d.value ? (c(), q(o, {
+        c.value ? (m(), q(o, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(h(d.value), 1)
+            l(h(c.value), 1)
           ]),
           _: 1
         })) : K("", !0),
@@ -1741,7 +1741,7 @@ const Gl = {
                           ])
                         ]),
                         e(_, {
-                          "model-value": U.value,
+                          "model-value": P.value,
                           label: "CPU load (total)",
                           readonly: "",
                           density: "compact",
@@ -1756,7 +1756,7 @@ const Gl = {
                             }, {
                               default: t(() => [
                                 e(_, {
-                                  "model-value": T.value,
+                                  "model-value": j.value,
                                   label: "Local date",
                                   readonly: "",
                                   density: "compact",
@@ -1998,8 +1998,8 @@ const Gl = {
   class: "text-medium-emphasis"
 }, el = ["title"], tl = {
   __name: "SystemConfigurationView",
-  setup(m) {
-    const P = fe(), j = pe(), I = s([]), R = s(!1), d = s(null), D = s(""), U = s(""), T = s(!1), C = s(null), i = s(!1), $ = s(null), S = s({ name: "", value: "", system: !1, secured: !1 }), M = s(!1), E = s(!1), f = s(null), p = s(!1), N = { required: (_) => _ !== "" && _ != null || "Required" }, G = [
+  setup(d) {
+    const U = fe(), T = pe(), I = s([]), R = s(!1), c = s(null), D = s(""), P = s(""), j = s(!1), C = s(null), i = s(!1), $ = s(null), S = s({ name: "", value: "", system: !1, secured: !1 }), M = s(!1), E = s(!1), f = s(null), p = s(!1), N = { required: (_) => _ !== "" && _ != null || "Required" }, G = [
       { title: "Name", key: "name", sortable: !0, width: "220px" },
       { title: "Value", key: "value", sortable: !1 },
       { title: "", key: "secured", sortable: !1, width: "32px", align: "center" },
@@ -2023,13 +2023,13 @@ const Gl = {
       return _.overridden ? `${a} — overridden` : a;
     }
     async function r() {
-      R.value = !0, d.value = null;
-      const _ = await P.get("rest/system/configuration");
+      R.value = !0, c.value = null;
+      const _ = await U.get("rest/system/configuration");
       I.value = Array.isArray(_) ? _ : (_ == null ? void 0 : _.data) || [], I.value.sort((a, k) => String(a.name).localeCompare(String(k.name))), R.value = !1;
     }
     async function v() {
       if (D.value) {
-        T.value = !0;
+        j.value = !0;
         try {
           const _ = await fetch("/rest/system/security/crypto", {
             method: "POST",
@@ -2037,11 +2037,11 @@ const Gl = {
             headers: { "Content-Type": "text/plain" },
             body: D.value
           });
-          U.value = _.ok ? await _.text() : "";
+          P.value = _.ok ? await _.text() : "";
         } catch {
-          U.value = "";
+          P.value = "";
         } finally {
-          T.value = !1;
+          j.value = !1;
         }
       }
     }
@@ -2077,16 +2077,16 @@ const Gl = {
         secured: !!S.value.secured,
         value: S.value.value
       };
-      await P.post("rest/system/configuration", a), M.value = !1, i.value = !1, r();
+      await U.post("rest/system/configuration", a), M.value = !1, i.value = !1, r();
     }
     async function te() {
-      p.value = !0, await P.del(`rest/system/configuration/${encodeURIComponent(f.value.name)}/true`), p.value = !1, E.value = !1, r();
+      p.value = !0, await U.del(`rest/system/configuration/${encodeURIComponent(f.value.name)}/true`), p.value = !1, E.value = !1, r();
     }
     return me(() => {
-      j.setTitle("System configuration"), j.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Configuration" }]), r();
+      T.setTitle("System configuration"), T.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Configuration" }]), r();
     }), (_, a) => {
       const k = n("v-spacer"), ee = n("v-btn"), X = n("v-icon"), B = n("v-card-title"), g = n("v-text-field"), H = n("v-col"), le = n("v-row"), W = n("v-card-text"), oe = n("v-card"), re = n("v-alert"), O = n("v-tooltip"), ie = n("v-data-table"), de = n("v-textarea"), _e = n("v-checkbox"), w = n("v-form"), b = n("v-card-actions"), Y = n("v-dialog");
-      return c(), J("div", Xt, [
+      return m(), J("div", Xt, [
         u("div", Yt, [
           a[12] || (a[12] = u("h1", { class: "text-h4" }, "System configuration", -1)),
           e(k),
@@ -2156,7 +2156,7 @@ const Gl = {
                         e(ee, {
                           color: "primary",
                           "prepend-icon": "mdi-lock",
-                          loading: T.value,
+                          loading: j.value,
                           disabled: !D.value,
                           onClick: v
                         }, {
@@ -2174,14 +2174,14 @@ const Gl = {
                     }, {
                       default: t(() => [
                         e(g, {
-                          "model-value": U.value,
+                          "model-value": P.value,
                           label: "Result",
                           variant: "outlined",
                           density: "compact",
                           readonly: "",
                           "hide-details": "",
                           "append-inner-icon": "mdi-content-copy",
-                          "onClick:appendInner": a[1] || (a[1] = (F) => y(U.value))
+                          "onClick:appendInner": a[1] || (a[1] = (F) => y(P.value))
                         }, null, 8, ["model-value"])
                       ]),
                       _: 1
@@ -2195,14 +2195,14 @@ const Gl = {
           ]),
           _: 1
         }),
-        d.value ? (c(), q(re, {
+        c.value ? (m(), q(re, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(h(d.value), 1)
+            l(h(c.value), 1)
           ]),
           _: 1
         })) : K("", !0),
@@ -2216,14 +2216,14 @@ const Gl = {
           class: "configuration-table"
         }, {
           "item.value": t(({ item: F }) => [
-            F.secured ? (c(), J("span", Qt, "•••••")) : (c(), J("code", {
+            F.secured ? (m(), J("span", Qt, "•••••")) : (m(), J("code", {
               key: 1,
               class: "config-value",
               title: F.value
             }, h(F.value), 9, el))
           ]),
           "item.secured": t(({ item: F }) => [
-            F.secured ? (c(), q(X, {
+            F.secured ? (m(), q(X, {
               key: 0,
               size: "small",
               color: "primary",
@@ -2236,13 +2236,13 @@ const Gl = {
             })) : K("", !0)
           ]),
           "item.source": t(({ item: F }) => [
-            F.source ? (c(), q(O, {
+            F.source ? (m(), q(O, {
               key: 0,
               text: V(F),
               location: "top"
             }, {
               activator: t(({ props: ne }) => [
-                e(X, je(ne, {
+                e(X, Te(ne, {
                   size: "small",
                   color: F.overridden ? "warning" : void 0
                 }), {
@@ -2254,7 +2254,7 @@ const Gl = {
               ]),
               _: 2
             }, 1032, ["text"])) : K("", !0),
-            F.overridden ? (c(), q(X, {
+            F.overridden ? (m(), q(X, {
               key: 1,
               size: "x-small",
               color: "warning",
@@ -2465,10 +2465,10 @@ const Gl = {
   }
 }, ll = /* @__PURE__ */ we(tl, [["__scopeId", "data-v-5a0b4150"]]), nl = { class: "d-flex flex-wrap align-center mb-4 ga-2" }, al = {
   __name: "SystemUserView",
-  setup(m) {
-    const P = fe(), j = pe(), I = Ie("system/user/roles", { defaultSort: "login" }), R = s(25);
-    let d = null, D = {};
-    const U = s([]), T = s(null), C = s(!1), i = s(null), $ = s({ login: "", roles: [] }), S = s(!1), M = s(!1), E = s(null), f = s(!1), p = {
+  setup(d) {
+    const U = fe(), T = pe(), I = Ie("system/user/roles", { defaultSort: "login" }), R = s(25);
+    let c = null, D = {};
+    const P = s([]), j = s(null), C = s(!1), i = s(null), $ = s({ login: "", roles: [] }), S = s(!1), M = s(!1), E = s(null), f = s(!1), p = {
       required: (L) => !!L || "Required",
       requiredArray: (L) => Array.isArray(L) && L.length > 0 || "Pick at least one role"
     }, N = [
@@ -2480,14 +2480,14 @@ const Gl = {
       D = L, I.load(L);
     }
     function z() {
-      clearTimeout(d), d = setTimeout(
+      clearTimeout(c), c = setTimeout(
         () => I.load({ page: 1, itemsPerPage: R.value, sortBy: D.sortBy }),
         300
       );
     }
     async function A() {
-      const L = await P.get("rest/system/security/role");
-      Array.isArray(L) ? U.value = L : Array.isArray(L == null ? void 0 : L.data) && (U.value = L.data);
+      const L = await U.get("rest/system/security/role");
+      Array.isArray(L) ? P.value = L : Array.isArray(L == null ? void 0 : L.data) && (P.value = L.data);
     }
     function V() {
       i.value = null, $.value = { login: "", roles: [] }, C.value = !0;
@@ -2502,20 +2502,20 @@ const Gl = {
       E.value = L, M.value = !0;
     }
     async function y() {
-      const { valid: L } = await T.value.validate();
+      const { valid: L } = await j.value.validate();
       if (!L) return;
       S.value = !0;
       const x = { login: $.value.login, roles: $.value.roles }, Q = i.value ? "put" : "post";
-      await P[Q]("rest/system/user", x), S.value = !1, C.value = !1, I.load(D);
+      await U[Q]("rest/system/user", x), S.value = !1, C.value = !1, I.load(D);
     }
     async function o() {
-      f.value = !0, await P.del(`rest/system/user/${encodeURIComponent(E.value.login)}`), f.value = !1, M.value = !1, I.load(D);
+      f.value = !0, await U.del(`rest/system/user/${encodeURIComponent(E.value.login)}`), f.value = !1, M.value = !1, I.load(D);
     }
     return me(() => {
-      j.setTitle("System users"), j.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Users" }]), A();
+      T.setTitle("System users"), T.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Users" }]), A();
     }), (L, x) => {
       const Q = n("v-spacer"), te = n("v-text-field"), _ = n("v-btn"), a = n("v-alert"), k = n("v-chip"), ee = n("v-icon"), X = n("v-data-table-server"), B = n("v-card-title"), g = n("v-autocomplete"), H = n("v-form"), le = n("v-card-text"), W = n("v-card-actions"), oe = n("v-card"), re = n("v-dialog");
-      return c(), J("div", null, [
+      return m(), J("div", null, [
         u("div", nl, [
           x[9] || (x[9] = u("h1", { class: "text-h4" }, "System users", -1)),
           e(Q),
@@ -2543,7 +2543,7 @@ const Gl = {
             _: 1
           })
         ]),
-        se(I).error.value ? (c(), q(a, {
+        se(I).error.value ? (m(), q(a, {
           key: 0,
           type: "warning",
           variant: "tonal",
@@ -2566,7 +2566,7 @@ const Gl = {
           "onUpdate:options": G
         }, {
           "item.roles": t(({ item: O }) => [
-            (c(!0), J(ve, null, ke(O.roles || [], (ie) => (c(), q(k, {
+            (m(!0), J(ve, null, ke(O.roles || [], (ie) => (m(), q(k, {
               key: ie.id,
               size: "x-small",
               variant: "tonal",
@@ -2634,7 +2634,7 @@ const Gl = {
                   default: t(() => [
                     e(H, {
                       ref_key: "formRef",
-                      ref: T,
+                      ref: j,
                       onSubmit: xe(y, ["prevent"])
                     }, {
                       default: t(() => [
@@ -2652,7 +2652,7 @@ const Gl = {
                           modelValue: $.value.roles,
                           "onUpdate:modelValue": x[3] || (x[3] = (O) => $.value.roles = O),
                           label: "Roles",
-                          items: U.value,
+                          items: P.value,
                           "item-value": "id",
                           "item-title": "name",
                           multiple: "",
@@ -2761,29 +2761,29 @@ const Gl = {
   }
 }, ol = /* @__PURE__ */ we(al, [["__scopeId", "data-v-3bd83da2"]]), il = { class: "d-flex align-center mb-4" }, sl = {
   __name: "SystemRoleView",
-  setup(m) {
-    const P = fe(), j = pe(), I = s([]), R = s(!1), d = s(null), D = s(null), U = s(!1), T = s(null), C = s({ name: "", apiPatterns: [], uiPatterns: [] }), i = s(!1), $ = s(!1), S = s(null), M = s(!1), E = { required: (r) => !!r || "Required" }, f = [
+  setup(d) {
+    const U = fe(), T = pe(), I = s([]), R = s(!1), c = s(null), D = s(null), P = s(!1), j = s(null), C = s({ name: "", apiPatterns: [], uiPatterns: [] }), i = s(!1), $ = s(!1), S = s(null), M = s(!1), E = { required: (r) => !!r || "Required" }, f = [
       { title: "Name", key: "name", sortable: !0, width: "180px" },
       { title: "API patterns", key: "authApi", sortable: !1 },
       { title: "UI patterns", key: "authUi", sortable: !1 },
       { title: "", key: "actions", sortable: !1, width: "100px", align: "end" }
     ];
     async function p() {
-      R.value = !0, d.value = null;
-      const r = await P.get("rest/system/security/role/withAuth"), v = (r == null ? void 0 : r.data) || r || [];
+      R.value = !0, c.value = null;
+      const r = await U.get("rest/system/security/role/withAuth"), v = (r == null ? void 0 : r.data) || r || [];
       for (const y of v)
         y["authorizations-api"] = (y.authorizations || []).filter((o) => o.type === "api"), y["authorizations-ui"] = (y.authorizations || []).filter((o) => o.type === "ui");
       I.value = v, R.value = !1;
     }
     function N() {
-      T.value = null, C.value = { name: "", apiPatterns: [], uiPatterns: [] }, U.value = !0;
+      j.value = null, C.value = { name: "", apiPatterns: [], uiPatterns: [] }, P.value = !0;
     }
     function G(r) {
-      T.value = r, C.value = {
+      j.value = r, C.value = {
         name: r.name,
         apiPatterns: (r["authorizations-api"] || []).map((v) => v.pattern),
         uiPatterns: (r["authorizations-ui"] || []).map((v) => v.pattern)
-      }, U.value = !0;
+      }, P.value = !0;
     }
     function z(r) {
       S.value = r, $.value = !0;
@@ -2794,23 +2794,23 @@ const Gl = {
       if (!r) return;
       i.value = !0;
       const v = {
-        id: (o = T.value) == null ? void 0 : o.id,
+        id: (o = j.value) == null ? void 0 : o.id,
         name: C.value.name,
         authorizations: [
           ...C.value.apiPatterns.map((L) => ({ pattern: L, type: "api" })),
           ...C.value.uiPatterns.map((L) => ({ pattern: L, type: "ui" }))
         ]
-      }, y = T.value ? "put" : "post";
-      await P[y]("rest/system/security/role", v), i.value = !1, U.value = !1, p();
+      }, y = j.value ? "put" : "post";
+      await U[y]("rest/system/security/role", v), i.value = !1, P.value = !1, p();
     }
     async function V() {
-      M.value = !0, await P.del(`rest/system/security/role/${S.value.id}`), M.value = !1, $.value = !1, p();
+      M.value = !0, await U.del(`rest/system/security/role/${S.value.id}`), M.value = !1, $.value = !1, p();
     }
     return me(() => {
-      j.setTitle("Roles"), j.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Roles" }]), p();
+      T.setTitle("Roles"), T.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Roles" }]), p();
     }), (r, v) => {
       const y = n("v-spacer"), o = n("v-btn"), L = n("v-alert"), x = n("v-icon"), Q = n("v-data-table"), te = n("v-card-title"), _ = n("v-text-field"), a = n("v-combobox"), k = n("v-form"), ee = n("v-card-text"), X = n("v-card-actions"), B = n("v-card"), g = n("v-dialog");
-      return c(), J("div", null, [
+      return m(), J("div", null, [
         u("div", il, [
           v[8] || (v[8] = u("h1", { class: "text-h4" }, "Roles", -1)),
           e(y),
@@ -2825,14 +2825,14 @@ const Gl = {
             _: 1
           })
         ]),
-        d.value ? (c(), q(L, {
+        c.value ? (m(), q(L, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(h(d.value), 1)
+            l(h(c.value), 1)
           ]),
           _: 1
         })) : K("", !0),
@@ -2845,13 +2845,13 @@ const Gl = {
           density: "compact"
         }, {
           "item.authApi": t(({ item: H }) => [
-            (c(!0), J(ve, null, ke(H["authorizations-api"], (le) => (c(), J("code", {
+            (m(!0), J(ve, null, ke(H["authorizations-api"], (le) => (m(), J("code", {
               key: le.id || le.pattern,
               class: "auth-token"
             }, h(le.pattern), 1))), 128))
           ]),
           "item.authUi": t(({ item: H }) => [
-            (c(!0), J(ve, null, ke(H["authorizations-ui"], (le) => (c(), J("code", {
+            (m(!0), J(ve, null, ke(H["authorizations-ui"], (le) => (m(), J("code", {
               key: le.id || le.pattern,
               class: "auth-token"
             }, h(le.pattern), 1))), 128))
@@ -2894,8 +2894,8 @@ const Gl = {
           _: 1
         }, 8, ["items", "loading"]),
         e(g, {
-          modelValue: U.value,
-          "onUpdate:modelValue": v[4] || (v[4] = (H) => U.value = H),
+          modelValue: P.value,
+          "onUpdate:modelValue": v[4] || (v[4] = (H) => P.value = H),
           "max-width": "640",
           persistent: ""
         }, {
@@ -2904,7 +2904,7 @@ const Gl = {
               default: t(() => [
                 e(te, null, {
                   default: t(() => [
-                    l(h(T.value ? "Edit role" : "New role"), 1)
+                    l(h(j.value ? "Edit role" : "New role"), 1)
                   ]),
                   _: 1
                 }),
@@ -2962,7 +2962,7 @@ const Gl = {
                     e(y),
                     e(o, {
                       variant: "text",
-                      onClick: v[3] || (v[3] = (H) => U.value = !1)
+                      onClick: v[3] || (v[3] = (H) => P.value = !1)
                     }, {
                       default: t(() => [...v[11] || (v[11] = [
                         l("Cancel", -1)
@@ -3051,11 +3051,11 @@ const Gl = {
   }
 }, rl = /* @__PURE__ */ we(sl, [["__scopeId", "data-v-e3ba71a8"]]), ul = { class: "d-flex flex-wrap align-center mb-4 ga-2" }, dl = { key: 0 }, cl = { key: 0 }, ml = {
   __name: "SystemPluginView",
-  setup(m) {
-    const P = fe(), j = pe(), I = [
+  setup(d) {
+    const U = fe(), T = pe(), I = [
       { id: "central", label: "Maven Central" },
       { id: "nexus", label: "OSSRH Nexus" }
-    ], R = s("central"), d = s([]), D = s(!1), U = s(null), T = s(!1), C = s(!1), i = s(!1), $ = s(""), S = s(!1), M = s(!1), E = [
+    ], R = s("central"), c = s([]), D = s(!1), P = s(null), j = s(!1), C = s(!1), i = s(!1), $ = s(""), S = s(!1), M = s(!1), E = [
       { title: "", key: "type", sortable: !1, width: "40px" },
       { title: "Artifact", key: "id", sortable: !0 },
       { title: "Name", key: "name", sortable: !0 },
@@ -3071,35 +3071,35 @@ const Gl = {
       return y ? y === "feature" ? "mdi-wrench" : y === "service" ? "mdi-puzzle" : y === "tool" ? "mdi-hammer-wrench" : "mdi-puzzle" : "mdi-link-off";
     }
     async function p() {
-      D.value = !0, U.value = null;
-      const v = await P.get(`rest/system/plugin?repository=${R.value}`);
-      d.value = Array.isArray(v) ? v : (v == null ? void 0 : v.data) || [], D.value = !1;
+      D.value = !0, P.value = null;
+      const v = await U.get(`rest/system/plugin?repository=${R.value}`);
+      c.value = Array.isArray(v) ? v : (v == null ? void 0 : v.data) || [], D.value = !1;
     }
     async function N() {
-      T.value = !0, await P.put(`rest/system/plugin/cache?repository=${R.value}`), T.value = !1, p();
+      j.value = !0, await U.put(`rest/system/plugin/cache?repository=${R.value}`), j.value = !1, p();
     }
     async function G() {
-      C.value = !0, await P.put("rest/system/plugin/restart"), C.value = !1;
+      C.value = !0, await U.put("rest/system/plugin/restart"), C.value = !1;
     }
     async function z(v, y = !1) {
       M.value = !0;
       const o = `repository=${R.value}&javadoc=${y ? !1 : S.value}`;
-      await P.post(`rest/system/plugin/${encodeURIComponent(v)}?${o}`), M.value = !1, i.value = !1, $.value = "", S.value = !1, p();
+      await U.post(`rest/system/plugin/${encodeURIComponent(v)}?${o}`), M.value = !1, i.value = !1, $.value = "", S.value = !1, p();
     }
     function A() {
       $.value && z($.value.trim());
     }
     async function V(v) {
-      await P.del(`rest/system/plugin/${v.plugin.artifact}/${v.latestLocalVersion}`), p();
+      await U.del(`rest/system/plugin/${v.plugin.artifact}/${v.latestLocalVersion}`), p();
     }
     async function r(v) {
-      confirm(`Delete plug-in ${v}?`) && (await P.del(`rest/system/plugin/${v}`), p());
+      confirm(`Delete plug-in ${v}?`) && (await U.del(`rest/system/plugin/${v}`), p());
     }
     return me(() => {
-      j.setTitle("Plug-ins"), j.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Plug-ins" }]), p();
+      T.setTitle("Plug-ins"), T.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Plug-ins" }]), p();
     }), (v, y) => {
       const o = n("v-spacer"), L = n("v-select"), x = n("v-btn"), Q = n("v-alert"), te = n("v-icon"), _ = n("v-chip"), a = n("v-data-table"), k = n("v-card-title"), ee = n("v-text-field"), X = n("v-checkbox"), B = n("v-card-text"), g = n("v-card-actions"), H = n("v-card"), le = n("v-dialog");
-      return c(), J("div", null, [
+      return m(), J("div", null, [
         u("div", ul, [
           y[9] || (y[9] = u("h1", { class: "text-h4" }, "Plugins", -1)),
           e(o),
@@ -3122,7 +3122,7 @@ const Gl = {
             variant: "outlined",
             "prepend-icon": "mdi-magnify-plus",
             onClick: N,
-            loading: T.value
+            loading: j.value
           }, {
             default: t(() => [...y[6] || (y[6] = [
               l(" Check versions ", -1)
@@ -3152,20 +3152,20 @@ const Gl = {
             _: 1
           })
         ]),
-        U.value ? (c(), q(Q, {
+        P.value ? (m(), q(Q, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(h(U.value), 1)
+            l(h(P.value), 1)
           ]),
           _: 1
         })) : K("", !0),
         e(a, {
           headers: E,
-          items: d.value,
+          items: c.value,
           loading: D.value,
           "items-per-page": -1,
           "hide-default-footer": "",
@@ -3189,7 +3189,7 @@ const Gl = {
             var oe;
             return [
               u("span", null, h(((oe = W.plugin) == null ? void 0 : oe.version) || "—"), 1),
-              W.latestLocalVersion ? (c(), q(_, {
+              W.latestLocalVersion ? (m(), q(_, {
                 key: 0,
                 size: "x-small",
                 color: "primary",
@@ -3203,7 +3203,7 @@ const Gl = {
                 ]),
                 _: 2
               }, 1032, ["onClick:close"])) : K("", !0),
-              W.newVersion && W.newVersion !== W.latestLocalVersion ? (c(), q(_, {
+              W.newVersion && W.newVersion !== W.latestLocalVersion ? (m(), q(_, {
                 key: 1,
                 size: "x-small",
                 color: "success",
@@ -3230,17 +3230,17 @@ const Gl = {
           "item.nodes": t(({ item: W }) => {
             var oe, re;
             return [
-              ((re = (oe = W.plugin) == null ? void 0 : oe.type) == null ? void 0 : re.toLowerCase()) !== "feature" ? (c(), J("span", dl, h(W.nodes ?? 0), 1)) : K("", !0)
+              ((re = (oe = W.plugin) == null ? void 0 : oe.type) == null ? void 0 : re.toLowerCase()) !== "feature" ? (m(), J("span", dl, h(W.nodes ?? 0), 1)) : K("", !0)
             ];
           }),
           "item.subscriptions": t(({ item: W }) => {
             var oe, re;
             return [
-              ((re = (oe = W.plugin) == null ? void 0 : oe.type) == null ? void 0 : re.toLowerCase()) !== "feature" ? (c(), J("span", cl, h(W.subscriptions ?? 0), 1)) : K("", !0)
+              ((re = (oe = W.plugin) == null ? void 0 : oe.type) == null ? void 0 : re.toLowerCase()) !== "feature" ? (m(), J("span", cl, h(W.subscriptions ?? 0), 1)) : K("", !0)
             ];
           }),
           "item.actions": t(({ item: W }) => [
-            W.deleted ? (c(), q(te, {
+            W.deleted ? (m(), q(te, {
               key: 0,
               size: "small",
               color: "warning",
@@ -3250,7 +3250,7 @@ const Gl = {
                 l("mdi-cancel", -1)
               ])]),
               _: 1
-            })) : (c(), q(x, {
+            })) : (m(), q(x, {
               key: 1,
               icon: "",
               size: "small",
@@ -3346,8 +3346,8 @@ const Gl = {
   }
 }, pl = { class: "d-flex align-center mb-4" }, vl = {
   __name: "SystemNodeView",
-  setup(m) {
-    const P = fe(), j = pe(), I = s([]), R = s(!1), d = s(null), D = s(!1), U = s(null), T = s(!1), C = [
+  setup(d) {
+    const U = fe(), T = pe(), I = s([]), R = s(!1), c = s(null), D = s(!1), P = s(null), j = s(!1), C = [
       { title: "Identifier", key: "id", sortable: !0 },
       { title: "Name", key: "name", sortable: !0, width: "260px" },
       { title: "Status", key: "status", sortable: !0, width: "120px" },
@@ -3359,21 +3359,21 @@ const Gl = {
       return f === "up" ? "success" : f === "down" ? "error" : f === "unknown" ? "warning" : "grey";
     }
     async function $() {
-      R.value = !0, d.value = null;
-      const E = await P.get("rest/node");
+      R.value = !0, c.value = null;
+      const E = await U.get("rest/node");
       I.value = Array.isArray(E) ? E : (E == null ? void 0 : E.data) || [], R.value = !1;
     }
     function S(E) {
-      U.value = E, D.value = !0;
+      P.value = E, D.value = !0;
     }
     async function M() {
-      T.value = !0, await P.del(`rest/node/${encodeURIComponent(U.value.id)}`), T.value = !1, D.value = !1, $();
+      j.value = !0, await U.del(`rest/node/${encodeURIComponent(P.value.id)}`), j.value = !1, D.value = !1, $();
     }
     return me(() => {
-      j.setTitle("Nodes"), j.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Nodes" }]), $();
+      T.setTitle("Nodes"), T.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Nodes" }]), $();
     }), (E, f) => {
       const p = n("v-spacer"), N = n("v-btn"), G = n("v-alert"), z = n("v-chip"), A = n("v-icon"), V = n("v-data-table"), r = n("v-card-title"), v = n("v-card-text"), y = n("v-card-actions"), o = n("v-card"), L = n("v-dialog");
-      return c(), J("div", null, [
+      return m(), J("div", null, [
         u("div", pl, [
           f[3] || (f[3] = u("h1", { class: "text-h4" }, "Nodes", -1)),
           e(p),
@@ -3388,14 +3388,14 @@ const Gl = {
             _: 1
           })
         ]),
-        d.value ? (c(), q(G, {
+        c.value ? (m(), q(G, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(h(d.value), 1)
+            l(h(c.value), 1)
           ]),
           _: 1
         })) : K("", !0),
@@ -3411,7 +3411,7 @@ const Gl = {
             u("code", null, h(x.id), 1)
           ]),
           "item.status": t(({ item: x }) => [
-            x.status ? (c(), q(z, {
+            x.status ? (m(), q(z, {
               key: 0,
               size: "x-small",
               color: i(x.status),
@@ -3463,9 +3463,9 @@ const Gl = {
                     var x, Q;
                     return [
                       f[6] || (f[6] = l(" Delete ", -1)),
-                      u("strong", null, h((x = U.value) == null ? void 0 : x.name), 1),
+                      u("strong", null, h((x = P.value) == null ? void 0 : x.name), 1),
                       f[7] || (f[7] = l(" (", -1)),
-                      u("code", null, h((Q = U.value) == null ? void 0 : Q.id), 1),
+                      u("code", null, h((Q = P.value) == null ? void 0 : Q.id), 1),
                       f[8] || (f[8] = l(")? ", -1))
                     ];
                   }),
@@ -3486,7 +3486,7 @@ const Gl = {
                     e(N, {
                       color: "error",
                       variant: "elevated",
-                      loading: T.value,
+                      loading: j.value,
                       onClick: M
                     }, {
                       default: t(() => [...f[10] || (f[10] = [
@@ -3508,8 +3508,8 @@ const Gl = {
   }
 }, fl = { class: "d-flex align-center mb-4" }, _l = { class: "d-flex align-center ga-2" }, yl = { class: "d-flex align-center ga-2" }, gl = {
   __name: "SystemCacheView",
-  setup(m) {
-    const P = fe(), j = pe(), I = s([]), R = s(!1), d = s(null), D = s(null), U = [
+  setup(d) {
+    const U = fe(), T = pe(), I = s([]), R = s(!1), c = s(null), D = s(null), P = [
       { title: "Cache", key: "id", sortable: !0 },
       { title: "Size", key: "size", sortable: !0, width: "100px" },
       { title: "Hits", key: "hitCount", sortable: !0, width: "160px" },
@@ -3517,22 +3517,22 @@ const Gl = {
       { title: "Avg get (ms)", key: "averageGetTime", sortable: !0, width: "140px" },
       { title: "", key: "actions", sortable: !1, width: "60px", align: "end" }
     ];
-    function T($, S, M) {
+    function j($, S, M) {
       return S && M === 1 || $ >= 90 ? "success" : $ >= 80 ? "primary" : $ >= 50 ? "warning" : "error";
     }
     async function C() {
-      R.value = !0, d.value = null;
-      const $ = await P.get("rest/system/cache");
-      Array.isArray($) ? I.value = $ : $ === null && (d.value = "Unable to load caches"), R.value = !1;
+      R.value = !0, c.value = null;
+      const $ = await U.get("rest/system/cache");
+      Array.isArray($) ? I.value = $ : $ === null && (c.value = "Unable to load caches"), R.value = !1;
     }
     async function i($) {
-      D.value = $.id, await P.post(`rest/system/cache/${encodeURIComponent($.id)}`), D.value = null, C();
+      D.value = $.id, await U.post(`rest/system/cache/${encodeURIComponent($.id)}`), D.value = null, C();
     }
     return me(() => {
-      j.setTitle("Caches"), j.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Caches" }]), C();
+      T.setTitle("Caches"), T.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Caches" }]), C();
     }), ($, S) => {
       const M = n("v-spacer"), E = n("v-btn"), f = n("v-alert"), p = n("v-chip"), N = n("v-icon"), G = n("v-data-table");
-      return c(), J("div", null, [
+      return m(), J("div", null, [
         u("div", fl, [
           S[1] || (S[1] = u("h1", { class: "text-h4" }, "Caches", -1)),
           e(M),
@@ -3547,19 +3547,19 @@ const Gl = {
             _: 1
           })
         ]),
-        d.value ? (c(), q(f, {
+        c.value ? (m(), q(f, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(h(d.value), 1)
+            l(h(c.value), 1)
           ]),
           _: 1
         })) : K("", !0),
         e(G, {
-          headers: U,
+          headers: P,
           items: I.value,
           loading: R.value,
           "items-per-page": -1,
@@ -3569,10 +3569,10 @@ const Gl = {
           "item.hitCount": t(({ item: z }) => [
             u("div", _l, [
               u("span", null, h(z.hitCount ?? 0), 1),
-              z.hitPercentage != null && (z.hitCount ?? 0) > 0 ? (c(), q(p, {
+              z.hitPercentage != null && (z.hitCount ?? 0) > 0 ? (m(), q(p, {
                 key: 0,
                 size: "x-small",
-                color: T(z.hitPercentage, !0, z.hitCount)
+                color: j(z.hitPercentage, !0, z.hitCount)
               }, {
                 default: t(() => [
                   l(h(Math.round(z.hitPercentage)) + "%", 1)
@@ -3584,10 +3584,10 @@ const Gl = {
           "item.missCount": t(({ item: z }) => [
             u("div", yl, [
               u("span", null, h(z.missCount ?? 0), 1),
-              z.missPercentage != null && (z.missCount ?? 0) > 1 ? (c(), q(p, {
+              z.missPercentage != null && (z.missCount ?? 0) > 1 ? (m(), q(p, {
                 key: 0,
                 size: "x-small",
-                color: T(100 - z.missPercentage, !1)
+                color: j(100 - z.missPercentage, !1)
               }, {
                 default: t(() => [
                   l(h(Math.round(z.missPercentage)) + "%", 1)
@@ -3626,35 +3626,35 @@ const Gl = {
   }
 }, bl = { key: 1 }, kl = {
   __name: "SystemBenchView",
-  setup(m) {
-    const P = fe(), j = pe(), I = [
+  setup(d) {
+    const U = fe(), T = pe(), I = [
       { key: "insert", step: "INSERT", method: "post", url: "rest/system/bench/prepare" },
       { key: "select", step: "SELECT", method: "get", url: "rest/system/bench/read" },
       { key: "select-all", step: "SELECT *", method: "get", url: "rest/system/bench/read/all" },
       { key: "update", step: "UPDATE", method: "put", url: "rest/system/bench/update" },
       { key: "delete", step: "DELETE", method: "del", url: "rest/system/bench/delete" }
-    ], R = s(!1), d = s(null), D = s(I.map((T) => ({ step: T.step, duration: null, loading: !1 })));
-    async function U() {
-      R.value = !0, d.value = null, D.value = I.map((T) => ({ step: T.step, duration: null, loading: !1 }));
-      for (let T = 0; T < I.length; T++) {
-        D.value[T].loading = !0;
+    ], R = s(!1), c = s(null), D = s(I.map((j) => ({ step: j.step, duration: null, loading: !1 })));
+    async function P() {
+      R.value = !0, c.value = null, D.value = I.map((j) => ({ step: j.step, duration: null, loading: !1 }));
+      for (let j = 0; j < I.length; j++) {
+        D.value[j].loading = !0;
         try {
-          const C = I[T].method === "post" || I[T].method === "put" ? void 0 : null, i = C === null ? await P[I[T].method](I[T].url) : await P[I[T].method](I[T].url, C);
-          D.value[T].duration = (i == null ? void 0 : i.duration) ?? "—";
+          const C = I[j].method === "post" || I[j].method === "put" ? void 0 : null, i = C === null ? await U[I[j].method](I[j].url) : await U[I[j].method](I[j].url, C);
+          D.value[j].duration = (i == null ? void 0 : i.duration) ?? "—";
         } catch (C) {
-          d.value = `${I[T].step} failed: ${C.message || C}`;
+          c.value = `${I[j].step} failed: ${C.message || C}`;
           break;
         } finally {
-          D.value[T].loading = !1;
+          D.value[j].loading = !1;
         }
       }
       R.value = !1;
     }
     return me(() => {
-      j.setTitle("Bench"), j.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Bench" }]);
-    }), (T, C) => {
+      T.setTitle("Bench"), T.setBreadcrumbs([{ title: "System", to: "/system" }, { title: "Bench" }]);
+    }), (j, C) => {
       const i = n("v-card-text"), $ = n("v-card"), S = n("v-btn"), M = n("v-alert"), E = n("v-progress-circular"), f = n("v-table");
-      return c(), J("div", null, [
+      return m(), J("div", null, [
         C[3] || (C[3] = u("h1", { class: "text-h4 mb-4" }, "Database bench", -1)),
         e($, {
           variant: "tonal",
@@ -3684,25 +3684,25 @@ const Gl = {
           color: "primary",
           "prepend-icon": "mdi-play",
           loading: R.value,
-          onClick: U
+          onClick: P
         }, {
           default: t(() => [...C[1] || (C[1] = [
             l(" Run bench ", -1)
           ])]),
           _: 1
         }, 8, ["loading"]),
-        d.value ? (c(), q(M, {
+        c.value ? (m(), q(M, {
           key: 0,
           type: "warning",
           variant: "tonal",
           class: "mt-4"
         }, {
           default: t(() => [
-            l(h(d.value), 1)
+            l(h(c.value), 1)
           ]),
           _: 1
         })) : K("", !0),
-        D.value.length ? (c(), q(f, {
+        D.value.length ? (m(), q(f, {
           key: 1,
           density: "compact",
           class: "mt-4",
@@ -3716,17 +3716,17 @@ const Gl = {
               ])
             ], -1)),
             u("tbody", null, [
-              (c(!0), J(ve, null, ke(D.value, (p) => (c(), J("tr", {
+              (m(!0), J(ve, null, ke(D.value, (p) => (m(), J("tr", {
                 key: p.step
               }, [
                 u("td", null, h(p.step), 1),
                 u("td", null, [
-                  p.loading ? (c(), q(E, {
+                  p.loading ? (m(), q(E, {
                     key: 0,
                     size: "16",
                     width: "2",
                     indeterminate: ""
-                  })) : (c(), J("span", bl, h(p.duration ?? "—"), 1))
+                  })) : (m(), J("span", bl, h(p.duration ?? "—"), 1))
                 ])
               ]))), 128))
             ])
@@ -3738,8 +3738,8 @@ const Gl = {
   }
 }, wl = { class: "d-flex align-center mb-4" }, xl = {
   __name: "ApiHomeView",
-  setup(m) {
-    const P = pe(), j = s(!0), I = s(null), R = "/", d = `${R}rest/swagger-ui-bundle.js`, D = `${R}rest/swagger-ui-standalone-preset.js`, U = `${R}rest/swagger-ui.css`, T = `${R}rest/index.css`, C = `${R}rest/openapi.json`;
+  setup(d) {
+    const U = pe(), T = s(!0), I = s(null), R = "/", c = `${R}rest/swagger-ui-bundle.js`, D = `${R}rest/swagger-ui-standalone-preset.js`, P = `${R}rest/swagger-ui.css`, j = `${R}rest/index.css`, C = `${R}rest/openapi.json`;
     function i() {
       return () => ({
         fn: {
@@ -3791,22 +3791,22 @@ const Gl = {
       });
     }
     return me(async () => {
-      P.setTitle("API"), P.setBreadcrumbs([{ title: "API" }]), $(U, "swagger-ui-css"), $(T, "swagger-ui-extra-css");
+      U.setTitle("API"), U.setBreadcrumbs([{ title: "API" }]), $(P, "swagger-ui-css"), $(j, "swagger-ui-extra-css");
       try {
         await Promise.all([
-          M(d, "swagger-ui-bundle"),
+          M(c, "swagger-ui-bundle"),
           M(D, "swagger-ui-preset")
         ]), E();
       } catch (f) {
         I.value = f.message || "Unable to load Swagger UI.";
       } finally {
-        j.value = !1;
+        T.value = !1;
       }
     }), Ke(() => {
       S("swagger-ui-css"), S("swagger-ui-extra-css"), delete window.ui;
     }), (f, p) => {
       const N = n("v-spacer"), G = n("v-btn"), z = n("v-alert"), A = n("v-progress-linear");
-      return c(), J("div", null, [
+      return m(), J("div", null, [
         u("div", wl, [
           p[1] || (p[1] = u("h1", { class: "text-h4" }, "API reference", -1)),
           e(N),
@@ -3822,7 +3822,7 @@ const Gl = {
             _: 1
           }, 8, ["href"])
         ]),
-        I.value ? (c(), q(z, {
+        I.value ? (m(), q(z, {
           key: 0,
           type: "warning",
           variant: "tonal",
@@ -3833,7 +3833,7 @@ const Gl = {
           ]),
           _: 1
         })) : K("", !0),
-        j.value ? (c(), q(A, {
+        T.value ? (m(), q(A, {
           key: 1,
           indeterminate: "",
           color: "primary",
@@ -3848,15 +3848,15 @@ const Gl = {
   }
 }, Vl = /* @__PURE__ */ we(xl, [["__scopeId", "data-v-f74586ba"]]), Cl = { class: "d-flex align-center mb-4" }, $l = { class: "mb-0 text-body-2" }, Sl = {
   __name: "ApiTokenView",
-  setup(m) {
-    const P = fe(), j = pe(), I = he(), R = "/", d = typeof window < "u" ? window.location.origin : "", D = ce(() => I.userName || "<you>"), U = s([]), T = s(!1), C = s(null), i = s(!1), $ = s(null), S = s(""), M = s(!1), E = s(!1), f = s(""), p = s(""), N = s(!1), G = s(""), z = s(""), A = s(!1), V = s(!1), r = s(!1), v = s(""), y = s(!1), o = { required: (B) => !!B || "Required" }, L = [
+  setup(d) {
+    const U = fe(), T = pe(), I = he(), R = "/", c = typeof window < "u" ? window.location.origin : "", D = ce(() => I.userName || "<you>"), P = s([]), j = s(!1), C = s(null), i = s(!1), $ = s(null), S = s(""), M = s(!1), E = s(!1), f = s(""), p = s(""), N = s(!1), G = s(""), z = s(""), A = s(!1), V = s(!1), r = s(!1), v = s(""), y = s(!1), o = { required: (B) => !!B || "Required" }, L = [
       { title: "Name", key: "name", sortable: !0 },
       { title: "", key: "actions", sortable: !1, width: "140px", align: "end" }
     ];
     async function x() {
-      T.value = !0, C.value = null;
-      const B = await P.get("rest/api/token");
-      U.value = Array.isArray(B) ? B.map((g) => ({ name: g })) : [], T.value = !1;
+      j.value = !0, C.value = null;
+      const B = await U.get("rest/api/token");
+      P.value = Array.isArray(B) ? B.map((g) => ({ name: g })) : [], j.value = !1;
     }
     function Q() {
       S.value = "", i.value = !0;
@@ -3865,12 +3865,12 @@ const Gl = {
       const { valid: B } = await $.value.validate();
       if (!B) return;
       M.value = !0;
-      const g = await P.post(`rest/api/token/${encodeURIComponent(S.value)}`);
+      const g = await U.post(`rest/api/token/${encodeURIComponent(S.value)}`);
       M.value = !1, g !== null && (f.value = S.value, p.value = typeof g == "string" ? g : (g == null ? void 0 : g.id) || "", i.value = !1, E.value = !0, x());
     }
     async function _(B, g) {
       G.value = B, z.value = "", V.value = !1, N.value = !0, A.value = !0;
-      const H = `rest/api/token/${encodeURIComponent(B)}`, le = g === "regen" ? await P.put(H) : await P.get(H);
+      const H = `rest/api/token/${encodeURIComponent(B)}`, le = g === "regen" ? await U.put(H) : await U.get(H);
       z.value = typeof le == "string" ? le : (le == null ? void 0 : le.id) || "", A.value = !1;
     }
     async function a() {
@@ -3891,13 +3891,13 @@ const Gl = {
       v.value = B, r.value = !0;
     }
     async function X() {
-      y.value = !0, await P.del(`rest/api/token/${encodeURIComponent(v.value)}`), y.value = !1, r.value = !1, x();
+      y.value = !0, await U.del(`rest/api/token/${encodeURIComponent(v.value)}`), y.value = !1, r.value = !1, x();
     }
     return me(() => {
-      j.setTitle("API tokens"), j.setBreadcrumbs([{ title: "API", to: "/api" }, { title: "Tokens" }]), x();
+      T.setTitle("API tokens"), T.setBreadcrumbs([{ title: "API", to: "/api" }, { title: "Tokens" }]), x();
     }), (B, g) => {
       const H = n("v-spacer"), le = n("v-btn"), W = n("v-card-text"), oe = n("v-card"), re = n("v-alert"), O = n("v-icon"), ie = n("v-data-table"), de = n("v-card-title"), _e = n("v-text-field"), w = n("v-form"), b = n("v-card-actions"), Y = n("v-dialog"), F = n("v-progress-linear"), ne = n("v-textarea");
-      return c(), J("div", null, [
+      return m(), J("div", null, [
         u("div", Cl, [
           g[11] || (g[11] = u("h1", { class: "text-h4" }, "API tokens", -1)),
           e(H),
@@ -3928,7 +3928,7 @@ const Gl = {
                 ], -1)),
                 u("p", $l, [
                   g[12] || (g[12] = l(" Example: ", -1)),
-                  u("code", null, " GET " + h(se(d)) + h(se(R)) + "rest/project?api-key=<token>&api-user=" + h(D.value), 1)
+                  u("code", null, " GET " + h(se(c)) + h(se(R)) + "rest/project?api-key=<token>&api-user=" + h(D.value), 1)
                 ])
               ]),
               _: 1
@@ -3936,7 +3936,7 @@ const Gl = {
           ]),
           _: 1
         }),
-        C.value ? (c(), q(re, {
+        C.value ? (m(), q(re, {
           key: 0,
           type: "warning",
           variant: "tonal",
@@ -3949,8 +3949,8 @@ const Gl = {
         })) : K("", !0),
         e(ie, {
           headers: L,
-          items: U.value,
-          loading: T.value,
+          items: P.value,
+          loading: j.value,
           "items-per-page": -1,
           "hide-default-footer": "",
           density: "compact"
@@ -4098,7 +4098,7 @@ const Gl = {
                 }),
                 e(W, null, {
                   default: t(() => [
-                    A.value ? (c(), q(F, {
+                    A.value ? (m(), q(F, {
                       key: 0,
                       indeterminate: "",
                       color: "primary",
@@ -4114,7 +4114,7 @@ const Gl = {
                       "append-inner-icon": "mdi-content-copy",
                       "onClick:appendInner": a
                     }, null, 8, ["modelValue"]),
-                    V.value ? (c(), q(re, {
+                    V.value ? (m(), q(re, {
                       key: 1,
                       type: "success",
                       variant: "tonal",
@@ -4271,10 +4271,10 @@ const Gl = {
       ]);
     };
   }
-}, hl = { class: "d-flex align-center mb-4" }, Ul = { class: "pa-4" }, Pl = { class: "pa-4" }, Nl = { class: "text-body-2 text-medium-emphasis mb-4" }, Tl = { class: "d-flex align-center pa-2" }, jl = {
+}, hl = { class: "d-flex align-center mb-4" }, Ul = { class: "pa-4" }, Pl = { class: "pa-4" }, Nl = { class: "text-body-2 text-medium-emphasis mb-4" }, jl = { class: "d-flex align-center pa-2" }, Tl = {
   __name: "SubscribeWizardView",
-  setup(m) {
-    const P = Ae(), j = Ue(), I = fe(), R = pe(), d = ce(() => P.query.project ?? P.params.id ?? null), D = s(null), U = s(!1), T = s(null), C = s(1), i = Ve({
+  setup(d) {
+    const U = Ae(), T = Ue(), I = fe(), R = pe(), c = ce(() => U.query.project ?? U.params.id ?? null), D = s(null), P = s(!1), j = s(null), C = s(1), i = Ve({
       service: null,
       tool: null,
       node: null,
@@ -4301,10 +4301,10 @@ const Gl = {
       return (w.mandatory || w.required) && b.push((Y) => Y !== "" && Y != null || "Required"), b;
     }
     async function a() {
-      if (!d.value) return;
-      U.value = !0;
-      const w = await I.get(`rest/project/${d.value}`);
-      D.value = w || null, U.value = !1;
+      if (!c.value) return;
+      P.value = !0;
+      const w = await I.get(`rest/project/${c.value}`);
+      D.value = w || null, P.value = !1;
     }
     async function k() {
       N.value = !0, $.value = await H("rest/node?refined=service&rows=1000"), N.value = !1;
@@ -4352,14 +4352,14 @@ const Gl = {
     async function O() {
       const { valid: w } = p.value ? await p.value.validate() : { valid: !0 };
       if (!w) return;
-      V.value = !0, T.value = null;
+      V.value = !0, j.value = null;
       const b = {
         node: i.node.id,
-        project: Number(d.value),
+        project: Number(c.value),
         mode: i.mode,
         parameters: E.value.map((F) => ie(F)).filter(Boolean)
       }, Y = await I.post("rest/subscription", b);
-      V.value = !1, Y != null ? j.push(`/home/project/${d.value}`) : T.value = "Subscription creation failed — please review the highlighted parameters.";
+      V.value = !1, Y != null ? T.push(`/home/project/${c.value}`) : j.value = "Subscription creation failed — please review the highlighted parameters.";
     }
     function ie(w) {
       const b = f[w.id];
@@ -4372,7 +4372,7 @@ const Gl = {
       R.setTitle("Subscribe"), R.setBreadcrumbs([
         { title: "Home", to: "/" },
         { title: "Projects", to: "/home/project" },
-        ...d.value ? [{ title: d.value, to: `/home/project/${d.value}` }, { title: "Subscribe" }] : [{ title: "Subscribe" }]
+        ...c.value ? [{ title: c.value, to: `/home/project/${c.value}` }, { title: "Subscribe" }] : [{ title: "Subscribe" }]
       ]), await a(), D.value && await k();
     });
     const de = {
@@ -4422,7 +4422,7 @@ const Gl = {
     }
     return (w, b) => {
       const Y = n("v-spacer"), F = n("v-btn"), ne = n("router-link"), ae = n("v-alert"), ye = n("v-radio"), Le = n("v-radio-group"), Ee = n("v-progress-linear"), Ce = n("v-text-field"), Be = n("v-checkbox"), Pe = n("v-select"), qe = n("v-form"), Me = n("v-stepper");
-      return c(), J("div", null, [
+      return m(), J("div", null, [
         u("div", hl, [
           b[3] || (b[3] = u("h1", { class: "text-h4" }, "Subscribe", -1)),
           e(Y),
@@ -4436,7 +4436,7 @@ const Gl = {
             _: 1
           }, 8, ["to"])
         ]),
-        d.value ? U.value ? (c(), q(ae, {
+        c.value ? P.value ? (m(), q(ae, {
           key: 1,
           type: "info",
           variant: "tonal",
@@ -4447,7 +4447,7 @@ const Gl = {
             l(" Loading project… ", -1)
           ])]),
           _: 1
-        })) : D.value ? (c(), q(ae, {
+        })) : D.value ? (m(), q(ae, {
           key: 2,
           type: "info",
           variant: "tonal",
@@ -4462,7 +4462,7 @@ const Gl = {
             b[10] || (b[10] = u("span", { class: "text-caption text-warning" }, "Subscribing is not an idempotent operation — removing a subscription later may not clean up remote data automatically.", -1))
           ]),
           _: 1
-        })) : K("", !0) : (c(), q(ae, {
+        })) : K("", !0) : (m(), q(ae, {
           key: 0,
           type: "info",
           variant: "tonal",
@@ -4481,18 +4481,18 @@ const Gl = {
           ]),
           _: 1
         })),
-        T.value ? (c(), q(ae, {
+        j.value ? (m(), q(ae, {
           key: 3,
           type: "warning",
           variant: "tonal",
           class: "mb-4"
         }, {
           default: t(() => [
-            l(h(T.value), 1)
+            l(h(j.value), 1)
           ]),
           _: 1
         })) : K("", !0),
-        D.value ? (c(), q(Me, {
+        D.value ? (m(), q(Me, {
           key: 4,
           modelValue: C.value,
           "onUpdate:modelValue": b[1] || (b[1] = (ue) => C.value = ue),
@@ -4555,7 +4555,7 @@ const Gl = {
                 inline: ""
               }, {
                 default: t(() => [
-                  (c(!0), J(ve, null, ke(o.value, (ue) => (c(), q(ye, {
+                  (m(!0), J(ve, null, ke(o.value, (ue) => (m(), q(ye, {
                     key: ue.value,
                     value: ue.value,
                     label: ue.label
@@ -4575,13 +4575,13 @@ const Gl = {
                   u("code", null, h((ue = i.node) == null ? void 0 : ue.id), 1),
                   b[14] || (b[14] = l(". ", -1))
                 ]),
-                A.value ? (c(), q(Ee, {
+                A.value ? (m(), q(Ee, {
                   key: 0,
                   indeterminate: "",
                   color: "primary",
                   class: "mb-3"
                 })) : K("", !0),
-                !A.value && E.value.length === 0 ? (c(), q(ae, {
+                !A.value && E.value.length === 0 ? (m(), q(ae, {
                   key: 1,
                   type: "info",
                   variant: "tonal",
@@ -4597,11 +4597,11 @@ const Gl = {
                   ref: p
                 }, {
                   default: t(() => [
-                    (c(!0), J(ve, null, ke(E.value, (Z) => (c(), J("div", {
+                    (m(!0), J(ve, null, ke(E.value, (Z) => (m(), J("div", {
                       key: Z.id,
                       class: "mb-3"
                     }, [
-                      x(Z) ? (c(), q(Ce, {
+                      x(Z) ? (m(), q(Ce, {
                         key: 0,
                         modelValue: f[Z.id],
                         "onUpdate:modelValue": (ge) => f[Z.id] = ge,
@@ -4612,7 +4612,7 @@ const Gl = {
                         "persistent-hint": "",
                         variant: "outlined",
                         density: "compact"
-                      }, null, 8, ["modelValue", "onUpdate:modelValue", "type", "label", "rules", "hint"])) : Z.type === "integer" ? (c(), q(Ce, {
+                      }, null, 8, ["modelValue", "onUpdate:modelValue", "type", "label", "rules", "hint"])) : Z.type === "integer" ? (m(), q(Ce, {
                         key: 1,
                         modelValue: f[Z.id],
                         "onUpdate:modelValue": (ge) => f[Z.id] = ge,
@@ -4626,7 +4626,7 @@ const Gl = {
                         "persistent-hint": "",
                         variant: "outlined",
                         density: "compact"
-                      }, null, 8, ["modelValue", "onUpdate:modelValue", "min", "max", "label", "rules", "hint"])) : Z.type === "bool" ? (c(), q(Be, {
+                      }, null, 8, ["modelValue", "onUpdate:modelValue", "min", "max", "label", "rules", "hint"])) : Z.type === "bool" ? (m(), q(Be, {
                         key: 2,
                         modelValue: f[Z.id],
                         "onUpdate:modelValue": (ge) => f[Z.id] = ge,
@@ -4634,7 +4634,7 @@ const Gl = {
                         hint: Z.description,
                         "persistent-hint": "",
                         density: "compact"
-                      }, null, 8, ["modelValue", "onUpdate:modelValue", "label", "hint"])) : Z.type === "select" ? (c(), q(Pe, {
+                      }, null, 8, ["modelValue", "onUpdate:modelValue", "label", "hint"])) : Z.type === "select" ? (m(), q(Pe, {
                         key: 3,
                         modelValue: f[Z.id],
                         "onUpdate:modelValue": (ge) => f[Z.id] = ge,
@@ -4645,7 +4645,7 @@ const Gl = {
                         "persistent-hint": "",
                         variant: "outlined",
                         density: "compact"
-                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items", "label", "rules", "hint"])) : Z.type === "multiselect" || Z.type === "tags" ? (c(), q(Pe, {
+                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items", "label", "rules", "hint"])) : Z.type === "multiselect" || Z.type === "tags" ? (m(), q(Pe, {
                         key: 4,
                         modelValue: f[Z.id],
                         "onUpdate:modelValue": (ge) => f[Z.id] = ge,
@@ -4658,7 +4658,7 @@ const Gl = {
                         multiple: "",
                         variant: "outlined",
                         density: "compact"
-                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items", "label", "rules", "hint"])) : (c(), q(Ce, {
+                      }, null, 8, ["modelValue", "onUpdate:modelValue", "items", "label", "rules", "hint"])) : (m(), q(Ce, {
                         key: 5,
                         modelValue: f[Z.id],
                         "onUpdate:modelValue": (ge) => f[Z.id] = ge,
@@ -4677,8 +4677,8 @@ const Gl = {
             ];
           }),
           actions: t(({ prev: ue, next: Z }) => [
-            u("div", Tl, [
-              C.value > 1 ? (c(), q(F, {
+            u("div", jl, [
+              C.value > 1 ? (m(), q(F, {
                 key: 0,
                 variant: "text",
                 "prepend-icon": "mdi-arrow-left",
@@ -4690,7 +4690,7 @@ const Gl = {
                 _: 1
               }, 8, ["onClick"])) : K("", !0),
               e(Y),
-              C.value < r.value.length ? (c(), q(F, {
+              C.value < r.value.length ? (m(), q(F, {
                 key: 1,
                 color: "primary",
                 disabled: !y.value,
@@ -4701,7 +4701,7 @@ const Gl = {
                   l("Next", -1)
                 ])]),
                 _: 1
-              }, 8, ["disabled", "onClick"])) : (c(), q(F, {
+              }, 8, ["disabled", "onClick"])) : (m(), q(F, {
                 key: 2,
                 color: "success",
                 "prepend-icon": "mdi-check",
@@ -4721,9 +4721,17 @@ const Gl = {
       ]);
     };
   }
-}, Ne = /* @__PURE__ */ we(jl, [["__scopeId", "data-v-47b9f499"]]), zl = {
+}, Ne = /* @__PURE__ */ we(Tl, [["__scopeId", "data-v-47b9f499"]]);
+if (typeof document < "u") {
+  const d = "ligoj-plugin-ui-css";
+  if (!document.getElementById(d)) {
+    const U = document.createElement("link");
+    U.id = d, U.rel = "stylesheet", U.href = new URL("./index.css", import.meta.url).href, document.head.appendChild(U);
+  }
+}
+const zl = {
   sample: De.sample
-}, Te = [
+}, je = [
   { path: "/home", name: "ui-home", component: pt },
   { path: "/home/manual", name: "ui-manual", component: Mt },
   { path: "/home/project", name: "ui-project-list", component: Ct },
@@ -4746,15 +4754,15 @@ const Gl = {
   id: "ui",
   label: "UI",
   component: Qe,
-  routes: Te,
-  install({ router: m }) {
-    for (const P of Te)
-      m.addRoute(P);
+  routes: je,
+  install({ router: d }) {
+    for (const U of je)
+      d.addRoute(U);
   },
-  feature(m, ...P) {
-    const j = zl[m];
-    if (!j) throw new Error(`Plugin "ui" has no feature "${m}"`);
-    return j(...P);
+  feature(d, ...U) {
+    const T = zl[d];
+    if (!T) throw new Error(`Plugin "ui" has no feature "${d}"`);
+    return T(...U);
   },
   service: De,
   meta: { icon: "mdi-view-dashboard", color: "indigo-darken-2" }

@@ -1,3 +1,21 @@
+// Load the sibling index.css at runtime. Vite's library build emits it as
+// a separate file but does NOT add `import './index.css'` to the JS entry
+// — so when the host dynamic-imports this bundle the stylesheet never
+// loads and none of the scoped or global SFC styles apply. Injecting a
+// <link rel="stylesheet"> resolved against import.meta.url keeps the
+// approach path-agnostic (works under /ligoj/webjars/ui/vue/... in prod
+// and under the dev proxy).
+if (typeof document !== 'undefined') {
+  const id = 'ligoj-plugin-ui-css'
+  if (!document.getElementById(id)) {
+    const link = document.createElement('link')
+    link.id = id
+    link.rel = 'stylesheet'
+    link.href = new URL('./index.css', import.meta.url).href
+    document.head.appendChild(link)
+  }
+}
+
 /*
  * Plugin "ui" — Ligoj shared UI (dashboard, project browser, system admin,
  * API docs, subscribe wizard). Ported from the legacy Cascade.js
