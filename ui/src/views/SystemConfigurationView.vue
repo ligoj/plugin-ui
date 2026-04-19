@@ -35,7 +35,7 @@
     <!-- Configuration table -->
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
-    <v-data-table :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact" class="configuration-table">
+    <LigojDataTable :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact" filename="configuration.csv" class="configuration-table">
       <template #item.value="{ item }">
         <span v-if="item.secured" class="text-medium-emphasis">•••••</span>
         <code v-else class="config-value" :title="item.value">{{ item.value }}</code>
@@ -59,7 +59,7 @@
           <v-icon size="small">mdi-delete</v-icon>
         </v-btn>
       </template>
-    </v-data-table>
+    </LigojDataTable>
 
     <!-- Create / edit dialog -->
     <v-dialog v-model="editDialog" max-width="600" persistent>
@@ -100,7 +100,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useApi, useAppStore } from '@ligoj/host'
+import { useApi, useAppStore, LigojDataTable } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -132,9 +132,9 @@ const rules = { required: (v) => (v !== '' && v != null) || 'Required' }
 const headers = [
   { title: 'Name', key: 'name', sortable: true, width: '220px' },
   { title: 'Value', key: 'value', sortable: false },
-  { title: '', key: 'secured', sortable: false, width: '32px', align: 'center' },
-  { title: '', key: 'source', sortable: false, width: '56px', align: 'center' },
-  { title: '', key: 'actions', sortable: false, width: '88px', align: 'end' },
+  { title: '', key: 'secured', sortable: true, width: '32px', align: 'center' },
+  { title: 'Source', key: 'source', sortable: true, width: '56px', align: 'center' },
+  { title: 'Actions', key: 'actions', sortable: false, width: '128px', align: 'end' },
 ]
 
 const SOURCE_ICONS = {
@@ -280,14 +280,17 @@ onMounted(() => {
   width: 100%;
   max-width: 100%;
 }
+
 .configuration-table .v-table__wrapper {
   overflow-x: hidden !important;
 }
+
 .configuration-table table {
   table-layout: fixed !important;
   width: 100% !important;
   max-width: 100% !important;
 }
+
 .configuration-table td,
 .configuration-table th {
   overflow: hidden;
