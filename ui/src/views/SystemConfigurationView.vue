@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="system-config-page">
     <div class="d-flex align-center mb-4">
       <h1 class="text-h4">System configuration</h1>
       <v-spacer />
@@ -89,9 +89,6 @@
           class="ml-1"
           title="Overridden"
         >mdi-alert</v-icon>
-      </template>
-      <template #item.sourceText="{ item }">
-        <span class="text-body-2 text-medium-emphasis cell-truncate" :title="item.source">{{ item.source }}</span>
       </template>
       <template #item.actions="{ item }">
         <v-btn icon size="small" variant="text" @click="openEdit(item)" title="Edit">
@@ -195,13 +192,16 @@ const deleting = ref(false)
 
 const rules = { required: (v) => (v !== '' && v != null) || 'Required' }
 
+// Column widths sum to ~420 px of fixed cells (plus flexible Value + Name).
+// The Source text column is intentionally dropped — the icon tooltip
+// (sourceTooltip) already exposes the raw `source` string, so keeping both
+// just consumed horizontal room.
 const headers = [
-  { title: 'Name',       key: 'name',       sortable: true,  width: '260px' },
-  { title: 'Value',      key: 'value',      sortable: false },
-  { title: '',           key: 'secured',    sortable: false, width: '40px',  align: 'center' },
-  { title: '',           key: 'source',     sortable: false, width: '60px',  align: 'center' },
-  { title: 'Source',     key: 'sourceText', sortable: true,  width: '200px' },
-  { title: '',           key: 'actions',    sortable: false, width: '100px', align: 'end' },
+  { title: 'Name',    key: 'name',    sortable: true,  width: '220px' },
+  { title: 'Value',   key: 'value',   sortable: false },
+  { title: '',        key: 'secured', sortable: false, width: '32px',  align: 'center' },
+  { title: '',        key: 'source',  sortable: false, width: '56px',  align: 'center' },
+  { title: '',        key: 'actions', sortable: false, width: '88px',  align: 'end' },
 ]
 
 const SOURCE_ICONS = {
@@ -312,8 +312,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Pin the table to the viewport width and respect column `width` hints so
- * the table renders without a horizontal scrollbar. */
+/* Belt-and-braces: also clip at the page root so nothing inside this view
+ * (the table or the encrypt-helper v-row) can force the app layout to
+ * scroll horizontally. min-width: 0 lets this div shrink below the
+ * intrinsic width of its flex/grid children. */
+.system-config-page {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* Pin the data table to the container width and respect column `width`
+ * hints instead of growing to fit the widest cell. */
+.configuration-table {
+  width: 100%;
+}
 .configuration-table :deep(.v-table__wrapper) {
   overflow-x: hidden;
 }
@@ -321,27 +334,19 @@ onMounted(() => {
   table-layout: fixed;
   width: 100%;
 }
-.configuration-table :deep(td) {
+.configuration-table :deep(td),
+.configuration-table :deep(th) {
   overflow: hidden;
 }
 
 .config-value {
-  display: inline-block;
+  display: block;
   background: rgba(0, 0, 0, 0.05);
   padding: 0.1em 0.35em;
   border-radius: 3px;
-  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  vertical-align: middle;
   font-size: 0.85em;
-}
-
-.cell-truncate {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>
