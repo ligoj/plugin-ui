@@ -26,6 +26,8 @@ import ProjectDetailView from './views/ProjectDetailView.vue'
 import ManualView from './views/ManualView.vue'
 
 import SystemView from './views/SystemView.vue'
+import SystemInfoView from './views/SystemInfoView.vue'
+import SystemConfigurationView from './views/SystemConfigurationView.vue'
 import SystemUserView from './views/SystemUserView.vue'
 import SystemRoleView from './views/SystemRoleView.vue'
 import SystemPluginView from './views/SystemPluginView.vue'
@@ -49,6 +51,8 @@ const routes = [
   { path: '/home/project/:id',          name: 'ui-project-detail',    component: ProjectDetailView },
 
   { path: '/system',                    name: 'ui-system',            component: SystemView },
+  { path: '/system/information',        name: 'ui-system-information', component: SystemInfoView },
+  { path: '/system/configuration',      name: 'ui-system-configuration', component: SystemConfigurationView },
   { path: '/system/user',               name: 'ui-system-user',       component: SystemUserView },
   { path: '/system/role',               name: 'ui-system-role',       component: SystemRoleView },
   { path: '/system/plugin',             name: 'ui-system-plugin',     component: SystemPluginView },

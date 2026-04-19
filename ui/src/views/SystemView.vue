@@ -21,12 +21,14 @@ import { onMounted } from 'vue'
 const app = useAppStore()
 
 const items = [
-  { to: '/system/user',   icon: 'mdi-account-multiple', title: 'Users',         subtitle: 'Active sessions and accounts' },
-  { to: '/system/role',   icon: 'mdi-shield-account',   title: 'Roles',         subtitle: 'Authorization rules' },
-  { to: '/system/plugin', icon: 'mdi-puzzle',           title: 'Plugins',       subtitle: 'Installed feature plugins' },
-  { to: '/system/node',   icon: 'mdi-server',           title: 'Nodes',         subtitle: 'Service & tool registrations' },
-  { to: '/system/cache',  icon: 'mdi-database-refresh', title: 'Cache',         subtitle: 'Invalidate application caches' },
-  { to: '/system/bench',  icon: 'mdi-speedometer',      title: 'Bench',         subtitle: 'Diagnostics' },
+  { to: '/system/information',   icon: 'mdi-information-outline', title: 'Information',   subtitle: 'Memory, CPU, timezone, build' },
+  { to: '/system/configuration', icon: 'mdi-tune',                title: 'Configuration', subtitle: 'Key/value settings and encrypt helper' },
+  { to: '/system/user',          icon: 'mdi-account-multiple',    title: 'Users',         subtitle: 'Active sessions and accounts' },
+  { to: '/system/role',          icon: 'mdi-shield-account',      title: 'Roles',         subtitle: 'Authorization rules' },
+  { to: '/system/plugin',        icon: 'mdi-puzzle',              title: 'Plugins',       subtitle: 'Installed feature plugins' },
+  { to: '/system/node',          icon: 'mdi-server',              title: 'Nodes',         subtitle: 'Service & tool registrations' },
+  { to: '/system/cache',         icon: 'mdi-database-refresh',    title: 'Cache',         subtitle: 'Invalidate application caches' },
+  { to: '/system/bench',         icon: 'mdi-speedometer',         title: 'Bench',         subtitle: 'Diagnostics' },
 ]
 
 onMounted(() => {
