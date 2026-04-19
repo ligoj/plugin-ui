@@ -44,13 +44,44 @@ import { useApi, useAppStore } from '@ligoj/host'
 const api = useApi()
 const app = useAppStore()
 
+// `prepare` is declared on the Java side as
+//   @Consumes({ APPLICATION_FORM_URLENCODED, MULTIPART_FORM_DATA })
+//   @Produces(TEXT_HTML)
+// so posting it with useApi (which ships an empty body and no
+// Content-Type) returns 415. Send a FormData body — fetch picks the
+// multipart boundary for us — and parse the text response ourselves.
+// The other four steps are well-behaved JSON endpoints and go through
+// useApi normally.
 const STEPS = [
-  { key: 'insert',     step: 'INSERT',     method: 'post', url: 'rest/system/bench/prepare' },
-  { key: 'select',     step: 'SELECT',     method: 'get',  url: 'rest/system/bench/read' },
-  { key: 'select-all', step: 'SELECT *',   method: 'get',  url: 'rest/system/bench/read/all' },
-  { key: 'update',     step: 'UPDATE',     method: 'put',  url: 'rest/system/bench/update' },
-  { key: 'delete',     step: 'DELETE',     method: 'del',  url: 'rest/system/bench/delete' },
+  { key: 'insert',     step: 'INSERT',   form: true, url: 'rest/system/bench/prepare' },
+  { key: 'select',     step: 'SELECT',   method: 'get', url: 'rest/system/bench/read' },
+  { key: 'select-all', step: 'SELECT *', method: 'get', url: 'rest/system/bench/read/all' },
+  { key: 'update',     step: 'UPDATE',   method: 'put', url: 'rest/system/bench/update' },
+  { key: 'delete',     step: 'DELETE',   method: 'del', url: 'rest/system/bench/delete' },
 ]
+
+/**
+ * Run a single bench step and return an object with `duration`.
+ * Form steps POST a FormData so the server's Consumes constraint is
+ * satisfied; we parse the (text/html) response as either JSON or a plain
+ * number, matching the legacy UI's intent.
+ */
+async function runStep(step) {
+  if (step.form) {
+    const resp = await fetch(`${import.meta.env.BASE_URL}${step.url}`, {
+      method: 'POST',
+      credentials: 'include',
+      body: new FormData(),
+    })
+    if (!resp.ok) throw new Error(`${step.step} HTTP ${resp.status}`)
+    const text = (await resp.text()).trim()
+    if (!text) return { duration: '' }
+    try { return JSON.parse(text) } catch { /* fall through */ }
+    const n = Number(text)
+    return { duration: Number.isFinite(n) ? n : text }
+  }
+  return api[step.method](step.url)
+}
 
 const running = ref(false)
 const error = ref(null)
@@ -64,10 +95,7 @@ async function run() {
   for (let i = 0; i < STEPS.length; i++) {
     results.value[i].loading = true
     try {
-      const payload = STEPS[i].method === 'post' || STEPS[i].method === 'put' ? undefined : null
-      const data = payload === null
-        ? await api[STEPS[i].method](STEPS[i].url)
-        : await api[STEPS[i].method](STEPS[i].url, payload)
+      const data = await runStep(STEPS[i])
       results.value[i].duration = data?.duration ?? '—'
     } catch (e) {
       error.value = `${STEPS[i].step} failed: ${e.message || e}`
