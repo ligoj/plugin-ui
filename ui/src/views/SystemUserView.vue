@@ -3,41 +3,16 @@
     <div class="d-flex flex-wrap align-center mb-4 ga-2">
       <h1 class="text-h4">System users</h1>
       <v-spacer />
-      <v-text-field
-        v-model="dt.search.value"
-        prepend-inner-icon="mdi-magnify"
-        label="Search"
-        variant="outlined"
-        density="compact"
-        hide-details
-        class="search-field"
-        @update:model-value="onSearch"
-      />
+      <v-text-field v-model="dt.search.value" prepend-inner-icon="mdi-magnify" label="Search" variant="outlined" density="compact" hide-details class="search-field" @update:model-value="onSearch" />
       <v-btn color="primary" prepend-icon="mdi-plus" @click="openNew">New</v-btn>
     </div>
 
     <v-alert v-if="dt.error.value" type="warning" variant="tonal" class="mb-4">{{ dt.error.value }}</v-alert>
 
-    <LigojDataTableServer
-      :headers="headers"
-      :items="dt.items.value"
-      :items-length="dt.totalItems.value"
-      :loading="dt.loading.value"
-      v-model:items-per-page="itemsPerPage"
-      item-value="login"
-      hover
-      filename="system-users.csv"
-      :fetch-all="fetchAllUsers"
-      @update:options="loadData"
-    >
+    <LigojDataTableServer :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value" v-model:items-per-page="itemsPerPage" item-value="login" hover
+      filename="system-users.csv" :fetch-all="fetchAllUsers" @update:options="loadData">
       <template #item.roles="{ item }">
-        <v-chip
-          v-for="r in (item.roles || [])"
-          :key="r.id"
-          size="x-small"
-          variant="tonal"
-          class="mr-1"
-        >{{ r.name }}</v-chip>
+        <v-chip v-for="r in (item.roles || [])" :key="r.id" size="x-small" variant="tonal" class="mr-1">{{ r.name }}</v-chip>
       </template>
       <template #item.actions="{ item }">
         <v-btn icon size="small" variant="text" @click="openEdit(item)">
@@ -54,27 +29,9 @@
         <v-card-title>{{ editTarget ? 'Edit system user' : 'New system user' }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field
-              v-model="editForm.login"
-              label="Login"
-              :rules="[rules.required]"
-              :disabled="!!editTarget"
-              variant="outlined"
-              class="mb-2"
-              autofocus
-            />
-            <v-autocomplete
-              v-model="editForm.roles"
-              label="Roles"
-              :items="allRoles"
-              item-value="id"
-              item-title="name"
-              multiple
-              chips
-              closable-chips
-              variant="outlined"
-              :rules="[rules.requiredArray]"
-            />
+            <v-text-field v-model="editForm.login" label="Login" :rules="[rules.required]" :disabled="!!editTarget" variant="outlined" class="mb-2" autofocus />
+            <v-autocomplete v-model="editForm.roles" label="Roles" :items="allRoles" item-value="id" item-title="name" multiple chips closable-chips variant="outlined"
+              :rules="[rules.requiredArray]" />
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -128,9 +85,9 @@ const rules = {
 }
 
 const headers = [
-  { title: 'Login', key: 'login',   sortable: true, width: '220px' },
-  { title: 'Roles', key: 'roles',   sortable: false },
-  { title: '',      key: 'actions', sortable: false, width: '100px', align: 'end' },
+  { title: 'Login', key: 'login', sortable: true, width: '300px' },
+  { title: 'Roles', key: 'roles', sortable: false },
+  { title: '', key: 'actions', sortable: false, width: '120px', align: 'end' },
 ]
 
 function loadData(options) {

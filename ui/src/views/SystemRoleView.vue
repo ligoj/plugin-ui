@@ -8,27 +8,12 @@
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
-    <v-data-table
-      :headers="headers"
-      :items="items"
-      :loading="loading"
-      :items-per-page="-1"
-      hide-default-footer
-      density="compact"
-    >
+    <v-data-table :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact">
       <template #item.authApi="{ item }">
-        <code
-          v-for="a in item['authorizations-api']"
-          :key="a.id || a.pattern"
-          class="auth-token"
-        >{{ a.pattern }}</code>
+        <code v-for="a in item['authorizations-api']" :key="a.id || a.pattern" class="auth-token">{{ a.pattern }}</code>
       </template>
       <template #item.authUi="{ item }">
-        <code
-          v-for="a in item['authorizations-ui']"
-          :key="a.id || a.pattern"
-          class="auth-token"
-        >{{ a.pattern }}</code>
+        <code v-for="a in item['authorizations-ui']" :key="a.id || a.pattern" class="auth-token">{{ a.pattern }}</code>
       </template>
       <template #item.actions="{ item }">
         <v-btn icon size="small" variant="text" @click="openEdit(item)">
@@ -45,40 +30,13 @@
         <v-card-title>{{ editTarget ? 'Edit role' : 'New role' }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field
-              v-model="editForm.name"
-              label="Name"
-              :rules="[rules.required]"
-              variant="outlined"
-              class="mb-4"
-              autofocus
-            />
+            <v-text-field v-model="editForm.name" label="Name" :rules="[rules.required]" variant="outlined" class="mb-4" autofocus />
 
-            <v-combobox
-              v-model="editForm.apiPatterns"
-              label="API authorization patterns (regex)"
-              :items="editForm.apiPatterns"
-              chips
-              closable-chips
-              multiple
-              variant="outlined"
-              hint="Press Enter after each pattern"
-              persistent-hint
-              class="mb-4"
-            />
+            <v-combobox v-model="editForm.apiPatterns" label="API authorization patterns (regex)" :items="editForm.apiPatterns" chips closable-chips multiple variant="outlined"
+              hint="Press Enter after each pattern" persistent-hint class="mb-4" />
 
-            <v-combobox
-              v-model="editForm.uiPatterns"
-              label="UI authorization patterns (regex)"
-              :items="editForm.uiPatterns"
-              chips
-              closable-chips
-              multiple
-              variant="outlined"
-              hint="Press Enter after each pattern"
-              persistent-hint
-              class="mb-2"
-            />
+            <v-combobox v-model="editForm.uiPatterns" label="UI authorization patterns (regex)" :items="editForm.uiPatterns" chips closable-chips multiple variant="outlined"
+              hint="Press Enter after each pattern" persistent-hint class="mb-2" />
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -126,10 +84,10 @@ const deleting = ref(false)
 const rules = { required: (v) => !!v || 'Required' }
 
 const headers = [
-  { title: 'Name',          key: 'name',    sortable: true,  width: '180px' },
-  { title: 'API patterns',  key: 'authApi', sortable: false },
-  { title: 'UI patterns',   key: 'authUi',  sortable: false },
-  { title: '',              key: 'actions', sortable: false, width: '100px', align: 'end' },
+  { title: 'Name', key: 'name', sortable: true, width: '180px' },
+  { title: 'API patterns', key: 'authApi', sortable: false },
+  { title: 'UI patterns', key: 'authUi', sortable: false },
+  { title: '', key: 'actions', sortable: false, width: '120px', align: 'end' },
 ]
 
 async function load() {
@@ -140,7 +98,7 @@ async function load() {
   // Split authorizations[] into ui / api for easier rendering.
   for (const r of rows) {
     r['authorizations-api'] = (r.authorizations || []).filter((a) => a.type === 'api')
-    r['authorizations-ui']  = (r.authorizations || []).filter((a) => a.type === 'ui')
+    r['authorizations-ui'] = (r.authorizations || []).filter((a) => a.type === 'ui')
   }
   items.value = rows
   loading.value = false
@@ -157,7 +115,7 @@ function openEdit(item) {
   editForm.value = {
     name: item.name,
     apiPatterns: (item['authorizations-api'] || []).map((a) => a.pattern),
-    uiPatterns:  (item['authorizations-ui']  || []).map((a) => a.pattern),
+    uiPatterns: (item['authorizations-ui'] || []).map((a) => a.pattern),
   }
   editDialog.value = true
 }
