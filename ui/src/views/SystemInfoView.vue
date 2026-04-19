@@ -27,17 +27,25 @@
               </div>
               <v-tooltip :text="memoryTooltip" location="top">
                 <template #activator="{ props: tipProps }">
-                  <div class="memory-bar" v-bind="tipProps">
-                    <div class="mem-used"  :style="{ width: memory.pctUsed + '%' }"></div>
-                    <div class="mem-committed" :style="{ width: memory.pctCommittedFree + '%' }"></div>
-                    <div class="mem-free"  :style="{ width: memory.pctFree + '%' }"></div>
+                  <div v-bind="tipProps">
+                    <v-progress-linear
+                      :model-value="memory.pctUsed"
+                      :buffer-value="memory.pctUsed + memory.pctCommittedFree"
+                      color="error"
+                      buffer-color="warning"
+                      buffer-opacity="0.8"
+                      bg-color="success"
+                      bg-opacity="0.35"
+                      height="14"
+                      rounded
+                    />
                   </div>
                 </template>
               </v-tooltip>
               <div class="d-flex mt-1 text-caption text-medium-emphasis ga-3">
-                <span><v-icon size="x-small" class="mem-dot-used"   >mdi-circle</v-icon> Used {{ memory.pctUsed }}%</span>
-                <span><v-icon size="x-small" class="mem-dot-commit" >mdi-circle</v-icon> Committed free {{ memory.pctCommittedFree }}%</span>
-                <span><v-icon size="x-small" class="mem-dot-free"   >mdi-circle</v-icon> Free {{ memory.pctFree }}%</span>
+                <span><v-icon size="x-small" color="error">mdi-circle</v-icon> Used {{ memory.pctUsed }}%</span>
+                <span><v-icon size="x-small" color="warning">mdi-circle</v-icon> Committed free {{ memory.pctCommittedFree }}%</span>
+                <span><v-icon size="x-small" color="success">mdi-circle</v-icon> Free {{ memory.pctFree }}%</span>
               </div>
             </div>
 
@@ -307,26 +315,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.memory-bar {
-  display: flex;
-  height: 18px;
-  background: rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.mem-used      { background: rgb(var(--v-theme-error)); }
-.mem-committed { background: rgb(var(--v-theme-warning)); }
-.mem-free      {
-  background: repeating-linear-gradient(
-    45deg,
-    rgb(var(--v-theme-success)),
-    rgb(var(--v-theme-success)) 6px,
-    rgba(var(--v-theme-success), 0.7) 6px,
-    rgba(var(--v-theme-success), 0.7) 12px
-  );
-}
-.mem-dot-used   :deep(.v-icon__svg) { color: rgb(var(--v-theme-error)); }
-.mem-dot-commit :deep(.v-icon__svg) { color: rgb(var(--v-theme-warning)); }
-.mem-dot-free   :deep(.v-icon__svg) { color: rgb(var(--v-theme-success)); }
-</style>
