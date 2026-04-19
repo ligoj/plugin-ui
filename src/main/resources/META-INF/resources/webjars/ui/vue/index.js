@@ -2463,7 +2463,7 @@ const Gl = {
       ]);
     };
   }
-}, ll = /* @__PURE__ */ we(tl, [["__scopeId", "data-v-29fcd801"]]), nl = { class: "d-flex flex-wrap align-center mb-4 ga-2" }, al = {
+}, ll = /* @__PURE__ */ we(tl, [["__scopeId", "data-v-5a0b4150"]]), nl = { class: "d-flex flex-wrap align-center mb-4 ga-2" }, al = {
   __name: "SystemUserView",
   setup(m) {
     const P = fe(), j = pe(), I = Ie("system/user/roles", { defaultSort: "login" }), R = s(25);

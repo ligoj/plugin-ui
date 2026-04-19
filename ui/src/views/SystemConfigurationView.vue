@@ -19,35 +19,14 @@
       <v-card-text>
         <v-row dense>
           <v-col cols="12" md="5">
-            <v-text-field
-              v-model="toEncrypt"
-              label="Text to encrypt"
-              variant="outlined"
-              density="compact"
-              hide-details
-              @keyup.enter="encrypt"
-            />
+            <v-text-field v-model="toEncrypt" label="Text to encrypt" variant="outlined" density="compact" hide-details @keyup.enter="encrypt" />
           </v-col>
           <v-col cols="auto">
-            <v-btn
-              color="primary"
-              prepend-icon="mdi-lock"
-              :loading="encrypting"
-              :disabled="!toEncrypt"
-              @click="encrypt"
-            >Encrypt</v-btn>
+            <v-btn color="primary" prepend-icon="mdi-lock" :loading="encrypting" :disabled="!toEncrypt" @click="encrypt">Encrypt</v-btn>
           </v-col>
           <v-col cols="12" md="6">
-            <v-text-field
-              :model-value="encrypted"
-              label="Result"
-              variant="outlined"
-              density="compact"
-              readonly
-              hide-details
-              :append-inner-icon="'mdi-content-copy'"
-              @click:append-inner="copy(encrypted)"
-            />
+            <v-text-field :model-value="encrypted" label="Result" variant="outlined" density="compact" readonly hide-details :append-inner-icon="'mdi-content-copy'"
+              @click:append-inner="copy(encrypted)" />
           </v-col>
         </v-row>
       </v-card-text>
@@ -56,15 +35,7 @@
     <!-- Configuration table -->
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
-    <v-data-table
-      :headers="headers"
-      :items="items"
-      :loading="loading"
-      :items-per-page="-1"
-      hide-default-footer
-      density="compact"
-      class="configuration-table"
-    >
+    <v-data-table :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact" class="configuration-table">
       <template #item.value="{ item }">
         <span v-if="item.secured" class="text-medium-emphasis">•••••</span>
         <code v-else class="config-value" :title="item.value">{{ item.value }}</code>
@@ -75,20 +46,10 @@
       <template #item.source="{ item }">
         <v-tooltip v-if="item.source" :text="sourceTooltip(item)" location="top">
           <template #activator="{ props: tipProps }">
-            <v-icon
-              v-bind="tipProps"
-              size="small"
-              :color="item.overridden ? 'warning' : undefined"
-            >{{ sourceIcon(item.source) }}</v-icon>
+            <v-icon v-bind="tipProps" size="small" :color="item.overridden ? 'warning' : undefined">{{ sourceIcon(item.source) }}</v-icon>
           </template>
         </v-tooltip>
-        <v-icon
-          v-if="item.overridden"
-          size="x-small"
-          color="warning"
-          class="ml-1"
-          title="Overridden"
-        >mdi-alert</v-icon>
+        <v-icon v-if="item.overridden" size="x-small" color="warning" class="ml-1" title="Overridden">mdi-alert</v-icon>
       </template>
       <template #item.actions="{ item }">
         <v-btn icon size="small" variant="text" @click="openEdit(item)" title="Edit">
@@ -106,38 +67,10 @@
         <v-card-title>{{ editTarget ? 'Edit configuration' : 'New configuration' }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field
-              v-model="editForm.name"
-              label="Name"
-              :rules="[rules.required]"
-              variant="outlined"
-              density="compact"
-              class="mb-2"
-              autofocus
-            />
-            <v-textarea
-              v-model="editForm.value"
-              label="Value"
-              :rules="[rules.required]"
-              :counter="1023"
-              maxlength="1023"
-              rows="3"
-              variant="outlined"
-              density="compact"
-              class="mb-2"
-            />
-            <v-checkbox
-              v-model="editForm.system"
-              label="Override system environment / properties"
-              density="compact"
-              hide-details
-            />
-            <v-checkbox
-              v-model="editForm.secured"
-              label="Secured (value is encrypted at rest)"
-              density="compact"
-              hide-details
-            />
+            <v-text-field v-model="editForm.name" label="Name" :rules="[rules.required]" variant="outlined" density="compact" class="mb-2" autofocus />
+            <v-textarea v-model="editForm.value" label="Value" :rules="[rules.required]" :counter="1023" maxlength="1023" rows="3" variant="outlined" density="compact" class="mb-2" />
+            <v-checkbox v-model="editForm.system" label="Override system environment / properties" density="compact" hide-details />
+            <v-checkbox v-model="editForm.secured" label="Secured (value is encrypted at rest)" density="compact" hide-details />
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -197,19 +130,19 @@ const rules = { required: (v) => (v !== '' && v != null) || 'Required' }
 // (sourceTooltip) already exposes the raw `source` string, so keeping both
 // just consumed horizontal room.
 const headers = [
-  { title: 'Name',    key: 'name',    sortable: true,  width: '220px' },
-  { title: 'Value',   key: 'value',   sortable: false },
-  { title: '',        key: 'secured', sortable: false, width: '32px',  align: 'center' },
-  { title: '',        key: 'source',  sortable: false, width: '56px',  align: 'center' },
-  { title: '',        key: 'actions', sortable: false, width: '88px',  align: 'end' },
+  { title: 'Name', key: 'name', sortable: true, width: '220px' },
+  { title: 'Value', key: 'value', sortable: false },
+  { title: '', key: 'secured', sortable: false, width: '32px', align: 'center' },
+  { title: '', key: 'source', sortable: false, width: '56px', align: 'center' },
+  { title: '', key: 'actions', sortable: false, width: '88px', align: 'end' },
 ]
 
 const SOURCE_ICONS = {
   systemEnvironment: 'mdi-desktop-classic',
-  systemProperties:  'mdi-language-java',
+  systemProperties: 'mdi-language-java',
   applicationConfig: 'mdi-file-code',
-  database:          'mdi-database',
-  classpath:         'mdi-file-code-outline',
+  database: 'mdi-database',
+  classpath: 'mdi-file-code-outline',
 }
 
 function sourceIcon(source) {
@@ -312,7 +245,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Belt-and-braces: also clip at the page root so nothing inside this view
+/* Belt-and-braces: clip at the page root so nothing inside this view
  * (the table or the encrypt-helper v-row) can force the app layout to
  * scroll horizontally. min-width: 0 lets this div shrink below the
  * intrinsic width of its flex/grid children. */
@@ -320,23 +253,6 @@ onMounted(() => {
   width: 100%;
   min-width: 0;
   overflow-x: hidden;
-}
-
-/* Pin the data table to the container width and respect column `width`
- * hints instead of growing to fit the widest cell. */
-.configuration-table {
-  width: 100%;
-}
-.configuration-table :deep(.v-table__wrapper) {
-  overflow-x: hidden;
-}
-.configuration-table :deep(table) {
-  table-layout: fixed;
-  width: 100%;
-}
-.configuration-table :deep(td),
-.configuration-table :deep(th) {
-  overflow: hidden;
 }
 
 .config-value {
@@ -348,5 +264,34 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.85em;
+}
+</style>
+
+<!--
+  Unscoped: Vuetify's inner table markup (.v-table__wrapper, <table>, <td>)
+  sits behind multiple template boundaries that Vue's scoped-CSS :deep()
+  does not reach consistently once this SFC is shipped through the
+  plugin-ui library bundle. Target the class directly so these rules
+  always win; scope stays confined via the unique `.configuration-table`
+  root class.
+-->
+<style>
+.configuration-table {
+  width: 100%;
+  max-width: 100%;
+}
+.configuration-table .v-table__wrapper {
+  overflow-x: hidden !important;
+}
+.configuration-table table {
+  table-layout: fixed !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+.configuration-table td,
+.configuration-table th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
