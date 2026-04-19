@@ -14,6 +14,7 @@
     <v-btn color="primary" prepend-icon="mdi-play" :loading="running" @click="run">
       Run bench
     </v-btn>
+    <v-number-input controlVariant="default" label="nb" v-model="nb"></v-number-input>
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mt-4">{{ error }}</v-alert>
 
@@ -43,6 +44,7 @@ import { useApi, useAppStore, APP_BASE } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
+const nb = ref(1000)
 
 // `prepare` is declared on the Java side as
 //   @Consumes({ APPLICATION_FORM_URLENCODED, MULTIPART_FORM_DATA })
@@ -53,11 +55,11 @@ const app = useAppStore()
 // The other four steps are well-behaved JSON endpoints and go through
 // useApi normally.
 const STEPS = [
-  { key: 'insert',     step: 'INSERT',   form: true, url: 'rest/system/bench/prepare' },
-  { key: 'select',     step: 'SELECT',   method: 'get', url: 'rest/system/bench/read' },
+  { key: 'insert', step: 'INSERT', form: true, url: 'rest/system/bench/prepare' },
+  { key: 'select', step: 'SELECT', method: 'get', url: 'rest/system/bench/read' },
   { key: 'select-all', step: 'SELECT *', method: 'get', url: 'rest/system/bench/read/all' },
-  { key: 'update',     step: 'UPDATE',   method: 'put', url: 'rest/system/bench/update' },
-  { key: 'delete',     step: 'DELETE',   method: 'del', url: 'rest/system/bench/delete' },
+  { key: 'update', step: 'UPDATE', method: 'put', url: 'rest/system/bench/update' },
+  { key: 'delete', step: 'DELETE', method: 'del', url: 'rest/system/bench/delete' },
 ]
 
 /**
@@ -68,10 +70,12 @@ const STEPS = [
  */
 async function runStep(step) {
   if (step.form) {
+    const form = new FormData();
+    form.append('nb', 1000);
     const resp = await fetch(`${APP_BASE}${step.url}`, {
       method: 'POST',
       credentials: 'include',
-      body: new FormData(),
+      body: form,
     })
     if (!resp.ok) throw new Error(`${step.step} HTTP ${resp.status}`)
     const text = (await resp.text()).trim()
