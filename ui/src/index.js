@@ -59,7 +59,9 @@ const routes = [
   { path: '/api',                       name: 'ui-api',               component: ApiHomeView },
   { path: '/api/token',                 name: 'ui-api-token',         component: ApiTokenView },
 
-  { path: '/subscribe',                 name: 'ui-subscribe',         component: SubscribeWizardView },
+  { path: '/subscribe',                            name: 'ui-subscribe',           component: SubscribeWizardView },
+  // Project-scoped entry used by ProjectDetailView's "Add subscription" button.
+  { path: '/home/project/:id/subscription',        name: 'ui-subscribe-project',   component: SubscribeWizardView },
 ]
 
 export default {
