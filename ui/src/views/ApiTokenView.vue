@@ -24,7 +24,7 @@
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
-    <v-data-table
+    <LigojDataTable filename="api-tokens.csv"
       :headers="headers"
       :items="rows"
       :loading="loading"
@@ -43,7 +43,7 @@
           <v-icon size="small">mdi-delete</v-icon>
         </v-btn>
       </template>
-    </v-data-table>
+    </LigojDataTable>
 
     <!-- Create token dialog -->
     <v-dialog v-model="createDialog" max-width="480" persistent>
@@ -142,7 +142,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useAuthStore, APP_BASE } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, APP_BASE, LigojDataTable } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()

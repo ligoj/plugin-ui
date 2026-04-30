@@ -32,7 +32,7 @@
       class="mb-4"
     />
 
-    <v-data-table-server
+    <LigojDataTableServer filename="projects.csv" :fetch-all="dt.loadAll"
       v-if="!dt.error.value"
       v-show="dt.items.value.length > 0 || !dt.loading.value"
       v-model:items-per-page="itemsPerPage"
@@ -68,7 +68,7 @@
           <v-icon size="small">mdi-delete</v-icon>
         </v-btn>
       </template>
-    </v-data-table-server>
+    </LigojDataTableServer>
 
     <!-- Create / edit dialog -->
     <v-dialog v-model="editDialog" max-width="600" persistent>
@@ -149,7 +149,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useApi, useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
+import { useApi, useAppStore, useDataTable, useI18nStore, LigojDataTableServer } from '@ligoj/host'
 import { toUser2Letters, getFullName, normalize } from '../useUiHelpers.js'
 
 const router = useRouter()

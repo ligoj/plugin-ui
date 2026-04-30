@@ -10,7 +10,7 @@
     <v-alert v-if="dt.error.value" type="warning" variant="tonal" class="mb-4">{{ dt.error.value }}</v-alert>
 
     <LigojDataTableServer :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value" v-model:items-per-page="itemsPerPage" item-value="login" hover
-      filename="system-users.csv" :fetch-all="fetchAllUsers" @update:options="loadData">
+      filename="system-users.csv" :fetch-all="dt.loadAll" @update:options="loadData">
       <template #item.roles="{ item }">
         <v-chip v-for="r in (item.roles || [])" :key="r.id" size="x-small" variant="tonal" class="mr-1">{{ r.name }}</v-chip>
       </template>
@@ -93,27 +93,6 @@ const headers = [
 function loadData(options) {
   lastOptions = options
   dt.load(options)
-}
-
-/**
- * Server-side pagination only hands us one page of users at a time.
- * When the table's tools menu asks for an export or a clipboard copy we
- * re-issue the same endpoint with a large page size so the whole set
- * ends up in the CSV / TSV. `rest/system/user/roles` tolerates this —
- * the underlying identity backend caps internally.
- */
-async function fetchAllUsers() {
-  const params = new URLSearchParams({
-    rows: '999999',
-    page: '1',
-    sidx: 'login',
-    sord: 'asc',
-  })
-  if (dt.search.value) params.set('search[value]', dt.search.value)
-  const resp = await fetch(`rest/system/user/roles?${params}`, { credentials: 'include' })
-  if (!resp.ok) return []
-  const data = await resp.json().catch(() => null)
-  return Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : [])
 }
 
 function onSearch() {

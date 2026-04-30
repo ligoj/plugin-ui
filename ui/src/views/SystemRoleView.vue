@@ -8,7 +8,7 @@
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
-    <v-data-table :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact">
+    <LigojDataTable filename="roles.csv" :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact">
       <template #item.authApi="{ item }">
         <code v-for="a in item['authorizations-api']" :key="a.id || a.pattern" class="auth-token">{{ a.pattern }}</code>
       </template>
@@ -23,7 +23,7 @@
           <v-icon size="small">mdi-delete</v-icon>
         </v-btn>
       </template>
-    </v-data-table>
+    </LigojDataTable>
 
     <v-dialog v-model="editDialog" max-width="640" persistent>
       <v-card>
@@ -63,7 +63,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useApi, useAppStore } from '@ligoj/host'
+import { useApi, useAppStore, LigojDataTable } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()

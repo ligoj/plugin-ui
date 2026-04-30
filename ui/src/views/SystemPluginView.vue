@@ -37,7 +37,7 @@
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
-    <v-data-table
+    <LigojDataTable filename="plugins.csv"
       :headers="headers"
       :items="items"
       :loading="loading"
@@ -90,7 +90,7 @@
           <v-icon size="small">mdi-delete</v-icon>
         </v-btn>
       </template>
-    </v-data-table>
+    </LigojDataTable>
 
     <!-- Install dialog: search-driven autocomplete -->
     <v-dialog v-model="installDialog" max-width="640" persistent>
@@ -196,7 +196,7 @@
 
 <script setup>
 import { ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useApi, useAppStore } from '@ligoj/host'
+import { useApi, useAppStore, LigojDataTable } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()

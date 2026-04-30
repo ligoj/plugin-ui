@@ -71,7 +71,7 @@
         No subscriptions attached to this project.
       </v-alert>
 
-      <v-data-table
+      <LigojDataTable filename="subscriptions.csv"
         v-else
         :headers="subHeaders"
         :items="subscriptions"
@@ -105,7 +105,7 @@
             <v-icon size="small">mdi-close</v-icon>
           </v-btn>
         </template>
-      </v-data-table>
+      </LigojDataTable>
     </template>
 
     <!-- Edit dialog (same shape as ProjectListView) -->
@@ -183,7 +183,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore, useErrorStore } from '@ligoj/host'
+import { useApi, useAppStore, useErrorStore, LigojDataTable } from '@ligoj/host'
 import { getFullName } from '../useUiHelpers.js'
 
 const route = useRoute()
