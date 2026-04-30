@@ -133,7 +133,7 @@ const headers = [
   { title: 'Name', key: 'name', sortable: true, width: '220px' },
   { title: 'Value', key: 'value', sortable: false },
   { title: '', key: 'secured', sortable: true, width: '32px', align: 'center' },
-  { title: 'Source', key: 'source', sortable: true, width: '56px', align: 'center' },
+  { title: 'Source', key: 'source', sortable: true, width: '80px', align: 'center' },
   { title: 'Actions', key: 'actions', sortable: false, width: '128px', align: 'end' },
 ]
 
