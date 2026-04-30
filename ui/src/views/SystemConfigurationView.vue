@@ -100,10 +100,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useApi, useAppStore, LigojDataTable, APP_BASE } from '@ligoj/host'
+import { useApi, useAppStore, useClipboard, LigojDataTable, APP_BASE } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
+const { copy } = useClipboard()
 
 const items = ref([])
 const loading = ref(false)
@@ -184,10 +185,6 @@ async function encrypt() {
   } finally {
     encrypting.value = false
   }
-}
-
-async function copy(text) {
-  try { await navigator.clipboard.writeText(text || '') } catch { /* ignore */ }
 }
 
 function openNew() {

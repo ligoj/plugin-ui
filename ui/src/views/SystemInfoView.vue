@@ -199,7 +199,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useAuthStore, APP_BASE } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useClipboard, APP_BASE } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -304,9 +304,7 @@ async function saveTimeZone(type, value) {
   updatingTz.value = null
 }
 
-async function copy(text) {
-  try { await navigator.clipboard.writeText(text || '') } catch { /* ignore */ }
-}
+const { copy } = useClipboard()
 
 onMounted(() => {
   app.setTitle('System information')
