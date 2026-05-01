@@ -6,13 +6,7 @@
       <v-btn variant="text" :to="cancelTo">Cancel</v-btn>
     </div>
 
-    <v-alert
-      v-if="!projectId"
-      type="info"
-      variant="tonal"
-      density="compact"
-      class="mb-4"
-    >
+    <v-alert v-if="!projectId" type="info" variant="tonal" density="compact" class="mb-4">
       No project selected. The wizard needs a project —
       <router-link to="/home/project">pick one</router-link>,
       then open this page from the project's "Add subscription" button.
@@ -44,18 +38,8 @@
           <p class="text-body-2 text-medium-emphasis mb-3">
             A service groups features implemented by one or more tools.
           </p>
-          <v-select
-            v-model="selected.service"
-            :items="services"
-            item-title="name"
-            item-value="id"
-            return-object
-            label="Service"
-            variant="outlined"
-            density="compact"
-            :loading="loadingServices"
-            :rules="[rules.required]"
-          >
+          <v-select v-model="selected.service" :items="services" item-title="name" item-value="id" return-object label="Service" variant="outlined" density="compact" :loading="loadingServices"
+            :rules="[rules.required]">
             <template #selection="{ item }">
               <span class="d-inline-flex align-center ga-2">
                 <NodeIcon :node="item.raw" /> {{ item.raw.name || item.raw.id }}
@@ -86,19 +70,8 @@
           <p class="text-body-2 text-medium-emphasis mb-3">
             A tool is one implementation of the service; several instances may be deployed.
           </p>
-          <v-select
-            v-model="selected.tool"
-            :items="tools"
-            item-title="name"
-            item-value="id"
-            return-object
-            label="Tool"
-            variant="outlined"
-            density="compact"
-            :loading="loadingTools"
-            :disabled="!selected.service"
-            :rules="selected.service ? [rules.required] : []"
-          >
+          <v-select v-model="selected.tool" :items="tools" item-title="name" item-value="id" return-object label="Tool" variant="outlined" density="compact" :loading="loadingTools"
+            :disabled="!selected.service" :rules="selected.service ? [rules.required] : []">
             <template #selection="{ item }">
               <span class="d-inline-flex align-center ga-2">
                 <NodeIcon :node="item.raw" /> {{ item.raw.name || item.raw.id }}
@@ -131,20 +104,8 @@
           </p>
 
           <div class="d-flex align-start ga-2">
-            <v-select
-              v-model="selected.node"
-              :items="nodes"
-              item-title="name"
-              item-value="id"
-              return-object
-              label="Instance"
-              variant="outlined"
-              density="compact"
-              :loading="loadingNodes"
-              :disabled="!selected.tool || showNewNode"
-              :rules="!showNewNode && selected.tool ? [rules.required] : []"
-              class="flex-grow-1"
-            >
+            <v-select v-model="selected.node" :items="nodes" item-title="name" item-value="id" return-object label="Instance" variant="outlined" density="compact" :loading="loadingNodes"
+              :disabled="!selected.tool || showNewNode" :rules="!showNewNode && selected.tool ? [rules.required] : []" class="flex-grow-1">
               <template #selection="{ item }">
                 <span class="d-inline-flex align-center ga-2">
                   <NodeIcon :node="item.raw" /> {{ item.raw.name || item.raw.id }}
@@ -161,12 +122,7 @@
                 </v-list-item>
               </template>
             </v-select>
-            <v-btn
-              variant="outlined"
-              :prepend-icon="showNewNode ? 'mdi-close' : 'mdi-plus'"
-              :disabled="!selected.tool"
-              @click="toggleNewNode"
-            >
+            <v-btn variant="outlined" :prepend-icon="showNewNode ? 'mdi-close' : 'mdi-plus'" :disabled="!selected.tool" @click="toggleNewNode">
               {{ showNewNode ? 'Pick existing' : 'New instance' }}
             </v-btn>
           </div>
@@ -177,33 +133,13 @@
                 Declares a node under <code>{{ selected.tool?.id }}</code>. Tool-specific
                 parameters can be added later via <strong>System → Nodes</strong>.
               </p>
-              <v-text-field
-                v-model="newNode.id"
-                label="ID"
-                :hint="`Suggested: ${selected.tool?.id}:my-instance`"
-                persistent-hint
-                variant="outlined"
-                density="compact"
-                class="mb-2"
-                :rules="showNewNode ? [rules.required, rules.nodeId] : []"
-              />
-              <v-text-field
-                v-model="newNode.name"
-                label="Name"
-                variant="outlined"
-                density="compact"
-                class="mb-2"
-                :rules="showNewNode ? [rules.required] : []"
-              />
+              <v-text-field v-model="newNode.id" label="ID" :hint="`Suggested: ${selected.tool?.id}:my-instance`" persistent-hint variant="outlined" density="compact" class="mb-2"
+                :rules="showNewNode ? [rules.required, rules.nodeId] : []" />
+              <v-text-field v-model="newNode.name" label="Name" variant="outlined" density="compact" class="mb-2" :rules="showNewNode ? [rules.required] : []" />
               <v-alert v-if="newNodeError" type="warning" variant="tonal" density="compact" class="mb-2">
                 {{ newNodeError }}
               </v-alert>
-              <v-btn
-                color="primary"
-                :loading="creatingNode"
-                :disabled="!newNode.id || !newNode.name"
-                @click="createNode"
-              >
+              <v-btn color="primary" :loading="creatingNode" :disabled="!newNode.id || !newNode.name" @click="createNode">
                 Create instance
               </v-btn>
             </div>
@@ -222,18 +158,8 @@
             <strong>Link</strong> attaches this project to an existing instance.
             <strong>Create</strong> additionally provisions a new instance inside the tool.
           </p>
-          <v-radio-group
-            v-model="selected.mode"
-            inline
-            :rules="selected.node ? [rules.required] : []"
-            hide-details
-          >
-            <v-radio
-              v-for="m in availableModes"
-              :key="m.value"
-              :value="m.value"
-              :label="m.label"
-            />
+          <v-radio-group v-model="selected.mode" inline :rules="selected.node ? [rules.required] : []" hide-details>
+            <v-radio v-for="m in availableModes" :key="m.value" :value="m.value" :label="m.label" />
           </v-radio-group>
         </v-card-text>
       </v-card>
@@ -252,91 +178,27 @@
             <span v-else>the chosen instance</span>.
           </p>
 
-          <v-alert
-            v-if="!loadingParams && selected.node && selected.mode && parameters.length === 0"
-            type="info"
-            variant="tonal"
-            density="compact"
-          >
+          <v-alert v-if="!loadingParams && selected.node && selected.mode && parameters.length === 0" type="info" variant="tonal" density="compact">
             This subscription requires no additional parameters.
           </v-alert>
 
-          <div
-            v-for="p in parameters"
-            :key="p.id"
-            class="mb-3"
-          >
-            <v-text-field
-              v-if="isTextParam(p)"
-              v-model="paramValues[p.id]"
-              :type="isPassword(p) ? 'password' : 'text'"
-              :label="paramLabel(p)"
-              :rules="ruleFor(p)"
-              :hint="p.description"
-              persistent-hint
-              variant="outlined"
-              density="compact"
-            />
+          <div v-for="p in parameters" :key="p.id" class="mb-3">
+            <v-text-field v-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="p.description" persistent-hint
+              variant="outlined" density="compact" />
 
-            <v-text-field
-              v-else-if="p.type === 'integer'"
-              v-model.number="paramValues[p.id]"
-              type="number"
-              :min="p.min"
-              :max="p.max"
-              :label="paramLabel(p)"
-              :rules="ruleFor(p)"
-              :hint="p.description"
-              persistent-hint
-              variant="outlined"
-              density="compact"
-            />
+            <v-text-field v-else-if="p.type === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="p.description"
+              persistent-hint variant="outlined" density="compact" />
 
-            <v-checkbox
-              v-else-if="p.type === 'bool'"
-              v-model="paramValues[p.id]"
-              :label="paramLabel(p)"
-              :hint="p.description"
-              persistent-hint
-              density="compact"
-            />
+            <v-checkbox v-else-if="p.type === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" :hint="p.description" persistent-hint density="compact" />
 
-            <v-select
-              v-else-if="p.type === 'select'"
-              v-model="paramValues[p.id]"
-              :items="p.values || []"
-              :label="paramLabel(p)"
-              :rules="ruleFor(p)"
-              :hint="p.description"
-              persistent-hint
-              variant="outlined"
-              density="compact"
-            />
+            <v-select v-else-if="p.type === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="p.description" persistent-hint
+              variant="outlined" density="compact" />
 
-            <v-select
-              v-else-if="p.type === 'multiselect' || p.type === 'tags'"
-              v-model="paramValues[p.id]"
-              :items="p.values || []"
-              :label="paramLabel(p)"
-              :rules="ruleFor(p)"
-              :hint="p.description"
-              persistent-hint
-              chips
-              multiple
-              variant="outlined"
-              density="compact"
-            />
+            <v-select v-else-if="p.type === 'multiselect' || p.type === 'tags'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="p.description"
+              persistent-hint chips multiple variant="outlined" density="compact" />
 
-            <v-text-field
-              v-else
-              v-model="paramValues[p.id]"
-              :label="paramLabel(p)"
-              :rules="ruleFor(p)"
-              :hint="`${p.description || ''} [${p.type}]`"
-              persistent-hint
-              variant="outlined"
-              density="compact"
-            />
+            <v-text-field v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="`${p.description || ''} [${p.type}]`" persistent-hint variant="outlined"
+              density="compact" />
           </div>
         </v-card-text>
       </v-card>
@@ -345,13 +207,7 @@
       <div class="d-flex align-center ga-2">
         <v-btn variant="text" :to="cancelTo" :disabled="creating">Cancel</v-btn>
         <v-spacer />
-        <v-btn
-          type="submit"
-          color="success"
-          prepend-icon="mdi-check"
-          :loading="creating"
-          :disabled="!ready"
-        >
+        <v-btn type="submit" color="success" prepend-icon="mdi-check" :loading="creating" :disabled="!ready">
           Create subscription
         </v-btn>
       </div>
@@ -412,10 +268,10 @@ const availableModes = computed(() => {
   const m = selected.tool?.mode
   const result = []
   if (m === 'all' || m === 'create') {
-    result.push({ value: 'create', label: 'Create — provision a new instance inside the tool' })
+    result.push({ value: 'create', label: 'Create — provision a new object inside the instance' })
   }
   if (m === 'all' || m === 'link' || !m) {
-    result.push({ value: 'link', label: 'Link — attach this project to an existing instance' })
+    result.push({ value: 'link', label: 'Link — attach this project to an existing object' })
   }
   return result
 })
@@ -667,10 +523,28 @@ const NodeIcon = defineComponent({
   },
 })
 
+function convertFromFontAwesome(uiClasses) {
+  if (uiClasses === 'far fa-id-badge') return 'mdi-badge-account-outline'
+  if (uiClasses === 'fa fa-suitcase') return 'mdi-briefcase-variant'
+  if (uiClasses === 'fa fa-database') return 'mdi-database-outline'
+  if (uiClasses === 'fab fa-jenkins') return 'mdi-flask'
+  if (uiClasses === 'fa fa-git') return 'mdi-git'
+  if (uiClasses === 'fa fa-github') return 'mdi-github'
+  if (uiClasses === 'fa fa-gitlab') return 'mdi-gitlab'
+  if (uiClasses === 'fa fa-industry') return 'mdi-factory'
+  if (uiClasses === 'fab fa-jira') return 'mdi-jira'
+  if (uiClasses === 'fab fa-confluence') return 'mdi-gitlab'
+  if (uiClasses === 'fa fa-envelope') return 'mdi-email-outline'
+  if (uiClasses === 'fab fa-aws') return 'mdi-aws'
+  if (uiClasses === 'fab fa-windows') return 'mdi-azure'
+  if (uiClasses === 'fas fa-cloud') return 'mdi-cloud-outline'
+  return uiClasses
+}
+
 function nodeIcon(node) {
   const id = (typeof node === 'string' ? node : node?.id) || ''
   const fragments = id.split(':')
-  const uiClasses = (typeof node === 'object' && node?.uiClasses) || ''
+  const uiClasses = convertFromFontAwesome((typeof node === 'object' && node?.uiClasses) || '')
 
   if (uiClasses) {
     const parts = uiClasses.split(/\s+/).filter(Boolean)
@@ -705,6 +579,7 @@ function nodeIcon(node) {
 .form-stack {
   max-width: 880px;
 }
+
 .section-heading {
   display: flex;
   align-items: center;
@@ -712,14 +587,17 @@ function nodeIcon(node) {
   font-weight: 500;
   margin-bottom: 0.25rem;
 }
+
 .tool-icon {
   width: 24px;
   height: 24px;
   object-fit: contain;
 }
+
 .tool-icon.broken {
   opacity: 0.3;
 }
+
 .icon-text {
   display: inline-block;
   padding: 0.05em 0.4em;
@@ -729,6 +607,7 @@ function nodeIcon(node) {
   font-size: 0.85em;
   font-weight: 500;
 }
+
 .new-node-form {
   background: rgba(var(--v-theme-on-surface), 0.04);
   border: 1px dashed rgba(var(--v-theme-on-surface), 0.18);
