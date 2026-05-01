@@ -216,9 +216,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, defineComponent, h } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore, APP_BASE } from '@ligoj/host'
+import { useApi, useAppStore, NodeIcon } from '@ligoj/host'
 
 const route = useRoute()
 const router = useRouter()
@@ -510,69 +510,9 @@ onMounted(async () => {
   if (project.value) await loadServices()
 })
 
-/* ------------- node icon helper ------------
- * Ports the legacy `toIcon` / `toIconBase` priority chain from
- * app-ui/main/main.js. See the previous wizard implementation for the
- * full breakdown — same algorithm.
- */
-const NodeIcon = defineComponent({
-  name: 'NodeIcon',
-  props: { node: { type: [Object, String], default: null } },
-  setup(props) {
-    return () => nodeIcon(props.node)
-  },
-})
-
-function convertFromFontAwesome(uiClasses) {
-  if (uiClasses === 'far fa-id-badge') return 'mdi-badge-account-outline'
-  if (uiClasses === 'fa fa-suitcase') return 'mdi-briefcase-variant'
-  if (uiClasses === 'fa fa-database') return 'mdi-database-outline'
-  if (uiClasses === 'fab fa-jenkins') return 'mdi-flask'
-  if (uiClasses === 'fa fa-git') return 'mdi-git'
-  if (uiClasses === 'fa fa-github') return 'mdi-github'
-  if (uiClasses === 'fa fa-gitlab') return 'mdi-gitlab'
-  if (uiClasses === 'fa fa-industry') return 'mdi-factory'
-  if (uiClasses === 'fab fa-jira') return 'mdi-jira'
-  if (uiClasses === 'fab fa-confluence') return 'mdi-gitlab'
-  if (uiClasses === 'fa fa-envelope') return 'mdi-email-outline'
-  if (uiClasses === 'fab fa-aws') return 'mdi-aws'
-  if (uiClasses === 'fab fa-windows') return 'mdi-azure'
-  if (uiClasses === 'fas fa-cloud') return 'mdi-cloud-outline'
-  return uiClasses
-}
-
-function nodeIcon(node) {
-  const id = (typeof node === 'string' ? node : node?.id) || ''
-  const fragments = id.split(':')
-  const uiClasses = convertFromFontAwesome((typeof node === 'object' && node?.uiClasses) || '')
-
-  if (uiClasses) {
-    const parts = uiClasses.split(/\s+/).filter(Boolean)
-    const explicit = parts.find((p) => p.startsWith('mdi-') || p.startsWith('fa-'))
-    if (explicit) {
-      const isMdi = explicit.startsWith('mdi-')
-      const rest = parts.filter((p) => p !== explicit).join(' ')
-      const cls = (isMdi ? 'mdi ' : '') + explicit + (rest ? ' ' + rest : '') + ' fa-fw'
-      return h('i', { class: cls })
-    }
-    if (uiClasses.startsWith('$')) {
-      return h('span', { class: 'icon-text' }, uiClasses.slice(1))
-    }
-    return h('span', { class: parts.join(' ') })
-  }
-
-  if (fragments.length < 3) {
-    return h('i', { class: 'mdi mdi-wrench fa-fw' })
-  }
-
-  const url = `${APP_BASE}main/service/${fragments[1]}/${fragments[2]}/img/${fragments[2]}.png`
-  return h('img', {
-    src: url,
-    alt: '',
-    class: 'tool-icon',
-    onError: (e) => { e.target.classList.add('broken') },
-  })
-}
+/* NodeIcon and the underlying nodeIcon() helper have moved to
+ * @ligoj/host (app-ui/src/components/NodeIcon.vue) so every plugin can
+ * use them. The FA → MDI translation table travels with them. */
 </script>
 
 <style scoped>
@@ -588,25 +528,7 @@ function nodeIcon(node) {
   margin-bottom: 0.25rem;
 }
 
-.tool-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-
-.tool-icon.broken {
-  opacity: 0.3;
-}
-
-.icon-text {
-  display: inline-block;
-  padding: 0.05em 0.4em;
-  background: rgba(var(--v-theme-primary), 0.15);
-  color: rgb(var(--v-theme-primary));
-  border-radius: 4px;
-  font-size: 0.85em;
-  font-weight: 500;
-}
+/* .tool-icon and .icon-text are shipped by @ligoj/host's NodeIcon.vue. */
 
 .new-node-form {
   background: rgba(var(--v-theme-on-surface), 0.04);
