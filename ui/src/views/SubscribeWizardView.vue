@@ -25,61 +25,209 @@
     <v-alert v-else-if="project" type="info" variant="tonal" density="compact" class="mb-4">
       Adding a subscription to <strong>{{ project.name }}</strong> ({{ project.pkey }}).
       <br>
-      <span class="text-caption text-warning">Subscribing is not an idempotent operation — removing a subscription later may not clean up remote data automatically.</span>
+      <span class="text-caption text-warning">
+        Subscribing is not an idempotent operation — removing a subscription later may not clean up remote data automatically.
+      </span>
     </v-alert>
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
-    <v-stepper
-      v-if="project"
-      v-model="step"
-      :items="stepItems"
-      alt-labels
-      :editable="stepEditable"
-      class="mb-4"
-    >
-      <template #item.1>
-        <StepChoice
-          heading="Select a service"
-          sub="A service groups features implemented by one or more tools."
-          :choices="services"
-          :loading="loadingServices"
-          :selected-id="selected.service?.id"
-          @select="pickService"
-        />
-      </template>
-
-      <template #item.2>
-        <StepChoice
-          :heading="`Select a tool providing ${selected.service?.name ?? '…'}`"
-          sub="A tool is one implementation of the service; several instances may be deployed."
-          :choices="tools"
-          :loading="loadingTools"
-          :selected-id="selected.tool?.id"
-          @select="pickTool"
-        />
-      </template>
-
-      <template #item.3>
-        <StepChoice
-          :heading="`Pick a node running ${selected.tool?.name ?? '…'}`"
-          sub="A node is a running instance of the tool."
-          :choices="nodes"
-          :loading="loadingNodes"
-          :selected-id="selected.node?.id"
-          @select="pickNode"
-        />
-      </template>
-
-      <template #item.4>
-        <div class="pa-4">
-          <h3 class="text-h6 mb-2">Subscription mode</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
-            <strong>Link</strong> attaches this project to an existing
-            instance in the tool. <strong>Create</strong> additionally
-            provisions a new instance inside the tool.
+    <v-form v-if="project" ref="formRef" class="form-stack" @submit.prevent="submit">
+      <!-- 1. Service ------------------------------------------------------ -->
+      <v-card variant="tonal" class="mb-4">
+        <v-card-text>
+          <div class="section-heading">
+            <v-icon class="mr-2">mdi-room-service-outline</v-icon>
+            <span>1. Service</span>
+            <v-progress-circular v-if="loadingServices" size="14" width="2" indeterminate class="ml-2" />
+          </div>
+          <p class="text-body-2 text-medium-emphasis mb-3">
+            A service groups features implemented by one or more tools.
           </p>
-          <v-radio-group v-model="selected.mode" inline>
+          <v-select
+            v-model="selected.service"
+            :items="services"
+            item-title="name"
+            item-value="id"
+            return-object
+            label="Service"
+            variant="outlined"
+            density="compact"
+            :loading="loadingServices"
+            :rules="[rules.required]"
+          >
+            <template #selection="{ item }">
+              <span class="d-inline-flex align-center ga-2">
+                <NodeIcon :node="item.raw" /> {{ item.raw.name || item.raw.id }}
+              </span>
+            </template>
+            <template #item="{ props: itemProps, item }">
+              <v-list-item v-bind="itemProps" :title="item.raw.name || item.raw.id">
+                <template #prepend>
+                  <NodeIcon :node="item.raw" class="mr-3" />
+                </template>
+                <template #subtitle>
+                  <code class="text-caption">{{ item.raw.id }}</code>
+                </template>
+              </v-list-item>
+            </template>
+          </v-select>
+        </v-card-text>
+      </v-card>
+
+      <!-- 2. Tool --------------------------------------------------------- -->
+      <v-card variant="tonal" class="mb-4" :disabled="!selected.service">
+        <v-card-text>
+          <div class="section-heading">
+            <v-icon class="mr-2">mdi-wrench</v-icon>
+            <span>2. Tool</span>
+            <v-progress-circular v-if="loadingTools" size="14" width="2" indeterminate class="ml-2" />
+          </div>
+          <p class="text-body-2 text-medium-emphasis mb-3">
+            A tool is one implementation of the service; several instances may be deployed.
+          </p>
+          <v-select
+            v-model="selected.tool"
+            :items="tools"
+            item-title="name"
+            item-value="id"
+            return-object
+            label="Tool"
+            variant="outlined"
+            density="compact"
+            :loading="loadingTools"
+            :disabled="!selected.service"
+            :rules="selected.service ? [rules.required] : []"
+          >
+            <template #selection="{ item }">
+              <span class="d-inline-flex align-center ga-2">
+                <NodeIcon :node="item.raw" /> {{ item.raw.name || item.raw.id }}
+              </span>
+            </template>
+            <template #item="{ props: itemProps, item }">
+              <v-list-item v-bind="itemProps" :title="item.raw.name || item.raw.id">
+                <template #prepend>
+                  <NodeIcon :node="item.raw" class="mr-3" />
+                </template>
+                <template #subtitle>
+                  <code class="text-caption">{{ item.raw.id }}</code>
+                </template>
+              </v-list-item>
+            </template>
+          </v-select>
+        </v-card-text>
+      </v-card>
+
+      <!-- 3. Instance (existing or new) ----------------------------------- -->
+      <v-card variant="tonal" class="mb-4" :disabled="!selected.tool">
+        <v-card-text>
+          <div class="section-heading">
+            <v-icon class="mr-2">mdi-server</v-icon>
+            <span>3. Instance</span>
+            <v-progress-circular v-if="loadingNodes" size="14" width="2" indeterminate class="ml-2" />
+          </div>
+          <p class="text-body-2 text-medium-emphasis mb-3">
+            An instance is a running node of the tool. Pick an existing one or declare a new one.
+          </p>
+
+          <div class="d-flex align-start ga-2">
+            <v-select
+              v-model="selected.node"
+              :items="nodes"
+              item-title="name"
+              item-value="id"
+              return-object
+              label="Instance"
+              variant="outlined"
+              density="compact"
+              :loading="loadingNodes"
+              :disabled="!selected.tool || showNewNode"
+              :rules="!showNewNode && selected.tool ? [rules.required] : []"
+              class="flex-grow-1"
+            >
+              <template #selection="{ item }">
+                <span class="d-inline-flex align-center ga-2">
+                  <NodeIcon :node="item.raw" /> {{ item.raw.name || item.raw.id }}
+                </span>
+              </template>
+              <template #item="{ props: itemProps, item }">
+                <v-list-item v-bind="itemProps" :title="item.raw.name || item.raw.id">
+                  <template #prepend>
+                    <NodeIcon :node="item.raw" class="mr-3" />
+                  </template>
+                  <template #subtitle>
+                    <code class="text-caption">{{ item.raw.id }}</code>
+                  </template>
+                </v-list-item>
+              </template>
+            </v-select>
+            <v-btn
+              variant="outlined"
+              :prepend-icon="showNewNode ? 'mdi-close' : 'mdi-plus'"
+              :disabled="!selected.tool"
+              @click="toggleNewNode"
+            >
+              {{ showNewNode ? 'Pick existing' : 'New instance' }}
+            </v-btn>
+          </div>
+
+          <v-expand-transition>
+            <div v-if="showNewNode" class="new-node-form mt-3 pa-3">
+              <p class="text-caption text-medium-emphasis mb-2">
+                Declares a node under <code>{{ selected.tool?.id }}</code>. Tool-specific
+                parameters can be added later via <strong>System → Nodes</strong>.
+              </p>
+              <v-text-field
+                v-model="newNode.id"
+                label="ID"
+                :hint="`Suggested: ${selected.tool?.id}:my-instance`"
+                persistent-hint
+                variant="outlined"
+                density="compact"
+                class="mb-2"
+                :rules="showNewNode ? [rules.required, rules.nodeId] : []"
+              />
+              <v-text-field
+                v-model="newNode.name"
+                label="Name"
+                variant="outlined"
+                density="compact"
+                class="mb-2"
+                :rules="showNewNode ? [rules.required] : []"
+              />
+              <v-alert v-if="newNodeError" type="warning" variant="tonal" density="compact" class="mb-2">
+                {{ newNodeError }}
+              </v-alert>
+              <v-btn
+                color="primary"
+                :loading="creatingNode"
+                :disabled="!newNode.id || !newNode.name"
+                @click="createNode"
+              >
+                Create instance
+              </v-btn>
+            </div>
+          </v-expand-transition>
+        </v-card-text>
+      </v-card>
+
+      <!-- 4. Mode --------------------------------------------------------- -->
+      <v-card variant="tonal" class="mb-4" :disabled="!selected.node">
+        <v-card-text>
+          <div class="section-heading">
+            <v-icon class="mr-2">mdi-link-variant</v-icon>
+            <span>4. Mode</span>
+          </div>
+          <p class="text-body-2 text-medium-emphasis mb-3">
+            <strong>Link</strong> attaches this project to an existing instance.
+            <strong>Create</strong> additionally provisions a new instance inside the tool.
+          </p>
+          <v-radio-group
+            v-model="selected.mode"
+            inline
+            :rules="selected.node ? [rules.required] : []"
+            hide-details
+          >
             <v-radio
               v-for="m in availableModes"
               :key="m.value"
@@ -87,142 +235,132 @@
               :label="m.label"
             />
           </v-radio-group>
-        </div>
-      </template>
+        </v-card-text>
+      </v-card>
 
-      <template #item.5>
-        <div class="pa-4">
-          <h3 class="text-h6 mb-1">Parameters</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
+      <!-- 5. Parameters --------------------------------------------------- -->
+      <v-card variant="tonal" class="mb-4" :disabled="!selected.node || !selected.mode">
+        <v-card-text>
+          <div class="section-heading">
+            <v-icon class="mr-2">mdi-tune</v-icon>
+            <span>5. Parameters</span>
+            <v-progress-circular v-if="loadingParams" size="14" width="2" indeterminate class="ml-2" />
+          </div>
+          <p class="text-body-2 text-medium-emphasis mb-3">
             Values required to link the project to
-            <code>{{ selected.node?.id }}</code>.
+            <code v-if="selected.node">{{ selected.node.id }}</code>
+            <span v-else>the chosen instance</span>.
           </p>
 
-          <v-progress-linear v-if="loadingParams" indeterminate color="primary" class="mb-3" />
-
           <v-alert
-            v-if="!loadingParams && parameters.length === 0"
+            v-if="!loadingParams && selected.node && selected.mode && parameters.length === 0"
             type="info"
             variant="tonal"
             density="compact"
           >
-            This subscription requires no additional parameters — just click Create.
+            This subscription requires no additional parameters.
           </v-alert>
 
-          <v-form ref="paramFormRef">
-            <div
-              v-for="p in parameters"
-              :key="p.id"
-              class="mb-3"
-            >
-              <v-text-field
-                v-if="isTextParam(p)"
-                v-model="paramValues[p.id]"
-                :type="isPassword(p) ? 'password' : 'text'"
-                :label="paramLabel(p)"
-                :rules="ruleFor(p)"
-                :hint="p.description"
-                persistent-hint
-                variant="outlined"
-                density="compact"
-              />
+          <div
+            v-for="p in parameters"
+            :key="p.id"
+            class="mb-3"
+          >
+            <v-text-field
+              v-if="isTextParam(p)"
+              v-model="paramValues[p.id]"
+              :type="isPassword(p) ? 'password' : 'text'"
+              :label="paramLabel(p)"
+              :rules="ruleFor(p)"
+              :hint="p.description"
+              persistent-hint
+              variant="outlined"
+              density="compact"
+            />
 
-              <v-text-field
-                v-else-if="p.type === 'integer'"
-                v-model.number="paramValues[p.id]"
-                type="number"
-                :min="p.min"
-                :max="p.max"
-                :label="paramLabel(p)"
-                :rules="ruleFor(p)"
-                :hint="p.description"
-                persistent-hint
-                variant="outlined"
-                density="compact"
-              />
+            <v-text-field
+              v-else-if="p.type === 'integer'"
+              v-model.number="paramValues[p.id]"
+              type="number"
+              :min="p.min"
+              :max="p.max"
+              :label="paramLabel(p)"
+              :rules="ruleFor(p)"
+              :hint="p.description"
+              persistent-hint
+              variant="outlined"
+              density="compact"
+            />
 
-              <v-checkbox
-                v-else-if="p.type === 'bool'"
-                v-model="paramValues[p.id]"
-                :label="paramLabel(p)"
-                :hint="p.description"
-                persistent-hint
-                density="compact"
-              />
+            <v-checkbox
+              v-else-if="p.type === 'bool'"
+              v-model="paramValues[p.id]"
+              :label="paramLabel(p)"
+              :hint="p.description"
+              persistent-hint
+              density="compact"
+            />
 
-              <v-select
-                v-else-if="p.type === 'select'"
-                v-model="paramValues[p.id]"
-                :items="p.values || []"
-                :label="paramLabel(p)"
-                :rules="ruleFor(p)"
-                :hint="p.description"
-                persistent-hint
-                variant="outlined"
-                density="compact"
-              />
+            <v-select
+              v-else-if="p.type === 'select'"
+              v-model="paramValues[p.id]"
+              :items="p.values || []"
+              :label="paramLabel(p)"
+              :rules="ruleFor(p)"
+              :hint="p.description"
+              persistent-hint
+              variant="outlined"
+              density="compact"
+            />
 
-              <v-select
-                v-else-if="p.type === 'multiselect' || p.type === 'tags'"
-                v-model="paramValues[p.id]"
-                :items="p.values || []"
-                :label="paramLabel(p)"
-                :rules="ruleFor(p)"
-                :hint="p.description"
-                persistent-hint
-                chips
-                multiple
-                variant="outlined"
-                density="compact"
-              />
+            <v-select
+              v-else-if="p.type === 'multiselect' || p.type === 'tags'"
+              v-model="paramValues[p.id]"
+              :items="p.values || []"
+              :label="paramLabel(p)"
+              :rules="ruleFor(p)"
+              :hint="p.description"
+              persistent-hint
+              chips
+              multiple
+              variant="outlined"
+              density="compact"
+            />
 
-              <v-text-field
-                v-else
-                v-model="paramValues[p.id]"
-                :label="paramLabel(p)"
-                :rules="ruleFor(p)"
-                :hint="`${p.description || ''} [${p.type}]`"
-                persistent-hint
-                variant="outlined"
-                density="compact"
-              />
-            </div>
-          </v-form>
-        </div>
-      </template>
+            <v-text-field
+              v-else
+              v-model="paramValues[p.id]"
+              :label="paramLabel(p)"
+              :rules="ruleFor(p)"
+              :hint="`${p.description || ''} [${p.type}]`"
+              persistent-hint
+              variant="outlined"
+              density="compact"
+            />
+          </div>
+        </v-card-text>
+      </v-card>
 
-      <template #actions="{ prev, next }">
-        <div class="d-flex align-center pa-2">
-          <v-btn
-            v-if="step > 1"
-            variant="text"
-            prepend-icon="mdi-arrow-left"
-            @click="prev"
-          >Previous</v-btn>
-          <v-spacer />
-          <v-btn
-            v-if="step < stepItems.length"
-            color="primary"
-            :disabled="!canAdvance"
-            append-icon="mdi-arrow-right"
-            @click="next"
-          >Next</v-btn>
-          <v-btn
-            v-else
-            color="success"
-            prepend-icon="mdi-check"
-            :loading="creating"
-            :disabled="!selected.node"
-            @click="submit"
-          >Create subscription</v-btn>
-        </div>
-      </template>
-    </v-stepper>
+      <!-- Actions --------------------------------------------------------- -->
+      <div class="d-flex align-center ga-2">
+        <v-btn variant="text" :to="cancelTo" :disabled="creating">Cancel</v-btn>
+        <v-spacer />
+        <v-btn
+          type="submit"
+          color="success"
+          prepend-icon="mdi-check"
+          :loading="creating"
+          :disabled="!ready"
+        >
+          Create subscription
+        </v-btn>
+      </div>
+    </v-form>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, h } from 'vue'
+import { ref, reactive, computed, watch, onMounted, defineComponent, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApi, useAppStore, APP_BASE } from '@ligoj/host'
 
@@ -237,7 +375,7 @@ const project = ref(null)
 const loadingProject = ref(false)
 const error = ref(null)
 
-const step = ref(1)
+/* ------------- selection state ------------- */
 
 const selected = reactive({
   service: null,
@@ -251,7 +389,7 @@ const tools = ref([])
 const nodes = ref([])
 const parameters = ref([])
 const paramValues = reactive({})
-const paramFormRef = ref(null)
+const formRef = ref(null)
 
 const loadingServices = ref(false)
 const loadingTools = ref(false)
@@ -259,35 +397,16 @@ const loadingNodes = ref(false)
 const loadingParams = ref(false)
 const creating = ref(false)
 
-/** v-stepper items as objects so each step gets a thematic icon (and
- *  an editIcon overriding Vuetify's default pencil while the step is
- *  visited but not active). The Service step uses mdi-room-service-outline
- *  per spec; the rest follow the same convention. */
-const stepItems = computed(() => [
-  { title: 'Service',    value: 1, icon: 'mdi-room-service-outline', editIcon: 'mdi-room-service-outline' },
-  { title: 'Tool',       value: 2, icon: 'mdi-wrench',               editIcon: 'mdi-wrench' },
-  { title: 'Node',       value: 3, icon: 'mdi-server',               editIcon: 'mdi-server' },
-  { title: 'Mode',       value: 4, icon: 'mdi-link-variant',         editIcon: 'mdi-link-variant' },
-  { title: 'Parameters', value: 5, icon: 'mdi-tune',                 editIcon: 'mdi-tune' },
-])
+/* ------------- new-instance state ---------- */
 
-const stepEditable = computed(() => (n) => {
-  // Allow returning to any earlier step if its selection still exists.
-  if (n === 1) return true
-  if (n === 2) return !!selected.service
-  if (n === 3) return !!selected.tool
-  if (n === 4) return !!selected.node
-  if (n === 5) return !!selected.node && !!selected.mode
-  return false
-})
+const showNewNode = ref(false)
+const newNode = reactive({ id: '', name: '' })
+const creatingNode = ref(false)
+const newNodeError = ref(null)
 
-const canAdvance = computed(() => {
-  if (step.value === 1) return !!selected.service
-  if (step.value === 2) return !!selected.tool
-  if (step.value === 3) return !!selected.node
-  if (step.value === 4) return !!selected.mode
-  return false
-})
+const cancelTo = computed(() =>
+  project.value ? `/home/project/${project.value.id}` : '/home/project',
+)
 
 const availableModes = computed(() => {
   const m = selected.tool?.mode
@@ -301,11 +420,24 @@ const availableModes = computed(() => {
   return result
 })
 
-const cancelTo = computed(() =>
-  project.value ? `/home/project/${project.value.id}` : '/home/project',
+/** Submit button enabled only when every prerequisite is filled in. */
+const ready = computed(() =>
+  !!projectId.value
+  && !!selected.service
+  && !!selected.tool
+  && !!selected.node
+  && !!selected.mode
+  && !showNewNode.value,
 )
 
-/* -------------- param type helpers -------------- */
+/* ------------- validation rules ------------ */
+
+const rules = {
+  required: (v) => (v != null && v !== '' && (!Array.isArray(v) || v.length > 0)) || 'Required',
+  nodeId: (v) => /^[\w-]+(:[\w-]+)+$/.test(v || '') || 'Use the colon-separated form, e.g. service:scm:git:internal',
+}
+
+/* ------------- param helpers --------------- */
 
 function isTextParam(p) {
   return !p.type || p.type === 'text' || p.type === 'password' || p.type === 'node' || p.type === 'project'
@@ -318,14 +450,10 @@ function paramLabel(p) {
   return `${p.name || p.id}${req}`
 }
 function ruleFor(p) {
-  const rules = []
-  if (p.mandatory || p.required) {
-    rules.push((v) => (v !== '' && v != null) || 'Required')
-  }
-  return rules
+  return (p.mandatory || p.required) ? [rules.required] : []
 }
 
-/* -------------- loaders -------------- */
+/* ------------- loaders --------------------- */
 
 async function loadProject() {
   if (!projectId.value) return
@@ -357,7 +485,6 @@ async function loadParameters(nodeId, mode) {
   loadingParams.value = true
   const data = await api.get(`rest/node/${encodeURIComponent(nodeId)}/parameter/${mode.toUpperCase()}`)
   parameters.value = Array.isArray(data) ? data : (data?.data || [])
-  // Seed default values
   for (const key of Object.keys(paramValues)) delete paramValues[key]
   for (const p of parameters.value) {
     if (p.defaultValue != null) {
@@ -390,49 +517,96 @@ function filterEnabled(list) {
   return list.filter((n) => n.enabled !== false)
 }
 
-/* -------------- step transitions -------------- */
+/* ------------- cascading invalidation ------ */
 
-function pickService(svc) {
-  if (selected.service?.id === svc.id) return
-  selected.service = svc
+// Selecting a service invalidates everything below.
+watch(() => selected.service, async (svc) => {
   selected.tool = null
   selected.node = null
   selected.mode = null
   tools.value = []
   nodes.value = []
-}
+  parameters.value = []
+  showNewNode.value = false
+  if (svc) await loadTools(svc.id)
+})
 
-function pickTool(tool) {
-  if (selected.tool?.id === tool.id) return
-  selected.tool = tool
+// Selecting a tool invalidates instance + mode and refreshes both.
+watch(() => selected.tool, async (tool) => {
   selected.node = null
   selected.mode = null
   nodes.value = []
-}
-
-function pickNode(node) {
-  if (selected.node?.id === node.id) return
-  selected.node = node
-  selected.mode = null
-}
-
-// Populate each step's data when the user arrives on it.
-watch(step, async (n) => {
-  if (n === 1 && services.value.length === 0) await loadServices()
-  if (n === 2 && selected.service && tools.value.length === 0) await loadTools(selected.service.id)
-  if (n === 3 && selected.tool && nodes.value.length === 0) await loadNodes(selected.tool.id)
-  if (n === 4 && !selected.mode && availableModes.value.length > 0) {
-    selected.mode = availableModes.value[0].value
-  }
-  if (n === 5 && selected.node && selected.mode) {
-    await loadParameters(selected.node.id, selected.mode)
+  parameters.value = []
+  showNewNode.value = false
+  if (tool) {
+    await loadNodes(tool.id)
+    // If the tool only allows one mode, preselect it for convenience.
+    const modes = availableModes.value
+    if (modes.length === 1) selected.mode = modes[0].value
   }
 })
 
-/* -------------- submit -------------- */
+// Picking a node clears params; loadParameters is triggered by the
+// shared selected.mode watcher below to keep the call site singular.
+watch(() => selected.node, () => {
+  parameters.value = []
+})
+
+watch(() => selected.mode, async (mode) => {
+  parameters.value = []
+  if (selected.node && mode) {
+    await loadParameters(selected.node.id, mode)
+  }
+})
+
+/* ------------- new-instance flow ----------- */
+
+function toggleNewNode() {
+  showNewNode.value = !showNewNode.value
+  newNodeError.value = null
+  if (showNewNode.value) {
+    selected.node = null
+    if (!newNode.id && selected.tool?.id) {
+      newNode.id = `${selected.tool.id}:`
+    }
+  } else {
+    newNode.id = ''
+    newNode.name = ''
+  }
+}
+
+async function createNode() {
+  newNodeError.value = null
+  creatingNode.value = true
+  try {
+    const payload = {
+      id: newNode.id,
+      name: newNode.name,
+      refined: selected.tool?.id,
+    }
+    const result = await api.post('rest/node', payload)
+    if (result === null) {
+      newNodeError.value = 'Backend rejected the new node — see the notification for details.'
+      return
+    }
+    // Reload nodes and pick the freshly-created one.
+    await loadNodes(selected.tool.id)
+    const created = nodes.value.find((n) => n.id === newNode.id)
+    if (created) {
+      selected.node = created
+    }
+    showNewNode.value = false
+    newNode.id = ''
+    newNode.name = ''
+  } finally {
+    creatingNode.value = false
+  }
+}
+
+/* ------------- submit ---------------------- */
 
 async function submit() {
-  const { valid } = paramFormRef.value ? await paramFormRef.value.validate() : { valid: true }
+  const { valid } = formRef.value ? await formRef.value.validate() : { valid: true }
   if (!valid) return
   creating.value = true
   error.value = null
@@ -441,7 +615,7 @@ async function submit() {
     node: selected.node.id,
     project: Number(projectId.value),
     mode: selected.mode,
-    parameters: parameters.value.map((p) => buildParamWire(p)).filter(Boolean),
+    parameters: parameters.value.map(buildParamWire).filter(Boolean),
   }
   const id = await api.post('rest/subscription', payload)
   creating.value = false
@@ -465,7 +639,7 @@ function buildParamWire(p) {
   return { ...base, text: value }
 }
 
-/* -------------- bootstrap -------------- */
+/* ------------- bootstrap ------------------- */
 
 onMounted(async () => {
   app.setTitle('Subscribe')
@@ -480,73 +654,19 @@ onMounted(async () => {
   if (project.value) await loadServices()
 })
 
-/* -------------- inline step-choice component --------------
- * Renders the step's options as a 3-column table (icon / name / id).
- * Clicking a row selects it; the active row is highlighted. Declared
- * inline so the wizard stays in a single file.
+/* ------------- node icon helper ------------
+ * Ports the legacy `toIcon` / `toIconBase` priority chain from
+ * app-ui/main/main.js. See the previous wizard implementation for the
+ * full breakdown — same algorithm.
  */
-const StepChoice = {
-  name: 'StepChoice',
-  props: {
-    heading: String,
-    sub: String,
-    choices: { type: Array, default: () => [] },
-    loading: Boolean,
-    selectedId: String,
+const NodeIcon = defineComponent({
+  name: 'NodeIcon',
+  props: { node: { type: [Object, String], default: null } },
+  setup(props) {
+    return () => nodeIcon(props.node)
   },
-  emits: ['select'],
-  setup(props, { emit }) {
-    return () => h('div', { class: 'pa-4' }, [
-      h('h3', { class: 'text-h6 mb-1' }, props.heading),
-      props.sub && h('p', { class: 'text-body-2 text-medium-emphasis mb-4' }, props.sub),
-      props.loading
-        ? h('div', { class: 'text-body-2 text-medium-emphasis pa-4' }, 'Loading…')
-        : !props.choices.length
-          ? h('div', { class: 'text-body-2 text-medium-emphasis' }, 'No entries available.')
-          : renderChoiceTable(props.choices, props.selectedId, (c) => emit('select', c)),
-    ])
-  },
-}
+})
 
-function renderChoiceTable(choices, selectedId, onSelect) {
-  return h('table', { class: 'choice-table' }, [
-    h('thead', null,
-      h('tr', null, [
-        h('th', { class: 'choice-table__icon-col' }, ''),
-        h('th', null, 'Name'),
-        h('th', null, 'Identifier'),
-      ]),
-    ),
-    h('tbody', null, choices.map((c) =>
-      h('tr', {
-        key: c.id,
-        class: ['choice-row', { 'choice-row--active': c.id === selectedId }],
-        title: c.description || undefined,
-        onClick: () => onSelect(c),
-      }, [
-        h('td', { class: 'choice-icon-cell' }, [nodeIcon(c)]),
-        h('td', { class: 'choice-name-cell' }, c.name || c.id),
-        h('td', { class: 'choice-id-cell text-medium-emphasis text-caption' }, c.id || ''),
-      ]),
-    )),
-  ])
-}
-
-/**
- * Render a node's icon following the legacy `toIcon` / `toIconBase`
- * priority chain (see app-ui/main/main.js).
- *
- *   1. node.uiClasses
- *      a. an explicit `mdi-*` or `fa-*` class is rendered as <i> with
- *         the matching font prefix and any other words as extra classes
- *      b. `$Foo` shape becomes a small text badge
- *      c. otherwise the raw classes are spread on a <span> (legacy CSS-
- *         driven badges)
- *   2. id has fewer than 3 fragments (i.e. a service node) → wrench
- *   3. otherwise an <img> at /main/service/{service}/{tool}/img/{tool}.png
- *      with `.broken` set on load failure so the host CSS can render a
- *      placeholder
- */
 function nodeIcon(node) {
   const id = (typeof node === 'string' ? node : node?.id) || ''
   const fragments = id.split(':')
@@ -558,9 +678,6 @@ function nodeIcon(node) {
     if (explicit) {
       const isMdi = explicit.startsWith('mdi-')
       const rest = parts.filter((p) => p !== explicit).join(' ')
-      // Vuetify ships the `mdi` font but plain `mdi-foo` needs the
-      // `mdi` prefix class to render. FA needs `fas`/`far`/`fab` —
-      // assume the legacy uiClasses string already includes one.
       const cls = (isMdi ? 'mdi ' : '') + explicit + (rest ? ' ' + rest : '') + ' fa-fw'
       return h('i', { class: cls })
     }
@@ -571,7 +688,6 @@ function nodeIcon(node) {
   }
 
   if (fragments.length < 3) {
-    // Service-level node (e.g. service:scm) — fall back to a generic mark.
     return h('i', { class: 'mdi mdi-wrench fa-fw' })
   }
 
@@ -586,55 +702,19 @@ function nodeIcon(node) {
 </script>
 
 <style scoped>
-.choice-table {
-  width: 100%;
-  border-collapse: collapse;
+.form-stack {
+  max-width: 880px;
 }
-.choice-table th {
-  text-align: left;
+.section-heading {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
   font-weight: 500;
-  font-size: 0.8rem;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-  color: rgba(var(--v-theme-on-surface), 0.7);
-}
-.choice-table__icon-col {
-  width: 56px;
-}
-.choice-row {
-  cursor: pointer;
-  transition: background 0.12s;
-}
-.choice-row > td {
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.06);
-}
-.choice-row:hover {
-  background: rgba(var(--v-theme-primary), 0.06);
-}
-.choice-row--active {
-  background: rgba(var(--v-theme-primary), 0.14);
-}
-.choice-row--active > td:first-child {
-  border-left: 3px solid rgb(var(--v-theme-primary));
-  padding-left: calc(0.75rem - 3px);
-}
-.choice-icon-cell {
-  font-size: 1.4rem;
-  line-height: 1;
-}
-.choice-icon-cell i {
-  font-size: 1.4rem;
-}
-.choice-name-cell {
-  font-weight: 500;
-}
-.choice-id-cell {
-  font-family: monospace;
+  margin-bottom: 0.25rem;
 }
 .tool-icon {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
 }
 .tool-icon.broken {
@@ -642,11 +722,16 @@ function nodeIcon(node) {
 }
 .icon-text {
   display: inline-block;
-  padding: 0.1em 0.4em;
+  padding: 0.05em 0.4em;
   background: rgba(var(--v-theme-primary), 0.15);
   color: rgb(var(--v-theme-primary));
   border-radius: 4px;
   font-size: 0.85em;
   font-weight: 500;
+}
+.new-node-form {
+  background: rgba(var(--v-theme-on-surface), 0.04);
+  border: 1px dashed rgba(var(--v-theme-on-surface), 0.18);
+  border-radius: 6px;
 }
 </style>
