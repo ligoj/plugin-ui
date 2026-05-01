@@ -33,7 +33,7 @@
     <v-stepper
       v-if="project"
       v-model="step"
-      :items="stepLabels"
+      :items="stepItems"
       alt-labels
       :editable="stepEditable"
       class="mb-4"
@@ -201,7 +201,7 @@
           >Previous</v-btn>
           <v-spacer />
           <v-btn
-            v-if="step < stepLabels.length"
+            v-if="step < stepItems.length"
             color="primary"
             :disabled="!canAdvance"
             append-icon="mdi-arrow-right"
@@ -224,7 +224,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore } from '@ligoj/host'
+import { useApi, useAppStore, APP_BASE } from '@ligoj/host'
 
 const route = useRoute()
 const router = useRouter()
@@ -259,7 +259,17 @@ const loadingNodes = ref(false)
 const loadingParams = ref(false)
 const creating = ref(false)
 
-const stepLabels = computed(() => ['Service', 'Tool', 'Node', 'Mode', 'Parameters'])
+/** v-stepper items as objects so each step gets a thematic icon (and
+ *  an editIcon overriding Vuetify's default pencil while the step is
+ *  visited but not active). The Service step uses mdi-room-service-outline
+ *  per spec; the rest follow the same convention. */
+const stepItems = computed(() => [
+  { title: 'Service',    value: 1, icon: 'mdi-room-service-outline', editIcon: 'mdi-room-service-outline' },
+  { title: 'Tool',       value: 2, icon: 'mdi-wrench',               editIcon: 'mdi-wrench' },
+  { title: 'Node',       value: 3, icon: 'mdi-server',               editIcon: 'mdi-server' },
+  { title: 'Mode',       value: 4, icon: 'mdi-link-variant',         editIcon: 'mdi-link-variant' },
+  { title: 'Parameters', value: 5, icon: 'mdi-tune',                 editIcon: 'mdi-tune' },
+])
 
 const stepEditable = computed(() => (n) => {
   // Allow returning to any earlier step if its selection still exists.
@@ -471,8 +481,9 @@ onMounted(async () => {
 })
 
 /* -------------- inline step-choice component --------------
- * A small grid of radio-style cards. Declared inline to keep the wizard in
- * one file; it has no state of its own beyond what the parent passes.
+ * Renders the step's options as a 3-column table (icon / name / id).
+ * Clicking a row selects it; the active row is highlighted. Declared
+ * inline so the wizard stays in a single file.
  */
 const StepChoice = {
   name: 'StepChoice',
@@ -492,77 +503,150 @@ const StepChoice = {
         ? h('div', { class: 'text-body-2 text-medium-emphasis pa-4' }, 'Loading…')
         : !props.choices.length
           ? h('div', { class: 'text-body-2 text-medium-emphasis' }, 'No entries available.')
-          : h(
-              'div',
-              { class: 'choice-grid' },
-              props.choices.map((c) =>
-                h(
-                  'button',
-                  {
-                    key: c.id,
-                    type: 'button',
-                    class: [
-                      'choice-card',
-                      { 'choice-card--active': c.id === props.selectedId },
-                    ],
-                    onClick: () => emit('select', c),
-                    title: c.description || undefined,
-                  },
-                  [
-                    h('div', { class: 'choice-icon' }, uiClassIcon(c)),
-                    h('div', { class: 'choice-name' }, c.name || c.id),
-                  ],
-                ),
-              ),
-            ),
+          : renderChoiceTable(props.choices, props.selectedId, (c) => emit('select', c)),
     ])
   },
 }
 
-function uiClassIcon(node) {
-  const ui = node?.uiClasses || node?.refined?.uiClasses
-  if (ui && ui.startsWith('$')) return ui.slice(1)
-  if (ui) return h('i', { class: ui })
-  return h('i', { class: 'mdi mdi-puzzle' })
+function renderChoiceTable(choices, selectedId, onSelect) {
+  return h('table', { class: 'choice-table' }, [
+    h('thead', null,
+      h('tr', null, [
+        h('th', { class: 'choice-table__icon-col' }, ''),
+        h('th', null, 'Name'),
+        h('th', null, 'Identifier'),
+      ]),
+    ),
+    h('tbody', null, choices.map((c) =>
+      h('tr', {
+        key: c.id,
+        class: ['choice-row', { 'choice-row--active': c.id === selectedId }],
+        title: c.description || undefined,
+        onClick: () => onSelect(c),
+      }, [
+        h('td', { class: 'choice-icon-cell' }, [nodeIcon(c)]),
+        h('td', { class: 'choice-name-cell' }, c.name || c.id),
+        h('td', { class: 'choice-id-cell text-medium-emphasis text-caption' }, c.id || ''),
+      ]),
+    )),
+  ])
+}
+
+/**
+ * Render a node's icon following the legacy `toIcon` / `toIconBase`
+ * priority chain (see app-ui/main/main.js).
+ *
+ *   1. node.uiClasses
+ *      a. an explicit `mdi-*` or `fa-*` class is rendered as <i> with
+ *         the matching font prefix and any other words as extra classes
+ *      b. `$Foo` shape becomes a small text badge
+ *      c. otherwise the raw classes are spread on a <span> (legacy CSS-
+ *         driven badges)
+ *   2. id has fewer than 3 fragments (i.e. a service node) → wrench
+ *   3. otherwise an <img> at /main/service/{service}/{tool}/img/{tool}.png
+ *      with `.broken` set on load failure so the host CSS can render a
+ *      placeholder
+ */
+function nodeIcon(node) {
+  const id = (typeof node === 'string' ? node : node?.id) || ''
+  const fragments = id.split(':')
+  const uiClasses = (typeof node === 'object' && node?.uiClasses) || ''
+
+  if (uiClasses) {
+    const parts = uiClasses.split(/\s+/).filter(Boolean)
+    const explicit = parts.find((p) => p.startsWith('mdi-') || p.startsWith('fa-'))
+    if (explicit) {
+      const isMdi = explicit.startsWith('mdi-')
+      const rest = parts.filter((p) => p !== explicit).join(' ')
+      // Vuetify ships the `mdi` font but plain `mdi-foo` needs the
+      // `mdi` prefix class to render. FA needs `fas`/`far`/`fab` —
+      // assume the legacy uiClasses string already includes one.
+      const cls = (isMdi ? 'mdi ' : '') + explicit + (rest ? ' ' + rest : '') + ' fa-fw'
+      return h('i', { class: cls })
+    }
+    if (uiClasses.startsWith('$')) {
+      return h('span', { class: 'icon-text' }, uiClasses.slice(1))
+    }
+    return h('span', { class: parts.join(' ') })
+  }
+
+  if (fragments.length < 3) {
+    // Service-level node (e.g. service:scm) — fall back to a generic mark.
+    return h('i', { class: 'mdi mdi-wrench fa-fw' })
+  }
+
+  const url = `${APP_BASE}main/service/${fragments[1]}/${fragments[2]}/img/${fragments[2]}.png`
+  return h('img', {
+    src: url,
+    alt: '',
+    class: 'tool-icon',
+    onError: (e) => { e.target.classList.add('broken') },
+  })
 }
 </script>
 
 <style scoped>
-.choice-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 0.75rem;
+.choice-table {
+  width: 100%;
+  border-collapse: collapse;
 }
-.choice-card {
-  background: rgba(var(--v-theme-surface-variant), 0.06);
-  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-  border-radius: 8px;
-  padding: 1rem 0.75rem;
-  text-align: center;
+.choice-table th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 0.8rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  color: rgba(var(--v-theme-on-surface), 0.7);
+}
+.choice-table__icon-col {
+  width: 56px;
+}
+.choice-row {
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, transform 0.12s;
-  font: inherit;
+  transition: background 0.12s;
 }
-.choice-card:hover {
+.choice-row > td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.06);
+}
+.choice-row:hover {
   background: rgba(var(--v-theme-primary), 0.06);
-  border-color: rgba(var(--v-theme-primary), 0.4);
 }
-.choice-card--active {
+.choice-row--active {
   background: rgba(var(--v-theme-primary), 0.14);
-  border-color: rgb(var(--v-theme-primary));
-  box-shadow: 0 0 0 2px rgba(var(--v-theme-primary), 0.3);
 }
-.choice-icon {
-  font-size: 2rem;
-  margin-bottom: 0.35rem;
+.choice-row--active > td:first-child {
+  border-left: 3px solid rgb(var(--v-theme-primary));
+  padding-left: calc(0.75rem - 3px);
+}
+.choice-icon-cell {
+  font-size: 1.4rem;
   line-height: 1;
-  min-height: 2.2rem;
 }
-.choice-icon i {
-  font-size: 2rem;
+.choice-icon-cell i {
+  font-size: 1.4rem;
 }
-.choice-name {
-  font-size: 0.9rem;
+.choice-name-cell {
+  font-weight: 500;
+}
+.choice-id-cell {
+  font-family: monospace;
+}
+.tool-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+.tool-icon.broken {
+  opacity: 0.3;
+}
+.icon-text {
+  display: inline-block;
+  padding: 0.1em 0.4em;
+  background: rgba(var(--v-theme-primary), 0.15);
+  color: rgb(var(--v-theme-primary));
+  border-radius: 4px;
+  font-size: 0.85em;
   font-weight: 500;
 }
 </style>
