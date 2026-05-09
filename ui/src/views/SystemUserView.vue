@@ -152,8 +152,7 @@ async function confirmDelete() {
 }
 
 onMounted(() => {
-  app.setTitle('System users')
-  app.setBreadcrumbs([{ title: 'System', to: '/system' }, { title: 'Users' }])
+  app.setBreadcrumbs([{ title: 'System', to: '/system' }, { title: 'System users' }])
   loadRoles()
 })
 </script>

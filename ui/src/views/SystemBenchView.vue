@@ -112,7 +112,6 @@ async function run() {
 }
 
 onMounted(() => {
-  app.setTitle('Bench')
   app.setBreadcrumbs([{ title: 'System', to: '/system' }, { title: 'Bench' }])
 })
 </script>

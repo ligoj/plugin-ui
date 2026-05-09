@@ -24,14 +24,7 @@
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
-    <LigojDataTable filename="api-tokens.csv"
-      :headers="headers"
-      :items="rows"
-      :loading="loading"
-      :items-per-page="-1"
-      hide-default-footer
-      density="compact"
-    >
+    <LigojDataTable filename="api-tokens.csv" :headers="headers" :items="rows" :loading="loading" :items-per-page="-1" hide-default-footer density="compact">
       <template #item.actions="{ item }">
         <v-btn icon size="small" variant="text" title="Show token" @click="openShow(item.name, 'load')">
           <v-icon size="small">mdi-eye</v-icon>
@@ -51,14 +44,7 @@
         <v-card-title>New API token</v-card-title>
         <v-card-text>
           <v-form ref="createFormRef" @submit.prevent="doCreate">
-            <v-text-field
-              v-model="createName"
-              label="Name"
-              :rules="[rules.required]"
-              variant="outlined"
-              autofocus
-              maxlength="250"
-            />
+            <v-text-field v-model="createName" label="Name" :rules="[rules.required]" variant="outlined" autofocus maxlength="250" />
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -77,15 +63,7 @@
         </v-card-title>
         <v-card-text>
           <v-progress-linear v-if="tokenLoading" indeterminate color="primary" class="mb-3" />
-          <v-textarea
-            v-model="tokenValue"
-            readonly
-            rows="3"
-            variant="outlined"
-            hide-details
-            :append-inner-icon="'mdi-content-copy'"
-            @click:append-inner="copy"
-          />
+          <v-textarea v-model="tokenValue" readonly rows="3" variant="outlined" hide-details :append-inner-icon="'mdi-content-copy'" @click:append-inner="copy" />
           <v-alert v-if="copyDone" type="success" variant="tonal" density="compact" class="mt-2">
             Copied to clipboard.
           </v-alert>
@@ -108,15 +86,7 @@
             Save this value now — you can re-display it later through
             <strong>Show token</strong>.
           </v-alert>
-          <v-textarea
-            :model-value="createdValue"
-            readonly
-            rows="3"
-            variant="outlined"
-            hide-details
-            :append-inner-icon="'mdi-content-copy'"
-            @click:append-inner="copyCreated"
-          />
+          <v-textarea :model-value="createdValue" readonly rows="3" variant="outlined" hide-details :append-inner-icon="'mdi-content-copy'" @click:append-inner="copyCreated" />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -178,8 +148,8 @@ const deleting = ref(false)
 const rules = { required: (v) => !!v || 'Required' }
 
 const headers = [
-  { title: 'Name',    key: 'name',    sortable: true },
-  { title: '',        key: 'actions', sortable: false, width: '140px', align: 'end' },
+  { title: 'Name', key: 'name', sortable: true },
+  { title: '', key: 'actions', sortable: false, width: '140px', align: 'end' },
 ]
 
 async function load() {
@@ -252,7 +222,6 @@ async function confirmDelete() {
 }
 
 onMounted(() => {
-  app.setTitle('API tokens')
   app.setBreadcrumbs([{ title: 'API', to: '/api' }, { title: 'Tokens' }])
   load()
 })

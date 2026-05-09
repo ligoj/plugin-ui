@@ -28,17 +28,8 @@
               <v-tooltip :text="memoryTooltip" location="top">
                 <template #activator="{ props: tipProps }">
                   <div v-bind="tipProps">
-                    <v-progress-linear
-                      :model-value="memory.pctUsed"
-                      :buffer-value="memory.pctUsed + memory.pctCommittedFree"
-                      color="error"
-                      buffer-color="warning"
-                      buffer-opacity="0.8"
-                      bg-color="success"
-                      bg-opacity="0.35"
-                      height="14"
-                      rounded
-                    />
+                    <v-progress-linear :model-value="memory.pctUsed" :buffer-value="memory.pctUsed + memory.pctCommittedFree" color="error" buffer-color="warning" buffer-opacity="0.8"
+                      bg-color="success" bg-opacity="0.35" height="14" rounded />
                   </div>
                 </template>
               </v-tooltip>
@@ -49,33 +40,14 @@
               </div>
             </div>
 
-            <v-text-field
-              :model-value="cpu"
-              label="CPU load (total)"
-              readonly
-              density="compact"
-              variant="outlined"
-              class="mb-2"
-            />
+            <v-text-field :model-value="cpu" label="CPU load (total)" readonly density="compact" variant="outlined" class="mb-2" />
 
             <v-row dense>
               <v-col cols="12" md="6">
-                <v-text-field
-                  :model-value="dateIso"
-                  label="Local date"
-                  readonly
-                  density="compact"
-                  variant="outlined"
-                />
+                <v-text-field :model-value="dateIso" label="Local date" readonly density="compact" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field
-                  :model-value="dateTimestamp"
-                  label="Timestamp"
-                  readonly
-                  density="compact"
-                  variant="outlined"
-                />
+                <v-text-field :model-value="dateTimestamp" label="Timestamp" readonly density="compact" variant="outlined" />
               </v-col>
             </v-row>
           </v-card-text>
@@ -89,33 +61,11 @@
             <v-icon>mdi-map-clock</v-icon> Time zone
           </v-card-title>
           <v-card-text>
-            <v-text-field
-              v-model="tz.application"
-              label="Application"
-              density="compact"
-              variant="outlined"
-              class="mb-2"
-              :loading="updatingTz === 'application'"
-              @blur="saveTimeZone('application', tz.application)"
-              @keyup.enter="saveTimeZone('application', tz.application)"
-            />
-            <v-text-field
-              v-model="tz.default"
-              label="System"
-              density="compact"
-              variant="outlined"
-              class="mb-2"
-              :loading="updatingTz === 'default'"
-              @blur="saveTimeZone('default', tz.default)"
-              @keyup.enter="saveTimeZone('default', tz.default)"
-            />
-            <v-text-field
-              :model-value="tz.original"
-              label="System (initial)"
-              readonly
-              density="compact"
-              variant="outlined"
-            />
+            <v-text-field v-model="tz.application" label="Application" density="compact" variant="outlined" class="mb-2" :loading="updatingTz === 'application'"
+              @blur="saveTimeZone('application', tz.application)" @keyup.enter="saveTimeZone('application', tz.application)" />
+            <v-text-field v-model="tz.default" label="System" density="compact" variant="outlined" class="mb-2" :loading="updatingTz === 'default'" @blur="saveTimeZone('default', tz.default)"
+              @keyup.enter="saveTimeZone('default', tz.default)" />
+            <v-text-field :model-value="tz.original" label="System (initial)" readonly density="compact" variant="outlined" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -127,23 +77,9 @@
             <v-icon>mdi-account-key</v-icon> Session
           </v-card-title>
           <v-card-text>
-            <v-text-field
-              :model-value="sessionId"
-              label="Identifier"
-              readonly
-              density="compact"
-              variant="outlined"
-              class="mb-2"
-              :append-inner-icon="'mdi-content-copy'"
-              @click:append-inner="copy(sessionId)"
-            />
-            <v-text-field
-              :model-value="auth.userName"
-              label="User"
-              readonly
-              density="compact"
-              variant="outlined"
-            />
+            <v-text-field :model-value="sessionId" label="Identifier" readonly density="compact" variant="outlined" class="mb-2" :append-inner-icon="'mdi-content-copy'"
+              @click:append-inner="copy(sessionId)" />
+            <v-text-field :model-value="auth.userName" label="User" readonly density="compact" variant="outlined" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -155,41 +91,16 @@
             <v-icon>mdi-source-commit</v-icon> Build
           </v-card-title>
           <v-card-text>
-            <v-text-field
-              :model-value="build.number"
-              label="Number"
-              readonly
-              density="compact"
-              variant="outlined"
-              class="mb-2"
-            />
+            <v-text-field :model-value="build.number" label="Number" readonly density="compact" variant="outlined" class="mb-2" />
             <v-row dense>
               <v-col cols="12" md="6">
-                <v-text-field
-                  :model-value="build.timestamp"
-                  label="Timestamp"
-                  readonly
-                  density="compact"
-                  variant="outlined"
-                />
+                <v-text-field :model-value="build.timestamp" label="Timestamp" readonly density="compact" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field
-                  :model-value="build.date"
-                  label="Date"
-                  readonly
-                  density="compact"
-                  variant="outlined"
-                />
+                <v-text-field :model-value="build.date" label="Date" readonly density="compact" variant="outlined" />
               </v-col>
             </v-row>
-            <v-text-field
-              :model-value="build.version"
-              label="Version"
-              readonly
-              density="compact"
-              variant="outlined"
-            />
+            <v-text-field :model-value="build.version" label="Version" readonly density="compact" variant="outlined" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -307,9 +218,7 @@ async function saveTimeZone(type, value) {
 const { copy } = useClipboard()
 
 onMounted(() => {
-  app.setTitle('System information')
   app.setBreadcrumbs([{ title: 'System', to: '/system' }, { title: 'Information' }])
   load()
 })
 </script>
-

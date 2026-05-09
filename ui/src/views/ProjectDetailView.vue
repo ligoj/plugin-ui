@@ -15,12 +15,7 @@
           </p>
         </div>
         <v-spacer />
-        <v-btn
-          v-if="project.manageSubscriptions"
-          color="primary"
-          prepend-icon="mdi-plus"
-          :to="`/home/project/${project.id}/subscription`"
-        >
+        <v-btn v-if="project.manageSubscriptions" color="primary" prepend-icon="mdi-plus" :to="`/home/project/${project.id}/subscription`">
           Add subscription
         </v-btn>
         <v-btn variant="outlined" prepend-icon="mdi-pencil" @click="editDialog = true">
@@ -62,29 +57,14 @@
         <v-chip class="ml-2" size="small" variant="tonal">{{ subscriptions.length }}</v-chip>
       </div>
 
-      <v-alert
-        v-if="subscriptions.length === 0"
-        type="info"
-        variant="tonal"
-        density="compact"
-      >
+      <v-alert v-if="subscriptions.length === 0" type="info" variant="tonal" density="compact">
         No subscriptions attached to this project.
       </v-alert>
 
-      <LigojDataTable filename="subscriptions.csv"
-        v-else
-        :headers="subHeaders"
-        :items="subscriptions"
-        item-value="id"
-        :items-per-page="-1"
-        hide-default-footer
-        density="compact"
-      >
+      <LigojDataTable filename="subscriptions.csv" v-else :headers="subHeaders" :items="subscriptions" item-value="id" :items-per-page="-1" hide-default-footer density="compact">
         <template #item.service="{ item }">
-          <v-chip size="small" variant="tonal" :color="serviceColor(item)">
-            <v-icon start size="small">{{ serviceIcon(item) }}</v-icon>
-            {{ item.node?.refined?.refined?.name || '—' }}
-          </v-chip>
+          <NodeIcon v-if="item.node?.refined?.refined" :node="item.node.refined.refined" chip text />
+          <span v-else class="text-medium-emphasis">—</span>
         </template>
         <template #item.tool="{ item }">
           {{ item.node?.refined?.name || '—' }}
@@ -93,15 +73,7 @@
           <code>{{ item.node?.id }}</code>
         </template>
         <template #item.actions="{ item }">
-          <v-btn
-            v-if="project.manageSubscriptions"
-            icon
-            size="small"
-            variant="text"
-            color="error"
-            @click="startUnsubscribe(item)"
-            :title="'Unsubscribe'"
-          >
+          <v-btn v-if="project.manageSubscriptions" icon size="small" variant="text" color="error" @click="startUnsubscribe(item)" :title="'Unsubscribe'">
             <v-icon size="small">mdi-close</v-icon>
           </v-btn>
         </template>
@@ -114,35 +86,11 @@
         <v-card-title>Edit project</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field
-              v-model="editForm.name"
-              label="Name"
-              :rules="[rules.required]"
-              variant="outlined"
-              class="mb-2"
-            />
-            <v-text-field
-              v-model="editForm.pkey"
-              label="Project key (pkey)"
-              :rules="[rules.required]"
-              :disabled="(project?.nbSubscriptions || subscriptions.length) > 0"
-              variant="outlined"
-              class="mb-2"
-            />
-            <v-text-field
-              v-model="editForm.teamLeader"
-              label="Team leader (user id)"
-              :rules="[rules.required]"
-              variant="outlined"
-              class="mb-2"
-            />
-            <v-textarea
-              v-model="editForm.description"
-              label="Description"
-              rows="3"
-              variant="outlined"
-              class="mb-2"
-            />
+            <v-text-field v-model="editForm.name" label="Name" :rules="[rules.required]" variant="outlined" class="mb-2" />
+            <v-text-field v-model="editForm.pkey" label="Project key (pkey)" :rules="[rules.required]" :disabled="(project?.nbSubscriptions || subscriptions.length) > 0" variant="outlined"
+              class="mb-2" />
+            <v-text-field v-model="editForm.teamLeader" label="Team leader (user id)" :rules="[rules.required]" variant="outlined" class="mb-2" />
+            <v-textarea v-model="editForm.description" label="Description" rows="3" variant="outlined" class="mb-2" />
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -161,12 +109,7 @@
           <p class="mb-3">
             Remove subscription to <strong>{{ unsubTarget?.node?.name }}</strong>?
           </p>
-          <v-checkbox
-            v-model="unsubWithData"
-            label="Also delete remote data on the target service"
-            density="compact"
-            hide-details
-          />
+          <v-checkbox v-model="unsubWithData" label="Also delete remote data on the target service" density="compact" hide-details />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -183,7 +126,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore, useErrorStore, LigojDataTable } from '@ligoj/host'
+import { useApi, useAppStore, useErrorStore, LigojDataTable, NodeIcon } from '@ligoj/host'
 import { getFullName } from '../useUiHelpers.js'
 
 const route = useRoute()
@@ -212,39 +155,15 @@ const rules = {
 
 const subHeaders = [
   { title: 'Service', key: 'service', sortable: false, width: '180px' },
-  { title: 'Tool',    key: 'tool',    sortable: false, width: '180px' },
-  { title: 'Node',    key: 'node',    sortable: false },
-  { title: '',        key: 'actions', sortable: false, width: '60px', align: 'end' },
+  { title: 'Tool', key: 'tool', sortable: false, width: '180px' },
+  { title: 'Node', key: 'node', sortable: false },
+  { title: '', key: 'actions', sortable: false, width: '60px', align: 'end' },
 ]
 
 function formatDate(iso) {
   if (!iso) return ''
   const d = new Date(iso)
   return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 16).replace('T', ' ')
-}
-
-/** Stable per-service colour for the service chip. */
-function serviceColor(sub) {
-  const service = sub.node?.refined?.refined?.id || ''
-  const palette = ['primary', 'teal', 'indigo', 'purple', 'orange', 'blue-grey']
-  // Simple deterministic bucket based on name length + char code sum
-  let n = 0
-  for (const ch of service) n += ch.charCodeAt(0)
-  return palette[n % palette.length]
-}
-
-function serviceIcon(sub) {
-  const service = sub.node?.refined?.refined?.id || ''
-  // Heuristic mapping for common built-in services.
-  if (service.includes(':scm:')) return 'mdi-source-branch'
-  if (service.includes(':build:')) return 'mdi-hammer-wrench'
-  if (service.includes(':bt')) return 'mdi-bug'
-  if (service.includes(':km:')) return 'mdi-book-open-variant'
-  if (service.includes(':vm')) return 'mdi-server'
-  if (service.includes(':prov')) return 'mdi-cloud'
-  if (service.includes(':id')) return 'mdi-account-group'
-  if (service.includes(':inbox:')) return 'mdi-email'
-  return 'mdi-puzzle'
 }
 
 async function loadProject() {
@@ -261,7 +180,6 @@ async function loadProject() {
       teamLeader: data.teamLeader?.id || '',
       description: data.description || '',
     }
-    app.setTitle(data.name)
     app.setBreadcrumbs([
       { title: 'Home', to: '/' },
       { title: 'Projects', to: '/home/project' },

@@ -8,14 +8,7 @@
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
-    <LigojDataTable filename="nodes.csv"
-      :headers="headers"
-      :items="items"
-      :loading="loading"
-      :items-per-page="-1"
-      hide-default-footer
-      density="compact"
-    >
+    <LigojDataTable filename="nodes.csv" :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact">
       <template #item.icon="{ item }">
         <NodeIcon :node="item" />
       </template>
@@ -23,12 +16,7 @@
         <code>{{ item.id }}</code>
       </template>
       <template #item.status="{ item }">
-        <v-chip
-          v-if="item.status"
-          size="x-small"
-          :color="statusColor(item.status)"
-          variant="tonal"
-        >{{ item.status }}</v-chip>
+        <v-chip v-if="item.status" size="x-small" :color="statusColor(item.status)" variant="tonal">{{ item.status }}</v-chip>
       </template>
       <template #item.actions="{ item }">
         <v-btn icon size="small" variant="text" color="error" @click="startDelete(item)">
@@ -70,11 +58,11 @@ const deleteTarget = ref(null)
 const deleting = ref(false)
 
 const headers = [
-  { title: '',           key: 'icon',    sortable: false, width: '40px',  align: 'center' },
-  { title: 'Identifier', key: 'id',      sortable: true },
-  { title: 'Name',       key: 'name',    sortable: true,  width: '260px' },
-  { title: 'Status',     key: 'status',  sortable: true,  width: '120px' },
-  { title: '',           key: 'actions', sortable: false, width: '60px', align: 'end' },
+  { title: '', key: 'icon', sortable: false, width: '40px', align: 'center' },
+  { title: 'Identifier', key: 'id', sortable: true },
+  { title: 'Name', key: 'name', sortable: true, width: '260px' },
+  { title: 'Status', key: 'status', sortable: true, width: '120px' },
+  { title: '', key: 'actions', sortable: false, width: '60px', align: 'end' },
 ]
 
 function statusColor(status) {
@@ -107,7 +95,6 @@ async function confirmDelete() {
 }
 
 onMounted(() => {
-  app.setTitle('Nodes')
   app.setBreadcrumbs([{ title: 'System', to: '/system' }, { title: 'Nodes' }])
   load()
 })

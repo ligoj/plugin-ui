@@ -3,16 +3,7 @@
     <div class="d-flex flex-wrap align-center mb-4 ga-2">
       <h1 class="text-h4">Dashboard</h1>
       <v-spacer />
-      <v-text-field
-        v-model="search"
-        prepend-inner-icon="mdi-magnify"
-        label="Filter projects or tools"
-        variant="outlined"
-        density="compact"
-        hide-details
-        class="search-field"
-        clearable
-      />
+      <v-text-field v-model="search" prepend-inner-icon="mdi-magnify" label="Filter projects or tools" variant="outlined" density="compact" hide-details class="search-field" clearable />
       <v-btn-toggle v-model="tilesSize" mandatory density="compact" color="primary">
         <v-btn value="sm" title="Small tiles"><v-icon>mdi-view-comfy</v-icon></v-btn>
         <v-btn value="md" title="Medium tiles"><v-icon>mdi-view-grid</v-icon></v-btn>
@@ -25,14 +16,8 @@
 
     <!-- Service-type tag filter chips -->
     <div v-if="tags.length" class="d-flex flex-wrap ga-1 mb-4">
-      <v-chip
-        v-for="tag in tags"
-        :key="tag.id"
-        :color="selectedTag === tag.id ? 'primary' : undefined"
-        :variant="selectedTag === tag.id ? 'elevated' : 'tonal'"
-        size="small"
-        @click="selectedTag = selectedTag === tag.id ? null : tag.id"
-      >
+      <v-chip v-for="tag in tags" :key="tag.id" :color="selectedTag === tag.id ? 'primary' : undefined" :variant="selectedTag === tag.id ? 'elevated' : 'tonal'" size="small"
+        @click="selectedTag = selectedTag === tag.id ? null : tag.id">
         <v-icon start size="small">{{ tag.icon }}</v-icon>
         {{ tag.label }}
         <span class="ml-1 text-caption">{{ tag.count }}</span>
@@ -43,23 +28,12 @@
 
     <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4" />
 
-    <v-alert
-      v-if="!loading && filteredProjects.length === 0 && !error"
-      type="info"
-      variant="tonal"
-      density="compact"
-    >
+    <v-alert v-if="!loading && filteredProjects.length === 0 && !error" type="info" variant="tonal" density="compact">
       No projects match the current filter.
     </v-alert>
 
     <div :class="['tile-grid', `size-${tilesSize}`]">
-      <v-card
-        v-for="p in filteredProjects"
-        :key="p.id"
-        class="tile"
-        hover
-        :to="`/home/project/${p.id}`"
-      >
+      <v-card v-for="p in filteredProjects" :key="p.id" class="tile" hover :to="`/home/project/${p.id}`">
         <v-card-text class="pa-3">
           <div class="d-flex align-start mb-2">
             <div class="flex-grow-1 truncate">
@@ -70,35 +44,17 @@
           </div>
 
           <div v-if="tilesSize !== 'lg'" class="sub-strip">
-            <v-tooltip
-              v-for="s in p.subscriptions.slice(0, tilesSize === 'sm' ? 4 : 8)"
-              :key="s.id"
-              :text="`${s.node?.refined?.name || '—'} → ${s.node?.name || s.node?.id}`"
-              location="top"
-            >
+            <v-tooltip v-for="s in p.subscriptions.slice(0, tilesSize === 'sm' ? 4 : 8)" :key="s.id" :text="`${s.node?.refined?.name || '—'} → ${s.node?.name || s.node?.id}`" location="top">
               <template #activator="{ props: tipProps }">
-                <v-icon
-                  v-bind="tipProps"
-                  size="small"
-                  :color="serviceColor(s)"
-                  class="mr-1"
-                >{{ serviceIcon(s) }}</v-icon>
+                <v-icon v-bind="tipProps" size="small" :color="serviceColor(s)" class="mr-1">{{ serviceIcon(s) }}</v-icon>
               </template>
             </v-tooltip>
-            <span
-              v-if="p.subscriptions.length > (tilesSize === 'sm' ? 4 : 8)"
-              class="text-caption text-medium-emphasis ml-1"
-            >
+            <span v-if="p.subscriptions.length > (tilesSize === 'sm' ? 4 : 8)" class="text-caption text-medium-emphasis ml-1">
               +{{ p.subscriptions.length - (tilesSize === 'sm' ? 4 : 8) }}
             </span>
           </div>
 
-          <v-table
-            v-else
-            density="compact"
-            class="mt-2"
-            style="background: transparent"
-          >
+          <v-table v-else density="compact" class="mt-2" style="background: transparent">
             <tbody>
               <tr v-for="s in p.subscriptions" :key="s.id">
                 <td style="width: 28px">
@@ -229,7 +185,6 @@ async function load() {
 }
 
 onMounted(() => {
-  app.setTitle('Dashboard')
   app.setBreadcrumbs([{ title: 'Home' }])
   load()
 })
@@ -246,14 +201,24 @@ onMounted(() => {
   display: grid;
   gap: 1rem;
 }
-.tile-grid.size-sm { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-.tile-grid.size-md { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
-.tile-grid.size-lg { grid-template-columns: 1fr; }
+
+.tile-grid.size-sm {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.tile-grid.size-md {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.tile-grid.size-lg {
+  grid-template-columns: 1fr;
+}
 
 .tile {
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
+
 .tile:hover {
   transform: translateY(-2px);
 }

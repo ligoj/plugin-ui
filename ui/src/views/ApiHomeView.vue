@@ -3,12 +3,7 @@
     <div class="d-flex align-center mb-4">
       <h1 class="text-h4">API reference</h1>
       <v-spacer />
-      <v-btn
-        variant="outlined"
-        prepend-icon="mdi-code-tags"
-        :href="`${base}rest/openapi.json`"
-        target="_blank"
-      >
+      <v-btn variant="outlined" prepend-icon="mdi-code-tags" :href="`${base}rest/openapi.json`" target="_blank">
         Download OpenAPI
       </v-btn>
     </div>
@@ -39,11 +34,11 @@ const error = ref(null)
 // has no base).
 const base = APP_BASE
 
-const SWAGGER_BUNDLE_URL   = `${base}rest/swagger-ui-bundle.js`
-const SWAGGER_PRESET_URL   = `${base}rest/swagger-ui-standalone-preset.js`
-const SWAGGER_CSS_URL      = `${base}rest/swagger-ui.css`
-const SWAGGER_EXTRA_CSS    = `${base}rest/index.css`
-const OPENAPI_URL          = `${base}rest/openapi.json`
+const SWAGGER_BUNDLE_URL = `${base}rest/swagger-ui-bundle.js`
+const SWAGGER_PRESET_URL = `${base}rest/swagger-ui-standalone-preset.js`
+const SWAGGER_CSS_URL = `${base}rest/swagger-ui.css`
+const SWAGGER_EXTRA_CSS = `${base}rest/index.css`
+const OPENAPI_URL = `${base}rest/openapi.json`
 
 /** Advanced filter plug-in ported from the legacy home.js — matches operation
  *  summary / description / path against the filter phrase and hides whole
@@ -120,7 +115,6 @@ function mount() {
 }
 
 onMounted(async () => {
-  app.setTitle('API')
   app.setBreadcrumbs([{ title: 'API' }])
 
   injectStylesheet(SWAGGER_CSS_URL, 'swagger-ui-css')

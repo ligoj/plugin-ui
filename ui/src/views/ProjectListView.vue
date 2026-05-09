@@ -3,16 +3,7 @@
     <div class="d-flex flex-wrap align-center mb-4 ga-2">
       <h1 class="text-h4">Projects</h1>
       <v-spacer />
-      <v-text-field
-        v-model="dt.search.value"
-        prepend-inner-icon="mdi-magnify"
-        label="Search"
-        variant="outlined"
-        density="compact"
-        hide-details
-        class="search-field"
-        @update:model-value="onSearch"
-      />
+      <v-text-field v-model="dt.search.value" prepend-inner-icon="mdi-magnify" label="Search" variant="outlined" density="compact" hide-details class="search-field" @update:model-value="onSearch" />
       <v-btn color="primary" prepend-icon="mdi-plus" @click="openNew">
         New
       </v-btn>
@@ -26,25 +17,11 @@
       Running without a live backend — results below are sample data.
     </v-alert>
 
-    <v-skeleton-loader
-      v-if="dt.loading.value && dt.items.value.length === 0"
-      type="table-heading, table-row@5"
-      class="mb-4"
-    />
+    <v-skeleton-loader v-if="dt.loading.value && dt.items.value.length === 0" type="table-heading, table-row@5" class="mb-4" />
 
-    <LigojDataTableServer filename="projects.csv" :fetch-all="dt.loadAll"
-      v-if="!dt.error.value"
-      v-show="dt.items.value.length > 0 || !dt.loading.value"
-      v-model:items-per-page="itemsPerPage"
-      :headers="headers"
-      :items="dt.items.value"
-      :items-length="dt.totalItems.value"
-      :loading="dt.loading.value"
-      item-value="id"
-      hover
-      @update:options="loadData"
-      @click:row="(_, { item }) => router.push(`/home/project/${item.id}`)"
-    >
+    <LigojDataTableServer filename="projects.csv" :fetch-all="dt.loadAll" v-if="!dt.error.value" v-show="dt.items.value.length > 0 || !dt.loading.value" v-model:items-per-page="itemsPerPage"
+      :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value" item-value="id" hover @update:options="loadData"
+      @click:row="(_, { item }) => router.push(`/home/project/${item.id}`)">
       <template #item.teamLeader="{ item }">
         <template v-if="item.teamLeader?.id">
           <v-avatar size="24" color="primary" class="mr-2">
@@ -76,41 +53,12 @@
         <v-card-title>{{ editTarget?.id ? 'Edit project' : 'New project' }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field
-              v-model="editForm.name"
-              label="Name"
-              :rules="[rules.required]"
-              variant="outlined"
-              class="mb-2"
-              autofocus
-              @update:model-value="onNameChanged"
-            />
-            <v-text-field
-              v-model="editForm.pkey"
-              label="Project key (pkey)"
-              :rules="[rules.required, rules.pkey]"
-              :disabled="editTarget?.nbSubscriptions > 0"
-              :hint="editTarget?.nbSubscriptions > 0 ? 'Locked — project has subscriptions' : 'lowercase, digits, dash'"
-              persistent-hint
-              variant="outlined"
-              class="mb-2"
-            />
-            <v-text-field
-              v-model="editForm.teamLeader"
-              label="Team leader (user id)"
-              :rules="[rules.required]"
-              :hint="'Identifier of the user managing this project'"
-              persistent-hint
-              variant="outlined"
-              class="mb-2"
-            />
-            <v-textarea
-              v-model="editForm.description"
-              label="Description"
-              rows="3"
-              variant="outlined"
-              class="mb-2"
-            />
+            <v-text-field v-model="editForm.name" label="Name" :rules="[rules.required]" variant="outlined" class="mb-2" autofocus @update:model-value="onNameChanged" />
+            <v-text-field v-model="editForm.pkey" label="Project key (pkey)" :rules="[rules.required, rules.pkey]" :disabled="editTarget?.nbSubscriptions > 0"
+              :hint="editTarget?.nbSubscriptions > 0 ? 'Locked — project has subscriptions' : 'lowercase, digits, dash'" persistent-hint variant="outlined" class="mb-2" />
+            <v-text-field v-model="editForm.teamLeader" label="Team leader (user id)" :rules="[rules.required]" :hint="'Identifier of the user managing this project'" persistent-hint
+              variant="outlined" class="mb-2" />
+            <v-textarea v-model="editForm.description" label="Description" rows="3" variant="outlined" class="mb-2" />
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -129,12 +77,7 @@
           <p class="mb-4">
             Are you sure you want to delete <strong>{{ deleteTarget?.name }}</strong>?
           </p>
-          <v-checkbox
-            v-model="deleteWithData"
-            label="Also remove remote data associated with this project's subscriptions"
-            density="compact"
-            hide-details
-          />
+          <v-checkbox v-model="deleteWithData" label="Also remove remote data associated with this project's subscriptions" density="compact" hide-details />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -289,7 +232,6 @@ async function confirmDelete() {
 }
 
 onMounted(() => {
-  app.setTitle('Projects')
   app.setBreadcrumbs([{ title: 'Home', to: '/' }, { title: 'Projects' }])
 })
 </script>

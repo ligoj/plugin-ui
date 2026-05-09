@@ -235,7 +235,6 @@ async function confirmDelete() {
 }
 
 onMounted(() => {
-  app.setTitle('System configuration')
   app.setBreadcrumbs([{ title: 'System', to: '/system' }, { title: 'Configuration' }])
   load()
 })

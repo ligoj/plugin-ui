@@ -498,7 +498,6 @@ function buildParamWire(p) {
 /* ------------- bootstrap ------------------- */
 
 onMounted(async () => {
-  app.setTitle('Subscribe')
   app.setBreadcrumbs([
     { title: 'Home', to: '/' },
     { title: 'Projects', to: '/home/project' },
