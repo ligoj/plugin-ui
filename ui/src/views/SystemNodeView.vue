@@ -16,6 +16,9 @@
       hide-default-footer
       density="compact"
     >
+      <template #item.icon="{ item }">
+        <NodeIcon :node="item" />
+      </template>
       <template #item.id="{ item }">
         <code>{{ item.id }}</code>
       </template>
@@ -53,7 +56,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useApi, useAppStore, LigojDataTable } from '@ligoj/host'
+import { useApi, useAppStore, LigojDataTable, NodeIcon } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -67,6 +70,7 @@ const deleteTarget = ref(null)
 const deleting = ref(false)
 
 const headers = [
+  { title: '',           key: 'icon',    sortable: false, width: '40px',  align: 'center' },
   { title: 'Identifier', key: 'id',      sortable: true },
   { title: 'Name',       key: 'name',    sortable: true,  width: '260px' },
   { title: 'Status',     key: 'status',  sortable: true,  width: '120px' },
