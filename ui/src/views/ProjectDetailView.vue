@@ -81,7 +81,7 @@
     </template>
 
     <!-- Edit dialog (same shape as ProjectListView) -->
-    <v-dialog v-model="editDialog" max-width="600" persistent>
+    <v-dialog v-model="editDialog" max-width="600">
       <v-card>
         <v-card-title>Edit project</v-card-title>
         <v-card-text>

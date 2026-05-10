@@ -23,7 +23,7 @@
       </template>
     </LigojDataTableServer>
 
-    <v-dialog v-model="editDialog" max-width="520" persistent>
+    <v-dialog v-model="editDialog" max-width="520">
       <v-card>
         <v-card-title>{{ editTarget ? 'Edit system user' : 'New system user' }}</v-card-title>
         <v-card-text>

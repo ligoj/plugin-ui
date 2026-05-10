@@ -24,7 +24,7 @@
       </template>
     </LigojDataTable>
 
-    <v-dialog v-model="editDialog" max-width="640" persistent>
+    <v-dialog v-model="editDialog" max-width="640">
       <v-card>
         <v-card-title>{{ editTarget ? 'Edit role' : 'New role' }}</v-card-title>
         <v-card-text>

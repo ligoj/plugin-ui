@@ -38,7 +38,7 @@
     </LigojDataTable>
 
     <!-- Create token dialog -->
-    <v-dialog v-model="createDialog" max-width="480" persistent>
+    <v-dialog v-model="createDialog" max-width="480">
       <v-card>
         <v-card-title>New API token</v-card-title>
         <v-card-text>
@@ -75,7 +75,7 @@
     </v-dialog>
 
     <!-- Created token dialog (shows the freshly-minted value) -->
-    <v-dialog v-model="createdDialog" max-width="520" persistent>
+    <v-dialog v-model="createdDialog" max-width="520">
       <v-card>
         <v-card-title>
           New token:&nbsp;<code>{{ createdName }}</code>

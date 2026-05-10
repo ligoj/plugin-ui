@@ -18,11 +18,35 @@
         <v-chip v-if="item.status" size="x-small" :color="statusColor(item.status)" variant="tonal">{{ item.status }}</v-chip>
       </template>
       <template #item.actions="{ item }">
-        <v-btn icon size="small" variant="text" color="error" @click="startDelete(item)">
-          <v-icon size="small">mdi-delete</v-icon>
-        </v-btn>
+        <template v-if="isTool(item)">
+          <v-btn icon size="small" variant="text" @click="startEdit(item)" title="Edit">
+            <v-icon size="small">mdi-pencil</v-icon>
+          </v-btn>
+          <v-btn icon size="small" variant="text" color="error" @click="startDelete(item)" title="Delete">
+            <v-icon size="small">mdi-delete</v-icon>
+          </v-btn>
+        </template>
       </template>
     </LigojDataTable>
+
+    <v-dialog v-model="editDialog" max-width="900" scrollable>
+      <v-card>
+        <v-card-title class="d-flex align-center ga-2">
+          <span>Edit node</span>
+          <code v-if="editTarget" class="text-body-2">{{ editTarget.id }}</code>
+        </v-card-title>
+        <v-card-text class="pa-4">
+          <SubscribeWizardView
+            v-if="editDialog && editTarget"
+            :key="editTarget.id"
+            mode="edit-node"
+            :node="editTarget"
+            @saved="onEditSaved"
+            @cancel="editDialog = false"
+          />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <v-dialog v-model="deleteDialog" max-width="460">
       <v-card>
@@ -44,6 +68,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useApi, useAppStore, LigojDataTable, NodeIcon } from '@ligoj/host'
+import SubscribeWizardView from './SubscribeWizardView.vue'
 
 const api = useApi()
 const app = useAppStore()
@@ -56,6 +81,9 @@ const deleteDialog = ref(false)
 const deleteTarget = ref(null)
 const deleting = ref(false)
 
+const editDialog = ref(false)
+const editTarget = ref(null)
+
 const headers = [
   { title: '', key: 'icon', sortable: false, width: '40px', align: 'center' },
   { title: 'Identifier', key: 'id', sortable: true },
@@ -63,6 +91,16 @@ const headers = [
   { title: 'Status', key: 'status', sortable: true, width: '120px' },
   { title: '', key: 'actions', sortable: false, width: '60px', align: 'end' },
 ]
+
+/**
+ * Tool-level nodes have a 3-segment id (`<service|feature>:<service>:<tool>`).
+ * Service-level (2 segments) and instance-level (4 segments) nodes are
+ * either plugin-shipped roots or subscription-owned and shouldn't be
+ * edited/deleted from this list.
+ */
+function isTool(item) {
+  return (item?.id?.split(':').length || 0) === 3
+}
 
 function statusColor(status) {
   const s = status?.toLowerCase?.()
@@ -78,6 +116,16 @@ async function load() {
   const data = await api.get('rest/node')
   items.value = Array.isArray(data) ? data : (data?.data || [])
   loading.value = false
+}
+
+function startEdit(item) {
+  editTarget.value = item
+  editDialog.value = true
+}
+
+function onEditSaved() {
+  editDialog.value = false
+  load()
 }
 
 function startDelete(item) {

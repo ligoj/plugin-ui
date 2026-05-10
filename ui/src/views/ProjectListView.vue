@@ -47,7 +47,7 @@
     </LigojDataTableServer>
 
     <!-- Create / edit dialog -->
-    <v-dialog v-model="editDialog" max-width="600" persistent>
+    <v-dialog v-model="editDialog" max-width="600">
       <v-card>
         <v-card-title>{{ editTarget?.id ? 'Edit project' : 'New project' }}</v-card-title>
         <v-card-text>

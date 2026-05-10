@@ -42,7 +42,7 @@
     </LigojDataTable>
 
     <!-- Install dialog: search-driven autocomplete -->
-    <v-dialog v-model="installDialog" max-width="640" persistent>
+    <v-dialog v-model="installDialog" max-width="640">
       <v-card>
         <v-card-title>Install plug-in</v-card-title>
         <v-card-text>
