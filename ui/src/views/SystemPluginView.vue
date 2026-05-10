@@ -1,7 +1,6 @@
 <template>
   <div>
     <div class="d-flex flex-wrap align-center mb-4 ga-2">
-      <h1 class="text-h4">Plugins</h1>
       <v-spacer />
       <v-select v-model="repository" :items="REPOSITORIES" item-value="id" item-title="label" label="Repository" density="compact" hide-details variant="outlined" style="max-width: 200px"
         @update:model-value="load" />
@@ -312,7 +311,10 @@ function askRemove(artifact) {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: 'System', to: '/system' }, { title: 'Plug-ins' }])
+  app.setBreadcrumbs(
+    [{ title: 'System', to: '/system' }, { title: 'Plug-ins' }],
+    { refresh: load },
+  )
   load()
 })
 </script>

@@ -1,7 +1,6 @@
 <template>
   <div>
     <div class="d-flex flex-wrap align-center mb-4 ga-2">
-      <h1 class="text-h4">Dashboard</h1>
       <v-spacer />
       <v-text-field v-model="search" prepend-inner-icon="mdi-magnify" label="Filter projects or tools" variant="outlined" density="compact" hide-details class="search-field" clearable />
       <v-btn-toggle v-model="tilesSize" mandatory density="compact" color="primary">
@@ -185,7 +184,7 @@ async function load() {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: 'Home' }])
+  app.setBreadcrumbs([{ title: 'Home' }], { refresh: load })
   load()
 })
 </script>

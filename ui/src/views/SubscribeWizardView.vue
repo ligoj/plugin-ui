@@ -1,7 +1,6 @@
 <template>
   <div>
     <div class="d-flex align-center mb-4">
-      <h1 class="text-h4">Subscribe</h1>
       <v-spacer />
       <v-btn variant="text" :to="cancelTo">Cancel</v-btn>
     </div>
@@ -497,16 +496,23 @@ function buildParamWire(p) {
 
 /* ------------- bootstrap ------------------- */
 
-onMounted(async () => {
-  app.setBreadcrumbs([
-    { title: 'Home', to: '/' },
-    { title: 'Projects', to: '/home/project' },
-    ...(projectId.value
-      ? [{ title: projectId.value, to: `/home/project/${projectId.value}` }, { title: 'Subscribe' }]
-      : [{ title: 'Subscribe' }]),
-  ])
+async function refreshAll() {
   await loadProject()
   if (project.value) await loadServices()
+}
+
+onMounted(async () => {
+  app.setBreadcrumbs(
+    [
+      { title: 'Home', to: '/' },
+      { title: 'Projects', to: '/home/project' },
+      ...(projectId.value
+        ? [{ title: projectId.value, to: `/home/project/${projectId.value}` }, { title: 'Subscribe' }]
+        : [{ title: 'Subscribe' }]),
+    ],
+    { refresh: refreshAll },
+  )
+  await refreshAll()
 })
 
 /* NodeIcon and the underlying nodeIcon() helper have moved to

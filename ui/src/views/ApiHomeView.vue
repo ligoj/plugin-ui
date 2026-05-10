@@ -1,7 +1,6 @@
 <template>
   <div>
     <div class="d-flex align-center mb-4">
-      <h1 class="text-h4">API reference</h1>
       <v-spacer />
       <v-btn variant="outlined" prepend-icon="mdi-code-tags" :href="`${base}rest/openapi.json`" target="_blank">
         Download OpenAPI

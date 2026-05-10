@@ -1,7 +1,6 @@
 <template>
   <div>
     <div class="d-flex align-center mb-4">
-      <h1 class="text-h4">API tokens</h1>
       <v-spacer />
       <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">New token</v-btn>
     </div>
@@ -222,7 +221,10 @@ async function confirmDelete() {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: 'API', to: '/api' }, { title: 'Tokens' }])
+  app.setBreadcrumbs(
+    [{ title: 'API', to: '/api' }, { title: 'Tokens' }],
+    { refresh: load },
+  )
   load()
 })
 </script>

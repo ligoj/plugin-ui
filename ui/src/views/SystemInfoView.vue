@@ -1,13 +1,5 @@
 <template>
   <div>
-    <div class="d-flex align-center mb-4">
-      <h1 class="text-h4">System information</h1>
-      <v-spacer />
-      <v-btn variant="outlined" prepend-icon="mdi-refresh" :loading="loading" @click="load">
-        Refresh
-      </v-btn>
-    </div>
-
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
     <v-row>
@@ -218,7 +210,10 @@ async function saveTimeZone(type, value) {
 const { copy } = useClipboard()
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: 'System', to: '/system' }, { title: 'Information' }])
+  app.setBreadcrumbs(
+    [{ title: 'System', to: '/system' }, { title: 'Information' }],
+    { refresh: load },
+  )
   load()
 })
 </script>

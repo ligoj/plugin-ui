@@ -180,11 +180,14 @@ async function loadProject() {
       teamLeader: data.teamLeader?.id || '',
       description: data.description || '',
     }
-    app.setBreadcrumbs([
-      { title: 'Home', to: '/' },
-      { title: 'Projects', to: '/home/project' },
-      { title: data.name },
-    ])
+    app.setBreadcrumbs(
+      [
+        { title: 'Home', to: '/' },
+        { title: 'Projects', to: '/home/project' },
+        { title: data.name },
+      ],
+      { refresh: loadProject },
+    )
   }
 }
 

@@ -1,12 +1,8 @@
 <template>
   <div class="system-config-page">
     <div class="d-flex align-center mb-4">
-      <h1 class="text-h4">System configuration</h1>
       <v-spacer />
-      <v-btn variant="outlined" prepend-icon="mdi-refresh" :loading="loading" @click="load">
-        Refresh
-      </v-btn>
-      <v-btn color="primary" prepend-icon="mdi-plus" class="ml-2" @click="openNew">
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="openNew">
         New key
       </v-btn>
     </div>
@@ -235,7 +231,10 @@ async function confirmDelete() {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: 'System', to: '/system' }, { title: 'Configuration' }])
+  app.setBreadcrumbs(
+    [{ title: 'System', to: '/system' }, { title: 'Configuration' }],
+    { refresh: load },
+  )
   load()
 })
 </script>

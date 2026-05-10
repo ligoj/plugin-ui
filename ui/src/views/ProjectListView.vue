@@ -1,7 +1,6 @@
 <template>
   <div>
     <div class="d-flex flex-wrap align-center mb-4 ga-2">
-      <h1 class="text-h4">Projects</h1>
       <v-spacer />
       <v-text-field v-model="dt.search.value" prepend-inner-icon="mdi-magnify" label="Search" variant="outlined" density="compact" hide-details class="search-field" @update:model-value="onSearch" />
       <v-btn color="primary" prepend-icon="mdi-plus" @click="openNew">
@@ -232,7 +231,10 @@ async function confirmDelete() {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: 'Home', to: '/' }, { title: 'Projects' }])
+  app.setBreadcrumbs(
+    [{ title: 'Home', to: '/' }, { title: 'Projects' }],
+    { refresh: () => dt.load(lastOptions) },
+  )
 })
 </script>
 

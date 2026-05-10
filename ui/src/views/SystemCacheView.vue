@@ -1,11 +1,5 @@
 <template>
   <div>
-    <div class="d-flex align-center mb-4">
-      <h1 class="text-h4">Caches</h1>
-      <v-spacer />
-      <v-btn variant="outlined" prepend-icon="mdi-refresh" @click="load">Refresh</v-btn>
-    </div>
-
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
     <LigojDataTable filename="caches.csv" :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact">
@@ -13,7 +7,7 @@
         <div class="d-flex align-center ga-2">
           <span>{{ item.hitCount ?? 0 }}</span>
           <v-chip v-if="item.hitPercentage != null && (item.hitCount ?? 0) > 0" size="x-small" :color="rateColor(item.hitPercentage, true, item.hitCount)">{{ Math.round(item.hitPercentage)
-            }}%</v-chip>
+          }}%</v-chip>
         </div>
       </template>
       <template #item.missCount="{ item }">
@@ -80,7 +74,10 @@ async function invalidate(item) {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: 'System', to: '/system' }, { title: 'Caches' }])
+  app.setBreadcrumbs(
+    [{ title: 'System', to: '/system' }, { title: 'Caches' }],
+    { refresh: load },
+  )
   load()
 })
 </script>
