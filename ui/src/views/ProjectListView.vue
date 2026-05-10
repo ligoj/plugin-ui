@@ -121,7 +121,7 @@ const headers = computed(() => [
   { title: 'Manager', key: 'teamLeader', sortable: false, width: '220px' },
   { title: 'Created', key: 'createdDate', sortable: true, width: '140px' },
   { title: 'Subs', key: 'nbSubscriptions', sortable: false, width: '80px', align: 'center' },
-  { title: '', key: 'actions', sortable: false, width: '100px', align: 'end' },
+  { title: '', key: 'actions', sortable: false, width: '120px', align: 'end' },
 ])
 
 const rules = {
