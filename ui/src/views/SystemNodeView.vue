@@ -36,14 +36,7 @@
           <code v-if="editTarget" class="text-body-2">{{ editTarget.id }}</code>
         </v-card-title>
         <v-card-text class="pa-4">
-          <SubscribeWizardView
-            v-if="editDialog && editTarget"
-            :key="editTarget.id"
-            mode="edit-node"
-            :node="editTarget"
-            @saved="onEditSaved"
-            @cancel="editDialog = false"
-          />
+          <SubscribeWizardView v-if="editDialog && editTarget" :key="editTarget.id" mode="edit-node" :node="editTarget" @saved="onEditSaved" @cancel="editDialog = false" />
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -89,7 +82,7 @@ const headers = [
   { title: 'Identifier', key: 'id', sortable: true },
   { title: 'Name', key: 'name', sortable: true, width: '260px' },
   { title: 'Status', key: 'status', sortable: true, width: '120px' },
-  { title: '', key: 'actions', sortable: false, width: '60px', align: 'end' },
+  { title: '', key: 'actions', sortable: false, width: '120px', align: 'end' },
 ]
 
 /**
