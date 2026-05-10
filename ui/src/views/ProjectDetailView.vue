@@ -125,15 +125,13 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore, useErrorStore, LigojDataTable, NodeIcon } from '@ligoj/host'
+import { useRoute } from 'vue-router'
+import { useApi, useAppStore, LigojDataTable, NodeIcon } from '@ligoj/host'
 import { getFullName } from '../useUiHelpers.js'
 
 const route = useRoute()
-const router = useRouter()
 const api = useApi()
 const app = useAppStore()
-const errorStore = useErrorStore()
 
 const loading = ref(false)
 const project = ref(null)
