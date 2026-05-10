@@ -42,7 +42,7 @@
           <template v-if="isEdit && selected.service">
             <NodeIcon :node="selected.service" chip text />
             <v-text-field
-              v-if="editParts === 2"
+              v-if="editType === 'service' || editType === 'feature'"
               v-model="editForm.name"
               label="Name"
               maxlength="250"
@@ -74,7 +74,7 @@
       </v-card>
 
       <!-- 2. Tool --------------------------------------------------------- -->
-      <v-card v-if="!isEdit || editParts >= 3" variant="tonal" class="mb-4" :disabled="!isEdit && !selected.service">
+      <v-card v-if="!isEdit || editType === 'tool' || editType === 'instance'" variant="tonal" class="mb-4" :disabled="!isEdit && !selected.service">
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-wrench</v-icon>
@@ -87,7 +87,7 @@
           <template v-if="isEdit && selected.tool">
             <NodeIcon :node="selected.tool" chip text />
             <v-text-field
-              v-if="editParts === 3"
+              v-if="editType === 'tool'"
               v-model="editForm.name"
               label="Name"
               maxlength="250"
@@ -119,7 +119,7 @@
       </v-card>
 
       <!-- 3. Instance (existing or new) ----------------------------------- -->
-      <v-card v-if="!isEdit || editParts >= 4" variant="tonal" class="mb-4" :disabled="!isEdit && !selected.tool">
+      <v-card v-if="!isEdit || editType === 'instance'" variant="tonal" class="mb-4" :disabled="!isEdit && !selected.tool">
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-server</v-icon>
@@ -201,9 +201,16 @@
             <strong>Link</strong> attaches this project to an existing instance.
             <strong>Create</strong> additionally provisions a new instance inside the tool.
           </p>
-          <v-chip v-if="isEdit" size="small" variant="tonal">{{ selected.mode || '—' }}</v-chip>
+          <NodeModeChip v-if="isEdit" :mode="selected.mode" size="small" />
           <v-radio-group v-else v-model="selected.mode" inline :rules="selected.node ? [rules.required] : []" hide-details>
-            <v-radio v-for="m in availableModes" :key="m.value" :value="m.value" :label="m.label" />
+            <v-radio v-for="m in availableModes" :key="m.value" :value="m.value">
+              <template #label>
+                <span class="d-inline-flex align-center ga-2">
+                  <NodeModeChip :mode="m.value" size="small" />
+                  <span class="text-body-2 text-medium-emphasis">{{ m.description }}</span>
+                </span>
+              </template>
+            </v-radio>
           </v-radio-group>
         </v-card-text>
       </v-card>
@@ -269,7 +276,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore, useErrorStore, NodeIcon } from '@ligoj/host'
+import { useApi, useAppStore, useErrorStore, NodeIcon, NodeModeChip, nodeType } from '@ligoj/host'
 
 const props = defineProps({
   /** 'subscribe' (default route view) or 'edit-node' (popup over an existing node). */
@@ -280,12 +287,11 @@ const props = defineProps({
 const emit = defineEmits(['saved', 'cancel'])
 const isEdit = computed(() => props.mode === 'edit-node')
 /**
- * Node identifiers follow `<service|feature>:<service>[:<tool>[:<instance>]]`.
- * 2 parts → service-level, 3 parts → tool-level, 4 parts → instance-level.
- * Drives which cards are shown in edit mode and where the editable Name
- * field lives.
+ * Type of the node being edited — drives which cards are shown in edit
+ * mode and where the editable Name field lives. `nodeType()` derives
+ * this from the id structure (`<service|feature>:<service>[:<tool>[:<instance>]]`).
  */
-const editParts = computed(() => isEdit.value ? (props.node?.id?.split(':').length || 0) : 0)
+const editType = computed(() => isEdit.value ? nodeType(props.node) : null)
 
 const route = useRoute()
 const router = useRouter()
@@ -339,10 +345,10 @@ const availableModes = computed(() => {
   const m = selected.tool?.mode
   const result = []
   if (m === 'all' || m === 'create') {
-    result.push({ value: 'create', label: 'Create — provision a new object inside the instance' })
+    result.push({ value: 'create', description: 'provision a new object inside the instance' })
   }
   if (m === 'all' || m === 'link' || !m) {
-    result.push({ value: 'link', label: 'Link — attach this project to an existing object' })
+    result.push({ value: 'link', description: 'attach this project to an existing object' })
   }
   return result
 })
@@ -600,12 +606,12 @@ async function refreshAll() {
 /** Populate selectors from an existing node and load its current parameter values. */
 async function bootstrapEdit(node) {
   if (!node) return
-  const parts = node.id.split(':').length
-  if (parts >= 4) {
+  const type = nodeType(node)
+  if (type === 'instance') {
     selected.service = node.refined?.refined || null
     selected.tool = node.refined || null
     selected.node = node
-  } else if (parts === 3) {
+  } else if (type === 'tool') {
     selected.service = node.refined || null
     selected.tool = node
     selected.node = null

@@ -14,11 +14,17 @@
       <template #item.id="{ item }">
         <code>{{ item.id }}</code>
       </template>
-      <template #item.status="{ item }">
-        <v-chip v-if="item.status" size="x-small" :color="statusColor(item.status)" variant="tonal">{{ item.status }}</v-chip>
+      <template #item.mode="{ item }">
+        <NodeModeChip :mode="item.mode || 'all'" />
+      </template>
+      <template #item.enabled="{ item }">
+        <v-chip size="x-small" :color="item.enabled ? 'success' : 'error'" variant="tonal">
+          <v-icon start size="x-small">{{ item.enabled ? 'mdi-check' : 'mdi-close' }}</v-icon>
+          {{ item.enabled ? 'Enabled' : 'Disabled' }}
+        </v-chip>
       </template>
       <template #item.actions="{ item }">
-        <template v-if="isTool(item)">
+        <template v-if="isInstance(item)">
           <v-btn icon size="small" variant="text" @click="startEdit(item)" title="Edit">
             <v-icon size="small">mdi-pencil</v-icon>
           </v-btn>
@@ -60,7 +66,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useApi, useAppStore, LigojDataTable, NodeIcon } from '@ligoj/host'
+import { useApi, useAppStore, LigojDataTable, NodeIcon, NodeModeChip, isInstance } from '@ligoj/host'
 import SubscribeWizardView from './SubscribeWizardView.vue'
 
 const api = useApi()
@@ -81,27 +87,10 @@ const headers = [
   { title: '', key: 'icon', sortable: false, width: '40px', align: 'center' },
   { title: 'Identifier', key: 'id', sortable: true },
   { title: 'Name', key: 'name', sortable: true, width: '260px' },
-  { title: 'Status', key: 'status', sortable: true, width: '120px' },
+  { title: 'Mode', key: 'mode', sortable: true, width: '120px' },
+  { title: 'Status', key: 'enabled', sortable: true, width: '120px' },
   { title: '', key: 'actions', sortable: false, width: '120px', align: 'end' },
 ]
-
-/**
- * Tool-level nodes have a 3-segment id (`<service|feature>:<service>:<tool>`).
- * Service-level (2 segments) and instance-level (4 segments) nodes are
- * either plugin-shipped roots or subscription-owned and shouldn't be
- * edited/deleted from this list.
- */
-function isTool(item) {
-  return (item?.id?.split(':').length || 0) === 3
-}
-
-function statusColor(status) {
-  const s = status?.toLowerCase?.()
-  if (s === 'up') return 'success'
-  if (s === 'down') return 'error'
-  if (s === 'unknown') return 'warning'
-  return 'grey'
-}
 
 async function load() {
   loading.value = true
