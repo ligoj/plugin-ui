@@ -2,14 +2,14 @@
   <div>
     <div class="d-flex align-center mb-4">
       <v-spacer />
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">{{ t('apiToken.new') }}</v-btn>
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">{{ t('system.apiToken.new') }}</v-btn>
     </div>
 
     <v-card variant="tonal" class="mb-4">
       <v-card-text>
-        <p class="mb-2">{{ t('apiToken.intro') }}</p>
+        <p class="mb-2">{{ t('system.apiToken.intro') }}</p>
         <p class="mb-0 text-body-2">
-          {{ t('apiToken.example') }}
+          {{ t('system.apiToken.example') }}
           <code>
             GET {{ origin }}{{ base }}rest/project?api-key=&lt;token&gt;&amp;api-user={{ userName }}
           </code>
@@ -21,10 +21,10 @@
 
     <LigojDataTable filename="api-tokens.csv" :headers="headers" :items="rows" :loading="loading" :items-per-page="-1" hide-default-footer density="compact">
       <template #item.actions="{ item }">
-        <v-btn icon size="small" variant="text" :title="t('apiToken.show')" @click="openShow(item.name, 'load')">
+        <v-btn icon size="small" variant="text" :title="t('system.apiToken.show')" @click="openShow(item.name, 'load')">
           <v-icon size="small">mdi-eye</v-icon>
         </v-btn>
-        <v-btn icon size="small" variant="text" :title="t('apiToken.regenerate')" @click="openShow(item.name, 'regen')">
+        <v-btn icon size="small" variant="text" :title="t('system.apiToken.regenerate')" @click="openShow(item.name, 'regen')">
           <v-icon size="small">mdi-refresh</v-icon>
         </v-btn>
         <v-btn icon size="small" variant="text" color="error" :title="t('common.delete')" @click="startDelete(item.name)">
@@ -36,16 +36,16 @@
     <!-- Create token dialog -->
     <v-dialog v-model="createDialog" max-width="480">
       <v-card>
-        <v-card-title>{{ t('apiToken.newTitle') }}</v-card-title>
+        <v-card-title>{{ t('system.apiToken.newTitle') }}</v-card-title>
         <v-card-text>
           <v-form ref="createFormRef" @submit.prevent="doCreate">
-            <v-text-field v-model="createName" :label="t('apiToken.fieldName')" :rules="[rules.required]" variant="outlined" autofocus maxlength="250" />
+            <v-text-field v-model="createName" :label="t('system.apiToken.fieldName')" :rules="[rules.required]" variant="outlined" autofocus maxlength="250" />
           </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="createDialog = false">{{ t('common.cancel') }}</v-btn>
-          <v-btn color="primary" variant="elevated" :loading="creating" @click="doCreate">{{ t('apiToken.create') }}</v-btn>
+          <v-btn color="primary" variant="elevated" :loading="creating" @click="doCreate">{{ t('system.apiToken.create') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -54,13 +54,13 @@
     <v-dialog v-model="tokenDialog" max-width="520">
       <v-card>
         <v-card-title>
-          {{ t('apiToken.tokenLabel') }}&nbsp;<code>{{ tokenTarget }}</code>
+          {{ t('system.apiToken.tokenLabel') }}&nbsp;<code>{{ tokenTarget }}</code>
         </v-card-title>
         <v-card-text>
           <v-progress-linear v-if="tokenLoading" indeterminate color="primary" class="mb-3" />
           <v-textarea v-model="tokenValue" readonly rows="3" variant="outlined" hide-details :append-inner-icon="'mdi-content-copy'" @click:append-inner="copy" />
           <v-alert v-if="copyDone" type="success" variant="tonal" density="compact" class="mt-2">
-            {{ t('apiToken.copyDone') }}
+            {{ t('system.apiToken.copyDone') }}
           </v-alert>
         </v-card-text>
         <v-card-actions>
@@ -74,17 +74,17 @@
     <v-dialog v-model="createdDialog" max-width="520">
       <v-card>
         <v-card-title>
-          {{ t('apiToken.newTokenLabel') }}&nbsp;<code>{{ createdName }}</code>
+          {{ t('system.apiToken.newTokenLabel') }}&nbsp;<code>{{ createdName }}</code>
         </v-card-title>
         <v-card-text>
           <v-alert type="info" variant="tonal" density="compact" class="mb-3">
-            {{ t('apiToken.newSaveHint', { showLabel: t('apiToken.show') }) }}
+            {{ t('system.apiToken.newSaveHint', { showLabel: t('system.apiToken.show') }) }}
           </v-alert>
           <v-textarea :model-value="createdValue" readonly rows="3" variant="outlined" hide-details :append-inner-icon="'mdi-content-copy'" @click:append-inner="copyCreated" />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn color="primary" @click="createdDialog = false">{{ t('apiToken.done') }}</v-btn>
+          <v-btn color="primary" @click="createdDialog = false">{{ t('system.apiToken.done') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -92,12 +92,12 @@
     <!-- Delete confirmation -->
     <v-dialog v-model="deleteDialog" max-width="420">
       <v-card>
-        <v-card-title>{{ t('apiToken.deleteTitle') }}</v-card-title>
-        <v-card-text>{{ t('apiToken.deleteConfirm', { name: deleteTarget }) }}</v-card-text>
+        <v-card-title>{{ t('system.apiToken.deleteTitle') }}</v-card-title>
+        <v-card-text>{{ t('system.apiToken.deleteConfirm', { name: deleteTarget }) }}</v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="deleteDialog = false">{{ t('common.cancel') }}</v-btn>
-          <v-btn color="error" variant="elevated" :loading="deleting" @click="confirmDelete">{{ t('apiToken.revoke') }}</v-btn>
+          <v-btn color="error" variant="elevated" :loading="deleting" @click="confirmDelete">{{ t('system.apiToken.revoke') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -143,8 +143,8 @@ const deleting = ref(false)
 const rules = { required: (v) => !!v || 'Required' }
 
 const headers = computed(() => [
-  { title: t('apiToken.headerName'), key: 'name',    sortable: true },
-  { title: '',                       key: 'actions', sortable: false, width: '140px', align: 'end' },
+  { title: t('system.apiToken.headerName'), key: 'name', sortable: true },
+  { title: '', key: 'actions', sortable: false, width: '140px', align: 'end' },
 ])
 
 async function load() {
@@ -218,7 +218,7 @@ async function confirmDelete() {
 
 onMounted(() => {
   app.setBreadcrumbs(
-    [{ title: t('api.title'), to: '/api' }, { title: t('apiToken.title') }],
+    [{ title: t('api.title'), to: '/api' }, { title: t('system.apiToken.title') }],
     { refresh: load },
   )
   load()
