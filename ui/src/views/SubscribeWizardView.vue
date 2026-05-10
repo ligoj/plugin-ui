@@ -1,31 +1,33 @@
 <template>
   <div>
-    <div class="d-flex align-center mb-4">
-      <v-spacer />
-      <v-btn variant="text" :to="cancelTo">Cancel</v-btn>
-    </div>
+    <template v-if="!isEdit">
+      <div class="d-flex align-center mb-4">
+        <v-spacer />
+        <v-btn variant="text" :to="cancelTo">Cancel</v-btn>
+      </div>
 
-    <v-alert v-if="!projectId" type="info" variant="tonal" density="compact" class="mb-4">
-      No project selected. The wizard needs a project —
-      <router-link to="/home/project">pick one</router-link>,
-      then open this page from the project's "Add subscription" button.
-    </v-alert>
+      <v-alert v-if="!projectId" type="info" variant="tonal" density="compact" class="mb-4">
+        No project selected. The wizard needs a project —
+        <router-link to="/home/project">pick one</router-link>,
+        then open this page from the project's "Add subscription" button.
+      </v-alert>
 
-    <v-alert v-else-if="loadingProject" type="info" variant="tonal" density="compact" class="mb-4">
-      Loading project…
-    </v-alert>
+      <v-alert v-else-if="loadingProject" type="info" variant="tonal" density="compact" class="mb-4">
+        Loading project…
+      </v-alert>
 
-    <v-alert v-else-if="project" type="info" variant="tonal" density="compact" class="mb-4">
-      Adding a subscription to <strong>{{ project.name }}</strong> ({{ project.pkey }}).
-      <br>
-      <span class="text-caption text-warning">
-        Subscribing is not an idempotent operation — removing a subscription later may not clean up remote data automatically.
-      </span>
-    </v-alert>
+      <v-alert v-else-if="project" type="info" variant="tonal" density="compact" class="mb-4">
+        Adding a subscription to <strong>{{ project.name }}</strong> ({{ project.pkey }}).
+        <br>
+        <span class="text-caption text-warning">
+          Subscribing is not an idempotent operation — removing a subscription later may not clean up remote data automatically.
+        </span>
+      </v-alert>
+    </template>
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
-    <v-form v-if="project" ref="formRef" class="form-stack" @submit.prevent="submit">
+    <v-form v-if="isEdit || project" ref="formRef" class="form-stack" @submit.prevent="submit">
       <!-- 1. Service ------------------------------------------------------ -->
       <v-card variant="tonal" class="mb-4">
         <v-card-text>
@@ -37,7 +39,20 @@
           <p class="text-body-2 text-medium-emphasis mb-3">
             A service groups features implemented by one or more tools.
           </p>
-          <v-select v-model="selected.service" :items="services" item-title="name" item-value="id" return-object label="Service" variant="outlined" density="compact" :loading="loadingServices"
+          <template v-if="isEdit && selected.service">
+            <NodeIcon :node="selected.service" chip text />
+            <v-text-field
+              v-if="editParts === 2"
+              v-model="editForm.name"
+              label="Name"
+              maxlength="250"
+              variant="outlined"
+              density="compact"
+              class="mt-3"
+              :rules="[rules.required]"
+            />
+          </template>
+          <v-select v-else v-model="selected.service" :items="services" item-title="name" item-value="id" return-object label="Service" variant="outlined" density="compact" :loading="loadingServices"
             :rules="[rules.required]">
             <template #selection="{ item }">
               <span class="d-inline-flex align-center ga-2">
@@ -59,17 +74,30 @@
       </v-card>
 
       <!-- 2. Tool --------------------------------------------------------- -->
-      <v-card variant="tonal" class="mb-4" :disabled="!selected.service">
+      <v-card v-if="!isEdit || editParts >= 3" variant="tonal" class="mb-4" :disabled="!isEdit && !selected.service">
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-wrench</v-icon>
             <span>2. Tool</span>
             <v-progress-circular v-if="loadingTools" size="14" width="2" indeterminate class="ml-2" />
           </div>
-          <p class="text-body-2 text-medium-emphasis mb-3">
+          <p v-if="!isEdit" class="text-body-2 text-medium-emphasis mb-3">
             A tool is one implementation of the service; several instances may be deployed.
           </p>
-          <v-select v-model="selected.tool" :items="tools" item-title="name" item-value="id" return-object label="Tool" variant="outlined" density="compact" :loading="loadingTools"
+          <template v-if="isEdit && selected.tool">
+            <NodeIcon :node="selected.tool" chip text />
+            <v-text-field
+              v-if="editParts === 3"
+              v-model="editForm.name"
+              label="Name"
+              maxlength="250"
+              variant="outlined"
+              density="compact"
+              class="mt-3"
+              :rules="[rules.required]"
+            />
+          </template>
+          <v-select v-else v-model="selected.tool" :items="tools" item-title="name" item-value="id" return-object label="Tool" variant="outlined" density="compact" :loading="loadingTools"
             :disabled="!selected.service" :rules="selected.service ? [rules.required] : []">
             <template #selection="{ item }">
               <span class="d-inline-flex align-center ga-2">
@@ -91,18 +119,34 @@
       </v-card>
 
       <!-- 3. Instance (existing or new) ----------------------------------- -->
-      <v-card variant="tonal" class="mb-4" :disabled="!selected.tool">
+      <v-card v-if="!isEdit || editParts >= 4" variant="tonal" class="mb-4" :disabled="!isEdit && !selected.tool">
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-server</v-icon>
             <span>3. Instance</span>
             <v-progress-circular v-if="loadingNodes" size="14" width="2" indeterminate class="ml-2" />
           </div>
-          <p class="text-body-2 text-medium-emphasis mb-3">
+          <p v-if="!isEdit" class="text-body-2 text-medium-emphasis mb-3">
             An instance is a running node of the tool. Pick an existing one or declare a new one.
           </p>
 
-          <div class="d-flex align-start ga-2">
+          <template v-if="isEdit && selected.node">
+            <div class="d-flex align-center ga-2 mb-1">
+              <NodeIcon :node="selected.node" />
+              <code>{{ selected.node.id }}</code>
+            </div>
+            <v-text-field
+              v-model="editForm.name"
+              label="Name"
+              maxlength="250"
+              variant="outlined"
+              density="compact"
+              class="mt-3"
+              :rules="[rules.required]"
+            />
+          </template>
+
+          <div v-else class="d-flex align-start ga-2">
             <v-select v-model="selected.node" :items="nodes" item-title="name" item-value="id" return-object label="Instance" variant="outlined" density="compact" :loading="loadingNodes"
               :disabled="!selected.tool || showNewNode" :rules="!showNewNode && selected.tool ? [rules.required] : []" class="flex-grow-1">
               <template #selection="{ item }">
@@ -147,38 +191,42 @@
       </v-card>
 
       <!-- 4. Mode --------------------------------------------------------- -->
-      <v-card variant="tonal" class="mb-4" :disabled="!selected.node">
+      <v-card variant="tonal" class="mb-4" :disabled="!isEdit && !selected.node">
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-link-variant</v-icon>
             <span>4. Mode</span>
           </div>
-          <p class="text-body-2 text-medium-emphasis mb-3">
+          <p v-if="!isEdit" class="text-body-2 text-medium-emphasis mb-3">
             <strong>Link</strong> attaches this project to an existing instance.
             <strong>Create</strong> additionally provisions a new instance inside the tool.
           </p>
-          <v-radio-group v-model="selected.mode" inline :rules="selected.node ? [rules.required] : []" hide-details>
+          <v-chip v-if="isEdit" size="small" variant="tonal">{{ selected.mode || '—' }}</v-chip>
+          <v-radio-group v-else v-model="selected.mode" inline :rules="selected.node ? [rules.required] : []" hide-details>
             <v-radio v-for="m in availableModes" :key="m.value" :value="m.value" :label="m.label" />
           </v-radio-group>
         </v-card-text>
       </v-card>
 
       <!-- 5. Parameters --------------------------------------------------- -->
-      <v-card variant="tonal" class="mb-4" :disabled="!selected.node || !selected.mode">
+      <v-card variant="tonal" class="mb-4" :disabled="!isEdit && (!selected.node || !selected.mode)">
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-tune</v-icon>
             <span>5. Parameters</span>
             <v-progress-circular v-if="loadingParams" size="14" width="2" indeterminate class="ml-2" />
           </div>
-          <p class="text-body-2 text-medium-emphasis mb-3">
+          <p v-if="!isEdit" class="text-body-2 text-medium-emphasis mb-3">
             Values required to link the project to
             <code v-if="selected.node">{{ selected.node.id }}</code>
             <span v-else>the chosen instance</span>.
           </p>
+          <p v-else class="text-body-2 text-medium-emphasis mb-3">
+            Configuration values bound to <code>{{ node?.id }}</code>.
+          </p>
 
-          <v-alert v-if="!loadingParams && selected.node && selected.mode && parameters.length === 0" type="info" variant="tonal" density="compact">
-            This subscription requires no additional parameters.
+          <v-alert v-if="!loadingParams && (isEdit || (selected.node && selected.mode)) && parameters.length === 0" type="info" variant="tonal" density="compact">
+            {{ isEdit ? 'No parameters configured for this node.' : 'This subscription requires no additional parameters.' }}
           </v-alert>
 
           <div v-for="p in parameters" :key="p.id" class="mb-3">
@@ -204,9 +252,13 @@
 
       <!-- Actions --------------------------------------------------------- -->
       <div class="d-flex align-center ga-2">
-        <v-btn variant="text" :to="cancelTo" :disabled="creating">Cancel</v-btn>
+        <v-btn v-if="isEdit" variant="text" :disabled="creating" @click="$emit('cancel')">Cancel</v-btn>
+        <v-btn v-else variant="text" :to="cancelTo" :disabled="creating">Cancel</v-btn>
         <v-spacer />
-        <v-btn type="submit" color="success" prepend-icon="mdi-check" :loading="creating" :disabled="!ready">
+        <v-btn v-if="isEdit" type="submit" color="primary" prepend-icon="mdi-content-save" :loading="creating">
+          Save
+        </v-btn>
+        <v-btn v-else type="submit" color="success" prepend-icon="mdi-check" :loading="creating" :disabled="!ready">
           Create subscription
         </v-btn>
       </div>
@@ -217,14 +269,34 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore, NodeIcon } from '@ligoj/host'
+import { useApi, useAppStore, useErrorStore, NodeIcon } from '@ligoj/host'
+
+const props = defineProps({
+  /** 'subscribe' (default route view) or 'edit-node' (popup over an existing node). */
+  mode: { type: String, default: 'subscribe' },
+  /** Required when mode === 'edit-node': the node being edited. */
+  node: { type: Object, default: null },
+})
+const emit = defineEmits(['saved', 'cancel'])
+const isEdit = computed(() => props.mode === 'edit-node')
+/**
+ * Node identifiers follow `<service|feature>:<service>[:<tool>[:<instance>]]`.
+ * 2 parts → service-level, 3 parts → tool-level, 4 parts → instance-level.
+ * Drives which cards are shown in edit mode and where the editable Name
+ * field lives.
+ */
+const editParts = computed(() => isEdit.value ? (props.node?.id?.split(':').length || 0) : 0)
 
 const route = useRoute()
 const router = useRouter()
 const api = useApi()
 const app = useAppStore()
+const errorStore = useErrorStore()
 
-const projectId = computed(() => route.query.project ?? route.params.id ?? null)
+const projectId = computed(() => isEdit.value ? null : (route.query.project ?? route.params.id ?? null))
+
+/** In edit mode the dialog edits a node's name + parameters. */
+const editForm = reactive({ name: '' })
 
 const project = ref(null)
 const loadingProject = ref(false)
@@ -376,6 +448,7 @@ function filterEnabled(list) {
 
 // Selecting a service invalidates everything below.
 watch(() => selected.service, async (svc) => {
+  if (isEdit.value) return
   selected.tool = null
   selected.node = null
   selected.mode = null
@@ -388,6 +461,7 @@ watch(() => selected.service, async (svc) => {
 
 // Selecting a tool invalidates instance + mode and refreshes both.
 watch(() => selected.tool, async (tool) => {
+  if (isEdit.value) return
   selected.node = null
   selected.mode = null
   nodes.value = []
@@ -404,10 +478,12 @@ watch(() => selected.tool, async (tool) => {
 // Picking a node clears params; loadParameters is triggered by the
 // shared selected.mode watcher below to keep the call site singular.
 watch(() => selected.node, () => {
+  if (isEdit.value) return
   parameters.value = []
 })
 
 watch(() => selected.mode, async (mode) => {
+  if (isEdit.value) return
   parameters.value = []
   if (selected.node && mode) {
     await loadParameters(selected.node.id, mode)
@@ -466,6 +542,26 @@ async function submit() {
   creating.value = true
   error.value = null
 
+  if (isEdit.value) {
+    const payload = {
+      id: props.node.id,
+      node: props.node.refined?.id,
+      name: editForm.name,
+      mode: selected.mode,
+      untouchedParameters: false,
+      parameters: parameters.value.map(buildParamWire).filter(Boolean),
+    }
+    const result = await api.put('rest/node', payload)
+    creating.value = false
+    if (result === false) {
+      error.value = 'Save failed — please review the highlighted parameters.'
+      return
+    }
+    errorStore.success(`Node "${payload.name}" updated`)
+    emit('saved', { ...props.node, name: payload.name })
+    return
+  }
+
   const payload = {
     node: selected.node.id,
     project: Number(projectId.value),
@@ -501,7 +597,48 @@ async function refreshAll() {
   if (project.value) await loadServices()
 }
 
+/** Populate selectors from an existing node and load its current parameter values. */
+async function bootstrapEdit(node) {
+  if (!node) return
+  const parts = node.id.split(':').length
+  if (parts >= 4) {
+    selected.service = node.refined?.refined || null
+    selected.tool = node.refined || null
+    selected.node = node
+  } else if (parts === 3) {
+    selected.service = node.refined || null
+    selected.tool = node
+    selected.node = null
+  } else {
+    selected.service = node
+    selected.tool = null
+    selected.node = null
+  }
+  selected.mode = node.mode || 'all'
+  editForm.name = node.name || ''
+  loadingParams.value = true
+  const data = await api.get(
+    `rest/node/${encodeURIComponent(node.id)}/parameter-value/${(selected.mode || 'all').toUpperCase()}`,
+  )
+  const items = Array.isArray(data) ? data : (data?.data || [])
+  parameters.value = items.map((it) => it.parameter).filter(Boolean)
+  for (const key of Object.keys(paramValues)) delete paramValues[key]
+  for (const it of items) {
+    const p = it.parameter
+    if (!p) continue
+    if (p.type === 'integer') paramValues[p.id] = it.integer ?? ''
+    else if (p.type === 'bool') paramValues[p.id] = !!it.bool
+    else if (p.type === 'multiselect' || p.type === 'tags') paramValues[p.id] = it.selections || []
+    else paramValues[p.id] = it.text ?? ''
+  }
+  loadingParams.value = false
+}
+
 onMounted(async () => {
+  if (isEdit.value) {
+    await bootstrapEdit(props.node)
+    return
+  }
   app.setBreadcrumbs(
     [
       { title: 'Home', to: '/' },
