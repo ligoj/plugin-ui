@@ -1,28 +1,25 @@
 <template>
   <div>
-    <h1 class="text-h4 mb-4">Database bench</h1>
+    <h1 class="text-h4 mb-4">{{ t('system.bench.heading') }}</h1>
 
     <v-card variant="tonal" class="mb-4">
       <v-card-text>
-        Runs a sequence of <code>INSERT</code> → <code>SELECT</code> →
-        <code>SELECT *</code> → <code>UPDATE</code> → <code>DELETE</code>
-        calls and reports each step's duration. Handy to validate that
-        the backend's persistence layer is responsive.
+        {{ t('system.bench.help') }}
       </v-card-text>
     </v-card>
 
     <v-btn color="primary" prepend-icon="mdi-play" :loading="running" @click="run">
-      Run bench
+      {{ t('system.bench.run') }}
     </v-btn>
-    <v-number-input controlVariant="default" label="nb" v-model="nb"></v-number-input>
+    <v-number-input controlVariant="default" :label="t('system.bench.fieldNb')" v-model="nb"></v-number-input>
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mt-4">{{ error }}</v-alert>
 
     <v-table v-if="results.length" density="compact" class="mt-4" style="max-width: 600px">
       <thead>
         <tr>
-          <th>Step</th>
-          <th>Duration (ms)</th>
+          <th>{{ t('system.bench.headerStep') }}</th>
+          <th>{{ t('system.bench.headerDuration') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -40,7 +37,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useApi, useAppStore, APP_BASE } from '@ligoj/host'
+import { useApi, useAppStore, useI18nStore, APP_BASE } from '@ligoj/host'
+
+const { t } = useI18nStore()
 
 const api = useApi()
 const app = useAppStore()
@@ -112,6 +111,6 @@ async function run() {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: 'System', to: '/system' }, { title: 'Bench' }])
+  app.setBreadcrumbs([{ title: t('system.breadcrumb'), to: '/system' }, { title: t('system.bench.title') }])
 })
 </script>

@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex align-center mb-4">
       <v-spacer />
-      <v-btn color="primary" prepend-icon="mdi-plus" to="/subscribe">New subscription</v-btn>
+      <v-btn color="primary" prepend-icon="mdi-plus" to="/subscribe">{{ t('system.node.newSubscription') }}</v-btn>
     </div>
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
@@ -20,15 +20,15 @@
       <template #item.enabled="{ item }">
         <v-chip size="x-small" :color="item.enabled ? 'success' : 'error'" variant="tonal">
           <v-icon start size="x-small">{{ item.enabled ? 'mdi-check' : 'mdi-close' }}</v-icon>
-          {{ item.enabled ? 'Enabled' : 'Disabled' }}
+          {{ item.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled') }}
         </v-chip>
       </template>
       <template #item.actions="{ item }">
         <template v-if="isInstance(item)">
-          <v-btn icon size="small" variant="text" @click="startEdit(item)" title="Edit">
+          <v-btn icon size="small" variant="text" @click="startEdit(item)" :title="t('common.edit')">
             <v-icon size="small">mdi-pencil</v-icon>
           </v-btn>
-          <v-btn icon size="small" variant="text" color="error" @click="startDelete(item)" title="Delete">
+          <v-btn icon size="small" variant="text" color="error" @click="startDelete(item)" :title="t('common.delete')">
             <v-icon size="small">mdi-delete</v-icon>
           </v-btn>
         </template>
@@ -38,7 +38,7 @@
     <v-dialog v-model="editDialog" max-width="900" scrollable>
       <v-card>
         <v-card-title class="d-flex align-center ga-2">
-          <span>Edit node</span>
+          <span>{{ t('system.node.editTitle') }}</span>
           <code v-if="editTarget" class="text-body-2">{{ editTarget.id }}</code>
         </v-card-title>
         <v-card-text class="pa-4">
@@ -49,15 +49,14 @@
 
     <v-dialog v-model="deleteDialog" max-width="460">
       <v-card>
-        <v-card-title>Delete node</v-card-title>
+        <v-card-title>{{ t('system.node.deleteTitle') }}</v-card-title>
         <v-card-text>
-          Delete <strong>{{ deleteTarget?.name }}</strong>
-          (<code>{{ deleteTarget?.id }}</code>)?
+          {{ t('system.node.deleteConfirm', { name: deleteTarget?.name || '', id: deleteTarget?.id || '' }) }}
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn color="error" variant="elevated" :loading="deleting" @click="confirmDelete">Delete</v-btn>
+          <v-btn variant="text" @click="deleteDialog = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="error" variant="elevated" :loading="deleting" @click="confirmDelete">{{ t('common.delete') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -65,12 +64,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useApi, useAppStore, LigojDataTable, NodeIcon, NodeModeChip, isInstance } from '@ligoj/host'
+import { ref, computed, onMounted } from 'vue'
+import { useApi, useAppStore, useI18nStore, LigojDataTable, NodeIcon, NodeModeChip, isInstance } from '@ligoj/host'
 import SubscribeWizardView from './SubscribeWizardView.vue'
 
 const api = useApi()
 const app = useAppStore()
+const { t } = useI18nStore()
 
 const items = ref([])
 const loading = ref(false)
@@ -83,14 +83,14 @@ const deleting = ref(false)
 const editDialog = ref(false)
 const editTarget = ref(null)
 
-const headers = [
-  { title: '', key: 'icon', sortable: false, width: '40px', align: 'center' },
-  { title: 'Identifier', key: 'id', sortable: true },
-  { title: 'Name', key: 'name', sortable: true, width: '260px' },
-  { title: 'Mode', key: 'mode', sortable: true, width: '120px' },
-  { title: 'Status', key: 'enabled', sortable: true, width: '120px' },
-  { title: '', key: 'actions', sortable: false, width: '120px', align: 'end' },
-]
+const headers = computed(() => [
+  { title: '',                              key: 'icon',    sortable: false, width: '40px',  align: 'center' },
+  { title: t('system.node.headerIdentifier'), key: 'id',      sortable: true },
+  { title: t('system.node.headerName'),     key: 'name',    sortable: true,  width: '260px' },
+  { title: t('system.node.headerMode'),     key: 'mode',    sortable: true,  width: '120px' },
+  { title: t('system.node.headerStatus'),   key: 'enabled', sortable: true,  width: '120px' },
+  { title: '',                              key: 'actions', sortable: false, width: '120px', align: 'end' },
+])
 
 async function load() {
   loading.value = true
@@ -125,7 +125,7 @@ async function confirmDelete() {
 
 onMounted(() => {
   app.setBreadcrumbs(
-    [{ title: 'System', to: '/system' }, { title: 'Nodes' }],
+    [{ title: t('system.breadcrumb'), to: '/system' }, { title: t('system.node.title') }],
     { refresh: load },
   )
   load()

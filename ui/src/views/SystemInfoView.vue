@@ -7,12 +7,12 @@
       <v-col cols="12" md="6">
         <v-card variant="outlined" class="mb-4">
           <v-card-title class="d-flex align-center ga-2">
-            <v-icon>mdi-server-outline</v-icon> System
+            <v-icon>mdi-server-outline</v-icon> {{ t('system.info.system') }}
           </v-card-title>
           <v-card-text>
             <div class="mb-3">
               <div class="d-flex align-center mb-1">
-                <span class="text-body-2 text-medium-emphasis flex-grow-1">Memory</span>
+                <span class="text-body-2 text-medium-emphasis flex-grow-1">{{ t('system.info.memory') }}</span>
                 <span class="text-caption">
                   {{ formatSize(memory.used) }} / {{ formatSize(memory.max) }}
                 </span>
@@ -26,20 +26,20 @@
                 </template>
               </v-tooltip>
               <div class="d-flex mt-1 text-caption text-medium-emphasis ga-3">
-                <span><v-icon size="x-small" color="error">mdi-circle</v-icon> Used {{ memory.pctUsed }}%</span>
-                <span><v-icon size="x-small" color="warning">mdi-circle</v-icon> Committed free {{ memory.pctCommittedFree }}%</span>
-                <span><v-icon size="x-small" color="success">mdi-circle</v-icon> Free {{ memory.pctFree }}%</span>
+                <span><v-icon size="x-small" color="error">mdi-circle</v-icon> {{ t('system.info.memoryUsed') }} {{ memory.pctUsed }}%</span>
+                <span><v-icon size="x-small" color="warning">mdi-circle</v-icon> {{ t('system.info.memoryCommittedFree') }} {{ memory.pctCommittedFree }}%</span>
+                <span><v-icon size="x-small" color="success">mdi-circle</v-icon> {{ t('system.info.memoryFree') }} {{ memory.pctFree }}%</span>
               </div>
             </div>
 
-            <v-text-field :model-value="cpu" label="CPU load (total)" readonly density="compact" variant="outlined" class="mb-2" />
+            <v-text-field :model-value="cpu" :label="t('system.info.cpu')" readonly density="compact" variant="outlined" class="mb-2" />
 
             <v-row dense>
               <v-col cols="12" md="6">
-                <v-text-field :model-value="dateIso" label="Local date" readonly density="compact" variant="outlined" />
+                <v-text-field :model-value="dateIso" :label="t('system.info.localDate')" readonly density="compact" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field :model-value="dateTimestamp" label="Timestamp" readonly density="compact" variant="outlined" />
+                <v-text-field :model-value="dateTimestamp" :label="t('system.info.timestamp')" readonly density="compact" variant="outlined" />
               </v-col>
             </v-row>
           </v-card-text>
@@ -50,14 +50,14 @@
       <v-col cols="12" md="6">
         <v-card variant="outlined" class="mb-4">
           <v-card-title class="d-flex align-center ga-2">
-            <v-icon>mdi-map-clock</v-icon> Time zone
+            <v-icon>mdi-map-clock</v-icon> {{ t('system.info.timezone') }}
           </v-card-title>
           <v-card-text>
-            <v-text-field v-model="tz.application" label="Application" density="compact" variant="outlined" class="mb-2" :loading="updatingTz === 'application'"
+            <v-text-field v-model="tz.application" :label="t('system.info.timezoneApplication')" density="compact" variant="outlined" class="mb-2" :loading="updatingTz === 'application'"
               @blur="saveTimeZone('application', tz.application)" @keyup.enter="saveTimeZone('application', tz.application)" />
-            <v-text-field v-model="tz.default" label="System" density="compact" variant="outlined" class="mb-2" :loading="updatingTz === 'default'" @blur="saveTimeZone('default', tz.default)"
+            <v-text-field v-model="tz.default" :label="t('system.info.timezoneSystem')" density="compact" variant="outlined" class="mb-2" :loading="updatingTz === 'default'" @blur="saveTimeZone('default', tz.default)"
               @keyup.enter="saveTimeZone('default', tz.default)" />
-            <v-text-field :model-value="tz.original" label="System (initial)" readonly density="compact" variant="outlined" />
+            <v-text-field :model-value="tz.original" :label="t('system.info.timezoneOriginal')" readonly density="compact" variant="outlined" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -66,12 +66,12 @@
       <v-col cols="12" md="6">
         <v-card variant="outlined" class="mb-4">
           <v-card-title class="d-flex align-center ga-2">
-            <v-icon>mdi-account-key</v-icon> Session
+            <v-icon>mdi-account-key</v-icon> {{ t('system.info.session') }}
           </v-card-title>
           <v-card-text>
-            <v-text-field :model-value="sessionId" label="Identifier" readonly density="compact" variant="outlined" class="mb-2" :append-inner-icon="'mdi-content-copy'"
+            <v-text-field :model-value="sessionId" :label="t('system.info.sessionId')" readonly density="compact" variant="outlined" class="mb-2" :append-inner-icon="'mdi-content-copy'"
               @click:append-inner="copy(sessionId)" />
-            <v-text-field :model-value="auth.userName" label="User" readonly density="compact" variant="outlined" />
+            <v-text-field :model-value="auth.userName" :label="t('system.info.sessionUser')" readonly density="compact" variant="outlined" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -80,19 +80,19 @@
       <v-col cols="12" md="6">
         <v-card variant="outlined" class="mb-4">
           <v-card-title class="d-flex align-center ga-2">
-            <v-icon>mdi-source-commit</v-icon> Build
+            <v-icon>mdi-source-commit</v-icon> {{ t('system.info.build') }}
           </v-card-title>
           <v-card-text>
-            <v-text-field :model-value="build.number" label="Number" readonly density="compact" variant="outlined" class="mb-2" />
+            <v-text-field :model-value="build.number" :label="t('system.info.buildNumber')" readonly density="compact" variant="outlined" class="mb-2" />
             <v-row dense>
               <v-col cols="12" md="6">
-                <v-text-field :model-value="build.timestamp" label="Timestamp" readonly density="compact" variant="outlined" />
+                <v-text-field :model-value="build.timestamp" :label="t('system.info.buildTimestamp')" readonly density="compact" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field :model-value="build.date" label="Date" readonly density="compact" variant="outlined" />
+                <v-text-field :model-value="build.date" :label="t('system.info.buildDate')" readonly density="compact" variant="outlined" />
               </v-col>
             </v-row>
-            <v-text-field :model-value="build.version" label="Version" readonly density="compact" variant="outlined" />
+            <v-text-field :model-value="build.version" :label="t('system.info.buildVersion')" readonly density="compact" variant="outlined" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -102,11 +102,12 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useAuthStore, useClipboard, APP_BASE } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useClipboard, useI18nStore, APP_BASE } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
 const auth = useAuthStore()
+const { t } = useI18nStore()
 
 const loading = ref(false)
 const error = ref(null)
@@ -137,7 +138,12 @@ const build = computed(() => {
 })
 
 const memoryTooltip = computed(() =>
-  `Used: ${formatSize(memory.used)} · Committed-free: ${formatSize(memory.committedFree)} · Free: ${formatSize(memory.free)} / ${formatSize(memory.max)}`,
+  t('system.info.memoryTooltip', {
+    used: formatSize(memory.used),
+    committedFree: formatSize(memory.committedFree),
+    free: formatSize(memory.free),
+    max: formatSize(memory.max),
+  }),
 )
 
 function formatSize(bytes) {
@@ -211,7 +217,7 @@ const { copy } = useClipboard()
 
 onMounted(() => {
   app.setBreadcrumbs(
-    [{ title: 'System', to: '/system' }, { title: 'Information' }],
+    [{ title: t('system.breadcrumb'), to: '/system' }, { title: t('system.info.title') }],
     { refresh: load },
   )
   load()

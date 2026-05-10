@@ -57,7 +57,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useApi, useAppStore, useDataTable, LigojDataTableServer } from '@ligoj/host'
+import { useApi, useAppStore, useDataTable, useI18nStore, LigojDataTableServer } from '@ligoj/host'
+
+const { t } = useI18nStore()
 
 const api = useApi()
 const app = useAppStore()
@@ -152,7 +154,7 @@ async function confirmDelete() {
 
 onMounted(() => {
   app.setBreadcrumbs(
-    [{ title: 'System', to: '/system' }, { title: 'System users' }],
+    [{ title: t('system.breadcrumb'), to: '/system' }, { title: t('system.user.title') }],
     { refresh: () => { loadRoles(); dt.load(lastOptions) } },
   )
   loadRoles()

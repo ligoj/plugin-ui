@@ -2,15 +2,15 @@
   <div>
     <div class="d-flex flex-wrap align-center mb-4 ga-2">
       <v-spacer />
-      <v-select v-model="repository" :items="REPOSITORIES" item-value="id" item-title="label" label="Repository" density="compact" hide-details variant="outlined" style="max-width: 200px"
-        @update:model-value="load" />
+      <v-select v-model="repository" :items="REPOSITORIES" item-value="id" item-title="label" :label="t('system.plugin.repository')" density="compact" hide-details variant="outlined"
+        style="max-width: 200px" @update:model-value="load" />
       <v-btn variant="outlined" prepend-icon="mdi-magnify-plus" :loading="checking" @click="askCheckVersions">
-        Check versions
+        {{ t('system.plugin.checkVersions') }}
       </v-btn>
       <v-btn color="error" variant="outlined" prepend-icon="mdi-restart" :loading="restarting" @click="askRestart">
-        Restart
+        {{ t('system.plugin.restart') }}
       </v-btn>
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="openInstall">Install</v-btn>
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="openInstall">{{ t('system.plugin.install') }}</v-btn>
     </div>
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
@@ -21,9 +21,9 @@
       </template>
       <template #item.version="{ item }">
         <span>{{ item.plugin?.version || '—' }}</span>
-        <v-chip v-if="item.latestLocalVersion" size="x-small" color="primary" class="ml-1" closable @click:close="cancelLocal(item)" title="Cancel local install">{{ item.latestLocalVersion }}</v-chip>
+        <v-chip v-if="item.latestLocalVersion" size="x-small" color="primary" class="ml-1" closable @click:close="cancelLocal(item)" :title="t('system.plugin.cancelLocal')">{{ item.latestLocalVersion }}</v-chip>
         <v-chip v-if="item.newVersion && item.newVersion !== item.latestLocalVersion" size="x-small" color="success" class="ml-1" @click="installOne(item.plugin.artifact)"
-          title="Upgrade available — click to install">
+          :title="t('system.plugin.upgradeAvailable')">
           <v-icon start size="x-small">mdi-arrow-up</v-icon>{{ item.newVersion }}
         </v-chip>
       </template>
@@ -34,8 +34,8 @@
         <span v-if="item.plugin?.type?.toLowerCase() !== 'feature'">{{ item.subscriptions ?? 0 }}</span>
       </template>
       <template #item.actions="{ item }">
-        <v-icon v-if="item.deleted" size="small" color="warning" title="Deletion scheduled">mdi-cancel</v-icon>
-        <v-btn v-else icon size="small" variant="text" color="error" @click="askRemove(item.plugin.artifact)" title="Delete plug-in">
+        <v-icon v-if="item.deleted" size="small" color="warning" :title="t('system.plugin.deletionScheduled')">mdi-cancel</v-icon>
+        <v-btn v-else icon size="small" variant="text" color="error" @click="askRemove(item.plugin.artifact)" :title="t('system.plugin.delete')">
           <v-icon size="small">mdi-delete</v-icon>
         </v-btn>
       </template>
@@ -44,10 +44,10 @@
     <!-- Install dialog: search-driven autocomplete -->
     <v-dialog v-model="installDialog" max-width="640">
       <v-card>
-        <v-card-title>Install plug-in</v-card-title>
+        <v-card-title>{{ t('system.plugin.installTitle') }}</v-card-title>
         <v-card-text>
-          <v-autocomplete v-model="installSelection" v-model:search="installSearch" :items="searchResults" item-value="artifact" label="Search artifacts"
-            :hint="`Repository: ${repository} — type at least one character`" persistent-hint multiple chips closable-chips clearable variant="outlined" :loading="searching" no-filter return-object
+          <v-autocomplete v-model="installSelection" v-model:search="installSearch" :items="searchResults" item-value="artifact" :label="t('system.plugin.searchArtifacts')"
+            :hint="t('system.plugin.searchHint', { repository })" persistent-hint multiple chips closable-chips clearable variant="outlined" :loading="searching" no-filter return-object
             class="mb-2" autofocus>
             <template #item="{ props: itemProps, item }">
               <v-list-item v-bind="itemProps" :title="item.raw.artifact">
@@ -65,24 +65,24 @@
             <template #no-data>
               <v-list-item>
                 <v-list-item-title class="text-caption text-medium-emphasis">
-                  {{ installSearch ? 'No matches' : 'Type to search artifacts' }}
+                  {{ installSearch ? t('system.plugin.searchNoMatch') : t('system.plugin.searchPrompt') }}
                 </v-list-item-title>
               </v-list-item>
             </template>
           </v-autocomplete>
 
-          <v-checkbox v-model="installJavadoc" label="Install Javadoc bundles" density="compact" hide-details class="mb-2" />
+          <v-checkbox v-model="installJavadoc" :label="t('system.plugin.installJavadoc')" density="compact" hide-details class="mb-2" />
 
           <v-progress-linear v-if="installing" :model-value="installProgress.total ? Math.round(installProgress.current / installProgress.total * 100) : 0" color="primary" class="mt-2" />
           <p v-if="installing" class="text-caption text-medium-emphasis mt-1">
-            Installing {{ installProgress.current }} / {{ installProgress.total }}: {{ installProgress.label }}
+            {{ t('system.plugin.installProgress', { current: installProgress.current, total: installProgress.total, label: installProgress.label }) }}
           </p>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" :disabled="installing" @click="installDialog = false">Cancel</v-btn>
+          <v-btn variant="text" :disabled="installing" @click="installDialog = false">{{ t('common.cancel') }}</v-btn>
           <v-btn color="primary" variant="elevated" :loading="installing" :disabled="!installSelection.length" @click="doInstall">
-            Install {{ installSelection.length || '' }}
+            {{ t('system.plugin.installAction', { count: installSelection.length || '' }) }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -95,7 +95,7 @@
         <v-card-text>{{ confirm.text }}</v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" :disabled="confirm.busy" @click="confirm.open = false">Cancel</v-btn>
+          <v-btn variant="text" :disabled="confirm.busy" @click="confirm.open = false">{{ t('common.cancel') }}</v-btn>
           <v-btn :color="confirm.color" variant="elevated" :loading="confirm.busy" @click="runConfirm">
             {{ confirm.label }}
           </v-btn>
@@ -106,16 +106,17 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useApi, useAppStore, LigojDataTable } from '@ligoj/host'
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useApi, useAppStore, useI18nStore, LigojDataTable } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
+const { t } = useI18nStore()
 
-const REPOSITORIES = [
-  { id: 'central', label: 'Maven Central' },
-  { id: 'nexus', label: 'OSSRH Nexus' },
-]
+const REPOSITORIES = computed(() => [
+  { id: 'central', label: t('system.plugin.repoCentral') },
+  { id: 'nexus',   label: t('system.plugin.repoNexus') },
+])
 
 const repository = ref('central')
 const items = ref([])
@@ -124,16 +125,16 @@ const error = ref(null)
 const checking = ref(false)
 const restarting = ref(false)
 
-const headers = [
-  { title: '', key: 'type', sortable: false, width: '40px' },
-  { title: 'Artifact', key: 'id', sortable: true },
-  { title: 'Name', key: 'name', sortable: true },
-  { title: 'Vendor', key: 'vendor', sortable: true, width: '160px' },
-  { title: 'Version', key: 'version', sortable: false, width: '280px' },
-  { title: 'Nodes', key: 'nodes', sortable: true, width: '80px', align: 'center' },
-  { title: 'Subs', key: 'subscriptions', sortable: true, width: '80px', align: 'center' },
-  { title: '', key: 'actions', sortable: false, width: '60px', align: 'end' },
-]
+const headers = computed(() => [
+  { title: '',                                     key: 'type',          sortable: false, width: '40px' },
+  { title: t('system.plugin.headerArtifact'),      key: 'id',            sortable: true },
+  { title: t('system.plugin.headerName'),          key: 'name',          sortable: true },
+  { title: t('system.plugin.headerVendor'),        key: 'vendor',        sortable: true, width: '160px' },
+  { title: t('system.plugin.headerVersion'),       key: 'version',       sortable: false, width: '280px' },
+  { title: t('system.plugin.headerNodes'),         key: 'nodes',         sortable: true, width: '80px', align: 'center' },
+  { title: t('system.plugin.headerSubscriptions'), key: 'subscriptions', sortable: true, width: '80px', align: 'center' },
+  { title: '',                                     key: 'actions',       sortable: false, width: '60px', align: 'end' },
+])
 
 function typeIcon(plugin) {
   const t = plugin.plugin?.type?.toLowerCase()
@@ -238,7 +239,7 @@ const confirm = reactive({
   open: false,
   title: '',
   text: '',
-  label: 'Confirm',
+  label: '',
   color: 'primary',
   busy: false,
   /** @type {() => Promise<void>|void} */
@@ -267,9 +268,9 @@ async function runConfirm() {
 
 function askRestart() {
   ask({
-    title: 'Restart API container',
-    text: 'The API process will restart now. Active sessions and ongoing background jobs may be interrupted.',
-    label: 'Restart',
+    title: t('system.plugin.confirmRestartTitle'),
+    text: t('system.plugin.confirmRestartText'),
+    label: t('system.plugin.restart'),
     color: 'error',
     action: async () => {
       restarting.value = true
@@ -281,9 +282,9 @@ function askRestart() {
 
 function askCheckVersions() {
   ask({
-    title: 'Check for new versions',
-    text: `Refresh the available plug-in versions from ${repository.value}? The repository cache will be invalidated and a new lookup performed.`,
-    label: 'Check',
+    title: t('system.plugin.confirmCheckTitle'),
+    text: t('system.plugin.confirmCheckText', { repository: repository.value }),
+    label: t('system.plugin.confirmCheckLabel'),
     color: 'primary',
     action: async () => {
       checking.value = true
@@ -299,9 +300,9 @@ function askCheckVersions() {
 
 function askRemove(artifact) {
   ask({
-    title: 'Delete plug-in',
-    text: `Schedule deletion of ${artifact}? The actual removal happens on the next container restart.`,
-    label: 'Delete',
+    title: t('system.plugin.confirmDeleteTitle'),
+    text: t('system.plugin.confirmDeleteText', { artifact }),
+    label: t('common.delete'),
     color: 'error',
     action: async () => {
       await api.del(`rest/system/plugin/${artifact}`)
@@ -312,7 +313,7 @@ function askRemove(artifact) {
 
 onMounted(() => {
   app.setBreadcrumbs(
-    [{ title: 'System', to: '/system' }, { title: 'Plug-ins' }],
+    [{ title: t('system.breadcrumb'), to: '/system' }, { title: t('system.plugin.title') }],
     { refresh: load },
   )
   load()

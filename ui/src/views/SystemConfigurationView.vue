@@ -3,25 +3,25 @@
     <div class="d-flex align-center mb-4">
       <v-spacer />
       <v-btn color="primary" prepend-icon="mdi-plus" @click="openNew">
-        New key
+        {{ t('system.config.newKey') }}
       </v-btn>
     </div>
 
     <!-- Encrypt helper -->
     <v-card variant="tonal" class="mb-4">
       <v-card-title class="text-subtitle-1 d-flex align-center ga-2">
-        <v-icon>mdi-shield-key</v-icon> Encrypt helper
+        <v-icon>mdi-shield-key</v-icon> {{ t('system.config.encryptHelper') }}
       </v-card-title>
       <v-card-text>
         <v-row dense>
           <v-col cols="12" md="5">
-            <v-text-field v-model="toEncrypt" label="Text to encrypt" variant="outlined" density="compact" hide-details @keyup.enter="encrypt" />
+            <v-text-field v-model="toEncrypt" :label="t('system.config.encryptInput')" variant="outlined" density="compact" hide-details @keyup.enter="encrypt" />
           </v-col>
           <v-col cols="auto">
-            <v-btn color="primary" prepend-icon="mdi-lock" :loading="encrypting" :disabled="!toEncrypt" @click="encrypt">Encrypt</v-btn>
+            <v-btn color="primary" prepend-icon="mdi-lock" :loading="encrypting" :disabled="!toEncrypt" @click="encrypt">{{ t('system.config.encrypt') }}</v-btn>
           </v-col>
           <v-col cols="12" md="6">
-            <v-text-field :model-value="encrypted" label="Result" variant="outlined" density="compact" readonly hide-details :append-inner-icon="'mdi-content-copy'"
+            <v-text-field :model-value="encrypted" :label="t('system.config.encryptResult')" variant="outlined" density="compact" readonly hide-details :append-inner-icon="'mdi-content-copy'"
               @click:append-inner="copy(encrypted)" />
           </v-col>
         </v-row>
@@ -37,7 +37,7 @@
         <code v-else class="config-value" :title="item.value">{{ item.value }}</code>
       </template>
       <template #item.secured="{ item }">
-        <v-icon v-if="item.secured" size="small" color="primary" title="Secured">mdi-lock</v-icon>
+        <v-icon v-if="item.secured" size="small" color="primary" :title="t('system.config.tipSecured')">mdi-lock</v-icon>
       </template>
       <template #item.source="{ item }">
         <v-tooltip v-if="item.source" :text="sourceTooltip(item)" location="top">
@@ -45,13 +45,13 @@
             <v-icon v-bind="tipProps" size="small" :color="item.overridden ? 'warning' : undefined">{{ sourceIcon(item.source) }}</v-icon>
           </template>
         </v-tooltip>
-        <v-icon v-if="item.overridden" size="x-small" color="warning" class="ml-1" title="Overridden">mdi-alert</v-icon>
+        <v-icon v-if="item.overridden" size="x-small" color="warning" class="ml-1" :title="t('system.config.tipOverridden')">mdi-alert</v-icon>
       </template>
       <template #item.actions="{ item }">
-        <v-btn icon size="small" variant="text" @click="openEdit(item)" title="Edit">
+        <v-btn icon size="small" variant="text" @click="openEdit(item)" :title="t('common.edit')">
           <v-icon size="small">mdi-pencil</v-icon>
         </v-btn>
-        <v-btn icon size="small" variant="text" color="error" @click="startDelete(item)" title="Delete">
+        <v-btn icon size="small" variant="text" color="error" @click="startDelete(item)" :title="t('common.delete')">
           <v-icon size="small">mdi-delete</v-icon>
         </v-btn>
       </template>
@@ -60,19 +60,19 @@
     <!-- Create / edit dialog -->
     <v-dialog v-model="editDialog" max-width="600">
       <v-card>
-        <v-card-title>{{ editTarget ? 'Edit configuration' : 'New configuration' }}</v-card-title>
+        <v-card-title>{{ editTarget ? t('system.config.editTitle') : t('system.config.newTitle') }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field v-model="editForm.name" label="Name" :rules="[rules.required]" variant="outlined" density="compact" class="mb-2" autofocus />
-            <v-textarea v-model="editForm.value" label="Value" :rules="[rules.required]" :counter="1023" maxlength="1023" rows="3" variant="outlined" density="compact" class="mb-2" />
-            <v-checkbox v-model="editForm.system" label="Override system environment / properties" density="compact" hide-details />
-            <v-checkbox v-model="editForm.secured" label="Secured (value is encrypted at rest)" density="compact" hide-details />
+            <v-text-field v-model="editForm.name" :label="t('system.config.fieldName')" :rules="[rules.required]" variant="outlined" density="compact" class="mb-2" autofocus />
+            <v-textarea v-model="editForm.value" :label="t('system.config.fieldValue')" :rules="[rules.required]" :counter="1023" maxlength="1023" rows="3" variant="outlined" density="compact" class="mb-2" />
+            <v-checkbox v-model="editForm.system" :label="t('system.config.fieldSystem')" density="compact" hide-details />
+            <v-checkbox v-model="editForm.secured" :label="t('system.config.fieldSecured')" density="compact" hide-details />
           </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="editDialog = false">Cancel</v-btn>
-          <v-btn color="primary" variant="elevated" :loading="saving" @click="save">Save</v-btn>
+          <v-btn variant="text" @click="editDialog = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="primary" variant="elevated" :loading="saving" @click="save">{{ t('common.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -80,14 +80,14 @@
     <!-- Delete confirmation -->
     <v-dialog v-model="deleteDialog" max-width="440">
       <v-card>
-        <v-card-title>Delete configuration</v-card-title>
+        <v-card-title>{{ t('system.config.deleteTitle') }}</v-card-title>
         <v-card-text>
-          Remove key <code>{{ deleteTarget?.name }}</code>?
+          {{ t('system.config.deleteConfirm', { name: deleteTarget?.name || '' }) }}
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn color="error" variant="elevated" :loading="deleting" @click="confirmDelete">Delete</v-btn>
+          <v-btn variant="text" @click="deleteDialog = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="error" variant="elevated" :loading="deleting" @click="confirmDelete">{{ t('common.delete') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -95,12 +95,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useApi, useAppStore, useClipboard, LigojDataTable, APP_BASE } from '@ligoj/host'
+import { ref, computed, onMounted } from 'vue'
+import { useApi, useAppStore, useClipboard, useI18nStore, LigojDataTable, APP_BASE } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
 const { copy } = useClipboard()
+const { t } = useI18nStore()
 
 const items = ref([])
 const loading = ref(false)
@@ -126,13 +127,13 @@ const rules = { required: (v) => (v !== '' && v != null) || 'Required' }
 // The Source text column is intentionally dropped — the icon tooltip
 // (sourceTooltip) already exposes the raw `source` string, so keeping both
 // just consumed horizontal room.
-const headers = [
-  { title: 'Name', key: 'name', sortable: true, width: '220px' },
-  { title: 'Value', key: 'value', sortable: false },
-  { title: '', key: 'secured', sortable: true, width: '32px', align: 'center' },
-  { title: 'Source', key: 'source', sortable: true, width: '80px', align: 'center' },
-  { title: 'Actions', key: 'actions', sortable: false, width: '128px', align: 'end' },
-]
+const headers = computed(() => [
+  { title: t('system.config.headerName'),   key: 'name',    sortable: true,  width: '220px' },
+  { title: t('system.config.headerValue'),  key: 'value',   sortable: false },
+  { title: '',                              key: 'secured', sortable: true,  width: '32px',  align: 'center' },
+  { title: t('system.config.headerSource'), key: 'source',  sortable: true,  width: '80px',  align: 'center' },
+  { title: t('common.actions'),             key: 'actions', sortable: false, width: '128px', align: 'end' },
+])
 
 const SOURCE_ICONS = {
   systemEnvironment: 'mdi-desktop-classic',
@@ -150,8 +151,8 @@ function sourceIcon(source) {
 
 function sourceTooltip(item) {
   if (!item.source) return ''
-  const base = `Source: ${item.source}`
-  return item.overridden ? `${base} — overridden` : base
+  const base = t('system.config.sourcePrefix', { source: item.source })
+  return item.overridden ? t('system.config.sourceOverridden', { base }) : base
 }
 
 async function load() {
@@ -232,7 +233,7 @@ async function confirmDelete() {
 
 onMounted(() => {
   app.setBreadcrumbs(
-    [{ title: 'System', to: '/system' }, { title: 'Configuration' }],
+    [{ title: t('system.breadcrumb'), to: '/system' }, { title: t('system.config.title') }],
     { refresh: load },
   )
   load()

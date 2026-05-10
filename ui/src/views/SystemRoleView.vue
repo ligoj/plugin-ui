@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex align-center mb-4">
       <v-spacer />
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="openNew">New</v-btn>
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="openNew">{{ t('common.new') }}</v-btn>
     </div>
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
@@ -26,34 +26,34 @@
 
     <v-dialog v-model="editDialog" max-width="640">
       <v-card>
-        <v-card-title>{{ editTarget ? 'Edit role' : 'New role' }}</v-card-title>
+        <v-card-title>{{ editTarget ? t('system.role.editTitle') : t('system.role.newTitle') }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field v-model="editForm.name" label="Name" :rules="[rules.required]" variant="outlined" class="mb-4" autofocus />
+            <v-text-field v-model="editForm.name" :label="t('system.role.fieldName')" :rules="[rules.required]" variant="outlined" class="mb-4" autofocus />
 
-            <v-combobox v-model="editForm.apiPatterns" label="API authorization patterns (regex)" :items="editForm.apiPatterns" chips closable-chips multiple variant="outlined"
-              hint="Press Enter after each pattern" persistent-hint class="mb-4" />
+            <v-combobox v-model="editForm.apiPatterns" :label="t('system.role.fieldApiPatterns')" :items="editForm.apiPatterns" chips closable-chips multiple variant="outlined"
+              :hint="t('system.role.patternsHint')" persistent-hint class="mb-4" />
 
-            <v-combobox v-model="editForm.uiPatterns" label="UI authorization patterns (regex)" :items="editForm.uiPatterns" chips closable-chips multiple variant="outlined"
-              hint="Press Enter after each pattern" persistent-hint class="mb-2" />
+            <v-combobox v-model="editForm.uiPatterns" :label="t('system.role.fieldUiPatterns')" :items="editForm.uiPatterns" chips closable-chips multiple variant="outlined"
+              :hint="t('system.role.patternsHint')" persistent-hint class="mb-2" />
           </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="editDialog = false">Cancel</v-btn>
-          <v-btn color="primary" variant="elevated" :loading="saving" @click="save">Save</v-btn>
+          <v-btn variant="text" @click="editDialog = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="primary" variant="elevated" :loading="saving" @click="save">{{ t('common.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <v-dialog v-model="deleteDialog" max-width="420">
       <v-card>
-        <v-card-title>Delete role</v-card-title>
-        <v-card-text>Delete role <strong>{{ deleteTarget?.name }}</strong>?</v-card-text>
+        <v-card-title>{{ t('system.role.deleteTitle') }}</v-card-title>
+        <v-card-text>{{ t('system.role.deleteConfirm', { name: deleteTarget?.name || '' }) }}</v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn color="error" variant="elevated" :loading="deleting" @click="confirmDelete">Delete</v-btn>
+          <v-btn variant="text" @click="deleteDialog = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="error" variant="elevated" :loading="deleting" @click="confirmDelete">{{ t('common.delete') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -61,11 +61,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useApi, useAppStore, LigojDataTable } from '@ligoj/host'
+import { ref, computed, onMounted } from 'vue'
+import { useApi, useAppStore, useI18nStore, LigojDataTable } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
+const { t } = useI18nStore()
 
 const items = ref([])
 const loading = ref(false)
@@ -82,12 +83,12 @@ const deleting = ref(false)
 
 const rules = { required: (v) => !!v || 'Required' }
 
-const headers = [
-  { title: 'Name', key: 'name', sortable: true, width: '180px' },
-  { title: 'API patterns', key: 'authApi', sortable: false },
-  { title: 'UI patterns', key: 'authUi', sortable: false },
-  { title: '', key: 'actions', sortable: false, width: '120px', align: 'end' },
-]
+const headers = computed(() => [
+  { title: t('system.role.headerName'), key: 'name',    sortable: true,  width: '180px' },
+  { title: t('system.role.headerApi'),  key: 'authApi', sortable: false },
+  { title: t('system.role.headerUi'),   key: 'authUi',  sortable: false },
+  { title: '',                          key: 'actions', sortable: false, width: '120px', align: 'end' },
+])
 
 async function load() {
   loading.value = true
@@ -153,7 +154,7 @@ async function confirmDelete() {
 
 onMounted(() => {
   app.setBreadcrumbs(
-    [{ title: 'System', to: '/system' }, { title: 'Roles' }],
+    [{ title: t('system.breadcrumb'), to: '/system' }, { title: t('system.role.title') }],
     { refresh: load },
   )
   load()

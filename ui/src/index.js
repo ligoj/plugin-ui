@@ -35,8 +35,12 @@ if (typeof document !== 'undefined') {
  * Shared host surface is imported from `@ligoj/host` (kept external so the
  * plugin and host share the same pinia / reactive instances).
  */
+import { useI18nStore } from '@ligoj/host'
 import UiPlugin from './UiPlugin.vue'
 import service from './service.js'
+
+import enMessages from './i18n/en.js'
+import frMessages from './i18n/fr.js'
 
 import HomeView from './views/HomeView.vue'
 import ProjectListView from './views/ProjectListView.vue'
@@ -92,6 +96,12 @@ export default {
   component: UiPlugin,
   routes,
   install({ router }) {
+    // Ship our translations alongside the plugin code: merging both
+    // locales into the i18n store means the host's en.js / fr.js stay
+    // free of plugin-ui-specific keys.
+    const i18n = useI18nStore()
+    i18n.merge(enMessages, 'en')
+    i18n.merge(frMessages, 'fr')
     for (const route of routes) {
       router.addRoute(route)
     }

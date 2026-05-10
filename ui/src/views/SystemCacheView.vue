@@ -20,7 +20,7 @@
         {{ item.averageGetTime ?? '—' }}
       </template>
       <template #item.actions="{ item }">
-        <v-btn icon size="small" variant="text" :loading="invalidating === item.id" @click="invalidate(item)" title="Invalidate cache">
+        <v-btn icon size="small" variant="text" :loading="invalidating === item.id" @click="invalidate(item)" :title="t('system.cache.invalidate')">
           <v-icon size="small">mdi-broom</v-icon>
         </v-btn>
       </template>
@@ -29,25 +29,26 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useApi, useAppStore, LigojDataTable } from '@ligoj/host'
+import { ref, computed, onMounted } from 'vue'
+import { useApi, useAppStore, useI18nStore, LigojDataTable } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
+const { t } = useI18nStore()
 
 const items = ref([])
 const loading = ref(false)
 const error = ref(null)
 const invalidating = ref(null)
 
-const headers = [
-  { title: 'Cache', key: 'id', sortable: true },
-  { title: 'Size', key: 'size', sortable: true, width: '100px' },
-  { title: 'Hits', key: 'hitCount', sortable: true, width: '160px' },
-  { title: 'Misses', key: 'missCount', sortable: true, width: '160px' },
-  { title: 'Avg get (ms)', key: 'averageGetTime', sortable: true, width: '140px' },
-  { title: '', key: 'actions', sortable: false, width: '60px', align: 'end' },
-]
+const headers = computed(() => [
+  { title: t('system.cache.headerName'),    key: 'id',             sortable: true },
+  { title: t('system.cache.headerSize'),    key: 'size',           sortable: true, width: '100px' },
+  { title: t('system.cache.headerHits'),    key: 'hitCount',       sortable: true, width: '160px' },
+  { title: t('system.cache.headerMisses'),  key: 'missCount',      sortable: true, width: '160px' },
+  { title: t('system.cache.headerAvgGet'),  key: 'averageGetTime', sortable: true, width: '140px' },
+  { title: '',                              key: 'actions',        sortable: false, width: '60px', align: 'end' },
+])
 
 function rateColor(score, hit, hitCount) {
   if (hit && hitCount === 1) return 'success'
@@ -62,7 +63,7 @@ async function load() {
   error.value = null
   const data = await api.get('rest/system/cache')
   if (Array.isArray(data)) items.value = data
-  else if (data === null) error.value = 'Unable to load caches'
+  else if (data === null) error.value = t('system.cache.errorLoad')
   loading.value = false
 }
 
@@ -75,7 +76,7 @@ async function invalidate(item) {
 
 onMounted(() => {
   app.setBreadcrumbs(
-    [{ title: 'System', to: '/system' }, { title: 'Caches' }],
+    [{ title: t('system.breadcrumb'), to: '/system' }, { title: t('system.cache.title') }],
     { refresh: load },
   )
   load()

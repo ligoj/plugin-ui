@@ -116,12 +116,12 @@ const deleteWithData = ref(false)
 let lastPkeyAuto = ''
 
 const headers = computed(() => [
-  { title: 'Name', key: 'name', sortable: true, width: '220px' },
-  { title: 'Description', key: 'description', sortable: false },
-  { title: 'Manager', key: 'teamLeader', sortable: false, width: '220px' },
-  { title: 'Created', key: 'createdDate', sortable: true, width: '140px' },
-  { title: 'Subs', key: 'nbSubscriptions', sortable: false, width: '80px', align: 'center' },
-  { title: '', key: 'actions', sortable: false, width: '120px', align: 'end' },
+  { title: t('project.name'),          key: 'name',            sortable: true,  width: '220px' },
+  { title: t('project.description'),   key: 'description',     sortable: false },
+  { title: t('project.teamLeader'),    key: 'teamLeader',      sortable: false, width: '220px' },
+  { title: t('project.created'),       key: 'createdDate',     sortable: true,  width: '140px' },
+  { title: t('project.subscriptions'), key: 'nbSubscriptions', sortable: false, width: '80px', align: 'center', tooltip: t('project.subscriptionsTooltip') },
+  { title: '',                         key: 'actions',         sortable: false, width: '120px', align: 'end' },
 ])
 
 const rules = {
