@@ -48,7 +48,7 @@ export default {
   'system.config.headerName': 'Nom',
   'system.config.headerValue': 'Valeur',
   'system.config.headerSource': 'Source',
-  'system.config.newKey': 'Nouvelle clé',
+  'system.config.new': 'Nouvelle configuration',
   'system.config.editTitle': 'Modifier la configuration',
   'system.config.newTitle': 'Nouvelle configuration',
   'system.config.deleteTitle': 'Supprimer la configuration',

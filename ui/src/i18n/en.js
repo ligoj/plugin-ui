@@ -49,7 +49,7 @@ export default {
   'system.config.headerName': 'Name',
   'system.config.headerValue': 'Value',
   'system.config.headerSource': 'Source',
-  'system.config.newKey': 'New key',
+  'system.config.new': 'New configuration',
   'system.config.editTitle': 'Edit configuration',
   'system.config.newTitle': 'New configuration',
   'system.config.deleteTitle': 'Delete configuration',

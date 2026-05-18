@@ -3,7 +3,7 @@
     <div class="d-flex align-center mb-4">
       <v-spacer />
       <v-btn color="primary" prepend-icon="mdi-plus" @click="openNew">
-        {{ t('system.config.newKey') }}
+        {{ t('system.config.new') }}
       </v-btn>
     </div>
 
@@ -64,7 +64,8 @@
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
             <v-text-field v-model="editForm.name" :label="t('system.config.fieldName')" :rules="[rules.required]" variant="outlined" density="compact" class="mb-2" autofocus />
-            <v-textarea v-model="editForm.value" :label="t('system.config.fieldValue')" :rules="[rules.required]" :counter="1023" maxlength="1023" rows="3" variant="outlined" density="compact" class="mb-2" />
+            <v-textarea v-model="editForm.value" :label="t('system.config.fieldValue')" :rules="[rules.required]" :counter="1023" maxlength="1023" rows="3" variant="outlined" density="compact"
+              class="mb-2" />
             <v-checkbox v-model="editForm.system" :label="t('system.config.fieldSystem')" density="compact" hide-details />
             <v-checkbox v-model="editForm.secured" :label="t('system.config.fieldSecured')" density="compact" hide-details />
           </v-form>
@@ -128,11 +129,11 @@ const rules = { required: (v) => (v !== '' && v != null) || 'Required' }
 // (sourceTooltip) already exposes the raw `source` string, so keeping both
 // just consumed horizontal room.
 const headers = computed(() => [
-  { title: t('system.config.headerName'),   key: 'name',    sortable: true,  width: '220px' },
-  { title: t('system.config.headerValue'),  key: 'value',   sortable: false },
-  { title: '',                              key: 'secured', sortable: true,  width: '32px',  align: 'center' },
-  { title: t('system.config.headerSource'), key: 'source',  sortable: true,  width: '80px',  align: 'center' },
-  { title: t('common.actions'),             key: 'actions', sortable: false, width: '128px', align: 'end' },
+  { title: t('system.config.headerName'), key: 'name', sortable: true, width: '220px' },
+  { title: t('system.config.headerValue'), key: 'value', sortable: false },
+  { title: '', key: 'secured', sortable: true, width: '32px', align: 'center' },
+  { title: t('system.config.headerSource'), key: 'source', sortable: true, width: '80px', align: 'center' },
+  { title: t('common.actions'), key: 'actions', sortable: false, width: '128px', align: 'end' },
 ])
 
 const SOURCE_ICONS = {
