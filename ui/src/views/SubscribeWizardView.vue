@@ -41,31 +41,23 @@
           </p>
           <template v-if="isEdit && selected.service">
             <NodeIcon :node="selected.service" chip text />
-            <v-text-field
-              v-if="editType === 'service' || editType === 'feature'"
-              v-model="editForm.name"
-              label="Name"
-              maxlength="250"
-              variant="outlined"
-              density="compact"
-              class="mt-3"
-              :rules="[rules.required]"
-            />
+            <v-text-field v-if="editType === 'service' || editType === 'feature'" v-model="editForm.name" label="Name" maxlength="250" variant="outlined" density="compact" class="mt-3"
+              :rules="[rules.required]" />
           </template>
           <v-select v-else v-model="selected.service" :items="services" item-title="name" item-value="id" return-object label="Service" variant="outlined" density="compact" :loading="loadingServices"
             :rules="[rules.required]">
             <template #selection="{ item }">
-              <span class="d-inline-flex align-center ga-2">
-                <NodeIcon :node="item.raw" /> {{ item.raw.name || item.raw.id }}
+              <span v-if="item" class="d-inline-flex align-center ga-2">
+                <NodeIcon :node="item" /> {{ item.name || item.id }}
               </span>
             </template>
             <template #item="{ props: itemProps, item }">
-              <v-list-item v-bind="itemProps" :title="item.raw.name || item.raw.id">
+              <v-list-item v-if="item" v-bind="itemProps" :title="item.name || item.id">
                 <template #prepend>
-                  <NodeIcon :node="item.raw" class="mr-3" />
+                  <NodeIcon :node="item" class="mr-3" />
                 </template>
                 <template #subtitle>
-                  <code class="text-caption">{{ item.raw.id }}</code>
+                  <code class="text-caption">{{ item.id }}</code>
                 </template>
               </v-list-item>
             </template>
@@ -86,31 +78,22 @@
           </p>
           <template v-if="isEdit && selected.tool">
             <NodeIcon :node="selected.tool" chip text />
-            <v-text-field
-              v-if="editType === 'tool'"
-              v-model="editForm.name"
-              label="Name"
-              maxlength="250"
-              variant="outlined"
-              density="compact"
-              class="mt-3"
-              :rules="[rules.required]"
-            />
+            <v-text-field v-if="editType === 'tool'" v-model="editForm.name" label="Name" maxlength="250" variant="outlined" density="compact" class="mt-3" :rules="[rules.required]" />
           </template>
           <v-select v-else v-model="selected.tool" :items="tools" item-title="name" item-value="id" return-object label="Tool" variant="outlined" density="compact" :loading="loadingTools"
             :disabled="!selected.service" :rules="selected.service ? [rules.required] : []">
             <template #selection="{ item }">
-              <span class="d-inline-flex align-center ga-2">
-                <NodeIcon :node="item.raw" /> {{ item.raw.name || item.raw.id }}
+              <span v-if="item" class="d-inline-flex align-center ga-2">
+                <NodeIcon :node="item" /> {{ item.name || item.id }}
               </span>
             </template>
             <template #item="{ props: itemProps, item }">
-              <v-list-item v-bind="itemProps" :title="item.raw.name || item.raw.id">
+              <v-list-item v-if="item" v-bind="itemProps" :title="item.name || item.id">
                 <template #prepend>
-                  <NodeIcon :node="item.raw" class="mr-3" />
+                  <NodeIcon :node="item" class="mr-3" />
                 </template>
                 <template #subtitle>
-                  <code class="text-caption">{{ item.raw.id }}</code>
+                  <code class="text-caption">{{ item.id }}</code>
                 </template>
               </v-list-item>
             </template>
@@ -135,32 +118,24 @@
               <NodeIcon :node="selected.node" />
               <code>{{ selected.node.id }}</code>
             </div>
-            <v-text-field
-              v-model="editForm.name"
-              label="Name"
-              maxlength="250"
-              variant="outlined"
-              density="compact"
-              class="mt-3"
-              :rules="[rules.required]"
-            />
+            <v-text-field v-model="editForm.name" label="Name" maxlength="250" variant="outlined" density="compact" class="mt-3" :rules="[rules.required]" />
           </template>
 
           <div v-else class="d-flex align-start ga-2">
             <v-select v-model="selected.node" :items="nodes" item-title="name" item-value="id" return-object label="Instance" variant="outlined" density="compact" :loading="loadingNodes"
               :disabled="!selected.tool || showNewNode" :rules="!showNewNode && selected.tool ? [rules.required] : []" class="flex-grow-1">
               <template #selection="{ item }">
-                <span class="d-inline-flex align-center ga-2">
-                  <NodeIcon :node="item.raw" /> {{ item.raw.name || item.raw.id }}
+                <span v-if="item" class="d-inline-flex align-center ga-2">
+                  <NodeIcon :node="item" /> {{ item.name || item.id }}
                 </span>
               </template>
               <template #item="{ props: itemProps, item }">
-                <v-list-item v-bind="itemProps" :title="item.raw.name || item.raw.id">
+                <v-list-item v-if="item" v-bind="itemProps" :title="item.name || item.id">
                   <template #prepend>
-                    <NodeIcon :node="item.raw" class="mr-3" />
+                    <NodeIcon :node="item" class="mr-3" />
                   </template>
                   <template #subtitle>
-                    <code class="text-caption">{{ item.raw.id }}</code>
+                    <code class="text-caption">{{ item.id }}</code>
                   </template>
                 </v-list-item>
               </template>
