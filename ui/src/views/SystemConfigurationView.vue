@@ -13,7 +13,7 @@
         <v-icon>mdi-shield-key</v-icon> {{ t('system.config.encryptHelper') }}
       </v-card-title>
       <v-card-text>
-        <v-row dense>
+        <v-row density="comfortable">
           <v-col cols="12" md="5">
             <v-text-field v-model="toEncrypt" :label="t('system.config.encryptInput')" variant="outlined" density="compact" hide-details @keyup.enter="encrypt" />
           </v-col>

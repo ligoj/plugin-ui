@@ -34,7 +34,7 @@
 
             <v-text-field :model-value="cpu" :label="t('system.info.cpu')" readonly density="compact" variant="outlined" class="mb-2" />
 
-            <v-row dense>
+            <v-row density="comfortable">
               <v-col cols="12" md="6">
                 <v-text-field :model-value="dateIso" :label="t('system.info.localDate')" readonly density="compact" variant="outlined" />
               </v-col>
@@ -84,7 +84,7 @@
           </v-card-title>
           <v-card-text>
             <v-text-field :model-value="build.number" :label="t('system.info.buildNumber')" readonly density="compact" variant="outlined" class="mb-2" />
-            <v-row dense>
+            <v-row density="comfortable">
               <v-col cols="12" md="6">
                 <v-text-field :model-value="build.timestamp" :label="t('system.info.buildTimestamp')" readonly density="compact" variant="outlined" />
               </v-col>
