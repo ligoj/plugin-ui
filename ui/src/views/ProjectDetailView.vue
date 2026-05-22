@@ -72,7 +72,16 @@
         <template #item.node="{ item }">
           <code>{{ item.node?.id }}</code>
         </template>
+        <template #item.details="{ item }">
+          <!-- Plugin-rendered subscription details (resource chips, member
+               counts, …). Plugin paints its own VNodes via `renderDetailsKey`. -->
+          <PluginFeatures :subscription="item" action="renderDetailsKey" />
+        </template>
         <template #item.actions="{ item }">
+          <!-- Plugin-contributed buttons. The plugin's `renderFeatures`
+               action paints its own VNodes here; the host never
+               interprets HTML. -->
+          <PluginFeatures :subscription="item" />
           <v-btn v-if="project.manageSubscriptions" icon size="small" variant="text" color="error" @click="startUnsubscribe(item)" :title="'Unsubscribe'">
             <v-icon size="small">mdi-close</v-icon>
           </v-btn>
@@ -126,7 +135,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useApi, useAppStore, LigojDataTable, NodeIcon } from '@ligoj/host'
+import { useApi, useAppStore, LigojDataTable, NodeIcon, PluginFeatures } from '@ligoj/host'
 import { getFullName } from '../useUiHelpers.js'
 
 const route = useRoute()
@@ -155,7 +164,12 @@ const subHeaders = [
   { title: 'Service', key: 'service', sortable: false, width: '180px' },
   { title: 'Tool', key: 'tool', sortable: false, width: '180px' },
   { title: 'Node', key: 'node', sortable: false },
-  { title: '', key: 'actions', sortable: false, width: '60px', align: 'end' },
+  // Plugin-rendered subscription summary (counts/chips). Sized loosely
+  // because the content shape is plugin-specific.
+  { title: 'Details', key: 'details', sortable: false },
+  // Width covers the host's unsubscribe button plus a few plugin-contributed
+  // icon buttons. Plugins commonly add 1–2 buttons via PluginFeatures.
+  { title: '', key: 'actions', sortable: false, width: '140px', align: 'end' },
 ]
 
 function formatDate(iso) {
@@ -186,6 +200,38 @@ async function loadProject() {
       ],
       { refresh: loadProject },
     )
+    // `rest/project/:id` returns subscriptions WITHOUT their fresh
+    // `data` / `status` / live `parameters` — those are populated by
+    // the legacy's `home.js#refreshSubscription`. Mirror that step here
+    // so the per-plugin Details column (renderDetailsKey) sees the
+    // populated `subscription.data` that drives chip rendering.
+    refreshSubscriptions()
+  }
+}
+
+/**
+ * Batch-refreshes the current project's subscriptions: pulls live
+ * `data` / `parameters` / `status` for each id from
+ * `rest/subscription/status/refresh` and merges them in. Mirrors the
+ * legacy `refreshSubscription` flow in `webjars/home/home.js`.
+ *
+ * Background; doesn't block initial render. Failures are silent — the
+ * table stays usable with the stale data already shown.
+ */
+async function refreshSubscriptions() {
+  const subs = project.value?.subscriptions || []
+  if (subs.length === 0) return
+  const query = subs.map((s) => `id=${encodeURIComponent(s.id)}`).join('&')
+  const fresh = await api.get(`rest/subscription/status/refresh?${query}`)
+  if (!fresh || typeof fresh !== 'object') return
+  // Replace project.value (immutable update) so the data-table picks
+  // up the new `data` field and re-runs the Details slot.
+  project.value = {
+    ...project.value,
+    subscriptions: subs.map((s) => {
+      const f = fresh[s.id]
+      return f ? { ...s, parameters: f.parameters, data: f.data, status: f.status } : s
+    }),
   }
 }
 
