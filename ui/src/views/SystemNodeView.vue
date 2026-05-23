@@ -11,6 +11,13 @@
       <template #item.icon="{ item }">
         <NodeIcon :node="item" />
       </template>
+      <template #item.type="{ item }">
+        <v-tooltip :text="typeLabel(item)" location="top">
+          <template #activator="{ props: tt }">
+            <v-icon v-bind="tt" size="small" :icon="TYPE_ICONS[nodeType(item)] || 'mdi-help-circle-outline'" />
+          </template>
+        </v-tooltip>
+      </template>
       <template #item.id="{ item }">
         <code>{{ item.id }}</code>
       </template>
@@ -65,12 +72,28 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useI18nStore, LigojDataTable, NodeIcon, NodeModeChip, isInstance } from '@ligoj/host'
+import { useApi, useAppStore, useI18nStore, LigojDataTable, NodeIcon, NodeModeChip, isInstance, nodeType } from '@ligoj/host'
 import SubscribeWizardView from './SubscribeWizardView.vue'
 
 const api = useApi()
 const app = useAppStore()
 const { t } = useI18nStore()
+
+// Visual classification of a node by id depth. The NodeIcon column
+// shows the tool's branding icon; this column shows what KIND of
+// node the row is. Sort is driven by `TYPE_ORDER` (service first,
+// instances last) via the header's `value` getter.
+const TYPE_ICONS = {
+  service:  'mdi-cube-outline',
+  feature:  'mdi-puzzle-outline',
+  tool:     'mdi-hammer-wrench',
+  instance: 'mdi-server-outline',
+}
+const TYPE_ORDER = { service: 1, feature: 2, tool: 3, instance: 4 }
+function typeLabel(item) {
+  const k = nodeType(item)
+  return t('system.node.type' + k.charAt(0).toUpperCase() + k.slice(1))
+}
 
 const items = ref([])
 const loading = ref(false)
@@ -84,12 +107,17 @@ const editDialog = ref(false)
 const editTarget = ref(null)
 
 const headers = computed(() => [
-  { title: '',                              key: 'icon',    sortable: false, width: '40px',  align: 'center' },
+  { title: '',                                key: 'icon',    sortable: false, width: '40px', align: 'center' },
+  // Synthesised column: `value` returns the sort rank so rows group
+  // by kind (service → feature → tool → instance) instead of
+  // alphabetical type names.
+  { title: t('system.node.headerType'),       key: 'type',    sortable: true,  width: '60px', align: 'center',
+    value: (item) => TYPE_ORDER[nodeType(item)] ?? 99, tooltip: t('system.node.headerType') },
   { title: t('system.node.headerIdentifier'), key: 'id',      sortable: true },
-  { title: t('system.node.headerName'),     key: 'name',    sortable: true,  width: '260px' },
-  { title: t('system.node.headerMode'),     key: 'mode',    sortable: true,  width: '120px' },
-  { title: t('system.node.headerStatus'),   key: 'enabled', sortable: true,  width: '120px' },
-  { title: '',                              key: 'actions', sortable: false, width: '120px', align: 'end' },
+  { title: t('system.node.headerName'),       key: 'name',    sortable: true, width: '260px' },
+  { title: t('system.node.headerMode'),       key: 'mode',    sortable: true, width: '120px' },
+  { title: t('system.node.headerStatus'),     key: 'enabled', sortable: true, width: '120px' },
+  { title: '',                                key: 'actions', sortable: false, width: '120px', align: 'end' },
 ])
 
 async function load() {
