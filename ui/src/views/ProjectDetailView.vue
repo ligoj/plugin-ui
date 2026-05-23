@@ -135,11 +135,12 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useApi, useAppStore, LigojDataTable, NodeIcon, PluginFeatures } from '@ligoj/host'
+import { useApi, useAppStore, useI18nStore, LigojDataTable, NodeIcon, PluginFeatures } from '@ligoj/host'
 import { getFullName } from '../useUiHelpers.js'
 
 const route = useRoute()
 const api = useApi()
+const { t } = useI18nStore()
 const app = useAppStore()
 
 const loading = ref(false)
@@ -194,8 +195,8 @@ async function loadProject() {
     }
     app.setBreadcrumbs(
       [
-        { title: 'Home', to: '/' },
-        { title: 'Projects', to: '/home/project' },
+        { title: t('nav.home'), to: '/' },
+        { title: t('nav.projects'), to: '/home/project' },
         { title: data.name },
       ],
       { refresh: loadProject },
