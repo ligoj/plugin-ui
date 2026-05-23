@@ -144,7 +144,7 @@ const rules = { required: (v) => !!v || 'Required' }
 
 const headers = computed(() => [
   { title: t('system.apiToken.headerName'), key: 'name', sortable: true },
-  { title: '', key: 'actions', sortable: false, width: '140px', align: 'end' },
+  { title: '', key: 'actions', sortable: false, width: '160px', align: 'end' },
 ])
 
 async function load() {
