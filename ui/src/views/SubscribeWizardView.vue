@@ -227,7 +227,17 @@
           </v-alert>
 
           <div v-for="p in parameters" :key="p.id" class="mb-3">
-            <v-text-field v-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="paramHint(p) ?? ''"
+            <!-- Plugin-supplied component (see `resolveParameterField`). Takes
+                 precedence over the default type-based rendering so a tool
+                 like plugin-id-ldap can wire live-validated autocompletes
+                 against a REST endpoint while the rest of the form uses
+                 the auto-rendered inputs. `node-id` is passed for plugins
+                 that need to build node-scoped REST URLs (e.g. LDAP's
+                 customer lookup `service/id/ldap/customer/{node}/{q}`). -->
+            <component v-if="resolveParameterField(p)" :is="resolveParameterField(p)" v-model="paramValues[p.id]" :parameter="p" :form-values="paramValues" :mode="selected.mode"
+              :is-node="isEdit || isCreateNode" :project="project" :node-id="currentNodeId" />
+
+            <v-text-field v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="paramHint(p) ?? ''"
               :persistent-hint="!!paramHint(p)" variant="outlined" density="compact" />
 
             <v-text-field v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)"
@@ -272,7 +282,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore, useErrorStore, useI18nStore, loadPlugin, pluginIdFromKey, NodeIcon, NodeModeChip, nodeType } from '@ligoj/host'
+import { useApi, useAppStore, useErrorStore, useI18nStore, loadPlugin, pluginIdFromKey, pluginRegistry, NodeIcon, NodeModeChip, nodeType } from '@ligoj/host'
 
 const props = defineProps({
   /**
@@ -431,6 +441,66 @@ function paramHint(p) {
 }
 function ruleFor(p) {
   return (p.mandatory || p.required) ? [rules.required] : []
+}
+
+/**
+ * Node id whose plugin owns parameter-field overrides for the current
+ * wizard step. Subscribe / create-node take it from the picked tool;
+ * edit-node uses the node being edited.
+ */
+const currentNodeId = computed(() => {
+  if (isEdit.value) return props.node?.id || null
+  return selected.tool?.id || null
+})
+
+/**
+ * Plugins can replace the wizard's default `<v-text-field>` / `<v-select>`
+ * for a specific parameter id by exposing a `parameterField` feature that
+ * returns a Vue component class. Used for live-validated autocompletes
+ * (LDAP OU / parent-group) and composite inputs (LDAP group simple-name
+ * → computed full name).
+ *
+ * The hook is consulted on the sub-plugin first (`prov-aws`, `id-ldap`,
+ * …) then on the parent service plugin (`prov`, `id`) — both layers
+ * may contribute, but the more specific tool-level override wins.
+ *
+ * Returns null when no plugin contributes a custom component — the
+ * default field-type branch then renders.
+ */
+function resolveParameterField(p) {
+  const nodeId = currentNodeId.value
+  if (!nodeId) return null
+  const ctx = {
+    parameter: p,
+    mode: selected.mode || null,
+    isNode: isEdit.value || isCreateNode.value,
+    formValues: paramValues,
+    nodeId,
+  }
+  const subPluginId = pluginIdFromKey(nodeId)
+  const candidates = []
+  if (subPluginId) candidates.push(subPluginId)
+  // Parent service plugin id is the 2nd colon segment of the node id.
+  const parts = String(nodeId).split(':').filter(Boolean)
+  if (parts.length >= 2 && parts[1] && parts[1] !== subPluginId) {
+    candidates.push(parts[1])
+  }
+  for (const id of candidates) {
+    const plugin = pluginRegistry.get(id)
+    if (typeof plugin?.feature !== 'function') continue
+    try {
+      const comp = plugin.feature('parameterField', ctx)
+      if (comp) return comp
+    } catch (err) {
+      // A plugin that does not declare the feature throws from its
+      // dispatcher — swallow that quietly. Anything else is worth a
+      // log but should not break parameter rendering.
+      if (!/no feature ["']parameterField["']/.test(err?.message || '')) {
+        console.warn(`[wizard] parameterField from ${id} threw`, err)
+      }
+    }
+  }
+  return null
 }
 
 /* ------------- loaders --------------------- */
