@@ -235,7 +235,7 @@
                  that need to build node-scoped REST URLs (e.g. LDAP's
                  customer lookup `service/id/ldap/customer/{node}/{q}`). -->
             <component v-if="resolveParameterField(p)" :is="resolveParameterField(p)" v-model="paramValues[p.id]" :parameter="p" :form-values="paramValues" :mode="selected.mode"
-              :is-node="isEdit || isCreateNode" :project="project" :node-id="currentNodeId" />
+              :is-node="isEdit || isCreateNode" :project="project" :node-id="currentNodeId" :instance-node-id="currentInstanceNodeId" />
 
             <v-text-field v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="paramHint(p) ?? ''"
               :persistent-hint="!!paramHint(p)" variant="outlined" density="compact" />
@@ -454,6 +454,18 @@ const currentNodeId = computed(() => {
 })
 
 /**
+ * Instance-level node id — the actual node the subscription will attach
+ * to (e.g. `service:id:ldap:local`), as opposed to the tool node id
+ * (`service:id:ldap`). Plugins that issue REST calls scoped to a
+ * specific instance (LDAP customer lookup, …) need this rather than
+ * the tool id. In edit-node mode the edited node IS the instance.
+ */
+const currentInstanceNodeId = computed(() => {
+  if (isEdit.value) return props.node?.id || null
+  return selected.node?.id || null
+})
+
+/**
  * Plugins can replace the wizard's default `<v-text-field>` / `<v-select>`
  * for a specific parameter id by exposing a `parameterField` feature that
  * returns a Vue component class. Used for live-validated autocompletes
@@ -476,6 +488,7 @@ function resolveParameterField(p) {
     isNode: isEdit.value || isCreateNode.value,
     formValues: paramValues,
     nodeId,
+    instanceNodeId: currentInstanceNodeId.value,
   }
   const subPluginId = pluginIdFromKey(nodeId)
   const candidates = []
