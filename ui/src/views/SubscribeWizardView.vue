@@ -227,21 +227,24 @@
           </v-alert>
 
           <div v-for="p in parameters" :key="p.id" class="mb-3">
-            <v-text-field v-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="p.description" persistent-hint
-              variant="outlined" density="compact" />
+            <v-text-field v-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="paramHint(p) ?? ''"
+              :persistent-hint="!!paramHint(p)" variant="outlined" density="compact" />
 
-            <v-text-field v-else-if="p.type === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="p.description"
-              persistent-hint variant="outlined" density="compact" />
+            <v-text-field v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)"
+              :hint="paramHint(p) ?? ''" :persistent-hint="!!paramHint(p)" variant="outlined" density="compact" />
 
-            <v-checkbox v-else-if="p.type === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" :hint="p.description" persistent-hint density="compact" />
+            <v-checkbox v-else-if="typeKind(p) === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" :hint="paramHint(p) ?? ''" :persistent-hint="!!paramHint(p)" density="compact" />
 
-            <v-select v-else-if="p.type === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="p.description" persistent-hint
-              variant="outlined" density="compact" />
+            <v-select v-else-if="typeKind(p) === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="paramHint(p) ?? ''"
+              :persistent-hint="!!paramHint(p)" variant="outlined" density="compact" />
 
-            <v-select v-else-if="p.type === 'multiselect' || p.type === 'tags'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="p.description"
-              persistent-hint chips multiple variant="outlined" density="compact" />
+            <v-select v-else-if="typeKind(p) === 'multiple' || typeKind(p) === 'multiselect' || typeKind(p) === 'tags'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)"
+              :rules="ruleFor(p)" :hint="paramHint(p) ?? ''" :persistent-hint="!!paramHint(p)" chips multiple variant="outlined" density="compact" />
 
-            <v-text-field v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="`${p.description || ''} [${p.type}]`" persistent-hint variant="outlined"
+            <!-- Catch-all: only fires for an unrecognized type the backend
+                 added without an explicit branch above. Showing `[${type}]`
+                 in the hint makes the gap visible during development. -->
+            <v-text-field v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" :hint="`${paramHint(p) ?? ''} [${p.type}]`" persistent-hint variant="outlined"
               density="compact" />
           </div>
         </v-card-text>
@@ -269,7 +272,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore, useErrorStore, NodeIcon, NodeModeChip, nodeType } from '@ligoj/host'
+import { useApi, useAppStore, useErrorStore, useI18nStore, loadPlugin, pluginIdFromKey, NodeIcon, NodeModeChip, nodeType } from '@ligoj/host'
 
 const props = defineProps({
   /**
@@ -378,15 +381,53 @@ const rules = {
 
 /* ------------- param helpers --------------- */
 
+const i18nStore = useI18nStore()
+
+/**
+ * Normalised parameter type for comparison. The backend serialises
+ * `ParameterType` enums by name (TEXT, BOOL, SELECT, MULTIPLE, INTEGER,
+ * DATE, TAGS). Some legacy/test payloads come in lowercase — accept both.
+ */
+function typeKind(p) {
+  return String(p?.type || '').toLowerCase()
+}
 function isTextParam(p) {
-  return !p.type || p.type === 'text' || p.type === 'password' || p.type === 'node' || p.type === 'project'
+  const k = typeKind(p)
+  return !k || k === 'text' || k === 'password' || k === 'node' || k === 'project'
 }
+/** Password inputs are driven by `secured` (CSV column → backend flag). */
 function isPassword(p) {
-  return p.type === 'password' || (p.name || '').toLowerCase().includes('password')
+  return !!p.secured || typeKind(p) === 'password'
 }
+/**
+ * Resolves a translation key, returning the requested fallback when the
+ * key is missing. vue-i18n's default behaviour is to echo the key back
+ * when there's no match — useless for labels (a raw `service:id:ldap:...`
+ * shows in the UI) and worse for hints (we'd persist a meaningless line
+ * of "service:id:ldap:base-dn-description").
+ */
+function tOrNull(key) {
+  const value = i18nStore.t(key)
+  return value === key ? null : value
+}
+/**
+ * Label for a parameter form field. Plugins ship their parameter labels
+ * via their i18n bundle keyed on the parameter id (e.g. `service:id:ldap:base-dn`
+ * → "Base DN"). Falls back to the raw id so missing keys are obvious in
+ * the UI rather than failing silently.
+ */
 function paramLabel(p) {
   const req = p.mandatory || p.required ? ' *' : ''
-  return `${p.name || p.id}${req}`
+  return `${tOrNull(p.id) ?? p.id}${req}`
+}
+/**
+ * Optional hint / tooltip for a parameter field. Sourced from the
+ * i18n key `<id>-description` so plugins can describe a parameter
+ * separately from its label. Returns null when no description is
+ * registered — the wizard suppresses the hint slot in that case.
+ */
+function paramHint(p) {
+  return tOrNull(`${p.id}-description`)
 }
 function ruleFor(p) {
   return (p.mandatory || p.required) ? [rules.required] : []
@@ -420,28 +461,48 @@ async function loadNodes(toolId) {
   loadingNodes.value = false
 }
 
+/**
+ * Best-effort lazy-load of the sub-plugin that owns a node's i18n
+ * bundle. For `service:id:ldap` this resolves to `id-ldap`, for
+ * `service:prov:aws:foo` to `prov-aws`, and so on. Errors (missing
+ * bundle, network failure, no default export) are swallowed — the
+ * wizard still renders, just with raw parameter ids in place of
+ * translated labels.
+ */
+function ensureToolPluginLoaded(nodeId) {
+  const pluginId = pluginIdFromKey(nodeId)
+  if (!pluginId) return
+  loadPlugin(pluginId).catch(() => { /* no bundle — keep rendering */ })
+}
+
 async function loadParameters(nodeId, mode) {
   loadingParams.value = true
+  // Kick off the tool-level sub-plugin's bundle in parallel with the
+  // parameter fetch so its i18n bundle is merged before paramLabel()
+  // and paramHint() try to resolve `service:id:ldap:...` keys. The
+  // backend's plugin discovery list is best-effort — this guarantees
+  // the right labels show up even when discovery hasn't run.
+  ensureToolPluginLoaded(nodeId)
   const data = await api.get(`rest/node/${encodeURIComponent(nodeId)}/parameter/${mode.toUpperCase()}`)
   parameters.value = Array.isArray(data) ? data : (data?.data || [])
   for (const key of Object.keys(paramValues)) delete paramValues[key]
   for (const p of parameters.value) {
     if (p.defaultValue != null) {
       paramValues[p.id] = coerceDefault(p)
-    } else if (p.type === 'bool') {
-      paramValues[p.id] = false
-    } else if (p.type === 'multiselect' || p.type === 'tags') {
-      paramValues[p.id] = []
     } else {
-      paramValues[p.id] = ''
+      const k = typeKind(p)
+      if (k === 'bool') paramValues[p.id] = false
+      else if (k === 'multiple' || k === 'multiselect' || k === 'tags') paramValues[p.id] = []
+      else paramValues[p.id] = ''
     }
   }
   loadingParams.value = false
 }
 
 function coerceDefault(p) {
-  if (p.type === 'integer') return Number(p.defaultValue)
-  if (p.type === 'bool') return p.defaultValue === true || p.defaultValue === 'true'
+  const k = typeKind(p)
+  if (k === 'integer') return Number(p.defaultValue)
+  if (k === 'bool') return p.defaultValue === true || p.defaultValue === 'true'
   return p.defaultValue
 }
 
@@ -635,10 +696,10 @@ function buildParamWire(p) {
     return null
   }
   const base = { parameter: p.id }
-  if (p.type === 'integer') return { ...base, integer: Number(value) }
-  if (p.type === 'bool') return { ...base, bool: !!value }
-  if (p.type === 'multiselect' || p.type === 'tags') return { ...base, selections: value || [] }
-  if (p.type === 'select') return { ...base, text: value }
+  const k = typeKind(p)
+  if (k === 'integer') return { ...base, integer: Number(value) }
+  if (k === 'bool') return { ...base, bool: !!value }
+  if (k === 'multiple' || k === 'multiselect' || k === 'tags') return { ...base, selections: value || [] }
   return { ...base, text: value }
 }
 
@@ -652,6 +713,10 @@ async function refreshAll() {
 /** Populate selectors from an existing node and load its current parameter values. */
 async function bootstrapEdit(node) {
   if (!node) return
+  // Edit mode uses /parameter-value/ rather than loadParameters(), so it
+  // bypasses the lazy-load there. Pull the sub-plugin in here too so the
+  // labels resolve for an LDAP node, etc.
+  ensureToolPluginLoaded(node.id)
   const type = nodeType(node)
   if (type === 'instance') {
     selected.service = node.refined?.refined || null
@@ -678,9 +743,10 @@ async function bootstrapEdit(node) {
   for (const it of items) {
     const p = it.parameter
     if (!p) continue
-    if (p.type === 'integer') paramValues[p.id] = it.integer ?? ''
-    else if (p.type === 'bool') paramValues[p.id] = !!it.bool
-    else if (p.type === 'multiselect' || p.type === 'tags') paramValues[p.id] = it.selections || []
+    const k = typeKind(p)
+    if (k === 'integer') paramValues[p.id] = it.integer ?? ''
+    else if (k === 'bool') paramValues[p.id] = !!it.bool
+    else if (k === 'multiple' || k === 'multiselect' || k === 'tags') paramValues[p.id] = it.selections || []
     else paramValues[p.id] = it.text ?? ''
   }
   loadingParams.value = false
