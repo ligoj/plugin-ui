@@ -73,9 +73,13 @@
           <code>{{ item.node?.id }}</code>
         </template>
         <template #item.details="{ item }">
-          <!-- Plugin-rendered subscription details (resource chips, member
-               counts, …). Plugin paints its own VNodes via `renderDetailsKey`. -->
+          <!-- Plugin-rendered subscription details. Two slots so plugins
+               can split their summary into a stable "key" (resource id,
+               provider name, …) and a live "features" line (counts,
+               quotas) — mirrors the legacy `renderDetailsKey` /
+               `renderDetailsFeatures` pair from service/<id>/<id>.js. -->
           <PluginFeatures :subscription="item" action="renderDetailsKey" />
+          <PluginFeatures :subscription="item" action="renderDetailsFeatures" />
         </template>
         <template #item.actions="{ item }">
           <!-- Plugin-contributed buttons. The plugin's `renderFeatures`
