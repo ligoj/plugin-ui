@@ -88,7 +88,8 @@ export default {
 
   // Système → Nœuds
   'system.node.title': 'Nœuds',
-  'system.node.newSubscription': 'Nouvelle souscription',
+  'system.node.new': 'Nouveau nœud',
+  'system.node.createTitle': 'Créer un nœud',
   'system.node.headerIdentifier': 'Identifiant',
   'system.node.headerName': 'Nom',
   'system.node.headerMode': 'Mode',

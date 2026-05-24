@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex align-center mb-4">
       <v-spacer />
-      <v-btn color="primary" prepend-icon="mdi-plus" to="/subscribe">{{ t('system.node.newSubscription') }}</v-btn>
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="startCreate">{{ t('system.node.new') }}</v-btn>
     </div>
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
@@ -50,6 +50,15 @@
         </v-card-title>
         <v-card-text class="pa-4">
           <SubscribeWizardView v-if="editDialog && editTarget" :key="editTarget.id" mode="edit-node" :node="editTarget" @saved="onEditSaved" @cancel="editDialog = false" />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="createDialog" max-width="900" scrollable>
+      <v-card>
+        <v-card-title>{{ t('system.node.createTitle') }}</v-card-title>
+        <v-card-text class="pa-4">
+          <SubscribeWizardView v-if="createDialog" mode="create-node" @saved="onCreateSaved" @cancel="createDialog = false" />
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -106,6 +115,8 @@ const deleting = ref(false)
 const editDialog = ref(false)
 const editTarget = ref(null)
 
+const createDialog = ref(false)
+
 const headers = computed(() => [
   { title: '',                                key: 'icon',    sortable: false, width: '40px', align: 'center' },
   // Synthesised column: `value` returns the sort rank so rows group
@@ -135,6 +146,15 @@ function startEdit(item) {
 
 function onEditSaved() {
   editDialog.value = false
+  load()
+}
+
+function startCreate() {
+  createDialog.value = true
+}
+
+function onCreateSaved() {
+  createDialog.value = false
   load()
 }
 

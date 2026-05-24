@@ -1,6 +1,6 @@
 <template>
   <div>
-    <template v-if="!isEdit">
+    <template v-if="!isEdit && !isCreateNode">
       <div class="d-flex align-center mb-4">
         <v-spacer />
         <v-btn variant="text" :to="cancelTo">Cancel</v-btn>
@@ -27,7 +27,7 @@
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
-    <v-form v-if="isEdit || project" ref="formRef" class="form-stack" @submit.prevent="submit">
+    <v-form v-if="isEdit || isCreateNode || project" ref="formRef" class="form-stack" @submit.prevent="submit">
       <!-- 1. Service ------------------------------------------------------ -->
       <v-card variant="tonal" class="mb-4">
         <v-card-text>
@@ -121,7 +121,9 @@
             <v-text-field v-model="editForm.name" label="Name" maxlength="250" variant="outlined" density="compact" class="mt-3" :rules="[rules.required]" />
           </template>
 
-          <div v-else class="d-flex align-start ga-2">
+          <!-- Subscribe flow: instance picker + "New instance" toggle. Hidden
+               in create-node mode since there's no existing instance to pick. -->
+          <div v-else-if="!isCreateNode" class="d-flex align-start ga-2">
             <v-select v-model="selected.node" :items="nodes" item-title="name" item-value="id" return-object label="Instance" variant="outlined" density="compact" :loading="loadingNodes"
               :disabled="!selected.tool || showNewNode" :rules="!showNewNode && selected.tool ? [rules.required] : []" class="flex-grow-1">
               <template #selection="{ item }">
@@ -146,18 +148,22 @@
           </div>
 
           <v-expand-transition>
-            <div v-if="showNewNode" class="new-node-form mt-3 pa-3">
+            <div v-if="showNewNode || isCreateNode" class="new-node-form mt-3 pa-3">
               <p class="text-caption text-medium-emphasis mb-2">
                 Declares a node under <code>{{ selected.tool?.id }}</code>. Tool-specific
-                parameters can be added later via <strong>System → Nodes</strong>.
+                parameters can be added later by editing the new instance.
               </p>
               <v-text-field v-model="newNode.id" label="ID" :hint="`Suggested: ${selected.tool?.id}:my-instance`" persistent-hint variant="outlined" density="compact" class="mb-2"
-                :rules="showNewNode ? [rules.required, rules.nodeId] : []" />
-              <v-text-field v-model="newNode.name" label="Name" variant="outlined" density="compact" class="mb-2" :rules="showNewNode ? [rules.required] : []" />
+                :rules="(showNewNode || isCreateNode) ? [rules.required, rules.nodeId] : []" />
+              <v-text-field v-model="newNode.name" label="Name" variant="outlined" density="compact" class="mb-2" :rules="(showNewNode || isCreateNode) ? [rules.required] : []" />
               <v-alert v-if="newNodeError" type="warning" variant="tonal" density="compact" class="mb-2">
                 {{ newNodeError }}
               </v-alert>
-              <v-btn color="primary" :loading="creatingNode" :disabled="!newNode.id || !newNode.name" @click="createNode">
+              <!-- In subscribe mode an explicit "Create instance" button lets
+                   the user materialise the node and then continue with mode +
+                   parameters. In create-node mode the wizard's bottom submit
+                   button is the trigger, so this inline button is omitted. -->
+              <v-btn v-if="!isCreateNode" color="primary" :loading="creatingNode" :disabled="!newNode.id || !newNode.name" @click="createNode">
                 Create instance
               </v-btn>
             </div>
@@ -166,7 +172,13 @@
       </v-card>
 
       <!-- 4. Mode --------------------------------------------------------- -->
-      <v-card variant="tonal" class="mb-4" :disabled="!isEdit && !selected.node">
+      <!-- Mode is needed in every wizard variant:
+           • subscribe   — gates parameter loading + the subscription payload
+           • edit-node   — read-only display of the node's current mode
+           • create-node — sets the node's initial subscription mode
+           The disable gate differs: subscribe waits for an instance pick,
+           create-node only needs a tool (no instance exists yet). -->
+      <v-card variant="tonal" class="mb-4" :disabled="!isEdit && !(isCreateNode ? selected.tool : selected.node)">
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-link-variant</v-icon>
@@ -191,14 +203,17 @@
       </v-card>
 
       <!-- 5. Parameters --------------------------------------------------- -->
-      <v-card variant="tonal" class="mb-4" :disabled="!isEdit && (!selected.node || !selected.mode)">
+      <v-card variant="tonal" class="mb-4" :disabled="!isEdit && (!selected.mode || !(isCreateNode ? selected.tool : selected.node))">
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-tune</v-icon>
             <span>5. Parameters</span>
             <v-progress-circular v-if="loadingParams" size="14" width="2" indeterminate class="ml-2" />
           </div>
-          <p v-if="!isEdit" class="text-body-2 text-medium-emphasis mb-3">
+          <p v-if="isCreateNode" class="text-body-2 text-medium-emphasis mb-3">
+            Initial values for <code>{{ newNode.id || 'the new node' }}</code>. You can edit them later from System → Nodes.
+          </p>
+          <p v-else-if="!isEdit" class="text-body-2 text-medium-emphasis mb-3">
             Values required to link the project to
             <code v-if="selected.node">{{ selected.node.id }}</code>
             <span v-else>the chosen instance</span>.
@@ -207,8 +222,8 @@
             Configuration values bound to <code>{{ node?.id }}</code>.
           </p>
 
-          <v-alert v-if="!loadingParams && (isEdit || (selected.node && selected.mode)) && parameters.length === 0" type="info" variant="tonal" density="compact">
-            {{ isEdit ? 'No parameters configured for this node.' : 'This subscription requires no additional parameters.' }}
+          <v-alert v-if="!loadingParams && (isEdit || (selected.mode && (isCreateNode ? selected.tool : selected.node))) && parameters.length === 0" type="info" variant="tonal" density="compact">
+            {{ isEdit ? 'No parameters configured for this node.' : (isCreateNode ? 'This node has no additional parameters.' : 'This subscription requires no additional parameters.') }}
           </v-alert>
 
           <div v-for="p in parameters" :key="p.id" class="mb-3">
@@ -234,11 +249,14 @@
 
       <!-- Actions --------------------------------------------------------- -->
       <div class="d-flex align-center ga-2">
-        <v-btn v-if="isEdit" variant="text" :disabled="creating" @click="$emit('cancel')">Cancel</v-btn>
+        <v-btn v-if="isEdit || isCreateNode" variant="text" :disabled="creating" @click="$emit('cancel')">Cancel</v-btn>
         <v-btn v-else variant="text" :to="cancelTo" :disabled="creating">Cancel</v-btn>
         <v-spacer />
         <v-btn v-if="isEdit" type="submit" color="primary" prepend-icon="mdi-content-save" :loading="creating">
           Save
+        </v-btn>
+        <v-btn v-else-if="isCreateNode" type="submit" color="success" prepend-icon="mdi-plus" :loading="creating" :disabled="!ready">
+          Create node
         </v-btn>
         <v-btn v-else type="submit" color="success" prepend-icon="mdi-check" :loading="creating" :disabled="!ready">
           Create subscription
@@ -254,13 +272,21 @@ import { useRoute, useRouter } from 'vue-router'
 import { useApi, useAppStore, useErrorStore, NodeIcon, NodeModeChip, nodeType } from '@ligoj/host'
 
 const props = defineProps({
-  /** 'subscribe' (default route view) or 'edit-node' (popup over an existing node). */
+  /**
+   * 'subscribe'    — default route view: pick service/tool/instance + mode + parameters
+   *                  and attach the project to it.
+   * 'edit-node'    — popup over an existing node: edit name + parameters.
+   * 'create-node'  — popup launched from System → Nodes: declare a new instance
+   *                  under a tool. No project, no mode, no parameters; the user
+   *                  edits the freshly-created node to fill them in.
+   */
   mode: { type: String, default: 'subscribe' },
   /** Required when mode === 'edit-node': the node being edited. */
   node: { type: Object, default: null },
 })
 const emit = defineEmits(['saved', 'cancel'])
 const isEdit = computed(() => props.mode === 'edit-node')
+const isCreateNode = computed(() => props.mode === 'create-node')
 /**
  * Type of the node being edited — drives which cards are shown in edit
  * mode and where the editable Name field lives. `nodeType()` derives
@@ -329,14 +355,19 @@ const availableModes = computed(() => {
 })
 
 /** Submit button enabled only when every prerequisite is filled in. */
-const ready = computed(() =>
-  !!projectId.value
-  && !!selected.service
-  && !!selected.tool
-  && !!selected.node
-  && !!selected.mode
-  && !showNewNode.value,
-)
+const ready = computed(() => {
+  if (isCreateNode.value) {
+    // Same prerequisites as the subscribe path, minus the instance pick
+    // (we're declaring a fresh one) and the project.
+    return !!selected.service && !!selected.tool && !!selected.mode && !!newNode.id && !!newNode.name
+  }
+  return !!projectId.value
+    && !!selected.service
+    && !!selected.tool
+    && !!selected.node
+    && !!selected.mode
+    && !showNewNode.value
+})
 
 /* ------------- validation rules ------------ */
 
@@ -436,7 +467,13 @@ watch(() => selected.service, async (svc) => {
   tools.value = []
   nodes.value = []
   parameters.value = []
-  showNewNode.value = false
+  // Reset the new-node form so it doesn't leak the previous tool's prefix.
+  // In create-node mode we keep the form visible (it's the whole UI);
+  // elsewhere we collapse it back to the picker.
+  newNode.id = ''
+  newNode.name = ''
+  newNodeError.value = null
+  showNewNode.value = isCreateNode.value
   if (svc) await loadTools(svc.id)
 })
 
@@ -447,7 +484,10 @@ watch(() => selected.tool, async (tool) => {
   selected.mode = null
   nodes.value = []
   parameters.value = []
-  showNewNode.value = false
+  newNode.id = isCreateNode.value && tool ? `${tool.id}:` : ''
+  newNode.name = ''
+  newNodeError.value = null
+  showNewNode.value = isCreateNode.value
   if (tool) {
     await loadNodes(tool.id)
     // If the tool only allows one mode, preselect it for convenience.
@@ -466,8 +506,12 @@ watch(() => selected.node, () => {
 watch(() => selected.mode, async (mode) => {
   if (isEdit.value) return
   parameters.value = []
-  if (selected.node && mode) {
-    await loadParameters(selected.node.id, mode)
+  // Parameter definitions are declared by the TOOL node (e.g.
+  // `service:id:ldap`), not by the instance (e.g. `service:id:ldap:local`).
+  // The legacy wizard hits `node/<tool>/parameter/<mode>` for the same
+  // reason — instance ids 404 on this endpoint.
+  if (selected.tool && mode) {
+    await loadParameters(selected.tool.id, mode)
   }
 })
 
@@ -491,10 +535,13 @@ async function createNode() {
   newNodeError.value = null
   creatingNode.value = true
   try {
+    // NodeEditionVo's parent field is `node` (Refining<String>.getRefined()
+    // is read-only — there's no setRefined, so sending `refined:` is dropped
+    // by Jackson and the @NotBlank `node` check rejects the payload).
     const payload = {
       id: newNode.id,
       name: newNode.name,
-      refined: selected.tool?.id,
+      node: selected.tool?.id,
     }
     const result = await api.post('rest/node', payload)
     if (result === null) {
@@ -522,6 +569,30 @@ async function submit() {
   if (!valid) return
   creating.value = true
   error.value = null
+
+  if (isCreateNode.value) {
+    // POST the full node payload (id + name + parent + mode + parameters).
+    // NodeEditionVo wires `node` (not `refined`) to the parent; the only
+    // `setRefined` setter doesn't exist, so sending `refined:` is silently
+    // dropped by Jackson and the @NotBlank `node` validation fails.
+    const payload = {
+      id: newNode.id,
+      name: newNode.name,
+      node: selected.tool?.id,
+      mode: selected.mode,
+      untouchedParameters: false,
+      parameters: parameters.value.map(buildParamWire).filter(Boolean),
+    }
+    const result = await api.post('rest/node', payload)
+    creating.value = false
+    if (result === null) {
+      error.value = 'Node creation failed — please review the highlighted fields.'
+      return
+    }
+    errorStore.success(`Node "${payload.name}" created`)
+    emit('saved', payload)
+    return
+  }
 
   if (isEdit.value) {
     const payload = {
@@ -618,6 +689,13 @@ async function bootstrapEdit(node) {
 onMounted(async () => {
   if (isEdit.value) {
     await bootstrapEdit(props.node)
+    return
+  }
+  if (isCreateNode.value) {
+    // No project, no breadcrumbs — the host hosts us in a dialog. Just
+    // populate the service dropdown so the wizard is interactive.
+    showNewNode.value = true
+    await loadServices()
     return
   }
   app.setBreadcrumbs(

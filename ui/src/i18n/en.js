@@ -89,7 +89,8 @@ export default {
 
   // System → Nodes
   'system.node.title': 'Nodes',
-  'system.node.newSubscription': 'New subscription',
+  'system.node.new': 'New node',
+  'system.node.createTitle': 'Create node',
   'system.node.headerIdentifier': 'Identifier',
   'system.node.headerName': 'Name',
   'system.node.headerMode': 'Mode',
