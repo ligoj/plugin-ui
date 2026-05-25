@@ -553,19 +553,19 @@ async function loadNodes(toolId) {
  * translated labels.
  */
 function ensureToolPluginLoaded(nodeId) {
-  const pluginId = pluginIdFromKey(nodeId)
+  // Plugin bundles map to `<plugin>` or `<plugin>-<tool>` (e.g. `id`,
+  // `id-ldap`) — never down to an instance. Truncate any 4-segment
+  // instance id to its tool prefix so `service:id:ldap:server1` and
+  // `service:id:ldap` both resolve to the `id-ldap` bundle.
+  if (typeof nodeId !== 'string') return
+  const parts = nodeId.split(':').filter(Boolean).slice(0, 3)
+  const pluginId = pluginIdFromKey(parts.join(':'))
   if (!pluginId) return
   loadPlugin(pluginId).catch(() => { /* no bundle — keep rendering */ })
 }
 
 async function loadParameters(nodeId, mode) {
   loadingParams.value = true
-  // Kick off the tool-level sub-plugin's bundle in parallel with the
-  // parameter fetch so its i18n bundle is merged before paramLabel()
-  // and paramHint() try to resolve `service:id:ldap:...` keys. The
-  // backend's plugin discovery list is best-effort — this guarantees
-  // the right labels show up even when discovery hasn't run.
-  ensureToolPluginLoaded(nodeId)
   const data = await api.get(`rest/node/${encodeURIComponent(nodeId)}/parameter/${mode.toUpperCase()}`)
   parameters.value = Array.isArray(data) ? data : (data?.data || [])
   for (const key of Object.keys(paramValues)) delete paramValues[key]
@@ -640,24 +640,32 @@ watch(() => selected.tool, async (tool) => {
   }
 })
 
-// Picking a node clears params; loadParameters is triggered by the
-// shared selected.mode watcher below to keep the call site singular.
-watch(() => selected.node, () => {
-  if (isEdit.value) return
-  parameters.value = []
-})
+// Whenever the targeted node (instance in subscribe, tool in create-node)
+// or the chosen mode change, refresh the parameter list. One watcher,
+// one fetch — keeps the rules for "which id is queried" in a single
+// place instead of split across two reactive callbacks.
+watch([() => selected.node, () => selected.mode, () => selected.tool], refetchParameters)
 
-watch(() => selected.mode, async (mode) => {
+async function refetchParameters() {
   if (isEdit.value) return
   parameters.value = []
-  // Parameter definitions are declared by the TOOL node (e.g.
-  // `service:id:ldap`), not by the instance (e.g. `service:id:ldap:local`).
-  // The legacy wizard hits `node/<tool>/parameter/<mode>` for the same
-  // reason — instance ids 404 on this endpoint.
-  if (selected.tool && mode) {
-    await loadParameters(selected.tool.id, mode)
-  }
-})
+  const mode = selected.mode
+  if (!mode) return
+  // Subscribe mode: parameter values are bound to the picked INSTANCE,
+  // so query its node id. The backend resolves the chain (instance
+  // overrides tool defaults), and the URL is now safe because the
+  // backend's UriColonDecodingFilter unescapes `%3A` → `:` before CXF
+  // matches the JAX-RS regex.
+  // Create-node mode: no instance exists yet — query the tool itself
+  // so the form shows the right slots before the user fills them in.
+  const targetId = isCreateNode.value ? selected.tool?.id : selected.node?.id
+  if (!targetId) return
+  // Tool-level sub-plugin owns the i18n bundle. Use the tool id (or the
+  // truncated form of the instance id) — ensureToolPluginLoaded already
+  // strips any instance segment.
+  ensureToolPluginLoaded(selected.tool?.id || targetId)
+  await loadParameters(targetId, mode)
+}
 
 /* ------------- new-instance flow ----------- */
 
