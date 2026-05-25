@@ -567,7 +567,15 @@ function ensureToolPluginLoaded(nodeId) {
 async function loadParameters(nodeId, mode) {
   loadingParams.value = true
   const data = await api.get(`rest/node/${encodeURIComponent(nodeId)}/parameter/${mode.toUpperCase()}`)
-  parameters.value = Array.isArray(data) ? data : (data?.data || [])
+  const raw = Array.isArray(data) ? data : (data?.data || [])
+  // Apply the parameter's mode-availability flag. The backend defaults
+  // null to true in the VO (legacy rows that pre-date the flags), so
+  // only explicit `false` is filtered out. The subscribe path keys off
+  // `availableForSubscription`; create-node / edit-node off
+  // `availableForNode`. Backend `ParameterValueResource` enforces the
+  // same contract on write — this filter is the matching read-side
+  // gate so the wizard never shows a field the backend will reject.
+  parameters.value = raw.filter((p) => isParameterAvailable(p))
   for (const key of Object.keys(paramValues)) delete paramValues[key]
   for (const p of parameters.value) {
     if (p.defaultValue != null) {
@@ -580,6 +588,18 @@ async function loadParameters(nodeId, mode) {
     }
   }
   loadingParams.value = false
+}
+
+/** Mode-aware availability check. Returns false only when the owning
+ *  plugin explicitly opted out for the current context. */
+function isParameterAvailable(p) {
+  if (!p) return false
+  // Subscribe mode is the only path where the parameter is bound to a
+  // subscription; everything else (create-node, edit-node) configures
+  // the node itself.
+  const forSubscription = !isEdit.value && !isCreateNode.value
+  const flag = forSubscription ? p.availableForSubscription : p.availableForNode
+  return flag !== false
 }
 
 function coerceDefault(p) {
@@ -829,9 +849,13 @@ async function bootstrapEdit(node) {
     `rest/node/${encodeURIComponent(node.id)}/parameter-value/${(selected.mode || 'all').toUpperCase()}`,
   )
   const items = Array.isArray(data) ? data : (data?.data || [])
-  parameters.value = items.map((it) => it.parameter).filter(Boolean)
+  // Belt-and-suspenders: the backend already drops `availableForNode=false`
+  // entries from this endpoint, but we re-apply the filter so a stale or
+  // hand-rolled response can't slip a forbidden parameter into the form.
+  const visible = items.filter((it) => isParameterAvailable(it?.parameter))
+  parameters.value = visible.map((it) => it.parameter).filter(Boolean)
   for (const key of Object.keys(paramValues)) delete paramValues[key]
-  for (const it of items) {
+  for (const it of visible) {
     const p = it.parameter
     if (!p) continue
     const k = typeKind(p)
