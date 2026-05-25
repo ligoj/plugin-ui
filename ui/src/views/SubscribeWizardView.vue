@@ -1,29 +1,22 @@
 <template>
   <div>
-    <template v-if="!isEdit && !isCreateNode">
-      <div class="d-flex align-center mb-4">
-        <v-spacer />
-        <v-btn variant="text" :to="cancelTo">Cancel</v-btn>
-      </div>
-
-      <v-alert v-if="!projectId" type="info" variant="tonal" density="compact" class="mb-4">
-        No project selected. The wizard needs a project —
-        <router-link to="/home/project">pick one</router-link>,
-        then open this page from the project's "Add subscription" button.
-      </v-alert>
-
-      <v-alert v-else-if="loadingProject" type="info" variant="tonal" density="compact" class="mb-4">
-        Loading project…
-      </v-alert>
-
-      <v-alert v-else-if="project" type="info" variant="tonal" density="compact" class="mb-4">
-        Adding a subscription to <strong>{{ project.name }}</strong> ({{ project.pkey }}).
-        <br>
-        <span class="text-caption text-warning">
-          Subscribing is not an idempotent operation — removing a subscription later may not clean up remote data automatically.
-        </span>
-      </v-alert>
-    </template>
+    <!-- Subscribe-mode context line: the dialog title gives the
+         high-level "Add subscription" label, this gives the specific
+         project being targeted plus the destructive-action warning so
+         the user knows what they're about to do. The wizard always
+         runs inside a host-supplied dialog now, so there's no need
+         for a back-link button or "no project" alert — the caller
+         guarantees the prop is set. -->
+    <v-alert v-if="!isEdit && !isCreateNode && project" type="info" variant="tonal" density="compact" class="mb-4">
+      Adding a subscription to <strong>{{ project.name }}</strong> ({{ project.pkey }}).
+      <br>
+      <span class="text-caption text-warning">
+        Subscribing is not an idempotent operation — removing a subscription later may not clean up remote data automatically.
+      </span>
+    </v-alert>
+    <v-alert v-else-if="!isEdit && !isCreateNode && loadingProject" type="info" variant="tonal" density="compact" class="mb-4">
+      Loading project…
+    </v-alert>
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
@@ -262,8 +255,7 @@
 
       <!-- Actions --------------------------------------------------------- -->
       <div class="d-flex align-center ga-2">
-        <v-btn v-if="isEdit || isCreateNode" variant="text" :disabled="creating" @click="$emit('cancel')">Cancel</v-btn>
-        <v-btn v-else variant="text" :to="cancelTo" :disabled="creating">Cancel</v-btn>
+        <v-btn variant="text" :disabled="creating" @click="$emit('cancel')">Cancel</v-btn>
         <v-spacer />
         <v-btn v-if="isEdit" type="submit" color="primary" prepend-icon="mdi-content-save" :loading="creating">
           Save
@@ -281,21 +273,28 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore, useErrorStore, useI18nStore, loadPlugin, pluginIdFromKey, pluginRegistry, NodeIcon, NodeModeChip, nodeType } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, loadPlugin, pluginIdFromKey, pluginRegistry, NodeIcon, NodeModeChip, nodeType } from '@ligoj/host'
 
 const props = defineProps({
   /**
-   * 'subscribe'    — default route view: pick service/tool/instance + mode + parameters
-   *                  and attach the project to it.
-   * 'edit-node'    — popup over an existing node: edit name + parameters.
-   * 'create-node'  — popup launched from System → Nodes: declare a new instance
-   *                  under a tool. No project, no mode, no parameters; the user
-   *                  edits the freshly-created node to fill them in.
+   * 'subscribe'    — host dialog (from ProjectDetailView): pick
+   *                  service/tool/instance + mode + parameters and attach
+   *                  the project to it. `projectId` prop required.
+   * 'edit-node'    — host dialog (from SystemNodeView): edit name + parameters.
+   *                  `node` prop required.
+   * 'create-node'  — host dialog (from SystemNodeView): declare a new
+   *                  instance under a tool. No project, no instance pick.
    */
   mode: { type: String, default: 'subscribe' },
   /** Required when mode === 'edit-node': the node being edited. */
   node: { type: Object, default: null },
+  /**
+   * Required when mode === 'subscribe': the project the new subscription
+   * attaches to. The wizard never reads the host's route now (it's always
+   * mounted inside a dialog), so this comes from the caller — typically
+   * `ProjectDetailView`.
+   */
+  projectId: { type: [String, Number], default: null },
 })
 const emit = defineEmits(['saved', 'cancel'])
 const isEdit = computed(() => props.mode === 'edit-node')
@@ -307,13 +306,12 @@ const isCreateNode = computed(() => props.mode === 'create-node')
  */
 const editType = computed(() => isEdit.value ? nodeType(props.node) : null)
 
-const route = useRoute()
-const router = useRouter()
 const api = useApi()
-const app = useAppStore()
 const errorStore = useErrorStore()
 
-const projectId = computed(() => isEdit.value ? null : (route.query.project ?? route.params.id ?? null))
+// Subscribe mode: project comes from the prop set by the host dialog
+// (ProjectDetailView). Edit-node and create-node modes never need it.
+const projectId = computed(() => isEdit.value || isCreateNode.value ? null : (props.projectId ?? null))
 
 /** In edit mode the dialog edits a node's name + parameters. */
 const editForm = reactive({ name: '' })
@@ -350,10 +348,6 @@ const showNewNode = ref(false)
 const newNode = reactive({ id: '', name: '' })
 const creatingNode = ref(false)
 const newNodeError = ref(null)
-
-const cancelTo = computed(() =>
-  project.value ? `/home/project/${project.value.id}` : '/home/project',
-)
 
 const availableModes = computed(() => {
   const m = selected.tool?.mode
@@ -795,7 +789,11 @@ async function submit() {
   const id = await api.post('rest/subscription', payload)
   creating.value = false
   if (id != null) {
-    router.push(`/home/project/${projectId.value}`)
+    // Host dialog reloads the project (and closes itself) on `saved`.
+    // The id of the newly-created subscription is passed back so the
+    // caller can highlight the row or otherwise scroll into view.
+    errorStore.success(`Subscription created`)
+    emit('saved', { id, projectId: projectId.value })
   } else {
     error.value = 'Subscription creation failed — please review the highlighted parameters.'
   }
@@ -873,22 +871,14 @@ onMounted(async () => {
     return
   }
   if (isCreateNode.value) {
-    // No project, no breadcrumbs — the host hosts us in a dialog. Just
+    // No project, no instance picker — host hosts us in a dialog. Just
     // populate the service dropdown so the wizard is interactive.
     showNewNode.value = true
     await loadServices()
     return
   }
-  app.setBreadcrumbs(
-    [
-      { title: 'Home', to: '/' },
-      { title: 'Projects', to: '/home/project' },
-      ...(projectId.value
-        ? [{ title: projectId.value, to: `/home/project/${projectId.value}` }, { title: 'Subscribe' }]
-        : [{ title: 'Subscribe' }]),
-    ],
-    { refresh: refreshAll },
-  )
+  // Subscribe mode (also in a host dialog): pull the targeted project
+  // and the service list. No breadcrumbs — the dialog title is enough.
   await refreshAll()
 })
 

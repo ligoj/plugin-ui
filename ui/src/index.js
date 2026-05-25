@@ -60,7 +60,8 @@ import SystemBenchView from './views/SystemBenchView.vue'
 import ApiHomeView from './views/ApiHomeView.vue'
 import ApiTokenView from './views/ApiTokenView.vue'
 
-import SubscribeWizardView from './views/SubscribeWizardView.vue'
+// SubscribeWizardView is imported by `ProjectDetailView` and
+// `SystemNodeView` directly — it's a dialog component now, not a route.
 
 const features = {
   sample: service.sample,
@@ -85,9 +86,10 @@ const routes = [
   { path: '/api',                       name: 'ui-api',               component: ApiHomeView },
   { path: '/api/token',                 name: 'ui-api-token',         component: ApiTokenView },
 
-  { path: '/subscribe',                            name: 'ui-subscribe',           component: SubscribeWizardView },
-  // Project-scoped entry used by ProjectDetailView's "Add subscription" button.
-  { path: '/home/project/:id/subscription',        name: 'ui-subscribe-project',   component: SubscribeWizardView },
+  // SubscribeWizardView is no longer a routed page — it's mounted inside
+  // host-supplied dialogs by `ProjectDetailView` (subscribe mode) and
+  // `SystemNodeView` (edit-node / create-node modes). The wizard reads
+  // its target (projectId or node) from its props, not the route.
 ]
 
 export default {

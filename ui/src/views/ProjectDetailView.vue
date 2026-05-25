@@ -15,7 +15,7 @@
           </p>
         </div>
         <v-spacer />
-        <v-btn v-if="project.manageSubscriptions" color="primary" prepend-icon="mdi-plus" :to="`/home/project/${project.id}/subscription`">
+        <v-btn v-if="project.manageSubscriptions" color="primary" prepend-icon="mdi-plus" @click="subscribeDialog = true">
           Add subscription
         </v-btn>
         <v-btn variant="outlined" prepend-icon="mdi-pencil" @click="editDialog = true">
@@ -114,6 +114,19 @@
       </v-card>
     </v-dialog>
 
+    <!-- Add-subscription wizard. The wizard is shared with SystemNodeView
+         (which uses it in `edit-node` / `create-node` modes); here we
+         drive it in `subscribe` mode and pass the project id explicitly
+         so the wizard doesn't have to read the host's route. -->
+    <v-dialog v-model="subscribeDialog" max-width="900" scrollable>
+      <v-card>
+        <v-card-title>Add subscription</v-card-title>
+        <v-card-text class="pa-4">
+          <SubscribeWizardView v-if="subscribeDialog && project" mode="subscribe" :project-id="project.id" @saved="onSubscribed" @cancel="subscribeDialog = false" />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
     <!-- Unsubscribe confirmation -->
     <v-dialog v-model="unsubDialog" max-width="480">
       <v-card>
@@ -141,6 +154,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useApi, useAppStore, useI18nStore, LigojDataTable, NodeIcon, PluginFeatures } from '@ligoj/host'
 import { getFullName } from '../useUiHelpers.js'
+import SubscribeWizardView from './SubscribeWizardView.vue'
 
 const route = useRoute()
 const api = useApi()
@@ -158,6 +172,7 @@ const saving = ref(false)
 
 const unsubDialog = ref(false)
 const unsubTarget = ref(null)
+const subscribeDialog = ref(false)
 const unsubWithData = ref(false)
 const unsubLoading = ref(false)
 
@@ -255,6 +270,17 @@ async function save() {
   saving.value = false
   editDialog.value = false
   await loadProject()
+}
+
+/**
+ * Subscribe wizard emitted `saved` after a successful POST — close the
+ * dialog and reload the project so the new subscription row appears in
+ * the table (and the next `rest/subscription/status/refresh` pass picks
+ * up its live `data` / `parameters`).
+ */
+function onSubscribed() {
+  subscribeDialog.value = false
+  loadProject()
 }
 
 function startUnsubscribe(sub) {
