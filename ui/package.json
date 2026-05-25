@@ -1,24 +1,32 @@
 {
   "name": "ligoj-plugin-ui",
   "version": "0.1.0",
+  "description": "Core UI plugin for the Ligoj Vue host — dashboard, system admin, subscribe wizard, project views.",
   "private": true,
   "type": "module",
+  "license": "MIT",
   "author": "kloudy.io",
-  "description": "Ligoj UI plugin",
-  "homepage": "https://github.com/ligoj/plugin-ui",
   "contributors": [
-    "fabrice.daugan@gmail.com"
+    "Fabrice Daugan <fabrice.daugan@gmail.com>"
   ],
+  "homepage": "https://github.com/ligoj/plugin-ui#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ligoj/plugin-ui"
+    "url": "git+https://github.com/ligoj/plugin-ui.git"
   },
-  "bugs": "https://github.com/ligoj/plugin-ui/issues",
-  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ligoj/plugin-ui/issues"
+  },
   "keywords": [
-    "Ligoj",
-    "plugin"
+    "ligoj",
+    "plugin",
+    "ui",
+    "vue",
+    "vite"
   ],
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
