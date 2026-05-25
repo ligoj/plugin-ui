@@ -11,8 +11,21 @@ import { resolve } from 'path'
 // the host's import map resolves them to its own instances so reactivity
 // and pinia stores remain singletons.
 
+// Path to the Ligoj host repo, sitting beside `ligoj-plugins/` in the
+// developer workspace. Used to resolve `@ligoj/host` for tests and the
+// standalone dev server (runtime uses the host's import map).
+const HOST_SRC = resolve(__dirname, '../../../ligoj/app-ui/src/main/webapp/src')
+
 export default defineConfig({
   plugins: [vue()],
+
+  resolve: {
+    alias: {
+      '@ligoj/host': resolve(HOST_SRC, 'host.js'),
+      '@': HOST_SRC,
+    },
+    dedupe: ['vue', 'pinia', 'vue-router', 'vuetify'],
+  },
 
   build: {
     lib: {
@@ -38,6 +51,19 @@ export default defineConfig({
     proxy: {
       '/rest': { target: 'http://localhost:8080', changeOrigin: true },
       '/webjars': { target: 'http://localhost:8080', changeOrigin: true },
+    },
+  },
+
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['src/__tests__/setup.js'],
+    exclude: ['node_modules/**', 'dist/**'],
+    css: false,
+    server: {
+      deps: {
+        inline: ['vuetify'],
+      },
     },
   },
 })
