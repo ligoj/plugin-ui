@@ -350,7 +350,12 @@ const creatingNode = ref(false)
 const newNodeError = ref(null)
 
 const availableModes = computed(() => {
-  const m = selected.tool?.mode
+  // The backend's `SubscriptionMode` enum is serialised UPPERCASE
+  // (`LINK`, `CREATE`, `ALL`, `NONE`) and that's what arrives on
+  // `selected.tool.mode`. Normalise to lowercase here so the rest of
+  // the wizard can keep using the friendlier lowercase identifiers
+  // (`'link'`, `'create'`) and we cover both cases without ambiguity.
+  const m = String(selected.tool?.mode || '').toLowerCase()
   const result = []
   if (m === 'all' || m === 'create') {
     result.push({ value: 'create', description: 'provision a new object inside the instance' })
@@ -745,7 +750,7 @@ async function submit() {
       id: newNode.id,
       name: newNode.name,
       node: selected.tool?.id,
-      mode: selected.mode,
+      mode: wireMode(selected.mode),
       untouchedParameters: false,
       parameters: parameters.value.map(buildParamWire).filter(Boolean),
     }
@@ -765,7 +770,7 @@ async function submit() {
       id: props.node.id,
       node: props.node.refined?.id,
       name: editForm.name,
-      mode: selected.mode,
+      mode: wireMode(selected.mode),
       untouchedParameters: false,
       parameters: parameters.value.map(buildParamWire).filter(Boolean),
     }
@@ -783,7 +788,7 @@ async function submit() {
   const payload = {
     node: selected.node.id,
     project: Number(projectId.value),
-    mode: selected.mode,
+    mode: wireMode(selected.mode),
     parameters: parameters.value.map(buildParamWire).filter(Boolean),
   }
   const id = await api.post('rest/subscription', payload)
@@ -797,6 +802,21 @@ async function submit() {
   } else {
     error.value = 'Subscription creation failed — please review the highlighted parameters.'
   }
+}
+
+/**
+ * Convert the wizard's lowercase mode identifier (`'link'`, `'create'`,
+ * `'all'`, …) into the uppercase form Jackson expects for the backend's
+ * `SubscriptionMode` enum. Without this CXF can't deserialise the body
+ * — the `@POST` method takes a `SubscriptionEditionVo` whose `mode`
+ * field is `@NotNull SubscriptionMode`, and a lowercase value fails the
+ * enum-name match, leaving CXF with no method that accepts the request
+ * → 405 at the bare `/subscription` path (which also exposes `@GET`).
+ * Returning `null` for an absent value is fine; the backend defaults
+ * to `ALL` on the entity side when the field is unset.
+ */
+function wireMode(mode) {
+  return mode ? String(mode).toUpperCase() : mode
 }
 
 function buildParamWire(p) {
