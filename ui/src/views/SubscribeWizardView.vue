@@ -8,14 +8,14 @@
          for a back-link button or "no project" alert — the caller
          guarantees the prop is set. -->
     <v-alert v-if="!isEdit && !isCreateNode && project" type="info" variant="tonal" density="compact" class="mb-4">
-      Adding a subscription to <strong>{{ project.name }}</strong> ({{ project.pkey }}).
+      {{ t('wizard.contextBefore') }} <strong>{{ project.name }}</strong> ({{ project.pkey }}).
       <br>
       <span class="text-caption text-warning">
-        Subscribing is not an idempotent operation — removing a subscription later may not clean up remote data automatically.
+        {{ t('wizard.contextAfter') }}
       </span>
     </v-alert>
     <v-alert v-else-if="!isEdit && !isCreateNode && loadingProject" type="info" variant="tonal" density="compact" class="mb-4">
-      Loading project…
+      {{ t('wizard.loadingProject') }}
     </v-alert>
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
@@ -26,19 +26,16 @@
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-room-service-outline</v-icon>
-            <span>1. Service</span>
+            <span>{{ t('wizard.step.service') }}</span>
             <v-progress-circular v-if="loadingServices" size="14" width="2" indeterminate class="ml-2" />
           </div>
-          <p class="text-body-2 text-medium-emphasis mb-3">
-            A service groups features implemented by one or more tools.
-          </p>
           <template v-if="isEdit && selected.service">
             <NodeIcon :node="selected.service" chip text />
-            <v-text-field v-if="editType === 'service' || editType === 'feature'" v-model="editForm.name" label="Name" maxlength="250" variant="outlined" density="compact" class="mt-3"
+            <v-text-field v-if="editType === 'service' || editType === 'feature'" v-model="editForm.name" :label="t('wizard.label.name')" maxlength="250" variant="outlined" density="compact" class="mt-3"
               :rules="[rules.required]" />
           </template>
-          <v-select v-else v-model="selected.service" :items="services" item-title="name" item-value="id" return-object label="Service" variant="outlined" density="compact" :loading="loadingServices"
-            :rules="[rules.required]">
+          <v-select v-else v-model="selected.service" :items="services" item-title="name" item-value="id" return-object :label="t('wizard.label.service')" :hint="t('wizard.hint.service')" persistent-hint
+            variant="outlined" density="compact" :loading="loadingServices" :rules="[rules.required]">
             <template #selection="{ item }">
               <span v-if="item" class="d-inline-flex align-center ga-2">
                 <NodeIcon :node="item" /> {{ item.name || item.id }}
@@ -63,18 +60,15 @@
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-wrench</v-icon>
-            <span>2. Tool</span>
+            <span>{{ t('wizard.step.tool') }}</span>
             <v-progress-circular v-if="loadingTools" size="14" width="2" indeterminate class="ml-2" />
           </div>
-          <p v-if="!isEdit" class="text-body-2 text-medium-emphasis mb-3">
-            A tool is one implementation of the service; several instances may be deployed.
-          </p>
           <template v-if="isEdit && selected.tool">
             <NodeIcon :node="selected.tool" chip text />
-            <v-text-field v-if="editType === 'tool'" v-model="editForm.name" label="Name" maxlength="250" variant="outlined" density="compact" class="mt-3" :rules="[rules.required]" />
+            <v-text-field v-if="editType === 'tool'" v-model="editForm.name" :label="t('wizard.label.name')" maxlength="250" variant="outlined" density="compact" class="mt-3" :rules="[rules.required]" />
           </template>
-          <v-select v-else v-model="selected.tool" :items="tools" item-title="name" item-value="id" return-object label="Tool" variant="outlined" density="compact" :loading="loadingTools"
-            :disabled="!selected.service" :rules="selected.service ? [rules.required] : []">
+          <v-select v-else v-model="selected.tool" :items="tools" item-title="name" item-value="id" return-object :label="t('wizard.label.tool')" :hint="t('wizard.hint.tool')" persistent-hint
+            variant="outlined" density="compact" :loading="loadingTools" :disabled="!selected.service" :rules="selected.service ? [rules.required] : []">
             <template #selection="{ item }">
               <span v-if="item" class="d-inline-flex align-center ga-2">
                 <NodeIcon :node="item" /> {{ item.name || item.id }}
@@ -99,26 +93,23 @@
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-server</v-icon>
-            <span>3. Instance</span>
+            <span>{{ t('wizard.step.instance') }}</span>
             <v-progress-circular v-if="loadingNodes" size="14" width="2" indeterminate class="ml-2" />
           </div>
-          <p v-if="!isEdit" class="text-body-2 text-medium-emphasis mb-3">
-            An instance is a running node of the tool. Pick an existing one or declare a new one.
-          </p>
 
           <template v-if="isEdit && selected.node">
             <div class="d-flex align-center ga-2 mb-1">
               <NodeIcon :node="selected.node" />
               <code>{{ selected.node.id }}</code>
             </div>
-            <v-text-field v-model="editForm.name" label="Name" maxlength="250" variant="outlined" density="compact" class="mt-3" :rules="[rules.required]" />
+            <v-text-field v-model="editForm.name" :label="t('wizard.label.name')" maxlength="250" variant="outlined" density="compact" class="mt-3" :rules="[rules.required]" />
           </template>
 
           <!-- Subscribe flow: instance picker + "New instance" toggle. Hidden
                in create-node mode since there's no existing instance to pick. -->
           <div v-else-if="!isCreateNode" class="d-flex align-start ga-2">
-            <v-select v-model="selected.node" :items="nodes" item-title="name" item-value="id" return-object label="Instance" variant="outlined" density="compact" :loading="loadingNodes"
-              :disabled="!selected.tool || showNewNode" :rules="!showNewNode && selected.tool ? [rules.required] : []" class="flex-grow-1">
+            <v-select v-model="selected.node" :items="nodes" item-title="name" item-value="id" return-object :label="t('wizard.label.instance')" :hint="t('wizard.hint.instance')" persistent-hint
+              variant="outlined" density="compact" :loading="loadingNodes" :disabled="!selected.tool || showNewNode" :rules="!showNewNode && selected.tool ? [rules.required] : []" class="flex-grow-1">
               <template #selection="{ item }">
                 <span v-if="item" class="d-inline-flex align-center ga-2">
                   <NodeIcon :node="item" /> {{ item.name || item.id }}
@@ -136,19 +127,26 @@
               </template>
             </v-select>
             <v-btn variant="outlined" :prepend-icon="showNewNode ? 'mdi-close' : 'mdi-plus'" :disabled="!selected.tool" @click="toggleNewNode">
-              {{ showNewNode ? 'Pick existing' : 'New instance' }}
+              {{ showNewNode ? t('wizard.pickExisting') : t('wizard.newInstance') }}
             </v-btn>
           </div>
 
           <v-expand-transition>
             <div v-if="showNewNode || isCreateNode" class="new-node-form mt-3 pa-3">
               <p class="text-caption text-medium-emphasis mb-2">
-                Declares a node under <code>{{ selected.tool?.id }}</code>. Tool-specific
-                parameters can be added later by editing the new instance.
+                <template v-if="selected.tool?.id">
+                  <!-- Reads as "Declares a node under <id>." — the <code> wrap
+                       around the tool id stays as markup, so the i18n key
+                       only carries the sentence's text halves. -->
+                  {{ newNodeBlurbParts[0] }}<code>{{ selected.tool.id }}</code>{{ newNodeBlurbParts[1] }}
+                </template>
+                <template v-else>
+                  {{ t('wizard.newNodeBlurbNoParent') }}
+                </template>
               </p>
-              <v-text-field v-model="newNode.id" label="ID" :hint="`Suggested: ${selected.tool?.id}:my-instance`" persistent-hint variant="outlined" density="compact" class="mb-2"
-                :rules="(showNewNode || isCreateNode) ? [rules.required, rules.nodeId] : []" />
-              <v-text-field v-model="newNode.name" label="Name" variant="outlined" density="compact" class="mb-2" :rules="(showNewNode || isCreateNode) ? [rules.required] : []" />
+              <v-text-field v-model="newNode.id" :label="t('wizard.label.id')" :hint="t('wizard.newNodeHint', { prefix: `${selected.tool?.id || ''}:my-instance` })" persistent-hint variant="outlined"
+                density="compact" class="mb-2" :rules="(showNewNode || isCreateNode) ? [rules.required, rules.nodeId] : []" />
+              <v-text-field v-model="newNode.name" :label="t('wizard.label.name')" variant="outlined" density="compact" class="mb-2" :rules="(showNewNode || isCreateNode) ? [rules.required] : []" />
               <v-alert v-if="newNodeError" type="warning" variant="tonal" density="compact" class="mb-2">
                 {{ newNodeError }}
               </v-alert>
@@ -157,7 +155,7 @@
                    parameters. In create-node mode the wizard's bottom submit
                    button is the trigger, so this inline button is omitted. -->
               <v-btn v-if="!isCreateNode" color="primary" :loading="creatingNode" :disabled="!newNode.id || !newNode.name" @click="createNode">
-                Create instance
+                {{ t('wizard.createInstance') }}
               </v-btn>
             </div>
           </v-expand-transition>
@@ -175,11 +173,11 @@
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-link-variant</v-icon>
-            <span>4. Mode</span>
+            <span>{{ t('wizard.step.mode') }}</span>
           </div>
           <p v-if="!isEdit" class="text-body-2 text-medium-emphasis mb-3">
-            <strong>Link</strong> attaches this project to an existing instance.
-            <strong>Create</strong> additionally provisions a new instance inside the tool.
+            <strong>{{ t('wizard.modeLink') }}</strong> {{ t('wizard.modeHintLink') }}
+            <strong>{{ t('wizard.modeCreate') }}</strong> {{ t('wizard.modeHintCreate') }}
           </p>
           <NodeModeChip v-if="isEdit" :mode="selected.mode" size="small" />
           <v-radio-group v-else v-model="selected.mode" inline :rules="selected.node ? [rules.required] : []" hide-details>
@@ -200,23 +198,24 @@
         <v-card-text>
           <div class="section-heading">
             <v-icon class="mr-2">mdi-tune</v-icon>
-            <span>5. Parameters</span>
+            <span>{{ t('wizard.step.parameters') }}</span>
             <v-progress-circular v-if="loadingParams" size="14" width="2" indeterminate class="ml-2" />
           </div>
           <p v-if="isCreateNode" class="text-body-2 text-medium-emphasis mb-3">
-            Initial values for <code>{{ newNode.id || 'the new node' }}</code>. You can edit them later from System → Nodes.
+            <!-- Render the sentence with the `<code>`-wrapped target inline.
+                 paramsCreateNodeParts splits the localised template around the
+                 {id} placeholder so the markup stays intact across locales. -->
+            {{ paramsCreateNodeParts[0] }}<code>{{ newNode.id || t('wizard.params.createNodeNew') }}</code>{{ paramsCreateNodeParts[1] }}
           </p>
           <p v-else-if="!isEdit" class="text-body-2 text-medium-emphasis mb-3">
-            Values required to link the project to
-            <code v-if="selected.node">{{ selected.node.id }}</code>
-            <span v-else>the chosen instance</span>.
+            {{ paramsSubscribeParts[0] }}<code v-if="selected.node">{{ selected.node.id }}</code><span v-else>{{ t('wizard.params.subscribeFallback') }}</span>{{ paramsSubscribeParts[1] }}
           </p>
           <p v-else class="text-body-2 text-medium-emphasis mb-3">
-            Configuration values bound to <code>{{ node?.id }}</code>.
+            {{ paramsEditParts[0] }}<code>{{ node?.id }}</code>{{ paramsEditParts[1] }}
           </p>
 
           <v-alert v-if="!loadingParams && (isEdit || (selected.mode && (isCreateNode ? selected.tool : selected.node))) && parameters.length === 0" type="info" variant="tonal" density="compact">
-            {{ isEdit ? 'No parameters configured for this node.' : (isCreateNode ? 'This node has no additional parameters.' : 'This subscription requires no additional parameters.') }}
+            {{ isEdit ? t('wizard.params.emptyEdit') : (isCreateNode ? t('wizard.params.emptyCreateNode') : t('wizard.params.emptySubscribe')) }}
           </v-alert>
 
           <div v-for="p in parameters" :key="p.id" class="mb-3">
@@ -255,16 +254,16 @@
 
       <!-- Actions --------------------------------------------------------- -->
       <div class="d-flex align-center ga-2">
-        <v-btn variant="text" :disabled="creating" @click="$emit('cancel')">Cancel</v-btn>
+        <v-btn variant="text" :disabled="creating" @click="$emit('cancel')">{{ t('wizard.action.cancel') }}</v-btn>
         <v-spacer />
         <v-btn v-if="isEdit" type="submit" color="primary" prepend-icon="mdi-content-save" :loading="creating">
-          Save
+          {{ t('wizard.action.save') }}
         </v-btn>
         <v-btn v-else-if="isCreateNode" type="submit" color="success" prepend-icon="mdi-plus" :loading="creating" :disabled="!ready">
-          Create node
+          {{ t('wizard.action.createNode') }}
         </v-btn>
         <v-btn v-else type="submit" color="success" prepend-icon="mdi-check" :loading="creating" :disabled="!ready">
-          Create subscription
+          {{ t('wizard.action.createSubscription') }}
         </v-btn>
       </div>
     </v-form>
@@ -308,6 +307,10 @@ const editType = computed(() => isEdit.value ? nodeType(props.node) : null)
 
 const api = useApi()
 const errorStore = useErrorStore()
+const i18nStore = useI18nStore()
+/** Locale-aware translator. Used pervasively across the template — kept
+ *  as a top-level alias so the template stays readable. */
+const t = (key, params) => i18nStore.t(key, params)
 
 // Subscribe mode: project comes from the prop set by the host dialog
 // (ProjectDetailView). Edit-node and create-node modes never need it.
@@ -358,10 +361,10 @@ const availableModes = computed(() => {
   const m = String(selected.tool?.mode || '').toLowerCase()
   const result = []
   if (m === 'all' || m === 'create') {
-    result.push({ value: 'create', description: 'provision a new object inside the instance' })
+    result.push({ value: 'create', description: t('wizard.modeDescCreate') })
   }
   if (m === 'all' || m === 'link' || !m) {
-    result.push({ value: 'link', description: 'attach this project to an existing object' })
+    result.push({ value: 'link', description: t('wizard.modeDescLink') })
   }
   return result
 })
@@ -384,13 +387,29 @@ const ready = computed(() => {
 /* ------------- validation rules ------------ */
 
 const rules = {
-  required: (v) => (v != null && v !== '' && (!Array.isArray(v) || v.length > 0)) || 'Required',
-  nodeId: (v) => /^[\w-]+(:[\w-]+)+$/.test(v || '') || 'Use the colon-separated form, e.g. service:scm:git:internal',
+  required: (v) => (v != null && v !== '' && (!Array.isArray(v) || v.length > 0)) || t('wizard.rule.required'),
+  nodeId: (v) => /^[\w-]+(:[\w-]+)+$/.test(v || '') || t('wizard.rule.nodeId'),
 }
 
-/* ------------- param helpers --------------- */
+/**
+ * Split a localised template containing one `{placeholder}` into the
+ * two literal halves that wrap it. Lets the template embed inline
+ * `<code>` markup around the placeholder while the surrounding text
+ * still flows through vue-i18n. Returns `[before, after]`.
+ */
+function splitAround(key, placeholder) {
+  const raw = t(key)
+  const idx = raw.indexOf(`{${placeholder}}`)
+  if (idx < 0) return [raw, '']
+  return [raw.slice(0, idx), raw.slice(idx + placeholder.length + 2)]
+}
 
-const i18nStore = useI18nStore()
+const newNodeBlurbParts = computed(() => splitAround('wizard.newNodeBlurb', 'parent'))
+const paramsCreateNodeParts = computed(() => splitAround('wizard.params.createNode', 'id'))
+const paramsSubscribeParts = computed(() => splitAround('wizard.params.subscribe', 'target'))
+const paramsEditParts = computed(() => splitAround('wizard.params.edit', 'id'))
+
+/* ------------- param helpers --------------- */
 
 /**
  * Normalised parameter type for comparison. The backend serialises
@@ -716,7 +735,7 @@ async function createNode() {
     }
     const result = await api.post('rest/node', payload)
     if (result === null) {
-      newNodeError.value = 'Backend rejected the new node — see the notification for details.'
+      newNodeError.value = t('wizard.error.newNodeRejected')
       return
     }
     // Reload nodes and pick the freshly-created one.
@@ -757,10 +776,10 @@ async function submit() {
     const result = await api.post('rest/node', payload)
     creating.value = false
     if (result === null) {
-      error.value = 'Node creation failed — please review the highlighted fields.'
+      error.value = t('wizard.error.nodeCreationFailed')
       return
     }
-    errorStore.success(`Node "${payload.name}" created`)
+    errorStore.success(t('wizard.success.nodeCreated', { name: payload.name }))
     emit('saved', payload)
     return
   }
@@ -777,10 +796,10 @@ async function submit() {
     const result = await api.put('rest/node', payload)
     creating.value = false
     if (result === false) {
-      error.value = 'Save failed — please review the highlighted parameters.'
+      error.value = t('wizard.error.saveFailed')
       return
     }
-    errorStore.success(`Node "${payload.name}" updated`)
+    errorStore.success(t('wizard.success.nodeUpdated', { name: payload.name }))
     emit('saved', { ...props.node, name: payload.name })
     return
   }
@@ -797,10 +816,10 @@ async function submit() {
     // Host dialog reloads the project (and closes itself) on `saved`.
     // The id of the newly-created subscription is passed back so the
     // caller can highlight the row or otherwise scroll into view.
-    errorStore.success(`Subscription created`)
+    errorStore.success(t('wizard.success.subscriptionCreated'))
     emit('saved', { id, projectId: projectId.value })
   } else {
-    error.value = 'Subscription creation failed — please review the highlighted parameters.'
+    error.value = t('wizard.error.subscriptionFailed')
   }
 }
 

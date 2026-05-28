@@ -16,10 +16,10 @@
         </div>
         <v-spacer />
         <v-btn v-if="project.manageSubscriptions" color="primary" prepend-icon="mdi-plus" @click="subscribeDialog = true">
-          Add subscription
+          {{ t('project.detail.addSubscription') }}
         </v-btn>
         <v-btn variant="outlined" prepend-icon="mdi-pencil" @click="editDialog = true">
-          Edit
+          {{ t('project.detail.edit') }}
         </v-btn>
       </div>
 
@@ -29,20 +29,20 @@
           <div class="d-flex flex-wrap ga-4 text-body-2 text-medium-emphasis">
             <span v-if="project.teamLeader">
               <v-icon size="small" class="mr-1">mdi-account-star</v-icon>
-              <strong>Manager:</strong>
+              <strong>{{ t('project.detail.manager') }}</strong>
               {{ getFullName(project.teamLeader) }}
               <span v-if="project.teamLeader.id" class="ml-1">({{ project.teamLeader.id }})</span>
             </span>
             <span v-if="project.createdDate">
               <v-icon size="small" class="mr-1">mdi-calendar-plus</v-icon>
-              <strong>Created:</strong> {{ formatDate(project.createdDate) }}
+              <strong>{{ t('project.detail.created') }}</strong> {{ formatDate(project.createdDate) }}
               <span v-if="project.createdBy" class="ml-1">
                 by {{ project.createdBy.id || project.createdBy }}
               </span>
             </span>
             <span v-if="project.lastModifiedDate">
               <v-icon size="small" class="mr-1">mdi-calendar-edit</v-icon>
-              <strong>Updated:</strong> {{ formatDate(project.lastModifiedDate) }}
+              <strong>{{ t('project.detail.updated') }}</strong> {{ formatDate(project.lastModifiedDate) }}
               <span v-if="project.lastModifiedBy" class="ml-1">
                 by {{ project.lastModifiedBy.id || project.lastModifiedBy }}
               </span>
@@ -53,12 +53,12 @@
 
       <!-- Subscriptions -->
       <div class="d-flex align-center mb-2">
-        <h2 class="text-h6">Subscriptions</h2>
+        <h2 class="text-h6">{{ t('project.detail.subscriptions') }}</h2>
         <v-chip class="ml-2" size="small" variant="tonal">{{ subscriptions.length }}</v-chip>
       </div>
 
       <v-alert v-if="subscriptions.length === 0" type="info" variant="tonal" density="compact">
-        No subscriptions attached to this project.
+        {{ t('project.detail.noSubscriptions') }}
       </v-alert>
 
       <LigojDataTable filename="subscriptions.csv" v-else :headers="subHeaders" :items="subscriptions" item-value="id" :items-per-page="-1" hide-default-footer density="compact">
@@ -86,7 +86,7 @@
                action paints its own VNodes here; the host never
                interprets HTML. -->
           <PluginFeatures :subscription="item" />
-          <v-btn v-if="project.manageSubscriptions" icon size="small" variant="text" color="error" @click="startUnsubscribe(item)" :title="'Unsubscribe'">
+          <v-btn v-if="project.manageSubscriptions" icon size="small" variant="text" color="error" @click="startUnsubscribe(item)" :title="t('project.detail.unsubscribe')">
             <v-icon size="small">mdi-close</v-icon>
           </v-btn>
         </template>
@@ -96,20 +96,20 @@
     <!-- Edit dialog (same shape as ProjectListView) -->
     <v-dialog v-model="editDialog" max-width="600">
       <v-card>
-        <v-card-title>Edit project</v-card-title>
+        <v-card-title>{{ t('project.detail.editTitle') }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field v-model="editForm.name" label="Name" :rules="[rules.required]" variant="outlined" class="mb-2" />
-            <v-text-field v-model="editForm.pkey" label="Project key (pkey)" :rules="[rules.required]" :disabled="(project?.nbSubscriptions || subscriptions.length) > 0" variant="outlined"
+            <v-text-field v-model="editForm.name" :label="t('project.detail.fieldName')" :rules="[rules.required]" variant="outlined" class="mb-2" />
+            <v-text-field v-model="editForm.pkey" :label="t('project.detail.fieldPkey')" :rules="[rules.required]" :disabled="(project?.nbSubscriptions || subscriptions.length) > 0" variant="outlined"
               class="mb-2" />
-            <v-text-field v-model="editForm.teamLeader" label="Team leader (user id)" :rules="[rules.required]" variant="outlined" class="mb-2" />
-            <v-textarea v-model="editForm.description" label="Description" rows="3" variant="outlined" class="mb-2" />
+            <v-text-field v-model="editForm.teamLeader" :label="t('project.detail.fieldTeamLeader')" :rules="[rules.required]" variant="outlined" class="mb-2" />
+            <v-textarea v-model="editForm.description" :label="t('project.detail.fieldDescription')" rows="3" variant="outlined" class="mb-2" />
           </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="editDialog = false">Cancel</v-btn>
-          <v-btn color="primary" variant="elevated" :loading="saving" @click="save">Save</v-btn>
+          <v-btn variant="text" @click="editDialog = false">{{ t('wizard.action.cancel') }}</v-btn>
+          <v-btn color="primary" variant="elevated" :loading="saving" @click="save">{{ t('wizard.action.save') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -120,7 +120,7 @@
          so the wizard doesn't have to read the host's route. -->
     <v-dialog v-model="subscribeDialog" max-width="900" scrollable>
       <v-card>
-        <v-card-title>Add subscription</v-card-title>
+        <v-card-title>{{ t('wizard.title') }}</v-card-title>
         <v-card-text class="pa-4">
           <SubscribeWizardView v-if="subscribeDialog && project" mode="subscribe" :project-id="project.id" @saved="onSubscribed" @cancel="subscribeDialog = false" />
         </v-card-text>
@@ -130,18 +130,18 @@
     <!-- Unsubscribe confirmation -->
     <v-dialog v-model="unsubDialog" max-width="480">
       <v-card>
-        <v-card-title>Unsubscribe</v-card-title>
+        <v-card-title>{{ t('project.detail.unsubscribe') }}</v-card-title>
         <v-card-text>
           <p class="mb-3">
-            Remove subscription to <strong>{{ unsubTarget?.node?.name }}</strong>?
+            {{ unsubConfirmParts[0] }}<strong>{{ unsubTarget?.node?.name }}</strong>{{ unsubConfirmParts[1] }}
           </p>
-          <v-checkbox v-model="unsubWithData" label="Also delete remote data on the target service" density="compact" hide-details />
+          <v-checkbox v-model="unsubWithData" :label="t('project.detail.unsubscribeData')" density="compact" hide-details />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="unsubDialog = false">Cancel</v-btn>
+          <v-btn variant="text" @click="unsubDialog = false">{{ t('wizard.action.cancel') }}</v-btn>
           <v-btn color="error" variant="elevated" :loading="unsubLoading" @click="confirmUnsubscribe">
-            Remove
+            {{ t('project.detail.remove') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -177,8 +177,20 @@ const unsubWithData = ref(false)
 const unsubLoading = ref(false)
 
 const rules = {
-  required: (v) => !!v || 'Required',
+  required: (v) => !!v || t('wizard.rule.required'),
 }
+
+/**
+ * Splits `project.detail.unsubscribeConfirm` around its `{name}`
+ * placeholder so the template can render the node name with bold
+ * markup without going through `v-html`. Matches the same pattern
+ * used in SubscribeWizardView for inline `<code>`-wrapped values.
+ */
+const unsubConfirmParts = computed(() => {
+  const raw = t('project.detail.unsubscribeConfirm')
+  const idx = raw.indexOf('{name}')
+  return idx < 0 ? [raw, ''] : [raw.slice(0, idx), raw.slice(idx + '{name}'.length)]
+})
 
 const subHeaders = [
   { title: 'Service', key: 'service', sortable: false, width: '180px' },
