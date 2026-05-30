@@ -150,7 +150,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useApi, useAppStore, useI18nStore, LigojDataTable, NodeIcon, PluginFeatures } from '@ligoj/host'
 import { getFullName } from '../useUiHelpers.js'
@@ -314,5 +314,39 @@ watch(() => route.params.id, (id) => {
   if (id) loadProject()
 })
 
-onMounted(loadProject)
+/**
+ * Cross-plugin refresh hook. Plugins that mutate data backing a
+ * subscription's live `data` (e.g. plugin-id's group-members dialog
+ * after add/remove) dispatch a `ligoj:subscription-data-changed`
+ * CustomEvent on window with `{ subscriptionId, group }`. Re-fetching
+ * is best-effort — only triggered when we're showing the affected
+ * project — and runs through the existing `refreshSubscriptions`
+ * pipeline so the data-table re-renders chips/keys without a full
+ * project reload.
+ *
+ * Using a window CustomEvent (rather than a Pinia store) keeps the
+ * coupling at the DOM level: plugin-id has zero knowledge of
+ * plugin-ui's internals, and the listener degrades cleanly when the
+ * dispatching plugin isn't installed (no events → no refresh, no
+ * crash).
+ */
+function onSubscriptionDataChanged(event) {
+  // Only refresh when the changed subscription actually belongs to
+  // the project we're displaying — avoids a useless round-trip when
+  // the user managed members from the global GroupListView while a
+  // different project is mounted in the background.
+  const id = event?.detail?.subscriptionId
+  const subs = project.value?.subscriptions || []
+  if (id != null && !subs.some((s) => String(s.id) === String(id))) return
+  refreshSubscriptions()
+}
+
+onMounted(() => {
+  loadProject()
+  window.addEventListener('ligoj:subscription-data-changed', onSubscriptionDataChanged)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('ligoj:subscription-data-changed', onSubscriptionDataChanged)
+})
 </script>
