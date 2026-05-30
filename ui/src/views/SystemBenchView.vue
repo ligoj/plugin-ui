@@ -8,10 +8,12 @@
       </v-card-text>
     </v-card>
 
-    <v-btn color="primary" prepend-icon="mdi-play" :loading="running" @click="run">
-      {{ t('system.bench.run') }}
-    </v-btn>
-    <v-number-input controlVariant="default" :label="t('system.bench.fieldNb')" v-model="nb"></v-number-input>
+    <div class="d-flex align-start ga-2" style="max-width: 320px">
+      <v-number-input controlVariant="default" :label="t('system.bench.fieldNb')" v-model="nb" class="flex-grow-1" hide-details />
+      <v-btn color="primary" prepend-icon="mdi-play" :loading="running" @click="run">
+        {{ t('system.bench.run') }}
+      </v-btn>
+    </div>
 
     <v-alert v-if="error" type="warning" variant="tonal" class="mt-4">{{ error }}</v-alert>
 
