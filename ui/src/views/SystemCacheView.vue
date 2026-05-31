@@ -3,11 +3,21 @@
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
     <LigojDataTable filename="caches.csv" :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact">
+      <template #header.id="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-database-outline</v-icon>{{ column.title }}<v-tooltip activator="parent"
+            location="top" :text="column.tooltip" /></span></template>
+      <template #header.size="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-counter</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top"
+            :text="column.tooltip" /></span></template>
+      <template #header.hitCount="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-check-circle-outline</v-icon>{{ column.title }}<v-tooltip
+            activator="parent" location="top" :text="column.tooltip" /></span></template>
+      <template #header.missCount="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-alert-circle-outline</v-icon>{{ column.title }}<v-tooltip
+            activator="parent" location="top" :text="column.tooltip" /></span></template>
+      <template #header.averageGetTime="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-timer-outline</v-icon>{{ column.title }}<v-tooltip activator="parent"
+            location="top" :text="column.tooltip" /></span></template>
       <template #item.hitCount="{ item }">
         <div class="d-flex align-center ga-2">
           <span>{{ item.hitCount ?? 0 }}</span>
           <v-chip v-if="item.hitPercentage != null && (item.hitCount ?? 0) > 0" size="x-small" :color="rateColor(item.hitPercentage, true, item.hitCount)">{{ Math.round(item.hitPercentage)
-          }}%</v-chip>
+            }}%</v-chip>
         </div>
       </template>
       <template #item.missCount="{ item }">
@@ -22,6 +32,7 @@
       <template #item.actions="{ item }">
         <v-btn icon size="small" variant="text" :loading="invalidating === item.id" @click="invalidate(item)" :title="t('system.cache.invalidate')">
           <v-icon size="small">mdi-broom</v-icon>
+          <v-tooltip activator="parent" location="top" :text="t('system.cache.invalidate')" />
         </v-btn>
       </template>
     </LigojDataTable>
@@ -42,12 +53,12 @@ const error = ref(null)
 const invalidating = ref(null)
 
 const headers = computed(() => [
-  { title: t('system.cache.headerName'),    key: 'id',             sortable: true },
-  { title: t('system.cache.headerSize'),    key: 'size',           sortable: true, width: '100px' },
-  { title: t('system.cache.headerHits'),    key: 'hitCount',       sortable: true, width: '160px' },
-  { title: t('system.cache.headerMisses'),  key: 'missCount',      sortable: true, width: '160px' },
-  { title: t('system.cache.headerAvgGet'),  key: 'averageGetTime', sortable: true, width: '140px' },
-  { title: '',                              key: 'actions',        sortable: false, width: '60px', align: 'end' },
+  { title: t('system.cache.headerName'), key: 'id', sortable: true, tooltip: t('system.cache.headerNameHelp') },
+  { title: t('system.cache.headerSize'), key: 'size', sortable: true, width: '100px', tooltip: t('system.cache.headerSizeHelp') },
+  { title: t('system.cache.headerHits'), key: 'hitCount', sortable: true, width: '160px', tooltip: t('system.cache.headerHitsHelp') },
+  { title: t('system.cache.headerMisses'), key: 'missCount', sortable: true, width: '160px', tooltip: t('system.cache.headerMissesHelp') },
+  { title: t('system.cache.headerAvgGet'), key: 'averageGetTime', sortable: true, width: '140px', tooltip: t('system.cache.headerAvgGetHelp') },
+  { title: '', key: 'actions', sortable: false, width: '60px', align: 'end' },
 ])
 
 function rateColor(score, hit, hitCount) {

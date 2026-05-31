@@ -62,6 +62,10 @@
       </v-alert>
 
       <LigojDataTable filename="subscriptions.csv" v-else :headers="subHeaders" :items="subscriptions" item-value="id" :items-per-page="-1" hide-default-footer density="compact">
+        <template #header.service="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-cloud-outline</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+        <template #header.tool="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-tools</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+        <template #header.node="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-identifier</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+        <template #header.details="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-information-outline</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
         <template #item.service="{ item }">
           <NodeIcon v-if="item.node?.refined?.refined" :node="item.node.refined.refined" chip text />
           <span v-else class="text-medium-emphasis">—</span>
@@ -88,6 +92,7 @@
           <PluginFeatures :subscription="item" />
           <v-btn v-if="project.manageSubscriptions" icon size="small" variant="text" color="error" @click="startUnsubscribe(item)" :title="t('project.detail.unsubscribe')">
             <v-icon size="small">mdi-close</v-icon>
+            <v-tooltip activator="parent" location="top" :text="t('project.detail.unsubscribe')" />
           </v-btn>
         </template>
       </LigojDataTable>
@@ -99,11 +104,11 @@
         <v-card-title>{{ t('project.detail.editTitle') }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field v-model="editForm.name" :label="t('project.detail.fieldName')" :rules="[rules.required]" variant="outlined" class="mb-2" />
-            <v-text-field v-model="editForm.pkey" :label="t('project.detail.fieldPkey')" :rules="[rules.required]" :disabled="(project?.nbSubscriptions || subscriptions.length) > 0" variant="outlined"
+            <v-text-field v-model="editForm.name" :label="t('project.detail.fieldName')" :rules="[rules.required]" prepend-inner-icon="mdi-form-textbox" variant="outlined" class="mb-2" />
+            <v-text-field v-model="editForm.pkey" :label="t('project.detail.fieldPkey')" :rules="[rules.required]" :disabled="(project?.nbSubscriptions || subscriptions.length) > 0" prepend-inner-icon="mdi-key" variant="outlined"
               class="mb-2" />
-            <v-text-field v-model="editForm.teamLeader" :label="t('project.detail.fieldTeamLeader')" :rules="[rules.required]" variant="outlined" class="mb-2" />
-            <v-textarea v-model="editForm.description" :label="t('project.detail.fieldDescription')" rows="3" variant="outlined" class="mb-2" />
+            <v-text-field v-model="editForm.teamLeader" :label="t('project.detail.fieldTeamLeader')" :rules="[rules.required]" prepend-inner-icon="mdi-account-star" variant="outlined" class="mb-2" />
+            <v-textarea v-model="editForm.description" :label="t('project.detail.fieldDescription')" rows="3" prepend-inner-icon="mdi-text-long" variant="outlined" class="mb-2" />
           </v-form>
         </v-card-text>
         <v-card-actions>

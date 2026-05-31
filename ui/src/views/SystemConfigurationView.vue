@@ -15,7 +15,7 @@
       <v-card-text>
         <v-row density="comfortable">
           <v-col cols="12" md="5">
-            <v-text-field v-model="toEncrypt" :label="t('system.config.encryptInput')" variant="outlined" density="compact" hide-details @keyup.enter="encrypt" />
+            <v-text-field v-model="toEncrypt" :label="t('system.config.encryptInput')" prepend-inner-icon="mdi-lock-plus-outline" variant="outlined" density="compact" hide-details @keyup.enter="encrypt" />
           </v-col>
           <v-col cols="auto">
             <v-btn color="primary" prepend-icon="mdi-lock" :loading="encrypting" :disabled="!toEncrypt" @click="encrypt">{{ t('system.config.encrypt') }}</v-btn>
@@ -32,6 +32,9 @@
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
     <LigojDataTable :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact" filename="configuration.csv" class="configuration-table">
+      <template #header.value="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-text-short</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.secured="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-lock-outline</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.source="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-source-branch</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
       <template #item.value="{ item }">
         <span v-if="item.secured" class="text-medium-emphasis">•••••</span>
         <code v-else class="config-value" :title="item.value">{{ item.value }}</code>
@@ -50,9 +53,11 @@
       <template #item.actions="{ item }">
         <v-btn icon size="small" variant="text" @click="openEdit(item)" :title="t('common.edit')">
           <v-icon size="small">mdi-pencil</v-icon>
+          <v-tooltip activator="parent" location="top" :text="t('common.edit')" />
         </v-btn>
         <v-btn icon size="small" variant="text" color="error" @click="startDelete(item)" :title="t('common.delete')">
           <v-icon size="small">mdi-delete</v-icon>
+          <v-tooltip activator="parent" location="top" :text="t('common.delete')" />
         </v-btn>
       </template>
     </LigojDataTable>
@@ -63,8 +68,8 @@
         <v-card-title>{{ editTarget ? t('system.config.editTitle') : t('system.config.newTitle') }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field v-model="editForm.name" :label="t('system.config.fieldName')" :rules="[rules.required]" variant="outlined" density="compact" class="mb-2" autofocus />
-            <v-textarea v-model="editForm.value" :label="t('system.config.fieldValue')" :rules="[rules.required]" :counter="1023" maxlength="1023" rows="3" variant="outlined" density="compact"
+            <v-text-field v-model="editForm.name" :label="t('system.config.fieldName')" prepend-inner-icon="mdi-cog-outline" :rules="[rules.required]" variant="outlined" density="compact" class="mb-2" autofocus />
+            <v-textarea v-model="editForm.value" :label="t('system.config.fieldValue')" prepend-inner-icon="mdi-text-long" :rules="[rules.required]" :counter="1023" maxlength="1023" rows="3" variant="outlined" density="compact"
               class="mb-2" />
             <v-checkbox v-model="editForm.system" :label="t('system.config.fieldSystem')" density="compact" hide-details />
             <v-checkbox v-model="editForm.secured" :label="t('system.config.fieldSecured')" density="compact" hide-details />

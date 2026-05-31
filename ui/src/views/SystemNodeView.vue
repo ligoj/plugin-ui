@@ -8,6 +8,9 @@
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
     <LigojDataTable filename="nodes.csv" :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact">
+      <template #header.id="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-identifier</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.mode="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-cog-outline</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.enabled="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-power</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
       <template #item.icon="{ item }">
         <NodeIcon :node="item" />
       </template>
@@ -34,9 +37,11 @@
         <template v-if="isInstance(item)">
           <v-btn icon size="small" variant="text" @click="startEdit(item)" :title="t('common.edit')">
             <v-icon size="small">mdi-pencil</v-icon>
+            <v-tooltip activator="parent" location="top" :text="t('common.edit')" />
           </v-btn>
           <v-btn icon size="small" variant="text" color="error" @click="startDelete(item)" :title="t('common.delete')">
             <v-icon size="small">mdi-delete</v-icon>
+            <v-tooltip activator="parent" location="top" :text="t('common.delete')" />
           </v-btn>
         </template>
       </template>

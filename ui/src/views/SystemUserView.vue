@@ -10,6 +10,8 @@
 
     <LigojDataTableServer :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value" v-model:items-per-page="itemsPerPage" item-value="login" hover
       filename="system-users.csv" :fetch-all="dt.loadAll" @update:options="loadData">
+      <template #header.login="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-account</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.roles="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-shield-account-outline</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
       <template #item.roles="{ item }">
         <v-chip v-for="r in (item.roles || [])" :key="r.id" size="x-small" variant="tonal" class="mr-1">{{ r.name }}</v-chip>
       </template>
@@ -28,8 +30,8 @@
         <v-card-title>{{ editTarget ? 'Edit system user' : 'New system user' }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field v-model="editForm.login" label="Login" :rules="[rules.required]" :disabled="!!editTarget" variant="outlined" class="mb-2" autofocus />
-            <v-autocomplete v-model="editForm.roles" label="Roles" :items="allRoles" item-value="id" item-title="name" multiple chips closable-chips variant="outlined"
+            <v-text-field v-model="editForm.login" label="Login" prepend-inner-icon="mdi-account" :rules="[rules.required]" :disabled="!!editTarget" variant="outlined" class="mb-2" autofocus />
+            <v-autocomplete v-model="editForm.roles" label="Roles" prepend-inner-icon="mdi-shield-account-outline" :items="allRoles" item-value="id" item-title="name" multiple chips closable-chips variant="outlined"
               :rules="[rules.requiredArray]" />
           </v-form>
         </v-card-text>

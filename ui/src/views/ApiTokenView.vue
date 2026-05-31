@@ -23,12 +23,15 @@
       <template #item.actions="{ item }">
         <v-btn icon size="small" variant="text" :title="t('system.apiToken.show')" @click="openShow(item.name, 'load')">
           <v-icon size="small">mdi-eye</v-icon>
+          <v-tooltip activator="parent" location="top" :text="t('system.apiToken.show')" />
         </v-btn>
         <v-btn icon size="small" variant="text" :title="t('system.apiToken.regenerate')" @click="openShow(item.name, 'regen')">
           <v-icon size="small">mdi-refresh</v-icon>
+          <v-tooltip activator="parent" location="top" :text="t('system.apiToken.regenerate')" />
         </v-btn>
         <v-btn icon size="small" variant="text" color="error" :title="t('common.delete')" @click="startDelete(item.name)">
           <v-icon size="small">mdi-delete</v-icon>
+          <v-tooltip activator="parent" location="top" :text="t('common.delete')" />
         </v-btn>
       </template>
     </LigojDataTable>
@@ -39,7 +42,7 @@
         <v-card-title>{{ t('system.apiToken.newTitle') }}</v-card-title>
         <v-card-text>
           <v-form ref="createFormRef" @submit.prevent="doCreate">
-            <v-text-field v-model="createName" :label="t('system.apiToken.fieldName')" :rules="[rules.required]" variant="outlined" autofocus maxlength="250" />
+            <v-text-field prepend-inner-icon="mdi-key-outline" v-model="createName" :label="t('system.apiToken.fieldName')" :rules="[rules.required]" variant="outlined" autofocus maxlength="250" />
           </v-form>
         </v-card-text>
         <v-card-actions>

@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex flex-wrap align-center mb-4 ga-2">
       <v-spacer />
-      <v-select v-model="repository" :items="REPOSITORIES" item-value="id" item-title="label" :label="t('system.plugin.repository')" density="compact" hide-details variant="outlined"
+      <v-select prepend-inner-icon="mdi-source-repository" v-model="repository" :items="REPOSITORIES" item-value="id" item-title="label" :label="t('system.plugin.repository')" density="compact" hide-details variant="outlined"
         style="max-width: 200px" @update:model-value="load" />
       <v-btn variant="outlined" prepend-icon="mdi-magnify-plus" :loading="checking" @click="askCheckVersions">
         {{ t('system.plugin.checkVersions') }}
@@ -16,8 +16,18 @@
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
     <LigojDataTable filename="plugins.csv" :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact">
+      <template #header.type="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-shape-outline</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.id="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-identifier</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.vendor="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-domain</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.version="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-tag-outline</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.nodes="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-server</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.subscriptions="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-link-variant</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
       <template #item.type="{ item }">
-        <v-icon size="small" :title="item.plugin?.type">{{ typeIcon(item) }}</v-icon>
+        <v-tooltip location="top" :text="item.plugin?.type">
+          <template #activator="{ props: tt }">
+            <v-icon v-bind="tt" size="small">{{ typeIcon(item) }}</v-icon>
+          </template>
+        </v-tooltip>
       </template>
       <template #item.version="{ item }">
         <span>{{ item.plugin?.version || '—' }}</span>
@@ -37,6 +47,7 @@
         <v-icon v-if="item.deleted" size="small" color="warning" :title="t('system.plugin.deletionScheduled')">mdi-cancel</v-icon>
         <v-btn v-else icon size="small" variant="text" color="error" @click="askRemove(item.plugin.artifact)" :title="t('system.plugin.delete')">
           <v-icon size="small">mdi-delete</v-icon>
+          <v-tooltip activator="parent" location="top" :text="t('system.plugin.delete')" />
         </v-btn>
       </template>
     </LigojDataTable>
@@ -46,7 +57,7 @@
       <v-card>
         <v-card-title>{{ t('system.plugin.installTitle') }}</v-card-title>
         <v-card-text>
-          <v-autocomplete v-model="installSelection" v-model:search="installSearch" :items="searchResults" item-value="artifact" :label="t('system.plugin.searchArtifacts')"
+          <v-autocomplete prepend-inner-icon="mdi-puzzle-plus-outline" v-model="installSelection" v-model:search="installSearch" :items="searchResults" item-value="artifact" :label="t('system.plugin.searchArtifacts')"
             :hint="t('system.plugin.searchHint', { repository })" persistent-hint multiple chips closable-chips clearable variant="outlined" :loading="searching" no-filter return-object
             class="mb-2" autofocus>
             <template #item="{ props: itemProps, item }">

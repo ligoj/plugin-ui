@@ -8,6 +8,8 @@
     <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
 
     <LigojDataTable filename="roles.csv" :headers="headers" :items="items" :loading="loading" :items-per-page="-1" hide-default-footer density="compact">
+      <template #header.authApi="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-api</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
+      <template #header.authUi="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-monitor</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
       <template #item.authApi="{ item }">
         <code v-for="a in item['authorizations-api']" :key="a.id || a.pattern" class="auth-token">{{ a.pattern }}</code>
       </template>
@@ -29,12 +31,12 @@
         <v-card-title>{{ editTarget ? t('system.role.editTitle') : t('system.role.newTitle') }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field v-model="editForm.name" :label="t('system.role.fieldName')" :rules="[rules.required]" variant="outlined" class="mb-4" autofocus />
+            <v-text-field v-model="editForm.name" :label="t('system.role.fieldName')" prepend-inner-icon="mdi-shield-outline" :rules="[rules.required]" variant="outlined" class="mb-4" autofocus />
 
-            <v-combobox v-model="editForm.apiPatterns" :label="t('system.role.fieldApiPatterns')" :items="editForm.apiPatterns" chips closable-chips multiple variant="outlined"
+            <v-combobox v-model="editForm.apiPatterns" :label="t('system.role.fieldApiPatterns')" prepend-inner-icon="mdi-api" :items="editForm.apiPatterns" chips closable-chips multiple variant="outlined"
               :hint="t('system.role.patternsHint')" persistent-hint class="mb-4" />
 
-            <v-combobox v-model="editForm.uiPatterns" :label="t('system.role.fieldUiPatterns')" :items="editForm.uiPatterns" chips closable-chips multiple variant="outlined"
+            <v-combobox v-model="editForm.uiPatterns" :label="t('system.role.fieldUiPatterns')" prepend-inner-icon="mdi-monitor" :items="editForm.uiPatterns" chips closable-chips multiple variant="outlined"
               :hint="t('system.role.patternsHint')" persistent-hint class="mb-2" />
           </v-form>
         </v-card-text>

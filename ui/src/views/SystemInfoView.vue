@@ -32,14 +32,14 @@
               </div>
             </div>
 
-            <v-text-field :model-value="cpu" :label="t('system.info.cpu')" readonly density="compact" variant="outlined" class="mb-2" />
+            <v-text-field prepend-inner-icon="mdi-cpu-64-bit" :model-value="cpu" :label="t('system.info.cpu')" readonly density="compact" variant="outlined" class="mb-2" />
 
             <v-row density="comfortable">
               <v-col cols="12" md="6">
-                <v-text-field :model-value="dateIso" :label="t('system.info.localDate')" readonly density="compact" variant="outlined" />
+                <v-text-field prepend-inner-icon="mdi-clock-outline" :model-value="dateIso" :label="t('system.info.localDate')" readonly density="compact" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field :model-value="dateTimestamp" :label="t('system.info.timestamp')" readonly density="compact" variant="outlined" />
+                <v-text-field prepend-inner-icon="mdi-clock-outline" :model-value="dateTimestamp" :label="t('system.info.timestamp')" readonly density="compact" variant="outlined" />
               </v-col>
             </v-row>
           </v-card-text>
@@ -53,11 +53,11 @@
             <v-icon>mdi-map-clock</v-icon> {{ t('system.info.timezone') }}
           </v-card-title>
           <v-card-text>
-            <v-text-field v-model="tz.application" :label="t('system.info.timezoneApplication')" density="compact" variant="outlined" class="mb-2" :loading="updatingTz === 'application'"
+            <v-text-field prepend-inner-icon="mdi-map-clock-outline" v-model="tz.application" :label="t('system.info.timezoneApplication')" density="compact" variant="outlined" class="mb-2" :loading="updatingTz === 'application'"
               @blur="saveTimeZone('application', tz.application)" @keyup.enter="saveTimeZone('application', tz.application)" />
-            <v-text-field v-model="tz.default" :label="t('system.info.timezoneSystem')" density="compact" variant="outlined" class="mb-2" :loading="updatingTz === 'default'" @blur="saveTimeZone('default', tz.default)"
+            <v-text-field prepend-inner-icon="mdi-map-clock-outline" v-model="tz.default" :label="t('system.info.timezoneSystem')" density="compact" variant="outlined" class="mb-2" :loading="updatingTz === 'default'" @blur="saveTimeZone('default', tz.default)"
               @keyup.enter="saveTimeZone('default', tz.default)" />
-            <v-text-field :model-value="tz.original" :label="t('system.info.timezoneOriginal')" readonly density="compact" variant="outlined" />
+            <v-text-field prepend-inner-icon="mdi-map-clock-outline" :model-value="tz.original" :label="t('system.info.timezoneOriginal')" readonly density="compact" variant="outlined" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -69,9 +69,9 @@
             <v-icon>mdi-account-key</v-icon> {{ t('system.info.session') }}
           </v-card-title>
           <v-card-text>
-            <v-text-field :model-value="sessionId" :label="t('system.info.sessionId')" readonly density="compact" variant="outlined" class="mb-2" :append-inner-icon="'mdi-content-copy'"
+            <v-text-field prepend-inner-icon="mdi-identifier" :model-value="sessionId" :label="t('system.info.sessionId')" readonly density="compact" variant="outlined" class="mb-2" :append-inner-icon="'mdi-content-copy'"
               @click:append-inner="copy(sessionId)" />
-            <v-text-field :model-value="auth.userName" :label="t('system.info.sessionUser')" readonly density="compact" variant="outlined" />
+            <v-text-field prepend-inner-icon="mdi-account-outline" :model-value="auth.userName" :label="t('system.info.sessionUser')" readonly density="compact" variant="outlined" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -83,16 +83,16 @@
             <v-icon>mdi-source-commit</v-icon> {{ t('system.info.build') }}
           </v-card-title>
           <v-card-text>
-            <v-text-field :model-value="build.number" :label="t('system.info.buildNumber')" readonly density="compact" variant="outlined" class="mb-2" />
+            <v-text-field prepend-inner-icon="mdi-pound" :model-value="build.number" :label="t('system.info.buildNumber')" readonly density="compact" variant="outlined" class="mb-2" />
             <v-row density="comfortable">
               <v-col cols="12" md="6">
-                <v-text-field :model-value="build.timestamp" :label="t('system.info.buildTimestamp')" readonly density="compact" variant="outlined" />
+                <v-text-field prepend-inner-icon="mdi-clock-outline" :model-value="build.timestamp" :label="t('system.info.buildTimestamp')" readonly density="compact" variant="outlined" />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field :model-value="build.date" :label="t('system.info.buildDate')" readonly density="compact" variant="outlined" />
+                <v-text-field prepend-inner-icon="mdi-clock-outline" :model-value="build.date" :label="t('system.info.buildDate')" readonly density="compact" variant="outlined" />
               </v-col>
             </v-row>
-            <v-text-field :model-value="build.version" :label="t('system.info.buildVersion')" readonly density="compact" variant="outlined" />
+            <v-text-field prepend-inner-icon="mdi-tag-outline" :model-value="build.version" :label="t('system.info.buildVersion')" readonly density="compact" variant="outlined" />
           </v-card-text>
         </v-card>
       </v-col>

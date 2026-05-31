@@ -66,10 +66,15 @@ export default {
   // System → Cache
   'system.cache.title': 'Caches',
   'system.cache.headerName': 'Cache',
+  'system.cache.headerNameHelp': 'Cache identifier',
   'system.cache.headerSize': 'Size',
+  'system.cache.headerSizeHelp': 'Number of cache entries',
   'system.cache.headerHits': 'Hits',
+  'system.cache.headerHitsHelp': 'Cache hit ratio',
   'system.cache.headerMisses': 'Misses',
+  'system.cache.headerMissesHelp': 'Cache miss ratio',
   'system.cache.headerAvgGet': 'Avg get (ms)',
+  'system.cache.headerAvgGetHelp': 'Average get time (ms)',
   'system.cache.invalidate': 'Invalidate cache',
   'system.cache.errorLoad': 'Unable to load caches',
 
