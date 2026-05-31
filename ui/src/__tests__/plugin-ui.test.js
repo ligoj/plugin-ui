@@ -28,10 +28,11 @@ describe('plugin-ui contract', () => {
     const registered = addRoute.mock.calls.map(([route]) => route.path)
     expect(registered).toEqual(expect.arrayContaining([
       '/home', '/home/project', '/home/project/:id', '/home/manual',
-      '/system', '/system/user', '/system/role', '/system/plugin',
+      '/system', '/system/information', '/system/configuration',
+      '/system/user', '/system/role', '/system/plugin',
       '/system/node', '/system/cache', '/system/bench',
       '/api', '/api/token',
-      '/subscribe',
+      // NB: subscribing is now an in-dialog wizard (no '/subscribe' route).
     ]))
     expect(registered.length).toBeGreaterThanOrEqual(14)
   })
