@@ -39,7 +39,10 @@
     <!-- Create token dialog -->
     <v-dialog v-model="createDialog" max-width="480">
       <v-card>
-        <v-card-title>{{ t('system.apiToken.newTitle') }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-key</v-icon>
+          <span>{{ t('system.apiToken.newTitle') }}</span>
+        </v-card-title>
         <v-card-text>
           <v-form ref="createFormRef" @submit.prevent="doCreate">
             <v-text-field prepend-inner-icon="mdi-key-outline" v-model="createName" :label="t('system.apiToken.fieldName')" :rules="[rules.required]" variant="outlined" autofocus maxlength="250" />
@@ -56,7 +59,8 @@
     <!-- Show / regenerate token dialog -->
     <v-dialog v-model="tokenDialog" max-width="520">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-key</v-icon>
           {{ t('system.apiToken.tokenLabel') }}&nbsp;<code>{{ tokenTarget }}</code>
         </v-card-title>
         <v-card-text>
@@ -76,7 +80,8 @@
     <!-- Created token dialog (shows the freshly-minted value) -->
     <v-dialog v-model="createdDialog" max-width="520">
       <v-card>
-        <v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-key</v-icon>
           {{ t('system.apiToken.newTokenLabel') }}&nbsp;<code>{{ createdName }}</code>
         </v-card-title>
         <v-card-text>
@@ -95,7 +100,10 @@
     <!-- Delete confirmation -->
     <v-dialog v-model="deleteDialog" max-width="420">
       <v-card>
-        <v-card-title>{{ t('system.apiToken.deleteTitle') }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-key</v-icon>
+          <span>{{ t('system.apiToken.deleteTitle') }}</span>
+        </v-card-title>
         <v-card-text>{{ t('system.apiToken.deleteConfirm', { name: deleteTarget }) }}</v-card-text>
         <v-card-actions>
           <v-spacer />

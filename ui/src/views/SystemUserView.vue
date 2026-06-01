@@ -27,7 +27,10 @@
 
     <v-dialog v-model="editDialog" max-width="520">
       <v-card>
-        <v-card-title>{{ editTarget ? 'Edit system user' : 'New system user' }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-account</v-icon>
+          <span>{{ editTarget ? 'Edit system user' : 'New system user' }}</span>
+        </v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
             <v-text-field v-model="editForm.login" label="Login" prepend-inner-icon="mdi-account" :rules="[rules.required]" :disabled="!!editTarget" variant="outlined" class="mb-2" autofocus />
@@ -45,7 +48,10 @@
 
     <v-dialog v-model="deleteDialog" max-width="420">
       <v-card>
-        <v-card-title>Delete system user</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-account</v-icon>
+          <span>Delete system user</span>
+        </v-card-title>
         <v-card-text>Remove <strong>{{ deleteTarget?.login }}</strong> from system accounts?</v-card-text>
         <v-card-actions>
           <v-spacer />

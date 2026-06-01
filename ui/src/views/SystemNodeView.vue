@@ -50,6 +50,7 @@
     <v-dialog v-model="editDialog" max-width="900" scrollable>
       <v-card>
         <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-server-network</v-icon>
           <span>{{ t('system.node.editTitle') }}</span>
           <code v-if="editTarget" class="text-body-2">{{ editTarget.id }}</code>
         </v-card-title>
@@ -61,7 +62,10 @@
 
     <v-dialog v-model="createDialog" max-width="900" scrollable>
       <v-card>
-        <v-card-title>{{ t('system.node.createTitle') }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-server-network</v-icon>
+          <span>{{ t('system.node.createTitle') }}</span>
+        </v-card-title>
         <v-card-text class="pa-4">
           <SubscribeWizardView v-if="createDialog" mode="create-node" @saved="onCreateSaved" @cancel="createDialog = false" />
         </v-card-text>
@@ -70,7 +74,10 @@
 
     <v-dialog v-model="deleteDialog" max-width="460">
       <v-card>
-        <v-card-title>{{ t('system.node.deleteTitle') }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-server-network</v-icon>
+          <span>{{ t('system.node.deleteTitle') }}</span>
+        </v-card-title>
         <v-card-text>
           {{ t('system.node.deleteConfirm', { name: deleteTarget?.name || '', id: deleteTarget?.id || '' }) }}
         </v-card-text>

@@ -28,7 +28,10 @@
 
     <v-dialog v-model="editDialog" max-width="640">
       <v-card>
-        <v-card-title>{{ editTarget ? t('system.role.editTitle') : t('system.role.newTitle') }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-shield-account-outline</v-icon>
+          <span>{{ editTarget ? t('system.role.editTitle') : t('system.role.newTitle') }}</span>
+        </v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
             <v-text-field v-model="editForm.name" :label="t('system.role.fieldName')" prepend-inner-icon="mdi-shield-outline" :rules="[rules.required]" variant="outlined" class="mb-4" autofocus />
@@ -50,7 +53,10 @@
 
     <v-dialog v-model="deleteDialog" max-width="420">
       <v-card>
-        <v-card-title>{{ t('system.role.deleteTitle') }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-shield-account-outline</v-icon>
+          <span>{{ t('system.role.deleteTitle') }}</span>
+        </v-card-title>
         <v-card-text>{{ t('system.role.deleteConfirm', { name: deleteTarget?.name || '' }) }}</v-card-text>
         <v-card-actions>
           <v-spacer />
