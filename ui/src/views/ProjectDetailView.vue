@@ -101,7 +101,10 @@
     <!-- Edit dialog (same shape as ProjectListView) -->
     <v-dialog v-model="editDialog" max-width="600">
       <v-card>
-        <v-card-title>{{ t('project.detail.editTitle') }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-folder-outline</v-icon>
+          <span>{{ t('project.detail.editTitle') }}</span>
+        </v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
             <v-text-field v-model="editForm.name" :label="t('project.detail.fieldName')" :rules="[rules.required]" prepend-inner-icon="mdi-form-textbox" variant="outlined" class="mb-2" />
@@ -125,7 +128,10 @@
          so the wizard doesn't have to read the host's route. -->
     <v-dialog v-model="subscribeDialog" max-width="900" scrollable>
       <v-card>
-        <v-card-title>{{ t('wizard.title') }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-folder-outline</v-icon>
+          <span>{{ t('wizard.title') }}</span>
+        </v-card-title>
         <v-card-text class="pa-4">
           <SubscribeWizardView v-if="subscribeDialog && project" mode="subscribe" :project-id="project.id" @saved="onSubscribed" @cancel="subscribeDialog = false" />
         </v-card-text>
@@ -135,7 +141,10 @@
     <!-- Unsubscribe confirmation -->
     <v-dialog v-model="unsubDialog" max-width="480">
       <v-card>
-        <v-card-title>{{ t('project.detail.unsubscribe') }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-folder-outline</v-icon>
+          <span>{{ t('project.detail.unsubscribe') }}</span>
+        </v-card-title>
         <v-card-text>
           <p class="mb-3">
             {{ unsubConfirmParts[0] }}<strong>{{ unsubTarget?.node?.name }}</strong>{{ unsubConfirmParts[1] }}

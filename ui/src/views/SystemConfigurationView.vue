@@ -65,7 +65,10 @@
     <!-- Create / edit dialog -->
     <v-dialog v-model="editDialog" max-width="600">
       <v-card>
-        <v-card-title>{{ editTarget ? t('system.config.editTitle') : t('system.config.newTitle') }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-cog</v-icon>
+          <span>{{ editTarget ? t('system.config.editTitle') : t('system.config.newTitle') }}</span>
+        </v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
             <v-text-field v-model="editForm.name" :label="t('system.config.fieldName')" prepend-inner-icon="mdi-cog-outline" :rules="[rules.required]" variant="outlined" density="compact" class="mb-2" autofocus />
@@ -86,7 +89,10 @@
     <!-- Delete confirmation -->
     <v-dialog v-model="deleteDialog" max-width="440">
       <v-card>
-        <v-card-title>{{ t('system.config.deleteTitle') }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-cog</v-icon>
+          <span>{{ t('system.config.deleteTitle') }}</span>
+        </v-card-title>
         <v-card-text>
           {{ t('system.config.deleteConfirm', { name: deleteTarget?.name || '' }) }}
         </v-card-text>

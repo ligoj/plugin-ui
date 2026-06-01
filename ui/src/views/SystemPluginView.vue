@@ -55,7 +55,10 @@
     <!-- Install dialog: search-driven autocomplete -->
     <v-dialog v-model="installDialog" max-width="640">
       <v-card>
-        <v-card-title>{{ t('system.plugin.installTitle') }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-puzzle</v-icon>
+          <span>{{ t('system.plugin.installTitle') }}</span>
+        </v-card-title>
         <v-card-text>
           <v-autocomplete prepend-inner-icon="mdi-puzzle-plus-outline" v-model="installSelection" v-model:search="installSearch" :items="searchResults" item-value="artifact" :label="t('system.plugin.searchArtifacts')"
             :hint="t('system.plugin.searchHint', { repository })" persistent-hint multiple chips closable-chips clearable variant="outlined" :loading="searching" no-filter return-object
@@ -102,7 +105,10 @@
     <!-- Confirm dialog (restart / check-versions / delete) -->
     <v-dialog v-model="confirm.open" max-width="440">
       <v-card>
-        <v-card-title>{{ confirm.title }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-puzzle</v-icon>
+          <span>{{ confirm.title }}</span>
+        </v-card-title>
         <v-card-text>{{ confirm.text }}</v-card-text>
         <v-card-actions>
           <v-spacer />

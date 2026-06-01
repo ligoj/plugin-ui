@@ -49,7 +49,10 @@
     <!-- Create / edit dialog -->
     <v-dialog v-model="editDialog" max-width="600">
       <v-card>
-        <v-card-title>{{ editTarget?.id ? 'Edit project' : 'New project' }}</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-folder-outline</v-icon>
+          <span>{{ editTarget?.id ? 'Edit project' : 'New project' }}</span>
+        </v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="save">
             <v-text-field v-model="editForm.name" label="Name" :rules="[rules.required]" variant="outlined" class="mb-2" autofocus @update:model-value="onNameChanged" />
@@ -71,7 +74,10 @@
     <!-- Delete confirmation -->
     <v-dialog v-model="deleteDialog" max-width="500">
       <v-card>
-        <v-card-title>Delete project</v-card-title>
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="primary">mdi-folder-outline</v-icon>
+          <span>Delete project</span>
+        </v-card-title>
         <v-card-text>
           <p class="mb-4">
             Are you sure you want to delete <strong>{{ deleteTarget?.name }}</strong>?
