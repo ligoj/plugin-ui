@@ -27,7 +27,10 @@ describe('plugin-ui contract', () => {
     pluginUiDef.install({ pluginId: 'ui', router: { addRoute } })
     const registered = addRoute.mock.calls.map(([route]) => route.path)
     expect(registered).toEqual(expect.arrayContaining([
-      '/home', '/home/project', '/home/project/:id', '/home/manual',
+      // Canonical 2026 scheme (the host shell nav targets). Legacy
+      // `/home`, `/home/project`, `/home/project/:id` survive as route
+      // `alias` entries, so they don't appear as separate addRoute paths.
+      '/', '/project', '/project/:id', '/home/manual',
       '/system', '/system/information', '/system/configuration',
       '/system/user', '/system/role', '/system/plugin',
       '/system/node', '/system/cache', '/system/bench',

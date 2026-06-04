@@ -67,29 +67,36 @@ const features = {
   sample: service.sample,
 }
 
+// Canonical 2026 route scheme — matches the host shell's sidebar nav
+// (App.vue): dashboard at `/`, projects at `/project`, system/api as below.
+// Legacy `/home/*` paths are kept as `alias` so existing bookmarks / emails
+// still resolve to the same component.
 const routes = [
-  { path: '/home',                      name: 'ui-home',              component: HomeView },
-  { path: '/home/manual',               name: 'ui-manual',            component: ManualView },
-  { path: '/home/project',              name: 'ui-project-list',      component: ProjectListView },
-  { path: '/home/project/:id',          name: 'ui-project-detail',    component: ProjectDetailView },
+  { path: '/', name: 'ui-home', component: HomeView, alias: ['/home'] },
+  { path: '/home/manual', name: 'ui-manual', component: ManualView },
+  { path: '/project', name: 'ui-project-list', component: ProjectListView, alias: ['/home/project'] },
+  { path: '/project/:id', name: 'ui-project-detail', component: ProjectDetailView, alias: ['/home/project/:id'] },
 
-  { path: '/system',                    name: 'ui-system',            component: SystemView },
-  { path: '/system/information',        name: 'ui-system-information', component: SystemInfoView },
-  { path: '/system/configuration',      name: 'ui-system-configuration', component: SystemConfigurationView },
-  { path: '/system/user',               name: 'ui-system-user',       component: SystemUserView },
-  { path: '/system/role',               name: 'ui-system-role',       component: SystemRoleView },
-  { path: '/system/plugin',             name: 'ui-system-plugin',     component: SystemPluginView },
-  { path: '/system/node',               name: 'ui-system-node',       component: SystemNodeView },
-  { path: '/system/cache',              name: 'ui-system-cache',      component: SystemCacheView },
-  { path: '/system/bench',              name: 'ui-system-bench',      component: SystemBenchView },
+  // `/system` has no landing page in the 2026 nav (children only); keep the
+  // legacy SystemView reachable at `/system` so the path isn't a dead end.
+  { path: '/system', name: 'ui-system', component: SystemView },
+  { path: '/system/information', name: 'ui-system-information', component: SystemInfoView },
+  { path: '/system/configuration', name: 'ui-system-configuration', component: SystemConfigurationView },
+  { path: '/system/user', name: 'ui-system-user', component: SystemUserView },
+  { path: '/system/role', name: 'ui-system-role', component: SystemRoleView },
+  { path: '/system/plugin', name: 'ui-system-plugin', component: SystemPluginView },
+  { path: '/system/node', name: 'ui-system-node', component: SystemNodeView },
+  { path: '/system/cache', name: 'ui-system-cache', component: SystemCacheView },
+  { path: '/system/bench', name: 'ui-system-bench', component: SystemBenchView },
 
-  { path: '/api',                       name: 'ui-api',               component: ApiHomeView },
-  { path: '/api/token',                 name: 'ui-api-token',         component: ApiTokenView },
+  { path: '/api', name: 'ui-api', component: ApiHomeView },
+  { path: '/api/token', name: 'ui-api-token', component: ApiTokenView },
 
-  // SubscribeWizardView is no longer a routed page — it's mounted inside
-  // host-supplied dialogs by `ProjectDetailView` (subscribe mode) and
-  // `SystemNodeView` (edit-node / create-node modes). The wizard reads
-  // its target (projectId or node) from its props, not the route.
+  // SubscribeWizardView / ProjectEditDialog / NodeEditDialog / AuditDialog
+  // are not routed pages — they're dialog components mounted by
+  // ProjectDetailView (subscribe), SystemNodeView (edit/create node), and
+  // ProjectListView/ProjectDetailView (edit + audit). They read their target
+  // from props, not the route.
 ]
 
 export default {
