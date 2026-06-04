@@ -13,8 +13,8 @@
 
     <v-list density="compact" class="mb-4">
       <v-list-subheader>Dashboard</v-list-subheader>
-      <v-list-item to="/home" prepend-icon="mdi-view-dashboard" title="Overview" />
-      <v-list-item to="/home/project" prepend-icon="mdi-folder-multiple" title="Projects" />
+      <v-list-item to="/" prepend-icon="mdi-view-dashboard" title="Overview" />
+      <v-list-item to="/project" prepend-icon="mdi-folder-multiple" title="Projects" />
       <v-list-item to="/home/manual" prepend-icon="mdi-book-open-page-variant" title="Manual" />
 
       <v-list-subheader>System</v-list-subheader>

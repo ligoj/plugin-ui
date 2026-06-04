@@ -24,7 +24,7 @@
 
         <v-card variant="outlined" class="mb-4">
           <v-list lines="two" density="compact">
-            <v-list-item prepend-icon="mdi-folder-plus" title="Create a project" subtitle="Name, project key, manager — add subscriptions afterwards." to="/home/project" />
+            <v-list-item prepend-icon="mdi-folder-plus" title="Create a project" subtitle="Name, project key, manager — add subscriptions afterwards." to="/project" />
             <v-list-item prepend-icon="mdi-playlist-plus" title="Subscribe to a tool" subtitle="Pick a service, a tool, and a node for an existing or new instance." to="/subscribe" />
             <v-list-item prepend-icon="mdi-view-dashboard" title="Open the dashboard" subtitle="Tiles for every project you have access to." to="/" />
           </v-list>

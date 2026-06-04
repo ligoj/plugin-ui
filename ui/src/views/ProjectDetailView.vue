@@ -1,366 +1,403 @@
+<!--
+  ProjectDetailView — 2026 "Vibrant" project detail. Faithful to the validated
+  mockup (design/ligoj-2026-prototype.html → viewProject): a header with the
+  project name/key + a "subscribe" CTA, then a grid of tool cards. Each card
+  groups the project's subscriptions by their tool (service), shows the tool
+  glyph (real plugin logo via the host's NodeIcon), a per-subscription row list
+  (status dot + name + pills) and a footer health bar.
+
+  Real wiring: rest/project/:id for the project + its subscriptions, then
+  rest/subscription/status/refresh to pull the live status/data of each one
+  (mirrors plugin-ui's ProjectDetailView). Falls back to the mockup's sample
+  tools when the backend has no such project, so the detail is never empty in
+  preview.
+-->
 <template>
-  <div>
-    <v-skeleton-loader v-if="loading && !project" type="card, list-item-two-line@3" />
-
-    <template v-if="project">
-      <!-- Header -->
-      <div class="d-flex align-start flex-wrap ga-2 mb-4">
-        <div>
-          <h1 class="text-h4">
-            {{ project.name }}
-            <span class="text-h6 text-medium-emphasis">({{ project.pkey }})</span>
-          </h1>
-          <p v-if="project.description" class="text-body-2 text-medium-emphasis mt-1">
-            {{ project.description }}
-          </p>
-        </div>
-        <v-spacer />
-        <v-btn v-if="project.manageSubscriptions" color="primary" prepend-icon="mdi-plus" @click="subscribeDialog = true">
-          {{ t('project.detail.addSubscription') }}
-        </v-btn>
-        <v-btn variant="outlined" prepend-icon="mdi-pencil" @click="editDialog = true">
-          {{ t('project.detail.edit') }}
-        </v-btn>
+  <div class="pdetail">
+    <header class="ph">
+      <div class="ph-txt">
+        <a class="back" @click="router.push('/project')"><v-icon size="16">mdi-arrow-left</v-icon>{{ t('project.title') }}</a>
+        <h1>{{ project?.name || '…' }}</h1>
+        <p class="sub">
+          <span class="pkey">{{ project?.pkey }}</span>
+          <span class="dot">·</span>
+          <b>{{ subscriptions.length }}</b> {{ t('project.detail.subscriptions').toLowerCase() }}
+          <span v-if="demoMode"> · {{ t('common.preview') }}</span>
+        </p>
       </div>
+      <div class="ph-actions">
+        <button v-if="project && !demoMode" class="btn ghost" @click="auditDialog = true"><v-icon size="18">mdi-clock-outline</v-icon>{{ t('common.audit') || 'Audit' }}</button>
+        <button v-if="!demoMode" class="btn ghost" @click="editDialog = true"><v-icon size="18">mdi-pencil</v-icon>{{ t('project.detail.edit') }}</button>
+        <button class="btn" @click="openSubscribe"><v-icon size="18">mdi-plus</v-icon>{{ t('project.detail.addSubscription') }}</button>
+      </div>
+    </header>
 
-      <!-- Audit metadata -->
-      <v-card variant="tonal" class="mb-4">
-        <v-card-text class="py-2">
-          <div class="d-flex flex-wrap ga-4 text-body-2 text-medium-emphasis">
-            <span v-if="project.teamLeader">
-              <v-icon size="small" class="mr-1">mdi-account-star</v-icon>
-              <strong>{{ t('project.detail.manager') }}</strong>
-              {{ getFullName(project.teamLeader) }}
-              <span v-if="project.teamLeader.id" class="ml-1">({{ project.teamLeader.id }})</span>
-            </span>
-            <span v-if="project.createdDate">
-              <v-icon size="small" class="mr-1">mdi-calendar-plus</v-icon>
-              <strong>{{ t('project.detail.created') }}</strong> {{ formatDate(project.createdDate) }}
-              <span v-if="project.createdBy" class="ml-1">
-                by {{ project.createdBy.id || project.createdBy }}
-              </span>
-            </span>
-            <span v-if="project.lastModifiedDate">
-              <v-icon size="small" class="mr-1">mdi-calendar-edit</v-icon>
-              <strong>{{ t('project.detail.updated') }}</strong> {{ formatDate(project.lastModifiedDate) }}
-              <span v-if="project.lastModifiedBy" class="ml-1">
-                by {{ project.lastModifiedBy.id || project.lastModifiedBy }}
-              </span>
-            </span>
+    <!-- Audit strip -->
+    <div v-if="project && (project.teamLeader || project.description)" class="meta">
+      <span v-if="project.teamLeader"><v-icon size="15">mdi-account-star</v-icon>{{ leaderName }}</span>
+      <span v-if="project.description" class="desc">{{ project.description }}</span>
+    </div>
+
+    <div v-if="loading && !groups.length" class="grid">
+      <div v-for="n in 4" :key="n" class="card skeleton" />
+    </div>
+
+    <div v-else-if="groups.length" class="grid">
+      <article v-for="(g, i) in groups" :key="g.key" class="card" :style="{ '--c': g.color, 'animation-delay': (i * 45) + 'ms' }">
+        <div class="card-head">
+          <div class="glyph"><component :is="g.icon" /></div>
+          <div class="t">
+            <div class="name">{{ g.name }}</div>
+            <div class="kind">{{ g.kind }}</div>
           </div>
-        </v-card-text>
-      </v-card>
+          <div class="count">{{ g.rows.length }} <small>{{ t('project.detail.activeShort') }}</small></div>
+        </div>
+        <div class="rows">
+          <div v-for="(r, j) in (expanded[g.key] ? g.rows : g.rows.slice(0, 4))" :key="j" class="row">
+            <span class="st" :class="r.status" />
+            <span class="rn">{{ r.name }}</span>
+            <span class="pills">
+              <!-- Live plugin-rendered details (e.g. prov cost/quota chips)
+                   when the owning plugin bundle is loaded; falls back to the
+                   synthetic status/id pills otherwise. -->
+              <PluginFeatures v-if="r.sub" :subscription="r.sub" action="renderDetailsFeatures" />
+              <span v-for="(p, k) in r.pills" :key="k" class="pill" :class="{ cost: r.cost }">{{ p }}</span>
+            </span>
+            <button v-if="r.sub?.id" class="rowcog" :title="t('common.actions') || 'Actions'" @click.stop="openRowMenu($event, r.sub)">
+              <v-icon size="16">mdi-cog</v-icon>
+            </button>
+          </div>
+          <button v-if="g.rows.length > 4" class="rowmore" @click.stop="toggle(g.key)">
+            <v-icon size="14">{{ expanded[g.key] ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+            <span v-if="expanded[g.key]">{{ t('common.reduce') || 'Réduire' }}</span>
+            <span v-else>+{{ g.rows.length - 4 }} {{ t('project.detail.more') }}</span>
+          </button>
+        </div>
+        <div class="card-foot">
+          <a class="morelink">{{ t('project.detail.configure') }} →</a>
+          <span class="health"><span class="barh"><i :style="{ width: Math.round(g.health * 100) + '%' }" /></span>{{ Math.round(g.health * 100) }}%</span>
+        </div>
+      </article>
+    </div>
 
-      <!-- Subscriptions -->
-      <div class="d-flex align-center mb-2">
-        <h2 class="text-h6">{{ t('project.detail.subscriptions') }}</h2>
-        <v-chip class="ml-2" size="small" variant="tonal">{{ subscriptions.length }}</v-chip>
+    <div v-else class="empty">
+      <v-icon size="44" color="rgba(var(--v-theme-on-surface),.25)">mdi-cloud-off-outline</v-icon>
+      <p>{{ t('project.detail.noSubscriptions') }}</p>
+      <button class="btn" @click="openSubscribe"><v-icon size="18">mdi-plus</v-icon>{{ t('project.detail.addSubscription') }}</button>
+    </div>
+
+    <ProjectEditDialog v-model="editDialog" :project="project" @saved="load" />
+    <SubscribeWizardDialog v-model="subscribeDialog" :project-id="project?.id" :project-name="project?.name" @saved="load" />
+    <AuditDialog v-model="auditDialog" :target="project" />
+
+    <div v-if="rowMenu.open" class="rowmenu-bg" @click="closeRowMenu">
+      <div class="rowmenu" :style="{ top: rowMenu.y + 'px', left: (rowMenu.x - 180) + 'px' }" @click.stop>
+        <button @click="configureSub"><v-icon size="16">mdi-cog-outline</v-icon>{{ t('project.detail.configure') || 'Configurer' }}</button>
+        <button class="danger" @click="deleteSub"><v-icon size="16">mdi-delete-outline</v-icon>{{ t('common.delete') || 'Supprimer' }}</button>
       </div>
+    </div>
 
-      <v-alert v-if="subscriptions.length === 0" type="info" variant="tonal" density="compact">
-        {{ t('project.detail.noSubscriptions') }}
-      </v-alert>
-
-      <LigojDataTable filename="subscriptions.csv" v-else :headers="subHeaders" :items="subscriptions" item-value="id" :items-per-page="-1" hide-default-footer density="compact">
-        <template #header.service="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-cloud-outline</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
-        <template #header.tool="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-tools</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
-        <template #header.node="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-identifier</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
-        <template #header.details="{ column }"><span class="d-inline-flex align-center"><v-icon size="small" class="mr-1">mdi-information-outline</v-icon>{{ column.title }}<v-tooltip activator="parent" location="top" :text="column.title" /></span></template>
-        <template #item.service="{ item }">
-          <NodeIcon v-if="item.node?.refined?.refined" :node="item.node.refined.refined" chip text />
-          <span v-else class="text-medium-emphasis">—</span>
-        </template>
-        <template #item.tool="{ item }">
-          {{ item.node?.refined?.name || '—' }}
-        </template>
-        <template #item.node="{ item }">
-          <code>{{ item.node?.id }}</code>
-        </template>
-        <template #item.details="{ item }">
-          <!-- Plugin-rendered subscription details. Two slots so plugins
-               can split their summary into a stable "key" (resource id,
-               provider name, …) and a live "features" line (counts,
-               quotas) — mirrors the legacy `renderDetailsKey` /
-               `renderDetailsFeatures` pair from service/<id>/<id>.js. -->
-          <PluginFeatures :subscription="item" action="renderDetailsKey" />
-          <PluginFeatures :subscription="item" action="renderDetailsFeatures" />
-        </template>
-        <template #item.actions="{ item }">
-          <!-- Plugin-contributed buttons. The plugin's `renderFeatures`
-               action paints its own VNodes here; the host never
-               interprets HTML. -->
-          <PluginFeatures :subscription="item" />
-          <v-btn v-if="project.manageSubscriptions" icon size="small" variant="text" color="error" @click="startUnsubscribe(item)" :title="t('project.detail.unsubscribe')">
-            <v-icon size="small">mdi-close</v-icon>
-            <v-tooltip activator="parent" location="top" :text="t('project.detail.unsubscribe')" />
-          </v-btn>
-        </template>
-      </LigojDataTable>
-    </template>
-
-    <!-- Edit dialog (same shape as ProjectListView) -->
-    <v-dialog v-model="editDialog" max-width="600">
-      <v-card>
-        <v-card-title class="d-flex align-center ga-2">
-          <v-icon color="primary">mdi-folder-outline</v-icon>
-          <span>{{ t('project.detail.editTitle') }}</span>
-        </v-card-title>
-        <v-card-text>
-          <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field v-model="editForm.name" :label="t('project.detail.fieldName')" :rules="[rules.required]" prepend-inner-icon="mdi-form-textbox" variant="outlined" class="mb-2" />
-            <v-text-field v-model="editForm.pkey" :label="t('project.detail.fieldPkey')" :rules="[rules.required]" :disabled="(project?.nbSubscriptions || subscriptions.length) > 0" prepend-inner-icon="mdi-key" variant="outlined"
-              class="mb-2" />
-            <v-text-field v-model="editForm.teamLeader" :label="t('project.detail.fieldTeamLeader')" :rules="[rules.required]" prepend-inner-icon="mdi-account-star" variant="outlined" class="mb-2" />
-            <v-textarea v-model="editForm.description" :label="t('project.detail.fieldDescription')" rows="3" prepend-inner-icon="mdi-text-long" variant="outlined" class="mb-2" />
-          </v-form>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="editDialog = false">{{ t('wizard.action.cancel') }}</v-btn>
-          <v-btn color="primary" variant="elevated" :loading="saving" @click="save">{{ t('wizard.action.save') }}</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Add-subscription wizard. The wizard is shared with SystemNodeView
-         (which uses it in `edit-node` / `create-node` modes); here we
-         drive it in `subscribe` mode and pass the project id explicitly
-         so the wizard doesn't have to read the host's route. -->
-    <v-dialog v-model="subscribeDialog" max-width="900" scrollable>
-      <v-card>
-        <v-card-title class="d-flex align-center ga-2">
-          <v-icon color="primary">mdi-folder-outline</v-icon>
-          <span>{{ t('wizard.title') }}</span>
-        </v-card-title>
-        <v-card-text class="pa-4">
-          <SubscribeWizardView v-if="subscribeDialog && project" mode="subscribe" :project-id="project.id" @saved="onSubscribed" @cancel="subscribeDialog = false" />
-        </v-card-text>
-      </v-card>
-    </v-dialog>
-
-    <!-- Unsubscribe confirmation -->
-    <v-dialog v-model="unsubDialog" max-width="480">
-      <v-card>
-        <v-card-title class="d-flex align-center ga-2">
-          <v-icon color="primary">mdi-folder-outline</v-icon>
-          <span>{{ t('project.detail.unsubscribe') }}</span>
-        </v-card-title>
-        <v-card-text>
-          <p class="mb-3">
-            {{ unsubConfirmParts[0] }}<strong>{{ unsubTarget?.node?.name }}</strong>{{ unsubConfirmParts[1] }}
-          </p>
-          <v-checkbox v-model="unsubWithData" :label="t('project.detail.unsubscribeData')" density="compact" hide-details />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="unsubDialog = false">{{ t('wizard.action.cancel') }}</v-btn>
-          <v-btn color="error" variant="elevated" :loading="unsubLoading" @click="confirmUnsubscribe">
-            {{ t('project.detail.remove') }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <div class="toast" :class="{ show: toastMsg }">{{ toastMsg }}</div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { useApi, useAppStore, useI18nStore, LigojDataTable, NodeIcon, PluginFeatures } from '@ligoj/host'
-import { getFullName } from '../useUiHelpers.js'
-import SubscribeWizardView from './SubscribeWizardView.vue'
+import { ref, reactive, computed, onMounted, watch, h } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useApi, useAppStore, useI18nStore, NodeIcon, VIcon, PluginFeatures } from '@ligoj/host'
+import ProjectEditDialog from './ProjectEditDialog.vue'
+import SubscribeWizardDialog from './SubscribeWizardView.vue'
+import AuditDialog from '@/components/AuditDialog.vue'
 
 const route = useRoute()
+const router = useRouter()
 const api = useApi()
-const { t } = useI18nStore()
-const app = useAppStore()
+const appStore = useAppStore()
+const i18n = useI18nStore()
+const t = i18n.t
 
-const loading = ref(false)
-const project = ref(null)
-const subscriptions = computed(() => project.value?.subscriptions || [])
-
-const formRef = ref(null)
-const editDialog = ref(false)
-const editForm = ref({ name: '', pkey: '', teamLeader: '', description: '' })
-const saving = ref(false)
-
-const unsubDialog = ref(false)
-const unsubTarget = ref(null)
-const subscribeDialog = ref(false)
-const unsubWithData = ref(false)
-const unsubLoading = ref(false)
-
-const rules = {
-  required: (v) => !!v || t('wizard.rule.required'),
+/* Tool brand colours (mockup palette) used to tint each tool card. Keyed by
+   tool name; unknown tools fall back to the cockpit blue. */
+const TOOL_COLORS = {
+  Jira: '#2563eb', Jenkins: '#d33833', LDAP: '#15a06a', SonarQube: '#4e9bcd',
+  Confluence: '#e6a019', 'AWS EC2': '#7cb518', GitLab: '#7759c2',
+  'Provisioning AWS': '#ff7a18', 'Squash TM': '#e0524a',
+}
+function toolColor(name) {
+  if (TOOL_COLORS[name]) return TOOL_COLORS[name]
+  // Deterministic hue from the name so real tools still get a stable colour.
+  let hash = 0
+  for (let i = 0; i < (name || '').length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0
+  return `hsl(${Math.abs(hash) % 360} 62% 52%)`
 }
 
-/**
- * Splits `project.detail.unsubscribeConfirm` around its `{name}`
- * placeholder so the template can render the node name with bold
- * markup without going through `v-html`. Matches the same pattern
- * used in SubscribeWizardView for inline `<code>`-wrapped values.
- */
-const unsubConfirmParts = computed(() => {
-  const raw = t('project.detail.unsubscribeConfirm')
-  const idx = raw.indexOf('{name}')
-  return idx < 0 ? [raw, ''] : [raw.slice(0, idx), raw.slice(idx + '{name}'.length)]
+/* Map a backend status (NodeStatus UP/DOWN, or a string) to a mockup dot. */
+function statusDot(raw) {
+  const s = String(raw?.status ?? raw ?? '').toLowerCase()
+  if (s === 'up' || s === 'ok') return 'ok'
+  if (s === 'down' || s === 'error' || s === 'ko') return 'err'
+  if (s === 'warn' || s === 'blocked') return 'warn'
+  return 'idle'
+}
+
+const project = ref(null)
+const loading = ref(false)
+const demoMode = ref(false)
+
+const subscriptions = computed(() => project.value?.subscriptions || [])
+const leaderName = computed(() => {
+  const l = project.value?.teamLeader
+  if (!l) return ''
+  return [l.firstName, l.lastName].filter(Boolean).join(' ') || l.id || ''
 })
 
-const subHeaders = [
-  { title: 'Service', key: 'service', sortable: false, width: '180px' },
-  { title: 'Tool', key: 'tool', sortable: false, width: '180px' },
-  { title: 'Node', key: 'node', sortable: false },
-  // Plugin-rendered subscription summary (counts/chips). Sized loosely
-  // because the content shape is plugin-specific.
-  { title: 'Details', key: 'details', sortable: false },
-  // Width covers the host's unsubscribe button plus a few plugin-contributed
-  // icon buttons. Plugins commonly add 1–2 buttons via PluginFeatures.
-  { title: '', key: 'actions', sortable: false, width: '140px', align: 'end' },
-]
-
-function formatDate(iso) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 16).replace('T', ' ')
-}
-
-async function loadProject() {
-  loading.value = true
-  const id = route.params.id
-  const data = await api.get(`rest/project/${id}`)
-  project.value = data || null
-  loading.value = false
-
-  if (data) {
-    editForm.value = {
-      name: data.name || '',
-      pkey: data.pkey || '',
-      teamLeader: data.teamLeader?.id || '',
-      description: data.description || '',
+/* Group the project's subscriptions by their tool (node.refined) into cockpit
+   cards. Each row is one subscription; health = share of UP rows. */
+const groups = computed(() => {
+  if (demoMode.value) return demoGroups.value
+  const byTool = new Map()
+  for (const s of subscriptions.value) {
+    const node = s.node || {}
+    const tool = node.refined || node
+    const key = tool.id || node.id || String(s.id)
+    if (!byTool.has(key)) {
+      byTool.set(key, {
+        key,
+        name: tool.name || node.name || key,
+        kind: node.refined?.refined?.name || tool.id || '',
+        color: toolColor(tool.name || node.name),
+        icon: () => h(NodeIcon, { node: tool }),
+        rows: [],
+      })
     }
-    app.setBreadcrumbs(
-      [
-        { title: t('nav.home'), to: '/' },
-        { title: t('nav.projects'), to: '/home/project' },
-        { title: data.name },
-      ],
-      { refresh: loadProject },
-    )
-    // `rest/project/:id` returns subscriptions WITHOUT their fresh
-    // `data` / `status` / live `parameters` — those are populated by
-    // the legacy's `home.js#refreshSubscription`. Mirror that step here
-    // so the per-plugin Details column (renderDetailsKey) sees the
-    // populated `subscription.data` that drives chip rendering.
-    refreshSubscriptions()
+    const status = statusDot(s.status)
+    const pills = []
+    const frag = (node.id || '').split(':').pop()
+    if (frag && frag !== node.id) pills.push(frag)
+    pills.push(t('subscription.status.' + status))
+    byTool.get(key).rows.push({ name: node.name || node.id || ('#' + s.id), status, pills, sub: s })
   }
+  const out = [...byTool.values()]
+  for (const g of out) {
+    const ok = g.rows.filter((r) => r.status === 'ok').length
+    g.health = g.rows.length ? ok / g.rows.length : 0
+  }
+  return out
+})
+
+async function load() {
+  const id = route.params.id
+  // Demo projects are keyed by pkey (non-numeric) — render the mockup tools.
+  if (!/^\d+$/.test(String(id))) { buildDemo(String(id)); return }
+  loading.value = true
+  try {
+    const data = await api.get(`rest/project/${id}`)
+    if (data && data.id != null) {
+      project.value = data
+      demoMode.value = false
+      setCrumbs(data.name)
+      refreshSubscriptions()
+    } else {
+      buildDemo(String(id))
+    }
+  } catch {
+    buildDemo(String(id))
+  }
+  loading.value = false
 }
 
-/**
- * Batch-refreshes the current project's subscriptions: pulls live
- * `data` / `parameters` / `status` for each id from
- * `rest/subscription/status/refresh` and merges them in. Mirrors the
- * legacy `refreshSubscription` flow in `webjars/home/home.js`.
- *
- * Background; doesn't block initial render. Failures are silent — the
- * table stays usable with the stale data already shown.
- */
+/* Pull live status/data for each subscription and merge it in (best effort;
+   the cards stay usable with the stale data if it fails). */
 async function refreshSubscriptions() {
   const subs = project.value?.subscriptions || []
-  if (subs.length === 0) return
-  const query = subs.map((s) => `id=${encodeURIComponent(s.id)}`).join('&')
-  const fresh = await api.get(`rest/subscription/status/refresh?${query}`)
-  if (!fresh || typeof fresh !== 'object') return
-  // Replace project.value (immutable update) so the data-table picks
-  // up the new `data` field and re-runs the Details slot.
-  project.value = {
-    ...project.value,
-    subscriptions: subs.map((s) => {
-      const f = fresh[s.id]
-      return f ? { ...s, parameters: f.parameters, data: f.data, status: f.status } : s
-    }),
-  }
+  if (!subs.length) return
+  try {
+    const q = subs.map((s) => `id=${encodeURIComponent(s.id)}`).join('&')
+    const fresh = await api.get(`rest/subscription/status/refresh?${q}`)
+    if (!fresh || typeof fresh !== 'object') return
+    project.value = {
+      ...project.value,
+      subscriptions: subs.map((s) => {
+        const f = fresh[s.id]
+        return f ? { ...s, parameters: f.parameters, data: f.data, status: f.status } : s
+      }),
+    }
+  } catch { /* keep stale */ }
 }
 
-async function save() {
-  const { valid } = await formRef.value.validate()
-  if (!valid) return
-  saving.value = true
-  const payload = {
-    id: project.value.id,
-    name: editForm.value.name,
-    pkey: editForm.value.pkey,
-    teamLeader: editForm.value.teamLeader,
-    description: editForm.value.description,
-  }
-  await api.put('rest/project', payload)
-  saving.value = false
-  editDialog.value = false
-  await loadProject()
+/* ---- Demo fallback (mockup viewProject) ---- */
+const DEMO_PROJECTS = {
+  'bnpp-kyc': { name: 'BNPP — KYC', tools: ['Jira', 'Jenkins', 'SonarQube', 'GitLab'] },
+  'airbus-keycopter': { name: 'Airbus — Keycopter', tools: ['Jira', 'Jenkins', 'Confluence'] },
+  'edf-consoweb': { name: 'EDF — Consoweb', tools: ['Jira', 'SonarQube', 'LDAP'] },
+  'datasync-fw': { name: 'Datasync Framework', tools: ['Provisioning AWS', 'AWS EC2', 'GitLab'] },
+  'acoss-kpi': { name: 'Acoss — Portail KPI', tools: ['Squash TM', 'Jira', 'Confluence'] },
+  'anru-agora': { name: 'ANRU — Agora', tools: ['Jira', 'LDAP'] },
+}
+const DEMO_TOOLS = {
+  Jira: { kind: 'Tickets', logo: 'logos:jira', health: .82, rows: [{ n: 'JIRA — Prod', s: 'ok', p: ['38 open', '73 closed'] }, { n: 'JIRA — Staging', s: 'warn', p: ['12 open'] }] },
+  Jenkins: { kind: 'CI', logo: 'logos:jenkins', health: .61, rows: [{ n: 'Pipeline — main', s: 'ok', p: ['#1842'] }, { n: 'Pipeline — release', s: 'err', p: ['failed'] }] },
+  LDAP: { kind: 'Directory', logo: 'mdi:folder-account-outline', health: .94, rows: [{ n: 'delivery-core', s: 'ok', p: ['10 mbr'] }, { n: 'support-lille', s: 'ok', p: ['5 mbr'] }] },
+  SonarQube: { kind: 'Code quality', logo: 'logos:sonarqube', health: .7, rows: [{ n: 'core', s: 'ok', p: ['A'] }, { n: 'android', s: 'warn', p: ['B'] }] },
+  Confluence: { kind: 'Docs', logo: 'logos:confluence', health: .88, rows: [{ n: 'Space — Delivery', s: 'ok', p: ['2.3 k'] }] },
+  'AWS EC2': { kind: 'Provisioning', logo: 'logos:aws-ec2', health: .55, rows: [{ n: 'i-06755957', s: 'ok', p: ['running'] }, { n: 'i-0ecb5aca', s: 'err', p: ['stopped'] }] },
+  GitLab: { kind: 'Source & MR', logo: 'logos:gitlab', health: .9, rows: [{ n: 'platform / core', s: 'ok', p: ['4 MR'] }, { n: 'platform / ui', s: 'ok', p: ['2 MR'] }] },
+  'Provisioning AWS': { kind: 'Cloud cost', logo: 'logos:aws', health: .76, rows: [{ n: 'Datasync', s: 'ok', p: ['8 CPU', '303 $'], cost: true }, { n: 'Loader SAP', s: 'warn', p: ['428 $'], cost: true }] },
+  'Squash TM': { kind: 'Tests', logo: 'mdi:clipboard-check-outline', health: .8, rows: [{ n: 'Portail KPI', s: 'ok', p: ['120'] }] },
+}
+function logoVNode(name) {
+  const icon = DEMO_TOOLS[name]?.logo
+  if (!icon) return () => h(VIcon, null, () => 'mdi-puzzle-outline')
+  const tint = icon.startsWith('logos:') ? '' : ('&color=' + encodeURIComponent(toolColor(name).replace('#', '%23')))
+  const src = `https://api.iconify.design/${icon}.svg?height=26${tint}`
+  return () => h('img', { src, alt: name, class: 'demo-logo' })
+}
+const demoGroups = ref([])
+function buildDemo(pkey) {
+  const dp = DEMO_PROJECTS[pkey] || DEMO_PROJECTS['bnpp-kyc']
+  demoMode.value = true
+  project.value = { name: dp.name, pkey, subscriptions: dp.tools.flatMap((tn) => (DEMO_TOOLS[tn]?.rows || []).map((_, k) => ({ id: tn + k }))) }
+  demoGroups.value = dp.tools.map((tn) => {
+    const td = DEMO_TOOLS[tn] || { kind: '', health: 0, rows: [] }
+    return {
+      key: tn, name: tn, kind: td.kind, color: toolColor(tn), icon: logoVNode(tn),
+      health: td.health,
+      rows: td.rows.map((r) => ({ name: r.n, status: r.s, cost: r.cost, pills: r.p })),
+    }
+  })
+  setCrumbs(dp.name)
 }
 
-/**
- * Subscribe wizard emitted `saved` after a successful POST — close the
- * dialog and reload the project so the new subscription row appears in
- * the table (and the next `rest/subscription/status/refresh` pass picks
- * up its live `data` / `parameters`).
- */
-function onSubscribed() {
-  subscribeDialog.value = false
-  loadProject()
+function setCrumbs(name) {
+  appStore.setBreadcrumbs(
+    [{ title: t('nav.home'), to: '/' }, { title: t('project.title'), to: '/project' }, { title: name }],
+    { refresh: load },
+  )
 }
 
-function startUnsubscribe(sub) {
-  unsubTarget.value = sub
-  unsubWithData.value = false
-  unsubDialog.value = true
+const editDialog = ref(false)
+const subscribeDialog = ref(false)
+const auditDialog = ref(false)
+/* The wizard needs a real project id; demo projects can't subscribe. */
+function openSubscribe() {
+  if (demoMode.value) { toast(t('project.detail.demoSubscribe')); return }
+  subscribeDialog.value = true
 }
 
-async function confirmUnsubscribe() {
-  unsubLoading.value = true
-  await api.del(`rest/subscription/${unsubTarget.value.id}/${unsubWithData.value ? 'true' : 'false'}`)
-  unsubLoading.value = false
-  unsubDialog.value = false
-  await loadProject()
+// expanded[g.key] === true → la card affiche toutes ses rows.
+const expanded = reactive({})
+function toggle(key) { expanded[key] = !expanded[key] }
+
+const rowMenu = ref({ open: false, x: 0, y: 0, sub: null })
+function openRowMenu(ev, sub) {
+  const r = ev.currentTarget.getBoundingClientRect()
+  rowMenu.value = { open: true, x: r.right, y: r.bottom + 4, sub }
+}
+function closeRowMenu() { rowMenu.value.open = false }
+function configureSub() {
+  if (rowMenu.value.sub?.id != null) router.push(`/subscription/${rowMenu.value.sub.id}`)
+  closeRowMenu()
+}
+async function deleteSub() {
+  const s = rowMenu.value.sub
+  closeRowMenu()
+  if (!s?.id || demoMode.value) return
+  if (!confirm(t('subscription.deleteConfirm') || 'Supprimer cet abonnement ?')) return
+  try { await api.del(`rest/subscription/${s.id}`) } finally { load() }
 }
 
-// Reload when the :id changes (e.g. navigating from one project to another).
-watch(() => route.params.id, (id) => {
-  if (id) loadProject()
-})
+let toastT
+const toastMsg = ref('')
+function toast(msg) { toastMsg.value = msg; clearTimeout(toastT); toastT = setTimeout(() => (toastMsg.value = ''), 2200) }
 
-/**
- * Cross-plugin refresh hook. Plugins that mutate data backing a
- * subscription's live `data` (e.g. plugin-id's group-members dialog
- * after add/remove) dispatch a `ligoj:subscription-data-changed`
- * CustomEvent on window with `{ subscriptionId, group }`. Re-fetching
- * is best-effort — only triggered when we're showing the affected
- * project — and runs through the existing `refreshSubscriptions`
- * pipeline so the data-table re-renders chips/keys without a full
- * project reload.
- *
- * Using a window CustomEvent (rather than a Pinia store) keeps the
- * coupling at the DOM level: plugin-id has zero knowledge of
- * plugin-ui's internals, and the listener degrades cleanly when the
- * dispatching plugin isn't installed (no events → no refresh, no
- * crash).
- */
-function onSubscriptionDataChanged(event) {
-  // Only refresh when the changed subscription actually belongs to
-  // the project we're displaying — avoids a useless round-trip when
-  // the user managed members from the global GroupListView while a
-  // different project is mounted in the background.
-  const id = event?.detail?.subscriptionId
-  const subs = project.value?.subscriptions || []
-  if (id != null && !subs.some((s) => String(s.id) === String(id))) return
-  refreshSubscriptions()
-}
-
-onMounted(() => {
-  loadProject()
-  window.addEventListener('ligoj:subscription-data-changed', onSubscriptionDataChanged)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('ligoj:subscription-data-changed', onSubscriptionDataChanged)
-})
+watch(() => route.params.id, (id) => { if (id) load() })
+onMounted(load)
 </script>
+
+<style scoped>
+.pdetail {
+  --surface: rgb(var(--v-theme-surface));
+  --card: rgb(var(--v-theme-surface));
+  --ink: rgb(var(--v-theme-on-surface));
+  --ink-2: rgba(var(--v-theme-on-surface), .72);
+  --ink-3: rgba(var(--v-theme-on-surface), .55);
+  --border: rgba(var(--v-theme-on-surface), .12);
+  --pill: rgba(var(--v-theme-on-surface), .06);
+  --accent: rgb(var(--v-theme-secondary));
+  --ok: #1d9d63; --warn: #d98a16; --err: #df4d42; --idle: #bcb6a8;
+  --radius: 18px;
+  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
+  --mono: var(--v26-mono, "JetBrains Mono", ui-monospace, monospace);
+  color: var(--ink);
+}
+.ph { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; }
+.back { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font); font-weight: 700; font-size: 12.5px; color: var(--ink-3); cursor: pointer; margin-bottom: 6px; transition: color .15s; }
+.back:hover { color: var(--accent); }
+.ph-txt h1 { font-family: var(--font); font-weight: 800; letter-spacing: -.03em; font-size: 28px; margin: 0; color: var(--ink); }
+.ph-txt .sub { margin: 4px 0 0; font-size: 14px; color: var(--ink-3); font-weight: 500; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.ph-txt .sub .pkey { font-family: var(--mono); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); background: var(--pill); border-radius: 7px; padding: 2px 8px; }
+.ph-txt .sub .dot { opacity: .4; }
+.ph-txt .sub b { color: var(--ink-2); font-family: var(--mono); }
+.ph-actions { display: flex; gap: 10px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; padding: 11px 17px; border-radius: 12px; cursor: pointer; border: 0; color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -10px rgba(255, 90, 82, .55); transition: filter .15s; }
+.btn:hover { filter: brightness(1.04); }
+.btn.ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--border); box-shadow: none; }
+.btn.ghost:hover { border-color: var(--accent); color: var(--accent); filter: none; }
+
+.meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--pill); font-size: 13px; color: var(--ink-2); font-weight: 500; }
+.meta span { display: inline-flex; align-items: center; gap: 6px; }
+.meta .desc { color: var(--ink-3); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
+.card { position: relative; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: 0 2px 6px rgba(0, 0, 0, .05); opacity: 0; transform: translateY(12px); animation: rise .5s cubic-bezier(.2, .7, .3, 1) forwards; transition: transform .18s cubic-bezier(.2, .7, .3, 1), box-shadow .18s; }
+@keyframes rise { to { opacity: 1; transform: none; } }
+.card:hover { transform: translateY(-3px); box-shadow: 0 26px 50px -24px color-mix(in srgb, var(--c) 55%, transparent); }
+.card.skeleton { height: 220px; animation: none; opacity: 1; transform: none; background: linear-gradient(100deg, var(--card), color-mix(in srgb, var(--ink) 4%, var(--card)), var(--card)); background-size: 200% 100%; animation: shimmer 1.3s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+.card-head { display: flex; align-items: center; gap: 13px; padding: 16px 16px 14px; background: linear-gradient(180deg, color-mix(in srgb, var(--c) 16%, var(--card)), color-mix(in srgb, var(--c) 5%, var(--card))); border-bottom: 1px solid color-mix(in srgb, var(--c) 16%, var(--border)); }
+.glyph { width: 44px; height: 44px; border-radius: 13px; flex: none; display: grid; place-items: center; background: var(--card); box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--c) 50%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, var(--border)); }
+.glyph :deep(.demo-logo) { width: 26px; height: 26px; object-fit: contain; }
+.glyph :deep(img.tool-icon) { width: 26px; height: 26px; object-fit: contain; }
+.glyph :deep(i) { font-size: 24px; color: color-mix(in srgb, var(--c) 75%, var(--ink)); }
+.card-head .t { flex: 1; min-width: 0; }
+.card-head .name { font-family: var(--font); font-weight: 800; font-size: 16.5px; letter-spacing: -.03em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-head .kind { font-family: var(--mono); font-size: 11px; font-weight: 700; color: color-mix(in srgb, var(--c) 55%, var(--ink-3)); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.count { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: color-mix(in srgb, var(--c) 65%, var(--ink)); background: var(--card); border: 1px solid color-mix(in srgb, var(--c) 22%, var(--border)); border-radius: 9px; padding: 5px 9px; white-space: nowrap; }
+.count small { opacity: .5; }
+
+.rows { padding: 8px 12px; min-height: 52px; }
+.row { display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-radius: 11px; transition: background .12s; }
+.row:hover { background: color-mix(in srgb, var(--c) 8%, var(--card)); }
+.row + .row { box-shadow: inset 0 1px 0 var(--border); }
+.st { width: 9px; height: 9px; border-radius: 50%; flex: none; position: relative; }
+.st::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; background: currentColor; opacity: .18; }
+.st.ok { background: var(--ok); color: var(--ok); } .st.warn { background: var(--warn); color: var(--warn); } .st.err { background: var(--err); color: var(--err); } .st.idle { background: var(--idle); color: var(--idle); }
+.row .rn { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pills { display: flex; gap: 5px; flex: none; }
+.pill { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-2); background: var(--pill); border: 1px solid var(--border); border-radius: 8px; padding: 2px 7px; }
+.pill.cost { color: #b85b00; background: #fff3e6; border-color: #ffe0bf; }
+.rowmore { display: inline-flex; align-items: center; gap: 5px; font-family: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif); font-size: 12.5px; font-weight: 700; color: var(--ink-3); padding: 6px 10px; margin-top: 4px; border: 0; background: rgba(var(--v-theme-on-surface), .05); border-radius: 8px; cursor: pointer; transition: background .14s, color .14s; }
+.rowmore:hover { background: rgba(var(--v-theme-on-surface), .1); color: var(--ink); }
+.rowcog { width: 28px; height: 28px; border: 0; background: transparent; border-radius: 8px; cursor: pointer; display: inline-grid; place-items: center; color: var(--ink-3); margin-left: auto; transition: background .14s, color .14s; }
+.rowcog:hover { background: rgba(var(--v-theme-on-surface), .08); color: var(--ink); }
+
+.card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px 14px; }
+.morelink { font-size: 12.5px; font-weight: 800; color: color-mix(in srgb, var(--c) 55%, var(--ink)); cursor: pointer; }
+.health { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.barh { width: 80px; height: 7px; border-radius: 5px; background: var(--pill); overflow: hidden; }
+.barh i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c) 60%, white)); }
+
+.empty { padding: 70px 0; text-align: center; color: var(--ink-3); font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.empty p { margin: 0; }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--ink); color: var(--surface); padding: 11px 18px; border-radius: 12px; font-weight: 700; font-size: 14px; z-index: 60; opacity: 0; transition: .25s; pointer-events: none; box-shadow: 0 12px 30px -10px rgba(0, 0, 0, .5); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.rowmenu-bg { position: fixed; inset: 0; z-index: 70; }
+.rowmenu { position: fixed; min-width: 180px; padding: 5px; border-radius: 12px; background: rgb(var(--v-theme-surface)); border: 1px solid rgba(var(--v-theme-on-surface), .12); box-shadow: 0 18px 38px -16px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 1px; }
+.rowmenu button { display: inline-flex; align-items: center; gap: 9px; padding: 9px 11px; border: 0; background: transparent; border-radius: 8px; cursor: pointer; color: var(--ink); font-family: var(--font); font-size: 13.5px; font-weight: 600; text-align: left; }
+.rowmenu button:hover { background: rgba(var(--v-theme-on-surface), .07); }
+.rowmenu button.danger { color: rgb(var(--v-theme-error)); }
+.rowmenu button.danger:hover { background: rgba(var(--v-theme-error), .08); }
+</style>

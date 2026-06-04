@@ -68,10 +68,10 @@ const features = {
 }
 
 const routes = [
-  { path: '/home',                      name: 'ui-home',              component: HomeView },
+  { path: '/',                          name: 'ui-home',              component: HomeView },
   { path: '/home/manual',               name: 'ui-manual',            component: ManualView },
-  { path: '/home/project',              name: 'ui-project-list',      component: ProjectListView },
-  { path: '/home/project/:id',          name: 'ui-project-detail',    component: ProjectDetailView },
+  { path: '/project',                   name: 'ui-project-list',      component: ProjectListView },
+  { path: '/project/:id',               name: 'ui-project-detail',    component: ProjectDetailView },
 
   { path: '/system',                    name: 'ui-system',            component: SystemView },
   { path: '/system/information',        name: 'ui-system-information', component: SystemInfoView },
