@@ -87,7 +87,7 @@ onMounted(() => {
 .code-sample {
   background: rgba(0, 0, 0, 0.05);
   padding: 0.5rem 0.75rem;
-  border-radius: 4px;
+  border-radius: var(--lj-radius-sm, 4px);
   font-size: 0.85em;
   white-space: pre-wrap;
   word-break: break-all;

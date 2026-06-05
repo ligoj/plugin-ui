@@ -7,21 +7,15 @@
   rate chips and a per-row flush action. Read-only dashboard otherwise.
 -->
 <template>
-  <div class="caches">
-    <header class="ph">
-      <div class="ph-txt">
-        <nav class="crumbs"><span class="crumb"><v-icon size="13">mdi-cog-outline</v-icon>{{ t('system.breadcrumb') }}</span><span class="csep">›</span><span class="crumb cur">{{ t('system.cache.title') }}</span></nav>
-        <h1>{{ t('system.cache.title') }}</h1>
-        <p class="sub"><b>{{ items.length }}</b> {{ t('system.cache.countLabel') }}<span v-if="filtered.length !== items.length"> · {{ filtered.length }} {{ t('system.role.filtered') }}</span></p>
-      </div>
-      <div class="ph-actions">
-        <div class="search">
-          <v-icon size="17" class="search-ic">mdi-magnify</v-icon>
-          <input v-model="query" type="text" :placeholder="t('system.cache.searchPlaceholder')" @input="page = 1" />
-          <button v-if="query" class="search-x" @click="query = ''"><v-icon size="15">mdi-close</v-icon></button>
-        </div>
-      </div>
-    </header>
+  <div class="caches lj-surface">
+    <LjPageHeader :title="t('system.cache.title')" :crumbs="[{ icon: 'mdi-cog-outline', label: t('system.breadcrumb') }, { label: t('system.cache.title'), current: true }]">
+      <template #subtitle>
+        <b>{{ items.length }}</b> {{ t('system.cache.countLabel') }}<span v-if="filtered.length !== items.length"> · {{ filtered.length }} {{ t('system.role.filtered') }}</span>
+      </template>
+      <template #actions>
+        <LjSearch v-model="query" :placeholder="t('system.cache.searchPlaceholder')" @input="page = 1" />
+      </template>
+    </LjPageHeader>
 
     <div class="stats">
       <div v-for="(s, i) in stats" :key="s.key" class="stat" :style="{ '--c': s.color, 'animation-delay': (i * 50) + 'ms' }">
@@ -64,7 +58,7 @@
       </template>
       <template #cell.averageGetTime="{ item }"><span class="num" :class="{ zero: !item.averageGetTime }">{{ item.averageGetTime ?? '—' }}</span></template>
       <template #actions="{ item }">
-        <button class="iconbtn" :disabled="invalidating === item.id" @click.stop="invalidate(item)">
+        <button class="lj-iconbtn flush" :disabled="invalidating === item.id" @click.stop="invalidate(item)">
           <span v-if="invalidating === item.id" class="ispin" aria-hidden="true" /><v-icon v-else size="18">mdi-broom</v-icon>
           <v-tooltip activator="parent" :text="t('system.cache.invalidate')" location="top" />
         </button>
@@ -76,7 +70,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useI18nStore } from '@ligoj/host'
-import { VibrantDataTable as VibrantDataTable } from '@ligoj/host'
+import { VibrantDataTable, LjPageHeader, LjSearch } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -182,45 +176,19 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.caches {
-  --surface: rgb(var(--v-theme-surface));
-  --card: rgb(var(--v-theme-surface));
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .55);
-  --border: rgba(var(--v-theme-on-surface), .12);
-  --border-2: rgba(var(--v-theme-on-surface), .26);
-  --hover: rgba(var(--v-theme-on-surface), .06);
-  --pill: rgba(var(--v-theme-on-surface), .06);
-  --accent: rgb(var(--v-theme-secondary));
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  --mono: var(--v26-mono, "JetBrains Mono", ui-monospace, monospace);
-  color: var(--ink);
-}
-.ph { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
-.crumbs { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
-.crumb { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font); font-size: 11.5px; font-weight: 700; color: var(--ink-3); background: var(--pill); border-radius: 999px; padding: 3px 10px; }
-.crumb.cur { color: var(--accent); background: rgba(var(--v-theme-secondary), .12); }
-.csep { color: var(--ink-3); font-size: 12px; }
-.ph-txt h1 { font-family: var(--font); font-weight: 800; letter-spacing: -.03em; font-size: 28px; margin: 0; }
-.ph-txt .sub { margin: 4px 0 0; font-size: 14px; color: var(--ink-3); font-weight: 500; }
-.ph-txt .sub b { color: var(--ink-2); font-family: var(--mono); }
-.ph-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.search { display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; height: 42px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); min-width: 240px; transition: border-color .15s; }
-.search:focus-within { border-color: var(--border-2); }
-.search-ic { color: var(--ink-3); }
-.search input { flex: 1; border: 0; outline: 0; background: transparent; color: var(--ink); font-family: var(--font); font-size: 13.5px; font-weight: 500; min-width: 0; }
-.search input::placeholder { color: var(--ink-3); }
-.search-x { border: 0; background: transparent; cursor: pointer; color: var(--ink-3); display: grid; place-items: center; padding: 2px; border-radius: 6px; }
-.search-x:hover { color: var(--ink); background: var(--hover); }
+/* View-specific styling only — chrome (header, search, row flush button)
+   comes from the shared host components + the global `.lj-surface` /
+   `.lj-iconbtn` classes, which supply the ink, pill, radius, mono, card and
+   border vars these rules read. */
+.sub b { color: var(--ink-2); font-family: var(--mono); }
 
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 18px; }
-.stat { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; border-radius: 16px; border: 1px solid var(--border); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, var(--card)), var(--card)); box-shadow: 0 2px 8px rgba(0, 0, 0, .04); opacity: 0; transform: translateY(10px); animation: rise .5s cubic-bezier(.2, .7, .3, 1) forwards; transition: transform .18s cubic-bezier(.2, .7, .3, 1), box-shadow .18s, border-color .18s; }
+.stat { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; border-radius: var(--radius); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, var(--card)), var(--card)); box-shadow: var(--shadow); opacity: 0; transform: translateY(10px); animation: rise .5s cubic-bezier(.2, .7, .3, 1) forwards; transition: transform .18s cubic-bezier(.2, .7, .3, 1), box-shadow .18s, border-color .18s; }
 @keyframes rise { to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .stat { animation: none; opacity: 1; transform: none; } }
 .stat:hover { transform: translateY(-3px); box-shadow: 0 18px 36px -20px color-mix(in srgb, var(--c) 55%, transparent); border-color: color-mix(in srgb, var(--c) 30%, var(--border)); }
 .stop { display: flex; align-items: center; gap: 14px; }
-.sicon { width: 46px; height: 46px; border-radius: 13px; flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--c) 65%, transparent); }
+.sicon { width: 46px; height: 46px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--c) 65%, transparent); }
 .snum { font-family: var(--mono); font-weight: 700; font-size: 26px; line-height: 1; color: var(--ink); }
 .snum small { font-size: 14px; font-weight: 600; color: var(--ink-3); margin-left: 1px; }
 .slabel { font-size: 12.5px; font-weight: 600; color: var(--ink-3); margin-top: 4px; }
@@ -232,7 +200,7 @@ onMounted(() => {
 
 .avatar-cell { display: flex; align-items: center; gap: 12px; transition: opacity .15s; }
 .avatar-cell.idle { opacity: .45; }
-.cglyph { width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; background: var(--pill); color: var(--ink-3); }
+.cglyph { width: 34px; height: 34px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: var(--pill); color: var(--ink-3); }
 .cglyph.live { background: rgba(29, 157, 99, .13); color: #1d9d63; }
 .cname { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--ink); word-break: break-all; }
 .num { font-family: var(--mono); font-size: 13px; color: var(--ink-2); }
@@ -248,9 +216,9 @@ onMounted(() => {
 .ratechip.info { color: #2f6df6; background: rgba(47, 109, 246, .13); }
 .ratechip.warn { color: #d9701a; background: rgba(217, 112, 26, .14); }
 .ratechip.err { color: #df4d42; background: rgba(223, 77, 66, .14); }
-.iconbtn { width: 32px; height: 32px; border: 0; background: transparent; border-radius: 9px; cursor: pointer; display: inline-grid; place-items: center; color: var(--ink-3); transition: background .15s, color .15s; }
-.iconbtn:hover:not(:disabled) { background: rgba(217, 112, 26, .12); color: #d9701a; }
-.iconbtn:disabled { opacity: .6; cursor: default; }
+/* Flush trigger — orange accent + busy spinner (base `.lj-iconbtn` is global). */
+.lj-iconbtn.flush:hover:not(:disabled) { background: rgba(217, 112, 26, .12); color: #d9701a; }
+.lj-iconbtn.flush:disabled { opacity: .6; cursor: default; }
 .ispin { width: 15px; height: 15px; border: 2px solid var(--border-2); border-top-color: var(--accent); border-radius: 50%; animation: ispin .7s linear infinite; }
 @keyframes ispin { to { transform: rotate(360deg); } }
 </style>

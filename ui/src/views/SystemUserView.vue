@@ -8,22 +8,16 @@
   edit modal (login + roles autocomplete) and a confirm dialog.
 -->
 <template>
-  <div class="susers">
-    <header class="ph">
-      <div class="ph-txt">
-        <nav class="crumbs"><span class="crumb"><v-icon size="13">mdi-cog-outline</v-icon>{{ t('system.breadcrumb') }}</span><span class="csep">›</span><span class="crumb cur">{{ t('system.user.title') }}</span></nav>
-        <h1>{{ t('system.user.title') }}</h1>
-        <p class="sub"><b>{{ dt.totalItems.value }}</b> {{ t('system.user.countLabel') }}</p>
-      </div>
-      <div class="ph-actions">
-        <div class="search">
-          <v-icon size="17" class="search-ic">mdi-magnify</v-icon>
-          <input v-model="dt.search.value" type="text" :placeholder="t('system.user.searchPlaceholder')" @input="onSearch" />
-          <button v-if="dt.search.value" class="search-x" @click="clearSearch"><v-icon size="15">mdi-close</v-icon></button>
-        </div>
-        <button class="btn" @click="openNew"><v-icon size="18">mdi-plus</v-icon>{{ t('system.user.new') }}</button>
-      </div>
-    </header>
+  <div class="susers lj-surface">
+    <LjPageHeader :title="t('system.user.title')" :crumbs="[{ icon: 'mdi-cog-outline', label: t('system.breadcrumb') }, { label: t('system.user.title'), current: true }]">
+      <template #subtitle>
+        <b>{{ dt.totalItems.value }}</b> {{ t('system.user.countLabel') }}
+      </template>
+      <template #actions>
+        <LjSearch v-model="dt.search.value" :placeholder="t('system.user.searchPlaceholder')" @input="onSearch" />
+        <LjButton icon="mdi-plus" @click="openNew">{{ t('system.user.new') }}</LjButton>
+      </template>
+    </LjPageHeader>
 
     <div class="stats">
       <div v-for="(s, i) in stats" :key="s.key" class="stat" :style="{ '--c': s.color, 'animation-delay': (i * 50) + 'ms' }">
@@ -52,41 +46,29 @@
         </span>
       </template>
       <template #actions="{ item }">
-        <button class="iconbtn" @click.stop="openEdit(item)">
+        <button class="lj-iconbtn" @click.stop="openEdit(item)">
           <v-icon size="18">mdi-pencil-outline</v-icon>
           <v-tooltip activator="parent" :text="t('common.edit')" location="top" />
         </button>
-        <button class="iconbtn danger" @click.stop="startDelete(item)">
+        <button class="lj-iconbtn danger" @click.stop="startDelete(item)">
           <v-icon size="18">mdi-delete-outline</v-icon>
           <v-tooltip activator="parent" :text="t('common.delete')" location="top" />
         </button>
       </template>
     </VibrantDataTable>
 
-    <!-- Create / edit dialog (Vibrant chrome). -->
-    <v-dialog v-model="editDialog" max-width="540">
-      <v-card class="vmodal">
-        <div class="vmodal-head">
-          <span class="mi"><v-icon color="#fff">mdi-account</v-icon></span>
-          <h3>{{ editTarget ? t('system.user.editTitle') : t('system.user.newTitle') }}</h3>
-          <button class="x" :aria-label="t('common.cancel')" @click="editDialog = false"><v-icon size="20">mdi-close</v-icon></button>
-        </div>
-        <v-card-text class="vmodal-body">
-          <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field v-model="editForm.login" prepend-inner-icon="mdi-account" :label="t('system.user.fieldLogin')" :rules="[rules.required]" :disabled="!!editTarget" variant="outlined" class="mb-3" autofocus />
-            <v-autocomplete v-model="editForm.roles" :label="t('system.user.fieldRoles')" prepend-inner-icon="mdi-shield-account-outline" :items="allRoles" item-value="id" item-title="name"
-              multiple chips closable-chips variant="outlined" :rules="[rules.requiredArray]" :hint="t('system.user.rolesHint')" persistent-hint />
-          </v-form>
-        </v-card-text>
-        <div class="vmodal-foot">
-          <span class="foot-sp" />
-          <button class="mbtn ghost" @click="editDialog = false">{{ t('common.cancel') }}</button>
-          <button class="mbtn primary" :disabled="saving" @click="save">
-            <span v-if="saving" class="mspin" aria-hidden="true" /><v-icon v-else size="18">mdi-content-save</v-icon>{{ t('common.save') }}
-          </button>
-        </div>
-      </v-card>
-    </v-dialog>
+    <!-- Create / edit dialog (shared chrome). -->
+    <LjDialog v-model="editDialog" :title="editTarget ? t('system.user.editTitle') : t('system.user.newTitle')" icon="mdi-account" :max-width="540">
+      <v-form ref="formRef" @submit.prevent="save">
+        <v-text-field v-model="editForm.login" prepend-inner-icon="mdi-account" :label="t('system.user.fieldLogin')" :rules="[rules.required]" :disabled="!!editTarget" variant="outlined" class="mb-3" autofocus />
+        <v-autocomplete v-model="editForm.roles" :label="t('system.user.fieldRoles')" prepend-inner-icon="mdi-shield-account-outline" :items="allRoles" item-value="id" item-title="name"
+          multiple chips closable-chips variant="outlined" :rules="[rules.requiredArray]" :hint="t('system.user.rolesHint')" persistent-hint />
+      </v-form>
+      <template #footer>
+        <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
+        <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
+      </template>
+    </LjDialog>
 
     <LigojConfirmDialog v-model="deleteDialog" :title="t('system.user.deleteTitle')" icon="mdi-account" confirm-color="error" :confirm-label="t('common.delete')" :loading="deleting" @confirm="confirmDelete">
       {{ t('system.user.deleteConfirmBefore') }}<strong class="text-error">{{ deleteTarget?.login }}</strong>{{ t('system.user.deleteConfirmAfter') }}
@@ -97,8 +79,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
-import { VibrantDataTable as VibrantDataTable } from '@ligoj/host'
-import { VibrantConfirmDialog as LigojConfirmDialog } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -131,7 +112,6 @@ function onSearch() {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => dt.load({ page: 1, itemsPerPage: lastOptions.itemsPerPage || 25, sortBy: lastOptions.sortBy }), 300)
 }
-function clearSearch() { dt.search.value = ''; onSearch() }
 
 async function loadRoles() {
   try {
@@ -189,47 +169,19 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.susers {
-  --surface: rgb(var(--v-theme-surface));
-  --card: rgb(var(--v-theme-surface));
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .55);
-  --border: rgba(var(--v-theme-on-surface), .12);
-  --border-2: rgba(var(--v-theme-on-surface), .26);
-  --hover: rgba(var(--v-theme-on-surface), .06);
-  --pill: rgba(var(--v-theme-on-surface), .06);
-  --accent: rgb(var(--v-theme-secondary));
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  --mono: var(--v26-mono, "JetBrains Mono", ui-monospace, monospace);
-  color: var(--ink);
-}
-.ph { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
-.crumbs { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
-.crumb { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font); font-size: 11.5px; font-weight: 700; color: var(--ink-3); background: var(--pill); border-radius: 999px; padding: 3px 10px; }
-.crumb.cur { color: var(--accent); background: rgba(var(--v-theme-secondary), .12); }
-.csep { color: var(--ink-3); font-size: 12px; }
-.ph-txt h1 { font-family: var(--font); font-weight: 800; letter-spacing: -.03em; font-size: 28px; margin: 0; }
-.ph-txt .sub { margin: 4px 0 0; font-size: 14px; color: var(--ink-3); font-weight: 500; }
-.ph-txt .sub b { color: var(--ink-2); font-family: var(--mono); }
-.ph-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.search { display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; height: 42px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); min-width: 240px; transition: border-color .15s; }
-.search:focus-within { border-color: var(--border-2); }
-.search-ic { color: var(--ink-3); }
-.search input { flex: 1; border: 0; outline: 0; background: transparent; color: var(--ink); font-family: var(--font); font-size: 13.5px; font-weight: 500; min-width: 0; }
-.search input::placeholder { color: var(--ink-3); }
-.search-x { border: 0; background: transparent; cursor: pointer; color: var(--ink-3); display: grid; place-items: center; padding: 2px; border-radius: 6px; }
-.search-x:hover { color: var(--ink); background: var(--hover); }
-.btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; padding: 10px 16px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -10px rgba(255, 90, 82, .55); transition: filter .15s; }
-.btn:hover { filter: brightness(1.04); }
+/* View-specific styling only — chrome (header, search, button, dialog, row
+   icon buttons) comes from the shared host components + the global
+   `.lj-surface` / `.lj-iconbtn` classes, which supply the ink, pill, radius,
+   mono and card vars these rules read. */
+.sub b { color: var(--ink-2); font-family: var(--mono); }
 
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 18px; }
-.stat { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; border-radius: 16px; border: 1px solid var(--border); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, var(--card)), var(--card)); box-shadow: 0 2px 8px rgba(0, 0, 0, .04); opacity: 0; transform: translateY(10px); animation: rise .5s cubic-bezier(.2, .7, .3, 1) forwards; transition: transform .18s cubic-bezier(.2, .7, .3, 1), box-shadow .18s, border-color .18s; }
+.stat { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; border-radius: var(--radius); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, var(--card)), var(--card)); box-shadow: var(--shadow); opacity: 0; transform: translateY(10px); animation: rise .5s cubic-bezier(.2, .7, .3, 1) forwards; transition: transform .18s cubic-bezier(.2, .7, .3, 1), box-shadow .18s, border-color .18s; }
 @keyframes rise { to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .stat { animation: none; opacity: 1; transform: none; } }
 .stat:hover { transform: translateY(-3px); box-shadow: 0 18px 36px -20px color-mix(in srgb, var(--c) 55%, transparent); border-color: color-mix(in srgb, var(--c) 30%, var(--border)); }
 .stop { display: flex; align-items: center; gap: 14px; }
-.sicon { width: 46px; height: 46px; border-radius: 13px; flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--c) 65%, transparent); }
+.sicon { width: 46px; height: 46px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--c) 65%, transparent); }
 .snum { font-family: var(--mono); font-weight: 700; font-size: 26px; line-height: 1; color: var(--ink); }
 .slabel { font-size: 12.5px; font-weight: 600; color: var(--ink-3); margin-top: 4px; }
 .sbar { height: 6px; border-radius: 4px; background: var(--pill); overflow: hidden; }
@@ -238,43 +190,11 @@ onMounted(() => {
 .errline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: rgb(var(--v-theme-error)); margin: 0 0 14px; }
 
 .avatar-cell { display: flex; align-items: center; gap: 12px; }
-.uglyph { width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; background: var(--pill); color: var(--ink-3); }
+.uglyph { width: 34px; height: 34px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: var(--pill); color: var(--ink-3); }
 .ulogin { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--ink); }
 .chips { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 .rchip { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font); font-weight: 700; font-size: 11.5px; padding: 3px 10px; border-radius: 999px; color: #8b5cf6; background: rgba(139, 92, 246, .13); }
 .dash { color: var(--ink-3); font-size: 13px; }
-.iconbtn { width: 32px; height: 32px; border: 0; background: transparent; border-radius: 9px; cursor: pointer; display: inline-grid; place-items: center; color: var(--ink-3); transition: background .15s, color .15s; }
-.iconbtn:hover { background: var(--hover); color: var(--ink); }
-.iconbtn.danger:hover { background: rgba(var(--v-theme-error), .1); color: rgb(var(--v-theme-error)); }
-
-/* Edit modal (Vibrant). Vars re-declared on .vmodal for the teleported card. */
-.vmodal {
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .55);
-  --border: rgba(var(--v-theme-on-surface), .12);
-  --border-2: rgba(var(--v-theme-on-surface), .26);
-  --hover: rgba(var(--v-theme-on-surface), .06);
-  --accent: rgb(var(--v-theme-secondary));
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  border-radius: 20px !important; box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .55) !important;
-}
-.vmodal-head { display: flex; align-items: center; gap: 13px; padding: 22px 24px 8px; }
-.vmodal-head .mi { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex: none; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -8px rgba(255, 90, 82, .6); }
-.vmodal-head h3 { font-family: var(--font); font-weight: 800; font-size: 20px; margin: 0; flex: 1; color: var(--ink); letter-spacing: -.02em; }
-.vmodal-head .x { width: 36px; height: 36px; border: 0; background: transparent; border-radius: 9px; cursor: pointer; display: grid; place-items: center; color: var(--ink-3); }
-.vmodal-head .x:hover { background: var(--hover); color: var(--ink); }
-.vmodal-body { padding: 14px 24px 4px !important; }
-.vmodal :deep(.v-field) { border-radius: 12px; font-family: var(--font); }
-.vmodal :deep(.v-field__prepend-inner .v-icon) { opacity: .55; }
-.vmodal-foot { display: flex; align-items: center; gap: 10px; padding: 12px 24px 22px; }
-.foot-sp { flex: 1; }
-.mbtn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; padding: 10px 17px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; transition: filter .15s, background .15s, border-color .15s; }
-.mbtn.primary { color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -10px rgba(255, 90, 82, .55); }
-.mbtn.primary:hover:not(:disabled) { filter: brightness(1.04); }
-.mbtn.ghost { color: var(--ink-2); background: transparent; border-color: var(--border); }
-.mbtn.ghost:hover { background: var(--hover); border-color: var(--border-2); }
-.mbtn:disabled { opacity: .6; cursor: default; }
-.mspin { width: 15px; height: 15px; border: 2px solid rgba(255, 255, 255, .5); border-top-color: #fff; border-radius: 50%; animation: sspin .7s linear infinite; }
-@keyframes sspin { to { transform: rotate(360deg); } }
+/* Danger accent for the inline delete trigger (base `.lj-iconbtn` is global). */
+.lj-iconbtn.danger:hover { background: rgba(var(--v-theme-error), .1); color: rgb(var(--v-theme-error)); }
 </style>

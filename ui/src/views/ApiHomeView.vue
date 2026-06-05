@@ -8,15 +8,13 @@
   Read-only browsing; the raw spec stays one click away via "Download OpenAPI".
 -->
 <template>
-  <div class="apihome">
-    <header class="ph">
-      <div class="ph-txt">
-        <nav class="crumbs"><span class="crumb cur"><v-icon size="13">mdi-api</v-icon>{{ t('api.title') }}</span></nav>
-        <h1>{{ spec?.info?.title || t('api.title') }}<span v-if="spec?.info?.version" class="ver">{{ spec.info.version }}</span></h1>
-        <p class="sub">{{ spec?.info?.description || t('api.subtitle') }}</p>
-      </div>
-      <a class="btn-ghost" :href="OPENAPI_URL" target="_blank" rel="noopener"><v-icon size="18">mdi-code-json</v-icon>{{ t('api.downloadOpenapi') }}</a>
-    </header>
+  <div class="apihome lj-surface">
+    <LjPageHeader :title="headerTitle" :subtitle="spec?.info?.description || t('api.subtitle')"
+      :crumbs="[{ icon: 'mdi-api', label: t('api.title'), current: true }]">
+      <template #actions>
+        <a class="btn-ghost" :href="OPENAPI_URL" target="_blank" rel="noopener"><v-icon size="18">mdi-code-json</v-icon>{{ t('api.downloadOpenapi') }}</a>
+      </template>
+    </LjPageHeader>
 
     <div v-if="!error" class="stats">
       <div v-for="(s, i) in stats" :key="s.key" class="stat" :style="{ '--c': s.color, 'animation-delay': (i * 50) + 'ms' }">
@@ -30,11 +28,7 @@
 
     <template v-if="!loading && !error">
       <div class="toolbar">
-        <div class="search">
-          <v-icon size="17" class="search-ic">mdi-magnify</v-icon>
-          <input v-model="query" type="text" :placeholder="t('api.searchPlaceholder')" />
-          <button v-if="query" class="search-x" @click="query = ''"><v-icon size="15">mdi-close</v-icon></button>
-        </div>
+        <LjSearch v-model="query" :placeholder="t('api.searchPlaceholder')" />
         <div class="methods">
           <button v-for="m in methodsPresent" :key="m" class="mchip" :class="[m, { on: activeMethods.has(m) }]" @click="toggleMethod(m)">{{ m }}</button>
         </div>
@@ -111,7 +105,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useI18nStore, APP_BASE } from '@ligoj/host'
+import { useApi, useAppStore, useI18nStore, APP_BASE, LjPageHeader, LjSearch } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -124,6 +118,13 @@ const OPENAPI_URL = `${base}rest/openapi.json`
 const spec = ref(null)
 const loading = ref(true)
 const error = ref(null)
+
+// LjPageHeader takes a plain string title; fold the spec version into it (the
+// former separate `.ver` chip beside the H1). Acceptable cosmetic change.
+const headerTitle = computed(() => {
+  const title = spec.value?.info?.title || t('api.title')
+  return spec.value?.info?.version ? `${title} ${spec.value.info.version}` : title
+})
 
 const query = ref('')
 const activeMethods = reactive(new Set())
@@ -251,36 +252,20 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.apihome {
-  --surface: rgb(var(--v-theme-surface));
-  --card: rgb(var(--v-theme-surface));
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .55);
-  --border: rgba(var(--v-theme-on-surface), .12);
-  --border-2: rgba(var(--v-theme-on-surface), .26);
-  --hover: rgba(var(--v-theme-on-surface), .06);
-  --pill: rgba(var(--v-theme-on-surface), .06);
-  --accent: rgb(var(--v-theme-secondary));
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  --mono: var(--v26-mono, "JetBrains Mono", ui-monospace, monospace);
-  color: var(--ink);
-}
-.ph { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
-.crumbs { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
-.crumb { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font); font-size: 11.5px; font-weight: 700; color: var(--ink-3); background: var(--pill); border-radius: 999px; padding: 3px 10px; }
-.crumb.cur { color: var(--accent); background: rgba(var(--v-theme-secondary), .12); }
-.ph-txt h1 { font-family: var(--font); font-weight: 800; letter-spacing: -.03em; font-size: 28px; margin: 0; display: inline-flex; align-items: baseline; gap: 12px; }
-.ver { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); background: rgba(var(--v-theme-secondary), .12); padding: 3px 9px; border-radius: 8px; letter-spacing: 0; }
-.ph-txt .sub { margin: 6px 0 0; font-size: 14px; color: var(--ink-3); font-weight: 500; max-width: 70ch; }
-.btn-ghost { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; padding: 10px 16px; border-radius: 12px; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--ink-2); text-decoration: none; transition: border-color .15s, background .15s; }
+/* View-specific styling only — chrome (header, toolbar search) comes from
+   the shared host components + the global `.lj-surface` class, which supplies
+   the ink, pill, radius, mono, surface, card and border vars these rules
+   read. The `.btn-ghost` download link is a native anchor (keeps new-tab /
+   copy-link semantics, so it isn't an LjButton); the method-filter chips,
+   collapsible groups and op cards are all bespoke. */
+.btn-ghost { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: var(--surface); color: var(--ink-2); text-decoration: none; transition: border-color .15s, background .15s; }
 .btn-ghost:hover { border-color: var(--border-2); background: var(--hover); }
 
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 18px; }
-.stat { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 16px; border: 1px solid var(--border); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, var(--card)), var(--card)); box-shadow: 0 2px 8px rgba(0, 0, 0, .04); opacity: 0; transform: translateY(10px); animation: rise .5s cubic-bezier(.2, .7, .3, 1) forwards; }
+.stat { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: var(--radius); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, var(--card)), var(--card)); box-shadow: var(--shadow); opacity: 0; transform: translateY(10px); animation: rise .5s cubic-bezier(.2, .7, .3, 1) forwards; }
 @keyframes rise { to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .stat { animation: none; opacity: 1; transform: none; } }
-.sicon { width: 46px; height: 46px; border-radius: 13px; flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--c) 65%, transparent); }
+.sicon { width: 46px; height: 46px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--c) 65%, transparent); }
 .snum { font-family: var(--mono); font-weight: 700; font-size: 24px; line-height: 1; color: var(--ink); }
 .slabel { font-size: 12.5px; font-weight: 600; color: var(--ink-3); margin-top: 4px; }
 
@@ -290,15 +275,8 @@ onMounted(() => {
 @keyframes slide { 0% { margin-left: -40%; } 100% { margin-left: 100%; } }
 
 .toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-.search { display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; height: 42px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); min-width: 280px; flex: 1; max-width: 420px; transition: border-color .15s; }
-.search:focus-within { border-color: var(--border-2); }
-.search-ic { color: var(--ink-3); }
-.search input { flex: 1; border: 0; outline: 0; background: transparent; color: var(--ink); font-family: var(--font); font-size: 13.5px; font-weight: 500; min-width: 0; }
-.search input::placeholder { color: var(--ink-3); }
-.search-x { border: 0; background: transparent; cursor: pointer; color: var(--ink-3); display: grid; place-items: center; padding: 2px; border-radius: 6px; }
-.search-x:hover { color: var(--ink); background: var(--hover); }
 .methods { display: inline-flex; gap: 6px; flex-wrap: wrap; }
-.mchip { font-family: var(--font); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; padding: 7px 11px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-3); cursor: pointer; transition: all .14s; }
+.mchip { font-family: var(--font); font-weight: var(--bold); font-size: 11px; text-transform: uppercase; letter-spacing: .03em; padding: 7px 11px; border-radius: var(--radius-sm); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: var(--surface); color: var(--ink-3); cursor: pointer; transition: all .14s; }
 .mchip:hover { border-color: var(--border-2); }
 .mchip.on { color: #fff; border-color: transparent; }
 .mchip.on.get { background: #2f6df6; } .mchip.on.post { background: #1d9d63; }
@@ -309,26 +287,26 @@ onMounted(() => {
 .link-btn:hover { background: var(--hover); }
 
 .empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 0; color: var(--ink-3); }
-.empty-ic { width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; color: var(--ink-3); background: var(--pill); }
+.empty-ic { width: 60px; height: 60px; border-radius: var(--radius-lg); display: grid; place-items: center; color: var(--ink-3); background: var(--pill); }
 .empty p { margin: 0; font-weight: 600; font-size: 14px; }
 
 .group { margin-bottom: 10px; }
 .group-head { width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 6px; border: 0; background: transparent; cursor: pointer; text-align: left; border-bottom: 1px solid var(--border); }
 .g-caret { color: var(--ink-3); transition: transform .2s; }
 .g-caret.open { transform: rotate(90deg); }
-.g-name { font-family: var(--font); font-weight: 800; font-size: 17px; color: var(--ink); letter-spacing: -.02em; }
+.g-name { font-family: var(--font); font-weight: var(--bold); font-size: 17px; color: var(--ink); letter-spacing: -.02em; }
 .g-count { font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--ink-3); background: var(--pill); padding: 2px 9px; border-radius: 999px; }
 .g-desc { font-size: 12.5px; color: var(--ink-3); font-weight: 500; margin-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .ops { display: flex; flex-direction: column; gap: 8px; padding: 10px 0 4px; }
-.op { border: 1px solid var(--border); border-radius: 13px; overflow: hidden; background: var(--card); transition: border-color .15s, box-shadow .15s; }
+.op { border: var(--border-w) var(--lj-border-style, solid) var(--border-c); border-radius: var(--radius); overflow: hidden; background: var(--card); transition: border-color .15s, box-shadow .15s; }
 .op:hover { box-shadow: 0 6px 18px -12px rgba(0, 0, 0, .4); }
 .op.get { background: color-mix(in srgb, #2f6df6 5%, var(--card)); }
 .op.post { background: color-mix(in srgb, #1d9d63 6%, var(--card)); }
 .op.put, .op.patch { background: color-mix(in srgb, #d9701a 6%, var(--card)); }
 .op.delete { background: color-mix(in srgb, #df4d42 6%, var(--card)); }
 .op-head { width: 100%; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: 0; background: transparent; cursor: pointer; text-align: left; }
-.op-method { flex: none; min-width: 64px; text-align: center; font-family: var(--font); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #fff; padding: 5px 8px; border-radius: 8px; }
+.op-method { flex: none; min-width: 64px; text-align: center; font-family: var(--font); font-weight: var(--bold); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #fff; padding: 5px 8px; border-radius: var(--radius-sm); }
 .op-method.get { background: #2f6df6; } .op-method.post { background: #1d9d63; }
 .op-method.put, .op-method.patch { background: #d9701a; } .op-method.delete { background: #df4d42; }
 .op-method.head, .op-method.options { background: #8b5cf6; }
@@ -356,7 +334,7 @@ onMounted(() => {
 .p-type { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); background: rgba(var(--v-theme-on-surface), .06); padding: 2px 7px; border-radius: 6px; }
 .p-desc { font-size: 12.5px; color: var(--ink-3); flex: 1; min-width: 120px; }
 .muted { font-size: 12.5px; color: var(--ink-3); margin: 0; }
-.code-badge { font-family: var(--mono); font-weight: 700; font-size: 12px; padding: 3px 9px; border-radius: 8px; flex: none; }
+.code-badge { font-family: var(--mono); font-weight: 700; font-size: 12px; padding: 3px 9px; border-radius: var(--radius-sm); flex: none; }
 .code-badge.ok { color: #1d9d63; background: rgba(29, 157, 99, .14); }
 .code-badge.info { color: #2f6df6; background: rgba(47, 109, 246, .13); }
 .code-badge.warn { color: #d9701a; background: rgba(217, 112, 26, .14); }

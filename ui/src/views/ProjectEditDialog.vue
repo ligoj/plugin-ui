@@ -8,40 +8,26 @@
   autocomplete hitting rest/service/id/user.
 -->
 <template>
-  <v-dialog :model-value="modelValue" @update:model-value="onDialogModel" max-width="600" scrollable>
-    <v-card class="vmodal">
-      <div class="vmodal-head">
-        <span class="mi"><v-icon color="#fff">mdi-folder-outline</v-icon></span>
-        <h3>{{ isEdit ? t('project.edit') : t('project.new') }}</h3>
-        <button class="x" :aria-label="t('common.cancel')" @click="requestClose"><v-icon size="20">mdi-close</v-icon></button>
-      </div>
-
-      <v-card-text class="vmodal-body">
-        <v-form ref="formRef" @submit.prevent="save">
-          <v-text-field v-model="form.name" :label="t('project.name')" :rules="[rules.required]" prepend-inner-icon="mdi-form-textbox" variant="outlined" class="mb-2" autofocus @update:model-value="onNameChanged" />
-          <v-text-field v-model="form.pkey" :label="t('project.pkey')" :rules="[rules.required, rules.pkey]" :disabled="pkeyLocked" :hint="pkeyLocked ? t('project.pkeyLocked') : t('project.pkeyHint')" persistent-hint
-            prepend-inner-icon="mdi-key" variant="outlined" class="mb-2" />
-          <v-autocomplete v-model="form.teamLeader" v-model:search="leaderSearch" :label="t('project.teamLeader')" :items="leaderDisplayItems" item-title="label" item-value="id" :loading="leaderLoading"
-            :rules="[rules.required]" :hint="t('project.teamLeaderHint')" persistent-hint prepend-inner-icon="mdi-account-star" no-filter clearable auto-select-first variant="outlined" class="mb-2"
-            autocomplete="off" @update:search="onLeaderSearch" @update:menu="onLeaderMenu" />
-          <v-textarea v-model="form.description" :label="t('project.description')" rows="3" prepend-inner-icon="mdi-text-long" variant="outlined" class="mb-2" />
-        </v-form>
-      </v-card-text>
-
-      <div class="vmodal-foot">
-        <span class="foot-sp" />
-        <button class="mbtn ghost" @click="requestClose">{{ t('common.cancel') }}</button>
-        <button class="mbtn primary" :disabled="saving" @click="save">
-          <span v-if="saving" class="mspin" aria-hidden="true" /><v-icon v-else size="18">mdi-content-save</v-icon>{{ t('common.save') }}
-        </button>
-      </div>
-    </v-card>
-  </v-dialog>
+  <LjDialog :model-value="modelValue" :title="isEdit ? t('project.edit') : t('project.new')" icon="mdi-folder-outline" :max-width="600" @update:model-value="onDialogModel">
+      <v-form ref="formRef" @submit.prevent="save">
+        <v-text-field v-model="form.name" :label="t('project.name')" :rules="[rules.required]" prepend-inner-icon="mdi-form-textbox" variant="outlined" class="mb-2" autofocus @update:model-value="onNameChanged" />
+        <v-text-field v-model="form.pkey" :label="t('project.pkey')" :rules="[rules.required, rules.pkey]" :disabled="pkeyLocked" :hint="pkeyLocked ? t('project.pkeyLocked') : t('project.pkeyHint')" persistent-hint
+          prepend-inner-icon="mdi-key" variant="outlined" class="mb-2" />
+        <v-autocomplete v-model="form.teamLeader" v-model:search="leaderSearch" :label="t('project.teamLeader')" :items="leaderDisplayItems" item-title="label" item-value="id" :loading="leaderLoading"
+          :rules="[rules.required]" :hint="t('project.teamLeaderHint')" persistent-hint prepend-inner-icon="mdi-account-star" no-filter clearable auto-select-first variant="outlined" class="mb-2"
+          autocomplete="off" @update:search="onLeaderSearch" @update:menu="onLeaderMenu" />
+        <v-textarea v-model="form.description" :label="t('project.description')" rows="3" prepend-inner-icon="mdi-text-long" variant="outlined" class="mb-2" />
+      </v-form>
+      <template #footer>
+        <LjButton variant="ghost" @click="requestClose">{{ t('common.cancel') }}</LjButton>
+        <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
+      </template>
+  </LjDialog>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useApi, useI18nStore } from '@ligoj/host'
+import { useApi, useI18nStore, LjDialog, LjButton } from '@ligoj/host'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -162,38 +148,12 @@ async function save() {
 </script>
 
 <style scoped>
-/* Vibrant dialog chrome — shared language with UserEditDialog /
-   DelegateEditDialog. Vars on the .vmodal card so they reach the teleported
-   dialog content. */
-.vmodal {
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .5);
-  --border: rgba(var(--v-theme-on-surface), .14);
-  --border-2: rgba(var(--v-theme-on-surface), .26);
-  --hover: rgba(var(--v-theme-on-surface), .06);
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  border-radius: 20px !important;
-  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .55) !important;
-}
-.vmodal-head { display: flex; align-items: center; gap: 13px; padding: 22px 24px 8px; }
-.vmodal-head .mi { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex: none; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -8px rgba(255, 90, 82, .6); }
-.vmodal-head h3 { font-family: var(--font); font-weight: 800; font-size: 20px; margin: 0; flex: 1; color: var(--ink); letter-spacing: -.02em; }
-.vmodal-head .x { width: 36px; height: 36px; border: 0; background: transparent; border-radius: 9px; cursor: pointer; display: grid; place-items: center; color: var(--ink-3); }
-.vmodal-head .x:hover { background: var(--hover); color: var(--ink); }
-.vmodal-body { padding: 12px 24px 6px !important; }
-.vmodal :deep(.v-field) { border-radius: 12px; font-family: var(--font); }
-.vmodal :deep(.v-field__prepend-inner .v-icon) { opacity: .55; }
-.vmodal :deep(.v-label) { font-weight: 600; }
-
-.vmodal-foot { display: flex; align-items: center; gap: 10px; padding: 14px 24px 22px; }
-.foot-sp { flex: 1; }
-.mbtn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; padding: 10px 17px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; transition: filter .15s, background .15s, border-color .15s; }
-.mbtn.primary { color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -10px rgba(255, 90, 82, .55); }
-.mbtn.primary:hover:not(:disabled) { filter: brightness(1.04); }
-.mbtn.ghost { color: var(--ink-2); background: transparent; border-color: var(--border); }
-.mbtn.ghost:hover:not(:disabled) { background: var(--hover); border-color: var(--border-2); }
-.mbtn:disabled { opacity: .6; cursor: default; }
-.mspin { width: 15px; height: 15px; border: 2px solid rgba(255, 255, 255, .5); border-top-color: #fff; border-radius: 50%; animation: dspin .7s linear infinite; }
-@keyframes dspin { to { transform: rotate(360deg); } }
+/* Dialog chrome (card, header, footer, buttons, base field rounding) now
+   comes from <LjDialog> / <LjButton> + the global `.lj-surface` on the card,
+   which supplies the --font/--radius-sm tokens these field refinements read.
+   Only the form-field tweaks specific to this dialog remain; they scope onto
+   the slotted content via :deep(). */
+:deep(.v-field) { border-radius: var(--radius-sm); font-family: var(--font); }
+:deep(.v-field__prepend-inner .v-icon) { opacity: .55; }
+:deep(.v-label) { font-weight: 600; }
 </style>

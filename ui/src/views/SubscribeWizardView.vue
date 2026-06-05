@@ -14,15 +14,7 @@
   backend nodes.
 -->
 <template>
-  <v-dialog :model-value="modelValue" @update:model-value="onDialogModel" max-width="720" scrollable>
-    <v-card class="vmodal">
-      <div class="vmodal-head">
-        <span class="mi"><v-icon color="#fff">mdi-cloud-plus-outline</v-icon></span>
-        <h3>{{ t('wizard.title') }}</h3>
-        <button class="x" :aria-label="t('common.cancel')" @click="$emit('update:modelValue', false)"><v-icon size="20">mdi-close</v-icon></button>
-      </div>
-
-      <v-card-text class="vmodal-body">
+  <LjDialog :model-value="modelValue" :title="t('wizard.title')" icon="mdi-cloud-plus-outline" :max-width="720" @update:model-value="onDialogModel">
         <p v-if="projectName" class="ctx">{{ t('wizard.contextBefore') }} <strong>{{ projectName }}</strong>.</p>
         <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
@@ -67,9 +59,7 @@
                 </v-list-item>
               </template>
             </v-select>
-            <button class="mbtn ghost" :disabled="!selected.tool" @click="toggleNewNode">
-              <v-icon size="18">{{ showNewNode ? 'mdi-close' : 'mdi-plus' }}</v-icon>{{ showNewNode ? t('wizard.pickExisting') : t('wizard.newInstance') }}
-            </button>
+            <LjButton variant="ghost" :icon="showNewNode ? 'mdi-close' : 'mdi-plus'" :disabled="!selected.tool" @click="toggleNewNode">{{ showNewNode ? t('wizard.pickExisting') : t('wizard.newInstance') }}</LjButton>
           </div>
 
           <v-expand-transition>
@@ -77,9 +67,7 @@
               <v-text-field v-model="newNode.id" :label="t('wizard.label.id')" :hint="`${selected.tool?.id || ''}:my-instance`" persistent-hint variant="outlined" density="comfortable" class="mb-2" />
               <v-text-field v-model="newNode.name" :label="t('wizard.label.name')" variant="outlined" density="comfortable" class="mb-2" hide-details />
               <p v-if="newNodeError" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ newNodeError }}</p>
-              <button class="mbtn primary sm" :disabled="!newNode.id || !newNode.name || creatingNode" @click="createNode">
-                <span v-if="creatingNode" class="mspin" /><v-icon v-else size="16">mdi-plus</v-icon>{{ t('wizard.createInstance') }}
-              </button>
+              <LjButton icon="mdi-plus" :icon-size="16" :disabled="!newNode.id || !newNode.name" :loading="creatingNode" @click="createNode">{{ t('wizard.createInstance') }}</LjButton>
             </div>
           </v-expand-transition>
         </section>
@@ -87,11 +75,7 @@
         <!-- 4. Mode -->
         <section class="step" :class="{ off: !selected.node }">
           <div class="sh"><span class="n">4</span><v-icon size="18">mdi-link-variant</v-icon>{{ t('wizard.step.mode') }}</div>
-          <div class="seg" v-if="availableModes.length">
-            <button v-for="m in availableModes" :key="m.value" :class="{ on: selected.mode === m.value }" @click="selected.mode = m.value">
-              {{ m.label }}
-            </button>
-          </div>
+          <LjSegmented v-if="availableModes.length" v-model="selected.mode" :options="availableModes" />
           <p v-if="selected.mode" class="modehint">{{ modeHint }}</p>
         </section>
 
@@ -114,22 +98,16 @@
             <v-text-field v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
           </div>
         </section>
-      </v-card-text>
-
-      <div class="vmodal-foot">
-        <span class="foot-sp" />
-        <button class="mbtn ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</button>
-        <button class="mbtn primary" :disabled="!ready || creating" @click="submit">
-          <span v-if="creating" class="mspin" /><v-icon v-else size="18">mdi-check</v-icon>{{ t('wizard.action.createSubscription') }}
-        </button>
-      </div>
-    </v-card>
-  </v-dialog>
+      <template #footer>
+        <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
+        <LjButton icon="mdi-check" :disabled="!ready" :loading="creating" @click="submit">{{ t('wizard.action.createSubscription') }}</LjButton>
+      </template>
+  </LjDialog>
 </template>
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useErrorStore, useI18nStore, NodeIcon, pluginRegistry, pluginIdFromKey, loadPlugin } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, NodeIcon, pluginRegistry, pluginIdFromKey, loadPlugin, LjDialog, LjButton, LjSegmented } from '@ligoj/host'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -357,26 +335,13 @@ watch(() => props.modelValue, (val) => {
 </script>
 
 <style scoped>
-.vmodal {
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .5);
-  --border: rgba(var(--v-theme-on-surface), .14);
-  --border-2: rgba(var(--v-theme-on-surface), .26);
-  --hover: rgba(var(--v-theme-on-surface), .06);
-  --surface: rgb(var(--v-theme-surface));
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  border-radius: 20px !important;
-  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .55) !important;
-}
-.vmodal-head { display: flex; align-items: center; gap: 13px; padding: 22px 24px 8px; }
-.vmodal-head .mi { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex: none; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -8px rgba(255, 90, 82, .6); }
-.vmodal-head h3 { font-family: var(--font); font-weight: 800; font-size: 20px; margin: 0; flex: 1; color: var(--ink); letter-spacing: -.02em; }
-.vmodal-head .x { width: 36px; height: 36px; border: 0; background: transparent; border-radius: 9px; cursor: pointer; display: grid; place-items: center; color: var(--ink-3); }
-.vmodal-head .x:hover { background: var(--hover); color: var(--ink); }
-.vmodal-body { padding: 8px 24px 6px !important; }
-.vmodal :deep(.v-field) { border-radius: 12px; font-family: var(--font); }
-.vmodal :deep(.v-label) { font-weight: 600; }
+/* Dialog chrome (card, header, footer, mode segment, buttons, base field
+   rounding) now comes from <LjDialog> / <LjSegmented> / <LjButton> + the
+   global `.lj-surface` on the dialog card, which supplies the ink, font,
+   radius, hover, surface and border vars these wizard-step rules read. Only
+   the step layout specific to this form remains. */
+:deep(.v-field) { border-radius: var(--radius-sm); font-family: var(--font); }
+:deep(.v-label) { font-weight: 600; }
 
 .ctx { font-size: 13.5px; color: var(--ink-2); margin: 2px 0 14px; }
 .errline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: rgb(var(--v-theme-error)); margin: 6px 0; }
@@ -384,31 +349,15 @@ watch(() => props.modelValue, (val) => {
 .step { padding: 12px 0; border-top: 1px solid var(--border); transition: opacity .2s; }
 .step:first-of-type { border-top: 0; }
 .step.off { opacity: .45; pointer-events: none; }
-.sh { display: flex; align-items: center; gap: 9px; font-family: var(--font); font-weight: 700; font-size: 14.5px; color: var(--ink); margin-bottom: 10px; }
+.sh { display: flex; align-items: center; gap: 9px; font-family: var(--font); font-weight: var(--bold); font-size: 14.5px; color: var(--ink); margin-bottom: 10px; }
 .sh .n { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); }
 .opt { display: inline-flex; align-items: center; gap: 8px; }
 .opt :deep(img.tool-icon), .opt :deep(i) { width: 20px; height: 20px; font-size: 18px; }
 
 .inst-row { display: flex; align-items: flex-start; gap: 10px; }
-.newnode { margin-top: 12px; padding: 14px; border-radius: 12px; background: var(--hover); border: 1px dashed var(--border-2); }
+.newnode { margin-top: 12px; padding: 14px; border-radius: var(--radius-sm); background: var(--hover); border: var(--border-w) dashed var(--border-2); }
 
-.seg { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-.seg button { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; padding: 8px 18px; border-radius: 9px; cursor: pointer; font-family: var(--font); font-weight: 700; font-size: 13px; color: var(--ink-3); transition: background .15s, color .15s; }
-.seg button:hover { color: var(--ink); }
-.seg button.on { color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); }
 .modehint { font-size: 12.5px; color: var(--ink-3); margin: 8px 0 0; }
 .muted { font-size: 13px; color: var(--ink-3); }
 .pfield { margin-bottom: 12px; }
-
-.vmodal-foot { display: flex; align-items: center; gap: 10px; padding: 14px 24px 22px; }
-.foot-sp { flex: 1; }
-.mbtn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; padding: 10px 17px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; transition: filter .15s, background .15s, border-color .15s; }
-.mbtn.sm { padding: 8px 14px; font-size: 13px; }
-.mbtn.primary { color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -10px rgba(255, 90, 82, .55); }
-.mbtn.primary:hover:not(:disabled) { filter: brightness(1.04); }
-.mbtn.ghost { color: var(--ink-2); background: transparent; border-color: var(--border); }
-.mbtn.ghost:hover:not(:disabled) { background: var(--hover); border-color: var(--border-2); }
-.mbtn:disabled { opacity: .55; cursor: default; }
-.mspin { width: 15px; height: 15px; border: 2px solid rgba(255, 255, 255, .5); border-top-color: #fff; border-radius: 50%; animation: dspin .7s linear infinite; }
-@keyframes dspin { to { transform: rotate(360deg); } }
 </style>

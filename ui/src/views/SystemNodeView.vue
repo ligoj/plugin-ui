@@ -8,15 +8,12 @@
   edit/delete row actions. Mockup ref: viewNodes.
 -->
 <template>
-  <div class="nodes">
-    <header class="ph">
-      <div class="ph-txt">
-        <nav class="crumbs"><span class="crumb"><v-icon size="13">mdi-cog-outline</v-icon>{{ t('system.breadcrumb') }}</span><span class="csep">›</span><span class="crumb cur">{{
-          t('system.node.title') }}</span></nav>
-        <h1>{{ t('system.node.title') }}</h1>
-        <p class="sub"><b>{{ items.length }}</b> {{ t('system.node.countLabel') }}<span v-if="filter !== 'all'"> · {{ filtered.length }} {{ t('system.node.filtered') }}</span></p>
-      </div>
-      <div class="ph-actions">
+  <div class="nodes lj-surface">
+    <LjPageHeader :title="t('system.node.title')" :crumbs="[{ icon: 'mdi-cog-outline', label: t('system.breadcrumb') }, { label: t('system.node.title'), current: true }]">
+      <template #subtitle>
+        <b>{{ items.length }}</b> {{ t('system.node.countLabel') }}<span v-if="filter !== 'all'"> · {{ filtered.length }} {{ t('system.node.filtered') }}</span>
+      </template>
+      <template #actions>
         <div class="vsel" :class="{ open: filterOpen }" ref="filterSel">
           <button type="button" class="vsel-btn" @click="filterOpen = !filterOpen">
             <v-icon size="16">{{ currentFilter.icon }}</v-icon><span class="vlabel">{{ currentFilter.label }}</span><span class="vcaret">▾</span>
@@ -27,9 +24,9 @@
             </button>
           </div>
         </div>
-        <button class="btn" @click="startCreate"><v-icon size="18">mdi-plus</v-icon>{{ t('system.node.new') }}</button>
-      </div>
-    </header>
+        <LjButton icon="mdi-plus" @click="startCreate">{{ t('system.node.new') }}</LjButton>
+      </template>
+    </LjPageHeader>
 
     <div class="stats">
       <div v-for="(s, i) in stats" :key="s.key" class="stat" :class="{ active: filter === s.fkey }" :style="{ '--c': s.color, 'animation-delay': (i * 50) + 'ms' }" @click="pickFilter(s.fkey)">
@@ -66,11 +63,11 @@
       </template>
       <template #actions="{ item }">
         <template v-if="isInstance(item)">
-          <button class="iconbtn" @click.stop="startEdit(item)">
+          <button class="lj-iconbtn" @click.stop="startEdit(item)">
             <v-icon size="18">mdi-pencil-outline</v-icon>
             <v-tooltip activator="parent" :text="t('common.edit')" location="top" />
           </button>
-          <button class="iconbtn danger" @click.stop="startDelete(item)">
+          <button class="lj-iconbtn danger" @click.stop="startDelete(item)">
             <v-icon size="18">mdi-delete-outline</v-icon>
             <v-tooltip activator="parent" :text="t('common.delete')" location="top" />
           </button>
@@ -90,9 +87,8 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi, useAppStore, useI18nStore, NodeIcon, NodeModeChip, isInstance, nodeType } from '@ligoj/host'
-import { VibrantDataTable as VibrantDataTable } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton } from '@ligoj/host'
 import NodeEditDialog from './NodeEditDialog.vue'
-import { VibrantConfirmDialog as LigojConfirmDialog } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -173,109 +169,14 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
 </script>
 
 <style scoped>
-.nodes {
-  --surface: rgb(var(--v-theme-surface));
-  --card: rgb(var(--v-theme-surface));
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .55);
-  --border: rgba(var(--v-theme-on-surface), .12);
-  --border-2: rgba(var(--v-theme-on-surface), .26);
-  --hover: rgba(var(--v-theme-on-surface), .06);
-  --pill: rgba(var(--v-theme-on-surface), .06);
-  --accent: rgb(var(--v-theme-secondary));
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  --mono: var(--v26-mono, "JetBrains Mono", ui-monospace, monospace);
-  color: var(--ink);
-}
-
-.ph {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 18px;
-  flex-wrap: wrap;
-  margin-bottom: 18px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
-}
-
-.crumbs {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-bottom: 8px;
-}
-
-.crumb {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--font);
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--ink-3);
-  background: var(--pill);
-  border-radius: 999px;
-  padding: 3px 10px;
-}
-
-.crumb.cur {
-  color: var(--accent);
-  background: rgba(var(--v-theme-secondary), .12);
-}
-
-.csep {
-  color: var(--ink-3);
-  font-size: 12px;
-}
-
-.ph-txt h1 {
-  font-family: var(--font);
-  font-weight: 800;
-  letter-spacing: -.03em;
-  font-size: 28px;
-  margin: 0;
-}
-
-.ph-txt .sub {
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: var(--ink-3);
-  font-weight: 500;
-}
-
-.ph-txt .sub b {
+/* View-specific styling only — chrome (header, primary button, row icon
+   buttons) comes from the shared host components + the global `.lj-surface`
+   / `.lj-iconbtn` classes, which supply the ink, pill, radius, mono,
+   surface and card vars these rules read. The `.vsel` type-filter dropdown
+   is bespoke (no shared equivalent) and stays here. */
+.sub b {
   color: var(--ink-2);
   font-family: var(--mono);
-}
-
-.ph-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font);
-  font-weight: 700;
-  font-size: 14px;
-  padding: 10px 16px;
-  border-radius: 12px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  color: #fff;
-  background: linear-gradient(135deg, #ff9436, #ff5a52);
-  box-shadow: 0 8px 18px -10px rgba(255, 90, 82, .55);
-  transition: filter .15s;
-}
-
-.btn:hover {
-  filter: brightness(1.04);
 }
 
 .vsel {
@@ -287,8 +188,8 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
   background: var(--surface);
   color: var(--ink-2);
   font-family: var(--font);
@@ -319,9 +220,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
   right: 0;
   min-width: 190px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 13px;
-  box-shadow: 0 16px 36px -14px rgba(0, 0, 0, .3);
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
   padding: 5px;
   z-index: 20;
   animation: vmenu .12s ease;
@@ -347,7 +248,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
   padding: 9px 11px;
   border: 0;
   background: transparent;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   color: var(--ink);
   font-family: var(--font);
   font-size: 13.5px;
@@ -387,10 +288,10 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
   flex-direction: column;
   gap: 12px;
   padding: 16px 18px;
-  border-radius: 16px;
-  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
   background: linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, var(--card)), var(--card));
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+  box-shadow: var(--shadow);
   cursor: pointer;
   opacity: 0;
   transform: translateY(10px);
@@ -425,7 +326,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
 .sicon {
   width: 46px;
   height: 46px;
-  border-radius: 13px;
+  border-radius: var(--radius-sm);
   flex: none;
   display: grid;
   place-items: center;
@@ -483,7 +384,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
 .nglyph {
   width: 36px;
   height: 36px;
-  border-radius: 11px;
+  border-radius: var(--radius-sm);
   flex: none;
   display: grid;
   place-items: center;
@@ -584,25 +485,8 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
   color: #df4d42;
 }
 
-.iconbtn {
-  width: 32px;
-  height: 32px;
-  border: 0;
-  background: transparent;
-  border-radius: 9px;
-  cursor: pointer;
-  display: inline-grid;
-  place-items: center;
-  color: var(--ink-3);
-  transition: background .15s, color .15s;
-}
-
-.iconbtn:hover {
-  background: var(--hover);
-  color: var(--ink);
-}
-
-.iconbtn.danger:hover {
+/* Danger accent for the inline delete trigger (base `.lj-iconbtn` is global). */
+.lj-iconbtn.danger:hover {
   background: rgba(var(--v-theme-error), .1);
   color: rgb(var(--v-theme-error));
 }

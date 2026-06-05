@@ -13,24 +13,21 @@
   preview.
 -->
 <template>
-  <div class="pdetail">
-    <header class="ph">
-      <div class="ph-txt">
-        <a class="back" @click="router.push('/project')"><v-icon size="16">mdi-arrow-left</v-icon>{{ t('project.title') }}</a>
-        <h1>{{ project?.name || '…' }}</h1>
-        <p class="sub">
-          <span class="pkey">{{ project?.pkey }}</span>
-          <span class="dot">·</span>
-          <b>{{ subscriptions.length }}</b> {{ t('project.detail.subscriptions').toLowerCase() }}
-          <span v-if="demoMode"> · {{ t('common.preview') }}</span>
-        </p>
-      </div>
-      <div class="ph-actions">
-        <button v-if="project && !demoMode" class="btn ghost" @click="auditDialog = true"><v-icon size="18">mdi-clock-outline</v-icon>{{ t('common.audit') || 'Audit' }}</button>
-        <button v-if="!demoMode" class="btn ghost" @click="editDialog = true"><v-icon size="18">mdi-pencil</v-icon>{{ t('project.detail.edit') }}</button>
-        <button class="btn" @click="openSubscribe"><v-icon size="18">mdi-plus</v-icon>{{ t('project.detail.addSubscription') }}</button>
-      </div>
-    </header>
+  <div class="pdetail lj-surface">
+    <a class="back" @click="router.push('/project')"><v-icon size="16">mdi-arrow-left</v-icon>{{ t('project.title') }}</a>
+    <LjPageHeader :title="project?.name || '…'">
+      <template #subtitle>
+        <span class="pkey">{{ project?.pkey }}</span>
+        <span class="dot">·</span>
+        <b>{{ subscriptions.length }}</b> {{ t('project.detail.subscriptions').toLowerCase() }}
+        <span v-if="demoMode"> · {{ t('common.preview') }}</span>
+      </template>
+      <template #actions>
+        <LjButton v-if="project && !demoMode" variant="ghost" icon="mdi-clock-outline" @click="auditDialog = true">{{ t('common.audit') || 'Audit' }}</LjButton>
+        <LjButton v-if="!demoMode" variant="ghost" icon="mdi-pencil" @click="editDialog = true">{{ t('project.detail.edit') }}</LjButton>
+        <LjButton icon="mdi-plus" @click="openSubscribe">{{ t('project.detail.addSubscription') }}</LjButton>
+      </template>
+    </LjPageHeader>
 
     <!-- Audit strip -->
     <div v-if="project && (project.teamLeader || project.description)" class="meta">
@@ -100,7 +97,7 @@
     <div v-else class="empty">
       <v-icon size="44" color="rgba(var(--v-theme-on-surface),.25)">mdi-cloud-off-outline</v-icon>
       <p>{{ t('project.detail.noSubscriptions') }}</p>
-      <button class="btn" @click="openSubscribe"><v-icon size="18">mdi-plus</v-icon>{{ t('project.detail.addSubscription') }}</button>
+      <LjButton icon="mdi-plus" @click="openSubscribe">{{ t('project.detail.addSubscription') }}</LjButton>
     </div>
 
     <ProjectEditDialog v-model="editDialog" :project="project" @saved="load" />
@@ -124,7 +121,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore, useI18nStore, NodeIcon, VIcon, PluginFeatures } from '@ligoj/host'
+import { useApi, useAppStore, useI18nStore, NodeIcon, VIcon, PluginFeatures, LjPageHeader, LjButton } from '@ligoj/host'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import SubscribeWizardDialog from './SubscribeWizardView.vue'
 import AuditDialog from '../components/AuditDialog.vue'
@@ -331,32 +328,17 @@ onMounted(load)
 </script>
 
 <style scoped>
+/* View-specific styling only — chrome (page header + primary/ghost buttons)
+   comes from the shared host components + the global `.lj-surface` class,
+   which supplies the ink, pill, radius, mono, surface, card and border vars
+   these cockpit cards read. The `.back` link, the `.rowact`/`.rowcog`
+   PluginFeatures cluster, the custom `.rowmenu` and the `.toast` are bespoke
+   to this view and PRESERVED. The status-dot colour vars below are bespoke. */
 .pdetail {
-  --surface: rgb(var(--v-theme-surface));
-  --card: rgb(var(--v-theme-surface));
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .55);
-  --border: rgba(var(--v-theme-on-surface), .12);
-  --pill: rgba(var(--v-theme-on-surface), .06);
-  --accent: rgb(var(--v-theme-secondary));
   --ok: #1d9d63;
   --warn: #d98a16;
   --err: #df4d42;
   --idle: #bcb6a8;
-  --radius: 18px;
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  --mono: var(--v26-mono, "JetBrains Mono", ui-monospace, monospace);
-  color: var(--ink);
-}
-
-.ph {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 18px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
 }
 
 .back {
@@ -376,27 +358,10 @@ onMounted(load)
   color: var(--accent);
 }
 
-.ph-txt h1 {
-  font-family: var(--font);
-  font-weight: 800;
-  letter-spacing: -.03em;
-  font-size: 28px;
-  margin: 0;
-  color: var(--ink);
-}
-
-.ph-txt .sub {
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: var(--ink-3);
-  font-weight: 500;
-  display: flex;
+/* Subtitle inline bits (slotted into LjPageHeader's `.sub`). */
+.pkey {
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
-  flex-wrap: wrap;
-}
-
-.ph-txt .sub .pkey {
   font-family: var(--mono);
   font-size: 12px;
   font-weight: 700;
@@ -404,56 +369,18 @@ onMounted(load)
   letter-spacing: .04em;
   color: var(--ink-2);
   background: var(--pill);
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   padding: 2px 8px;
+  vertical-align: middle;
 }
 
-.ph-txt .sub .dot {
+.dot {
   opacity: .4;
 }
 
-.ph-txt .sub b {
+.sub b {
   color: var(--ink-2);
   font-family: var(--mono);
-}
-
-.ph-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font);
-  font-weight: 700;
-  font-size: 14px;
-  padding: 11px 17px;
-  border-radius: 12px;
-  cursor: pointer;
-  border: 0;
-  color: #fff;
-  background: linear-gradient(135deg, #ff9436, #ff5a52);
-  box-shadow: 0 8px 18px -10px rgba(255, 90, 82, .55);
-  transition: filter .15s;
-}
-
-.btn:hover {
-  filter: brightness(1.04);
-}
-
-.btn.ghost {
-  background: transparent;
-  color: var(--ink-2);
-  border: 1px solid var(--border);
-  box-shadow: none;
-}
-
-.btn.ghost:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  filter: none;
 }
 
 .meta {
@@ -463,8 +390,8 @@ onMounted(load)
   flex-wrap: wrap;
   margin-bottom: 18px;
   padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
   background: var(--pill);
   font-size: 13px;
   color: var(--ink-2);
@@ -490,10 +417,10 @@ onMounted(load)
 .card {
   position: relative;
   background: var(--card);
-  border: 1px solid var(--border);
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
   border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, .05);
+  box-shadow: var(--shadow);
   opacity: 0;
   transform: translateY(12px);
   animation: rise .5s cubic-bezier(.2, .7, .3, 1) forwards;
@@ -540,7 +467,7 @@ onMounted(load)
 .glyph {
   width: 44px;
   height: 44px;
-  border-radius: 13px;
+  border-radius: var(--radius-sm);
   flex: none;
   display: grid;
   place-items: center;
@@ -572,7 +499,7 @@ onMounted(load)
 
 .card-head .name {
   font-family: var(--font);
-  font-weight: 800;
+  font-weight: var(--bold);
   font-size: 16.5px;
   letter-spacing: -.03em;
   color: var(--ink);
@@ -600,8 +527,8 @@ onMounted(load)
   font-weight: 700;
   color: color-mix(in srgb, var(--c) 65%, var(--ink));
   background: var(--card);
-  border: 1px solid color-mix(in srgb, var(--c) 22%, var(--border));
-  border-radius: 9px;
+  border: var(--border-w) var(--lj-border-style, solid) color-mix(in srgb, var(--c) 22%, var(--border));
+  border-radius: var(--radius-sm);
   padding: 5px 9px;
   white-space: nowrap;
 }
@@ -692,8 +619,8 @@ onMounted(load)
   font-weight: 600;
   color: var(--ink-2);
   background: var(--pill);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
+  border-radius: var(--radius-sm);
   padding: 2px 7px;
 }
 
@@ -775,7 +702,7 @@ onMounted(load)
 
 .morelink {
   font-size: 12.5px;
-  font-weight: 800;
+  font-weight: var(--bold);
   color: color-mix(in srgb, var(--c) 55%, var(--ink));
   cursor: pointer;
 }
@@ -827,14 +754,14 @@ onMounted(load)
   background: var(--ink);
   color: var(--surface);
   padding: 11px 18px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-weight: 700;
   font-size: 14px;
   z-index: 60;
   opacity: 0;
   transition: .25s;
   pointer-events: none;
-  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, .5);
+  box-shadow: var(--shadow-lg);
 }
 
 .toast.show {
@@ -852,10 +779,10 @@ onMounted(load)
   position: fixed;
   min-width: 180px;
   padding: 5px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: rgb(var(--v-theme-surface));
-  border: 1px solid rgba(var(--v-theme-on-surface), .12);
-  box-shadow: 0 18px 38px -16px rgba(0, 0, 0, .45);
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   gap: 1px;

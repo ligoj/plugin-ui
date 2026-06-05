@@ -12,35 +12,25 @@
   dataset, flagged "Aperçu". Card chrome reused from ProjectDetailView.
 -->
 <template>
-  <div class="dash">
-    <header class="ph">
-      <div class="ph-txt">
-        <nav v-if="isDemo" class="crumbs"><span class="crumb cur"><v-icon size="13">mdi-flask-outline</v-icon>Aperçu</span></nav>
-        <h1>Tableau de bord</h1>
-        <p class="sub">Bonjour <b>{{ auth.userName || 'invité' }}</b> — <span v-if="isDemo"><b>{{ attention }}</b> outils demandent votre attention.</span><span v-else><b>{{ tools.length }}</b> outils configurés sur <b>{{ projectsTotal }}</b> projets.</span></p>
-      </div>
-      <div class="kpis">
-        <div v-for="k in kpis" :key="k.l" class="kpi" :style="{ '--a': k.c }">
-          <div class="kpi-ic"><v-icon size="18">{{ k.icon }}</v-icon></div>
-          <div class="kpi-b"><div class="v">{{ k.v }}</div><div class="l">{{ k.l }}</div></div>
+  <div class="dash lj-surface">
+    <LjPageHeader title="Tableau de bord" :crumbs="isDemo ? [{ icon: 'mdi-flask-outline', label: 'Aperçu', current: true }] : null">
+      <template #subtitle>
+        Bonjour <b>{{ auth.userName || 'invité' }}</b> — <span v-if="isDemo"><b>{{ attention }}</b> outils demandent votre attention.</span><span v-else><b>{{ tools.length }}</b> outils configurés sur <b>{{ projectsTotal }}</b> projets.</span>
+      </template>
+      <template #actions>
+        <div class="kpis">
+          <div v-for="k in kpis" :key="k.l" class="kpi" :style="{ '--a': k.c }">
+            <div class="kpi-ic"><v-icon size="18">{{ k.icon }}</v-icon></div>
+            <div class="kpi-b"><div class="v">{{ k.v }}</div><div class="l">{{ k.l }}</div></div>
+          </div>
         </div>
-      </div>
-    </header>
+      </template>
+    </LjPageHeader>
 
     <div class="toolbar">
-      <div class="seg">
-        <button :class="{ on: view === 'cards' }" @click="view = 'cards'"><v-icon size="15">mdi-view-grid-outline</v-icon>Cartes</button>
-        <button :class="{ on: view === 'list' }" @click="view = 'list'"><v-icon size="15">mdi-format-list-bulleted</v-icon>Liste</button>
-      </div>
-      <div class="seg">
-        <button :class="{ on: cat === 'func' }" @click="cat = 'func'">Fonctionnel</button>
-        <button :class="{ on: cat === 'tech' }" @click="cat = 'tech'">Technique</button>
-      </div>
-      <label class="search">
-        <v-icon size="17">mdi-magnify</v-icon>
-        <input v-model="query" type="text" placeholder="Rechercher un projet ou un outil…" />
-        <button v-if="query" class="search-x" @click="query = ''"><v-icon size="15">mdi-close</v-icon></button>
-      </label>
+      <LjSegmented v-model="view" :options="viewOptions" />
+      <LjSegmented v-model="cat" :options="catOptions" />
+      <LjSearch v-model="query" placeholder="Rechercher un projet ou un outil…" />
       <span class="tb-sp" />
       <span class="tcount"><b>{{ filtered.length }}</b> outils · <b>{{ activeSum.toLocaleString('fr-FR') }}</b> souscriptions{{ isDemo ? ' actives' : '' }}</span>
     </div>
@@ -95,7 +85,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAuthStore, NodeIcon } from '@ligoj/host'
-import { VibrantDataTable as VibrantDataTable } from '@ligoj/host'
+import { VibrantDataTable, LjPageHeader, LjSegmented, LjSearch } from '@ligoj/host'
 
 const api = useApi()
 const auth = useAuthStore()
@@ -186,6 +176,16 @@ const cat = ref('func')
 const query = ref('')
 const failed = ref(new Set())
 
+// LjSegmented option sets for the two toolbar tab controls.
+const viewOptions = [
+  { value: 'cards', icon: 'mdi-view-grid-outline', label: 'Cartes' },
+  { value: 'list', icon: 'mdi-format-list-bulleted', label: 'Liste' },
+]
+const catOptions = [
+  { value: 'func', label: 'Fonctionnel' },
+  { value: 'tech', label: 'Technique' },
+]
+
 function catOf(t) { return t.cat || DEMO_CAT[t.name] || 'tech' }
 function colorOf(t, i) { return COLORS[t.name] || PALETTE[i % PALETTE.length] }
 function toolLogo(name) {
@@ -214,67 +214,42 @@ onMounted(load)
 </script>
 
 <style scoped>
+/* View-specific styling only — chrome (header, segmented tab controls,
+   search) comes from the shared host components + the global `.lj-surface`
+   class, which supplies the ink, pill, radius, mono, surface, card and
+   border vars these dashboard cards read. The status-dot colour vars below
+   are bespoke to this view. */
 .dash {
-  --card: rgb(var(--v-theme-surface));
-  --surface: rgb(var(--v-theme-surface));
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .55);
-  --border: rgba(var(--v-theme-on-surface), .12);
-  --border-2: rgba(var(--v-theme-on-surface), .26);
-  --hover: rgba(var(--v-theme-on-surface), .06);
-  --pill: rgba(var(--v-theme-on-surface), .06);
-  --accent: rgb(var(--v-theme-secondary));
   --ok: #1d9d63; --warn: #d9701a; --err: #df4d42; --idle: #9aa0a6;
-  --radius: 18px;
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  --mono: var(--v26-mono, "JetBrains Mono", ui-monospace, monospace);
-  color: var(--ink);
 }
-.ph { display: flex; align-items: flex-end; justify-content: space-between; gap: 22px; flex-wrap: wrap; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
-.crumbs { margin-bottom: 8px; }
-.crumb { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font); font-size: 11.5px; font-weight: 700; color: var(--accent); background: rgba(var(--v-theme-secondary), .12); border-radius: 999px; padding: 3px 10px; }
-.ph-txt h1 { font-family: var(--font); font-weight: 800; letter-spacing: -.035em; font-size: 30px; margin: 0; }
-.ph-txt .sub { margin: 5px 0 0; font-size: 14.5px; color: var(--ink-3); font-weight: 500; }
-.ph-txt .sub b { color: var(--ink-2); }
+.sub b { color: var(--ink-2); }
 .kpis { display: flex; gap: 12px; flex-wrap: wrap; }
-.kpi { display: flex; align-items: center; gap: 11px; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--border); background: linear-gradient(135deg, color-mix(in srgb, var(--a) 10%, var(--card)), var(--card)); box-shadow: 0 2px 8px rgba(0,0,0,.04); min-width: 132px; }
-.kpi-ic { width: 38px; height: 38px; border-radius: 11px; flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--a), color-mix(in srgb, var(--a) 70%, #000)); box-shadow: 0 8px 16px -8px color-mix(in srgb, var(--a) 65%, transparent); }
+.kpi { display: flex; align-items: center; gap: 11px; padding: 12px 16px; border-radius: var(--radius); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: linear-gradient(135deg, color-mix(in srgb, var(--a) 10%, var(--card)), var(--card)); box-shadow: var(--shadow); min-width: 132px; }
+.kpi-ic { width: 38px; height: 38px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--a), color-mix(in srgb, var(--a) 70%, #000)); box-shadow: 0 8px 16px -8px color-mix(in srgb, var(--a) 65%, transparent); }
 .kpi .v { font-family: var(--mono); font-weight: 700; font-size: 22px; line-height: 1; color: var(--ink); }
 .kpi .l { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); margin-top: 3px; }
 
 .toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
-.seg { display: inline-flex; background: var(--pill); border: 1px solid var(--border); border-radius: 12px; padding: 3px; gap: 2px; }
-.seg button { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font); font-weight: 700; font-size: 13px; color: var(--ink-3); background: transparent; border: 0; border-radius: 9px; padding: 7px 13px; cursor: pointer; transition: color .15s, background .15s, box-shadow .15s; }
-.seg button:hover { color: var(--ink); }
-.seg button.on { color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 6px 14px -8px rgba(255,90,82,.6); }
-.search { display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; height: 42px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); min-width: 240px; flex: 1; max-width: 360px; transition: border-color .15s; }
-.search:focus-within { border-color: var(--border-2); }
-.search .v-icon { color: var(--ink-3); }
-.search input { flex: 1; border: 0; outline: 0; background: transparent; color: var(--ink); font-family: var(--font); font-size: 13.5px; font-weight: 500; min-width: 0; }
-.search input::placeholder { color: var(--ink-3); }
-.search-x { border: 0; background: transparent; cursor: pointer; color: var(--ink-3); display: grid; place-items: center; padding: 2px; border-radius: 6px; }
-.search-x:hover { color: var(--ink); background: var(--hover); }
 .tb-sp { flex: 1; }
 .tcount { font-size: 13px; font-weight: 500; color: var(--ink-3); }
 .tcount b { color: var(--ink-2); font-family: var(--mono); }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
-.card { position: relative; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,.05); cursor: pointer; opacity: 0; transform: translateY(12px); animation: rise .5s cubic-bezier(.2,.7,.3,1) forwards; transition: transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .18s; }
+.card { position: relative; display: flex; flex-direction: column; background: var(--card); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); cursor: pointer; opacity: 0; transform: translateY(12px); animation: rise .5s cubic-bezier(.2,.7,.3,1) forwards; transition: transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .18s; }
 @keyframes rise { to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .card { animation: none; opacity: 1; transform: none; } }
 .card:hover { transform: translateY(-3px); box-shadow: 0 26px 50px -24px color-mix(in srgb, var(--c) 55%, transparent); }
 .card-head { display: flex; align-items: center; gap: 13px; padding: 16px 16px 14px; background: linear-gradient(180deg, color-mix(in srgb, var(--c) 16%, var(--card)), color-mix(in srgb, var(--c) 5%, var(--card))); border-bottom: 1px solid color-mix(in srgb, var(--c) 16%, var(--border)); }
-.glyph { width: 44px; height: 44px; border-radius: 13px; flex: none; display: grid; place-items: center; background: var(--card); box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--c) 50%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, var(--border)); }
-.glyph.sm { width: 36px; height: 36px; border-radius: 11px; }
+.glyph { width: 44px; height: 44px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: var(--card); box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--c) 50%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, var(--border)); }
+.glyph.sm { width: 36px; height: 36px; border-radius: var(--radius-sm); }
 .glyph .tool-logo, .glyph :deep(img.tool-icon) { width: 26px; height: 26px; object-fit: contain; }
 .glyph.sm .tool-logo, .glyph.sm :deep(img.tool-icon) { width: 22px; height: 22px; }
 .glyph :deep(i) { font-size: 24px; color: color-mix(in srgb, var(--c) 75%, var(--ink)); }
-.glyph.noimg::after { content: attr(data-letter); font-family: var(--font); font-weight: 800; font-size: 20px; color: color-mix(in srgb, var(--c) 75%, var(--ink)); }
+.glyph.noimg::after { content: attr(data-letter); font-family: var(--font); font-weight: var(--bold); font-size: 20px; color: color-mix(in srgb, var(--c) 75%, var(--ink)); }
 .card-head .t { flex: 1; min-width: 0; }
-.card-head .name { font-family: var(--font); font-weight: 800; font-size: 16.5px; letter-spacing: -.03em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-head .name { font-family: var(--font); font-weight: var(--bold); font-size: 16.5px; letter-spacing: -.03em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-head .kind { font-family: var(--mono); font-size: 11px; font-weight: 700; color: color-mix(in srgb, var(--c) 55%, var(--ink-3)); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.count { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: color-mix(in srgb, var(--c) 65%, var(--ink)); background: var(--card); border: 1px solid color-mix(in srgb, var(--c) 22%, var(--border)); border-radius: 9px; padding: 5px 9px; white-space: nowrap; }
+.count { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: color-mix(in srgb, var(--c) 65%, var(--ink)); background: var(--card); border: var(--border-w) var(--lj-border-style, solid) color-mix(in srgb, var(--c) 22%, var(--border)); border-radius: var(--radius-sm); padding: 5px 9px; white-space: nowrap; }
 .count small { opacity: .5; }
 .rows { flex: 1; padding: 8px 12px; }
 .row { display: flex; align-items: center; gap: 10px; padding: 10px 8px; border-radius: 11px; transition: background .12s; }
@@ -285,7 +260,7 @@ onMounted(load)
 .st.ok { background: var(--ok); color: var(--ok); } .st.warn { background: var(--warn); color: var(--warn); } .st.err { background: var(--err); color: var(--err); } .st.idle { background: var(--idle); color: var(--idle); }
 .row .rn { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pills { display: flex; gap: 5px; flex: none; }
-.pill { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-2); background: var(--pill); border: 1px solid var(--border); border-radius: 8px; padding: 2px 7px; }
+.pill { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-2); background: var(--pill); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); border-radius: var(--radius-sm); padding: 2px 7px; }
 .pill.cost { color: #b85b00; background: rgba(255,153,0,.12); border-color: rgba(255,153,0,.3); }
 .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px 14px; }
 .morelink { font-size: 12.5px; font-weight: 800; color: color-mix(in srgb, var(--c) 55%, var(--ink)); cursor: pointer; }

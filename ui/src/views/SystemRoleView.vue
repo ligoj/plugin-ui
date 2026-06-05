@@ -8,22 +8,16 @@
   API / UI patterns) and a confirm dialog. Client-side search / sort / paging.
 -->
 <template>
-  <div class="roles">
-    <header class="ph">
-      <div class="ph-txt">
-        <nav class="crumbs"><span class="crumb"><v-icon size="13">mdi-cog-outline</v-icon>{{ t('system.breadcrumb') }}</span><span class="csep">›</span><span class="crumb cur">{{ t('system.role.title') }}</span></nav>
-        <h1>{{ t('system.role.title') }}</h1>
-        <p class="sub"><b>{{ items.length }}</b> {{ t('system.role.countLabel') }}<span v-if="filtered.length !== items.length"> · {{ filtered.length }} {{ t('system.role.filtered') }}</span></p>
-      </div>
-      <div class="ph-actions">
-        <div class="search">
-          <v-icon size="17" class="search-ic">mdi-magnify</v-icon>
-          <input v-model="query" type="text" :placeholder="t('system.role.searchPlaceholder')" @input="page = 1" />
-          <button v-if="query" class="search-x" @click="query = ''"><v-icon size="15">mdi-close</v-icon></button>
-        </div>
-        <button class="btn" @click="openNew"><v-icon size="18">mdi-plus</v-icon>{{ t('system.role.new') }}</button>
-      </div>
-    </header>
+  <div class="roles lj-surface">
+    <LjPageHeader :title="t('system.role.title')" :crumbs="[{ icon: 'mdi-cog-outline', label: t('system.breadcrumb') }, { label: t('system.role.title'), current: true }]">
+      <template #subtitle>
+        <b>{{ items.length }}</b> {{ t('system.role.countLabel') }}<span v-if="filtered.length !== items.length"> · {{ filtered.length }} {{ t('system.role.filtered') }}</span>
+      </template>
+      <template #actions>
+        <LjSearch v-model="query" :placeholder="t('system.role.searchPlaceholder')" @input="page = 1" />
+        <LjButton icon="mdi-plus" @click="openNew">{{ t('system.role.new') }}</LjButton>
+      </template>
+    </LjPageHeader>
 
     <div class="stats">
       <div v-for="(s, i) in stats" :key="s.key" class="stat" :class="{ active: filter === s.fkey }" :style="{ '--c': s.color, 'animation-delay': (i * 50) + 'ms' }" @click="pickFilter(s.fkey)">
@@ -58,41 +52,29 @@
         </span>
       </template>
       <template #actions="{ item }">
-        <button class="iconbtn" @click.stop="openEdit(item)">
+        <button class="lj-iconbtn" @click.stop="openEdit(item)">
           <v-icon size="18">mdi-pencil-outline</v-icon>
           <v-tooltip activator="parent" :text="t('common.edit')" location="top" />
         </button>
-        <button class="iconbtn danger" @click.stop="startDelete(item)">
+        <button class="lj-iconbtn danger" @click.stop="startDelete(item)">
           <v-icon size="18">mdi-delete-outline</v-icon>
           <v-tooltip activator="parent" :text="t('common.delete')" location="top" />
         </button>
       </template>
     </VibrantDataTable>
 
-    <!-- Create / edit dialog (Vibrant chrome). -->
-    <v-dialog v-model="editDialog" max-width="640">
-      <v-card class="vmodal">
-        <div class="vmodal-head">
-          <span class="mi"><v-icon color="#fff">mdi-shield-account-outline</v-icon></span>
-          <h3>{{ editTarget ? t('system.role.editTitle') : t('system.role.newTitle') }}</h3>
-          <button class="x" :aria-label="t('common.cancel')" @click="editDialog = false"><v-icon size="20">mdi-close</v-icon></button>
-        </div>
-        <v-card-text class="vmodal-body">
-          <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field v-model="editForm.name" prepend-inner-icon="mdi-shield-outline" :label="t('system.role.fieldName')" :rules="[rules.required]" variant="outlined" class="mb-4" autofocus />
-            <v-combobox v-model="editForm.apiPatterns" :label="t('system.role.fieldApiPatterns')" prepend-inner-icon="mdi-api" :items="[]" chips closable-chips multiple variant="outlined" :hint="t('system.role.patternsHint')" persistent-hint class="mb-4" />
-            <v-combobox v-model="editForm.uiPatterns" :label="t('system.role.fieldUiPatterns')" prepend-inner-icon="mdi-monitor" :items="[]" chips closable-chips multiple variant="outlined" :hint="t('system.role.patternsHint')" persistent-hint class="mb-2" />
-          </v-form>
-        </v-card-text>
-        <div class="vmodal-foot">
-          <span class="foot-sp" />
-          <button class="mbtn ghost" @click="editDialog = false">{{ t('common.cancel') }}</button>
-          <button class="mbtn primary" :disabled="saving" @click="save">
-            <span v-if="saving" class="mspin" aria-hidden="true" /><v-icon v-else size="18">mdi-content-save</v-icon>{{ t('common.save') }}
-          </button>
-        </div>
-      </v-card>
-    </v-dialog>
+    <!-- Create / edit dialog (shared chrome). -->
+    <LjDialog v-model="editDialog" :title="editTarget ? t('system.role.editTitle') : t('system.role.newTitle')" icon="mdi-shield-account-outline" :max-width="640">
+      <v-form ref="formRef" @submit.prevent="save">
+        <v-text-field v-model="editForm.name" prepend-inner-icon="mdi-shield-outline" :label="t('system.role.fieldName')" :rules="[rules.required]" variant="outlined" class="mb-4" autofocus />
+        <v-combobox v-model="editForm.apiPatterns" :label="t('system.role.fieldApiPatterns')" prepend-inner-icon="mdi-api" :items="[]" chips closable-chips multiple variant="outlined" :hint="t('system.role.patternsHint')" persistent-hint class="mb-4" />
+        <v-combobox v-model="editForm.uiPatterns" :label="t('system.role.fieldUiPatterns')" prepend-inner-icon="mdi-monitor" :items="[]" chips closable-chips multiple variant="outlined" :hint="t('system.role.patternsHint')" persistent-hint class="mb-2" />
+      </v-form>
+      <template #footer>
+        <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
+        <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
+      </template>
+    </LjDialog>
 
     <LigojConfirmDialog v-model="deleteDialog" :title="t('system.role.deleteTitle')" icon="mdi-shield-account-outline" confirm-color="error" :confirm-label="t('common.delete')" :loading="deleting" @confirm="confirmDelete">
       {{ t('system.role.deleteConfirmBefore') }}<strong class="text-error">{{ deleteTarget?.name }}</strong>{{ t('system.role.deleteConfirmAfter') }}
@@ -103,8 +85,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useI18nStore } from '@ligoj/host'
-import { VibrantDataTable as VibrantDataTable } from '@ligoj/host'
-import { VibrantConfirmDialog as LigojConfirmDialog } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -266,48 +247,20 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.roles {
-  --surface: rgb(var(--v-theme-surface));
-  --card: rgb(var(--v-theme-surface));
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .55);
-  --border: rgba(var(--v-theme-on-surface), .12);
-  --border-2: rgba(var(--v-theme-on-surface), .26);
-  --hover: rgba(var(--v-theme-on-surface), .06);
-  --pill: rgba(var(--v-theme-on-surface), .06);
-  --accent: rgb(var(--v-theme-secondary));
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  --mono: var(--v26-mono, "JetBrains Mono", ui-monospace, monospace);
-  color: var(--ink);
-}
-.ph { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
-.crumbs { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
-.crumb { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font); font-size: 11.5px; font-weight: 700; color: var(--ink-3); background: var(--pill); border-radius: 999px; padding: 3px 10px; }
-.crumb.cur { color: var(--accent); background: rgba(var(--v-theme-secondary), .12); }
-.csep { color: var(--ink-3); font-size: 12px; }
-.ph-txt h1 { font-family: var(--font); font-weight: 800; letter-spacing: -.03em; font-size: 28px; margin: 0; }
-.ph-txt .sub { margin: 4px 0 0; font-size: 14px; color: var(--ink-3); font-weight: 500; }
-.ph-txt .sub b { color: var(--ink-2); font-family: var(--mono); }
-.ph-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.search { display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; height: 42px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); min-width: 240px; transition: border-color .15s; }
-.search:focus-within { border-color: var(--border-2); }
-.search-ic { color: var(--ink-3); }
-.search input { flex: 1; border: 0; outline: 0; background: transparent; color: var(--ink); font-family: var(--font); font-size: 13.5px; font-weight: 500; min-width: 0; }
-.search input::placeholder { color: var(--ink-3); }
-.search-x { border: 0; background: transparent; cursor: pointer; color: var(--ink-3); display: grid; place-items: center; padding: 2px; border-radius: 6px; }
-.search-x:hover { color: var(--ink); background: var(--hover); }
-.btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; padding: 10px 16px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -10px rgba(255, 90, 82, .55); transition: filter .15s; }
-.btn:hover { filter: brightness(1.04); }
+/* View-specific styling only — chrome (header, search, button, dialog, row
+   icon buttons) comes from the shared host components + the global
+   `.lj-surface` / `.lj-iconbtn` classes, which supply the ink, pill, radius,
+   mono and card vars these rules read. */
+.sub b { color: var(--ink-2); font-family: var(--mono); }
 
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 18px; }
-.stat { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; border-radius: 16px; border: 1px solid var(--border); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, var(--card)), var(--card)); box-shadow: 0 2px 8px rgba(0, 0, 0, .04); cursor: pointer; opacity: 0; transform: translateY(10px); animation: rise .5s cubic-bezier(.2, .7, .3, 1) forwards; transition: transform .18s cubic-bezier(.2, .7, .3, 1), box-shadow .18s, border-color .18s; }
+.stat { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; border-radius: var(--radius); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, var(--card)), var(--card)); box-shadow: var(--shadow); cursor: pointer; opacity: 0; transform: translateY(10px); animation: rise .5s cubic-bezier(.2, .7, .3, 1) forwards; transition: transform .18s cubic-bezier(.2, .7, .3, 1), box-shadow .18s, border-color .18s; }
 @keyframes rise { to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .stat { animation: none; opacity: 1; transform: none; } }
 .stat:hover { transform: translateY(-3px); box-shadow: 0 18px 36px -20px color-mix(in srgb, var(--c) 55%, transparent); border-color: color-mix(in srgb, var(--c) 30%, var(--border)); }
 .stat.active { border-color: color-mix(in srgb, var(--c) 55%, var(--border)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 45%, transparent); }
 .stop { display: flex; align-items: center; gap: 14px; }
-.sicon { width: 46px; height: 46px; border-radius: 13px; flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--c) 65%, transparent); }
+.sicon { width: 46px; height: 46px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--c) 65%, transparent); }
 .snum { font-family: var(--mono); font-weight: 700; font-size: 26px; line-height: 1; color: var(--ink); }
 .slabel { font-size: 12.5px; font-weight: 600; color: var(--ink-3); margin-top: 4px; }
 .sbar { height: 6px; border-radius: 4px; background: var(--pill); overflow: hidden; }
@@ -316,47 +269,14 @@ onMounted(() => {
 .errline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: rgb(var(--v-theme-error)); margin: 0 0 14px; }
 
 .avatar-cell { display: flex; align-items: center; gap: 12px; }
-.rglyph { width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; background: var(--pill); color: var(--ink-3); }
+.rglyph { width: 34px; height: 34px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: var(--pill); color: var(--ink-3); }
 .rglyph.admin { background: rgba(217, 112, 26, .14); color: #d9701a; }
 .ac-name { font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); }
 .tokens { display: inline-flex; flex-wrap: wrap; gap: 5px; max-width: 420px; }
-.tok { font-family: var(--mono); font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 7px; color: var(--ink-2); background: var(--pill); }
+.tok { font-family: var(--mono); font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-sm); color: var(--ink-2); background: var(--pill); }
 .tok.api { color: #2f6df6; background: rgba(47, 109, 246, .12); }
 .tok.ui { color: #1d9d63; background: rgba(29, 157, 99, .13); }
 .dash { color: var(--ink-3); }
-.iconbtn { width: 32px; height: 32px; border: 0; background: transparent; border-radius: 9px; cursor: pointer; display: inline-grid; place-items: center; color: var(--ink-3); transition: background .15s, color .15s; }
-.iconbtn:hover { background: var(--hover); color: var(--ink); }
-.iconbtn.danger:hover { background: rgba(var(--v-theme-error), .1); color: rgb(var(--v-theme-error)); }
-
-/* Edit modal (Vibrant). Vars re-declared on .vmodal so they cascade into the
- * teleported dialog content (it lives outside the .roles scope). */
-.vmodal {
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .55);
-  --border: rgba(var(--v-theme-on-surface), .12);
-  --border-2: rgba(var(--v-theme-on-surface), .26);
-  --hover: rgba(var(--v-theme-on-surface), .06);
-  --accent: rgb(var(--v-theme-secondary));
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  border-radius: 20px !important; box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .55) !important;
-}
-.vmodal-head { display: flex; align-items: center; gap: 13px; padding: 22px 24px 8px; }
-.vmodal-head .mi { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex: none; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -8px rgba(255, 90, 82, .6); }
-.vmodal-head h3 { font-family: var(--font); font-weight: 800; font-size: 20px; margin: 0; flex: 1; color: var(--ink); letter-spacing: -.02em; }
-.vmodal-head .x { width: 36px; height: 36px; border: 0; background: transparent; border-radius: 9px; cursor: pointer; display: grid; place-items: center; color: var(--ink-3); }
-.vmodal-head .x:hover { background: var(--hover); color: var(--ink); }
-.vmodal-body { padding: 14px 24px 4px !important; }
-.vmodal :deep(.v-field) { border-radius: 12px; font-family: var(--font); }
-.vmodal :deep(.v-field__prepend-inner .v-icon) { opacity: .55; }
-.vmodal-foot { display: flex; align-items: center; gap: 10px; padding: 12px 24px 22px; }
-.foot-sp { flex: 1; }
-.mbtn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; padding: 10px 17px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; transition: filter .15s, background .15s, border-color .15s; }
-.mbtn.primary { color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -10px rgba(255, 90, 82, .55); }
-.mbtn.primary:hover:not(:disabled) { filter: brightness(1.04); }
-.mbtn.ghost { color: var(--ink-2); background: transparent; border-color: var(--border); }
-.mbtn.ghost:hover { background: var(--hover); border-color: var(--border-2); }
-.mbtn:disabled { opacity: .6; cursor: default; }
-.mspin { width: 15px; height: 15px; border: 2px solid rgba(255, 255, 255, .5); border-top-color: #fff; border-radius: 50%; animation: sspin .7s linear infinite; }
-@keyframes sspin { to { transform: rotate(360deg); } }
+/* Danger accent for the inline delete trigger (base `.lj-iconbtn` is global). */
+.lj-iconbtn.danger:hover { background: rgba(var(--v-theme-error), .1); color: rgb(var(--v-theme-error)); }
 </style>

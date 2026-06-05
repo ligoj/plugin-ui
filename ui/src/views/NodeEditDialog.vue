@@ -10,16 +10,7 @@
   - edit-node:   edit the given node's name + parameters → PUT rest/node.
 -->
 <template>
-  <v-dialog :model-value="modelValue" @update:model-value="onDialogModel" max-width="720" scrollable>
-    <v-card class="vmodal">
-      <div class="vmodal-head">
-        <span class="mi"><v-icon color="#fff">mdi-server-network</v-icon></span>
-        <h3>{{ isEdit ? t('system.node.editTitle') : t('system.node.createTitle') }}</h3>
-        <code v-if="isEdit && node" class="hcode">{{ node.id }}</code>
-        <button class="x" @click="$emit('update:modelValue', false)"><v-icon size="20">mdi-close</v-icon></button>
-      </div>
-
-      <v-card-text class="vmodal-body">
+  <LjDialog :model-value="modelValue" :title="dialogTitle" icon="mdi-server-network" :max-width="720" @update:model-value="onDialogModel">
         <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
         <!-- 1. Service -->
@@ -53,7 +44,7 @@
         <section class="step" :class="{ off: !isEdit && !selected.tool }">
           <div class="sh"><span class="n">4</span><v-icon size="18">mdi-link-variant</v-icon>{{ t('wizard.step.mode') }}</div>
           <NodeModeChip v-if="isEdit" :mode="selected.mode || 'all'" />
-          <div v-else class="seg"><button v-for="m in availableModes" :key="m.value" :class="{ on: selected.mode === m.value }" @click="selected.mode = m.value">{{ m.label }}</button></div>
+          <LjSegmented v-else v-model="selected.mode" :options="availableModes" />
         </section>
 
         <!-- 5. Parameters -->
@@ -70,22 +61,16 @@
             <v-text-field v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
           </div>
         </section>
-      </v-card-text>
-
-      <div class="vmodal-foot">
-        <span class="foot-sp" />
-        <button class="mbtn ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</button>
-        <button class="mbtn primary" :disabled="!ready || saving" @click="submit">
-          <span v-if="saving" class="mspin" /><v-icon v-else size="18">mdi-content-save</v-icon>{{ isEdit ? t('common.save') : t('wizard.action.createNode') }}
-        </button>
-      </div>
-    </v-card>
-  </v-dialog>
+      <template #footer>
+        <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
+        <LjButton icon="mdi-content-save" :disabled="!ready" :loading="saving" @click="submit">{{ isEdit ? t('common.save') : t('wizard.action.createNode') }}</LjButton>
+      </template>
+  </LjDialog>
 </template>
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, pluginRegistry, pluginIdFromKey, loadPlugin } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, pluginRegistry, pluginIdFromKey, loadPlugin, LjDialog, LjButton, LjSegmented } from '@ligoj/host'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -98,6 +83,11 @@ const errorStore = useErrorStore()
 const i18n = useI18nStore()
 const t = (k, p) => i18n.t(k, p)
 const isEdit = computed(() => !!props.node)
+// LjDialog takes a plain string title; fold the edited node id into it (the
+// former separate `.hcode` chip in the header). Cosmetic-only change.
+const dialogTitle = computed(() => isEdit.value
+  ? `${t('system.node.editTitle')}${props.node?.id ? ` · ${props.node.id}` : ''}`
+  : t('system.node.createTitle'))
 
 const selected = reactive({ service: null, tool: null, node: null, mode: null })
 const form = reactive({ id: '', name: '' })
@@ -273,39 +263,23 @@ async function submit() {
 </script>
 
 <style scoped>
-.vmodal { --ink: rgb(var(--v-theme-on-surface)); --ink-2: rgba(var(--v-theme-on-surface), .72); --ink-3: rgba(var(--v-theme-on-surface), .5); --border: rgba(var(--v-theme-on-surface), .14); --border-2: rgba(var(--v-theme-on-surface), .26); --hover: rgba(var(--v-theme-on-surface), .06); --surface: rgb(var(--v-theme-surface)); --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif); --mono: var(--v26-mono, "JetBrains Mono", ui-monospace, monospace); border-radius: 20px !important; box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .55) !important; }
-.vmodal-head { display: flex; align-items: center; gap: 13px; padding: 22px 24px 8px; }
-.vmodal-head .mi { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex: none; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -8px rgba(255, 90, 82, .6); }
-.vmodal-head h3 { font-family: var(--font); font-weight: 800; font-size: 20px; margin: 0; color: var(--ink); letter-spacing: -.02em; }
-.hcode { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); background: var(--hover); border-radius: 6px; padding: 2px 7px; flex: 1; }
-.vmodal-head .x { width: 36px; height: 36px; border: 0; background: transparent; border-radius: 9px; cursor: pointer; display: grid; place-items: center; color: var(--ink-3); }
-.vmodal-head .x:hover { background: var(--hover); color: var(--ink); }
-.vmodal-body { padding: 8px 24px 6px !important; }
-.vmodal :deep(.v-field) { border-radius: 12px; font-family: var(--font); }
-.vmodal :deep(.v-label) { font-weight: 600; }
+/* Dialog chrome (card, header, footer, mode segment, buttons, base field
+   rounding) now comes from <LjDialog> / <LjSegmented> / <LjButton> + the
+   global `.lj-surface` on the dialog card, which supplies the ink, font,
+   mono, radius and hover vars these step rules read. Only the wizard-step
+   layout specific to this form remains; it scopes onto the slotted dialog
+   content via :deep() where it targets Vuetify internals. */
+:deep(.v-label) { font-weight: 600; }
 .errline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: rgb(var(--v-theme-error)); margin: 6px 0; }
 .step { padding: 12px 0; border-top: 1px solid var(--border); transition: opacity .2s; }
 .step:first-of-type { border-top: 0; }
 .step.off { opacity: .45; pointer-events: none; }
-.sh { display: flex; align-items: center; gap: 9px; font-family: var(--font); font-weight: 700; font-size: 14.5px; color: var(--ink); margin-bottom: 10px; }
+.sh { display: flex; align-items: center; gap: 9px; font-family: var(--font); font-weight: var(--bold); font-size: 14.5px; color: var(--ink); margin-bottom: 10px; }
 .sh .n { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); }
 .opt { display: inline-flex; align-items: center; gap: 8px; }
 .opt :deep(img.tool-icon), .opt :deep(i) { width: 20px; height: 20px; font-size: 18px; }
-.ro { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); padding: 8px 12px; border-radius: 10px; background: var(--hover); }
+.ro { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); padding: 8px 12px; border-radius: var(--radius-sm); background: var(--hover); }
 .ro :deep(img.tool-icon), .ro :deep(i) { width: 20px; height: 20px; font-size: 18px; }
-.seg { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-.seg button { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; padding: 8px 18px; border-radius: 9px; cursor: pointer; font-family: var(--font); font-weight: 700; font-size: 13px; color: var(--ink-3); transition: background .15s, color .15s; }
-.seg button:hover { color: var(--ink); }
-.seg button.on { color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); }
 .muted { font-size: 13px; color: var(--ink-3); }
 .pfield { margin-bottom: 12px; }
-.vmodal-foot { display: flex; align-items: center; gap: 10px; padding: 14px 24px 22px; }
-.foot-sp { flex: 1; }
-.mbtn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; padding: 10px 17px; border-radius: 12px; cursor: pointer; border: 1px solid transparent; transition: filter .15s, background .15s; }
-.mbtn.primary { color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); box-shadow: 0 8px 18px -10px rgba(255, 90, 82, .55); }
-.mbtn.primary:hover:not(:disabled) { filter: brightness(1.04); }
-.mbtn.ghost { color: var(--ink-2); background: transparent; border-color: var(--border); }
-.mbtn:disabled { opacity: .55; cursor: default; }
-.mspin { width: 15px; height: 15px; border: 2px solid rgba(255, 255, 255, .5); border-top-color: #fff; border-radius: 50%; animation: dspin .7s linear infinite; }
-@keyframes dspin { to { transform: rotate(360deg); } }
 </style>

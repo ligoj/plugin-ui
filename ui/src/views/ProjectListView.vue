@@ -7,22 +7,18 @@
   has none, so the cockpit is never empty in preview.
 -->
 <template>
-  <div class="projects">
-    <header class="ph">
-      <div class="ph-txt">
-        <h1>{{ t('project.title') }}</h1>
-        <p class="sub"><b>{{ total }}</b> {{ t('project.countLabel') }}<span v-if="demoMode"> · {{ t('common.preview') || 'aperçu' }}</span></p>
-      </div>
-      <div class="ph-actions">
-        <button class="btn" @click="openNew"><v-icon size="18">mdi-plus</v-icon>{{ t('project.new') }}</button>
-      </div>
-    </header>
+  <div class="projects lj-surface">
+    <LjPageHeader :title="t('project.title')">
+      <template #subtitle>
+        <b>{{ total }}</b> {{ t('project.countLabel') }}<span v-if="demoMode"> · {{ t('common.preview') || 'aperçu' }}</span>
+      </template>
+      <template #actions>
+        <LjButton icon="mdi-plus" @click="openNew">{{ t('project.new') }}</LjButton>
+      </template>
+    </LjPageHeader>
 
     <div class="toolbar">
-      <label class="search">
-        <v-icon size="18">mdi-magnify</v-icon>
-        <input v-model="search" :placeholder="t('project.searchPlaceholder')" />
-      </label>
+      <LjSearch v-model="search" :placeholder="t('project.searchPlaceholder')" />
     </div>
 
     <VibrantDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="id" :empty-text="t('common.noData') || 'Aucune donnée'"
@@ -48,11 +44,11 @@
         <span class="subs-chip">{{ item.subs }}</span>
       </template>
       <template #cell.actions="{ item }">
-        <button class="iconbtn" @click.stop="openEdit(item)">
+        <button class="lj-iconbtn" @click.stop="openEdit(item)">
           <v-icon size="18">mdi-pencil-outline</v-icon>
           <v-tooltip activator="parent" :text="t('common.edit')" location="top" />
         </button>
-        <button class="iconbtn danger" @click.stop="startDelete(item)">
+        <button class="lj-iconbtn danger" @click.stop="startDelete(item)">
           <v-icon size="18">mdi-delete-outline</v-icon>
           <v-tooltip activator="parent" :text="t('common.delete')" location="top" />
         </button>
@@ -75,8 +71,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi, useAppStore, useI18nStore } from '@ligoj/host'
 import ProjectEditDialog from './ProjectEditDialog.vue'
-import { VibrantDataTable as VibrantDataTable } from '@ligoj/host'
-import { VibrantConfirmDialog as VibrantConfirmDialog } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog, LjPageHeader, LjButton, LjSearch } from '@ligoj/host'
 
 const router = useRouter()
 const api = useApi()
@@ -203,107 +198,17 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.projects {
-  --surface: rgb(var(--v-theme-surface));
-  --card: rgb(var(--v-theme-surface));
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .55);
-  --border: rgba(var(--v-theme-on-surface), .12);
-  --pill: rgba(var(--v-theme-on-surface), .06);
-  --accent: rgb(var(--v-theme-secondary));
-  --radius: 18px;
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  --mono: var(--v26-mono, "JetBrains Mono", ui-monospace, monospace);
-  color: var(--ink);
-}
-
-.ph {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 18px;
-  flex-wrap: wrap;
-  margin-bottom: 18px;
-}
-
-.ph-txt h1 {
-  font-family: var(--font);
-  font-weight: 800;
-  letter-spacing: -.03em;
-  font-size: 28px;
-  margin: 0;
-  color: var(--ink);
-}
-
-.ph-txt .sub {
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: var(--ink-3);
-  font-weight: 500;
-}
-
-.ph-txt .sub b {
+/* View-specific styling only — chrome (header, search, primary button, row
+   icon buttons) comes from the shared host components + the global
+   `.lj-surface` / `.lj-iconbtn` classes, which supply the ink, pill, radius,
+   mono, card and shadow vars these rules read. */
+.sub b {
   color: var(--ink-2);
   font-family: var(--mono);
 }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font);
-  font-weight: 700;
-  font-size: 14px;
-  padding: 11px 17px;
-  border-radius: 12px;
-  cursor: pointer;
-  border: 0;
-  color: #fff;
-  background: linear-gradient(135deg, #ff9436, #ff5a52);
-  box-shadow: 0 8px 18px -10px rgba(255, 90, 82, .55);
-  transition: filter .15s;
-}
-
-.btn:hover {
-  filter: brightness(1.04);
-}
-
 .toolbar {
   margin-bottom: 18px;
-}
-
-.search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  max-width: 520px;
-  padding: 9px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--ink-3);
-  transition: border-color .15s, box-shadow .15s;
-}
-
-.search:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(var(--v-theme-secondary), .15);
-}
-
-.search input {
-  flex: 1;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  font-family: var(--font);
-  font-size: 14px;
-  color: var(--ink);
-}
-
-.search input::placeholder {
-  color: var(--ink-3);
 }
 
 /* Table cells (folder glyph + name stack, team leader pill, subs chip). */
@@ -316,7 +221,7 @@ onMounted(() => {
 .folder-glyph {
   width: 34px;
   height: 34px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   display: grid;
   place-items: center;
   background: color-mix(in srgb, #2f6df6 12%, var(--card));
@@ -332,7 +237,7 @@ onMounted(() => {
 
 .name-main {
   font-family: var(--font);
-  font-weight: 800;
+  font-weight: var(--bold);
   font-size: 14px;
   color: var(--ink);
   letter-spacing: -.02em;
@@ -379,25 +284,8 @@ onMounted(() => {
   color: var(--ink-2);
 }
 
-.iconbtn {
-  width: 32px;
-  height: 32px;
-  border: 0;
-  background: transparent;
-  border-radius: 9px;
-  cursor: pointer;
-  display: inline-grid;
-  place-items: center;
-  color: var(--ink-3);
-  transition: background .15s, color .15s;
-}
-
-.iconbtn:hover {
-  background: var(--hover);
-  color: var(--ink);
-}
-
-.iconbtn.danger:hover {
+/* Danger accent for the inline delete trigger (base `.lj-iconbtn` is global). */
+.lj-iconbtn.danger:hover {
   color: rgb(var(--v-theme-error));
 }
 
@@ -409,14 +297,14 @@ onMounted(() => {
   background: var(--ink);
   color: var(--surface);
   padding: 11px 18px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   font-weight: 700;
   font-size: 14px;
   z-index: 60;
   opacity: 0;
   transition: .25s;
   pointer-events: none;
-  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, .5);
+  box-shadow: var(--shadow-lg);
 }
 
 .toast.show {

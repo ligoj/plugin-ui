@@ -8,14 +8,9 @@
   (editable), Session (id + user) and Build. Read-only except the time zones.
 -->
 <template>
-  <div class="sysinfo">
-    <header class="ph">
-      <div class="ph-txt">
-        <nav class="crumbs"><span class="crumb"><v-icon size="13">mdi-cog-outline</v-icon>{{ t('system.breadcrumb') }}</span><span class="csep">›</span><span class="crumb cur">{{ t('system.info.title') }}</span></nav>
-        <h1>{{ t('system.info.title') }}</h1>
-        <p class="sub">{{ t('system.info.subtitle') }}</p>
-      </div>
-    </header>
+  <div class="sysinfo lj-surface">
+    <LjPageHeader :title="t('system.info.title')" :subtitle="t('system.info.subtitle')"
+      :crumbs="[{ icon: 'mdi-cog-outline', label: t('system.breadcrumb') }, { label: t('system.info.title'), current: true }]" />
 
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
@@ -89,7 +84,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useAuthStore, useClipboard, useI18nStore, APP_BASE } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useClipboard, useI18nStore, APP_BASE, LjPageHeader } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -177,39 +172,22 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.sysinfo {
-  --surface: rgb(var(--v-theme-surface));
-  --card: rgb(var(--v-theme-surface));
-  --ink: rgb(var(--v-theme-on-surface));
-  --ink-2: rgba(var(--v-theme-on-surface), .72);
-  --ink-3: rgba(var(--v-theme-on-surface), .55);
-  --border: rgba(var(--v-theme-on-surface), .12);
-  --border-2: rgba(var(--v-theme-on-surface), .26);
-  --hover: rgba(var(--v-theme-on-surface), .06);
-  --pill: rgba(var(--v-theme-on-surface), .06);
-  --accent: rgb(var(--v-theme-secondary));
-  --font: var(--v26-font, "Bricolage Grotesque", system-ui, sans-serif);
-  --mono: var(--v26-mono, "JetBrains Mono", ui-monospace, monospace);
-  color: var(--ink);
-}
-.ph { margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
-.crumbs { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
-.crumb { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font); font-size: 11.5px; font-weight: 700; color: var(--ink-3); background: var(--pill); border-radius: 999px; padding: 3px 10px; }
-.crumb.cur { color: var(--accent); background: rgba(var(--v-theme-secondary), .12); }
-.csep { color: var(--ink-3); font-size: 12px; }
-.ph-txt h1 { font-family: var(--font); font-weight: 800; letter-spacing: -.03em; font-size: 28px; margin: 0; }
-.ph-txt .sub { margin: 4px 0 0; font-size: 14px; color: var(--ink-3); font-weight: 500; }
+/* View-specific styling only — the page header chrome comes from
+   <LjPageHeader> + the global `.lj-surface` class, which supplies the ink,
+   pill, radius, mono, surface, card and border vars these dashboard cards
+   read. The `.mem-bar .seg` segments and `.mspin.sm` spinner here are
+   bespoke (not the shared LjSegmented / button spinner). */
 .errline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: rgb(var(--v-theme-error)); margin: 0 0 14px; }
 
 .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 @media (max-width: 1100px) { .grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
-.card { border: 1px solid var(--border); border-radius: 18px; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 6%, var(--card)), var(--card)); box-shadow: 0 2px 8px rgba(0, 0, 0, .04); overflow: hidden; }
+.card { border: var(--border-w) var(--lj-border-style, solid) var(--border-c); border-radius: var(--radius); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 6%, var(--card)), var(--card)); box-shadow: var(--shadow); overflow: hidden; }
 .card.hero { grid-column: 1 / -1; }
 .card-head { display: flex; align-items: center; gap: 12px; padding: 16px 18px 12px; }
-.ch-ic { width: 40px; height: 40px; border-radius: 12px; flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--c) 65%, transparent); }
-.card-head h3 { font-family: var(--font); font-weight: 800; font-size: 17px; margin: 0; letter-spacing: -.02em; }
-.used-badge { margin-left: auto; display: flex; align-items: baseline; gap: 8px; padding: 6px 14px; border-radius: 12px; background: var(--pill); }
+.ch-ic { width: 40px; height: 40px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, #000)); box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--c) 65%, transparent); }
+.card-head h3 { font-family: var(--font); font-weight: var(--bold); font-size: 17px; margin: 0; letter-spacing: -.02em; }
+.used-badge { margin-left: auto; display: flex; align-items: baseline; gap: 8px; padding: 6px 14px; border-radius: var(--radius-sm); background: var(--pill); }
 .used-badge b { font-family: var(--mono); font-weight: 700; font-size: 22px; line-height: 1; color: var(--ink); }
 .used-badge b small { font-size: 13px; margin-left: 1px; }
 .used-badge span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); }
@@ -236,7 +214,7 @@ onMounted(() => {
 
 .subgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 @media (max-width: 720px) { .subgrid { grid-template-columns: 1fr; } }
-.tile { display: flex; flex-direction: column; gap: 6px; padding: 13px 15px; border-radius: 13px; border: 1px solid var(--border); background: var(--surface); }
+.tile { display: flex; flex-direction: column; gap: 6px; padding: 13px 15px; border-radius: var(--radius-sm); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: var(--surface); }
 .tile-k { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--ink-3); }
 .tile-k :deep(.v-icon) { opacity: .7; }
 .tile-v { font-family: var(--mono); font-size: 16px; font-weight: 600; color: var(--ink); word-break: break-all; }
@@ -257,7 +235,7 @@ onMounted(() => {
 .ifield { display: block; margin-bottom: 12px; }
 .ifield:last-child { margin-bottom: 0; }
 .if-label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-3); margin-bottom: 5px; }
-.if-box { display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 42px; border-radius: 11px; border: 1px solid var(--border); background: var(--surface); transition: border-color .15s; }
+.if-box { display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 42px; border-radius: var(--radius-sm); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: var(--surface); transition: border-color .15s; }
 .if-box:focus-within { border-color: var(--border-2); }
 .if-box.readonly { background: var(--pill); }
 .if-ic { color: var(--ink-3); }
