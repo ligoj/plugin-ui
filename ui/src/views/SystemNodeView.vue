@@ -62,16 +62,18 @@
         <span class="status"><span class="sdot" :class="item.enabled ? 'ok' : 'err'" />{{ item.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled') }}</span>
       </template>
       <template #actions="{ item }">
-        <template v-if="isInstance(item)">
-          <button class="lj-iconbtn" @click.stop="startEdit(item)">
-            <v-icon size="18">mdi-pencil-outline</v-icon>
-            <v-tooltip activator="parent" :text="t('common.edit')" location="top" />
-          </button>
-          <button class="lj-iconbtn danger" @click.stop="startDelete(item)">
-            <v-icon size="18">mdi-delete-outline</v-icon>
-            <v-tooltip activator="parent" :text="t('common.delete')" location="top" />
-          </button>
-        </template>
+        <!-- Only instances can be edited/deleted; service/tool/feature nodes
+             have no actions, so the cog menu is omitted for them. -->
+        <v-menu v-if="isInstance(item)" location="bottom end">
+          <template #activator="{ props }">
+            <button class="lj-iconbtn" v-bind="props" :aria-label="t('common.actions')" @click.stop><v-icon size="18">mdi-cog</v-icon></button>
+          </template>
+          <div class="lj-popmenu">
+            <button @click="startEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+            <div class="sep" />
+            <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+          </div>
+        </v-menu>
       </template>
     </VibrantDataTable>
 
@@ -147,7 +149,9 @@ const createDialog = ref(false)
 const editDialog = ref(false)
 const editTarget = ref(null)
 function startCreate() { createDialog.value = true }
-function startEdit(item) { editTarget.value = item; editDialog.value = true }
+// Only instances are editable: service / tool / feature nodes have no
+// parameters to update, so a row click on them is a no-op.
+function startEdit(item) { if (!isInstance(item)) return; editTarget.value = item; editDialog.value = true }
 function onSaved() { load() }
 
 const deleteDialog = ref(false)
@@ -483,11 +487,5 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
 .sdot.err {
   background: #df4d42;
   color: #df4d42;
-}
-
-/* Danger accent for the inline delete trigger (base `.lj-iconbtn` is global). */
-.lj-iconbtn.danger:hover {
-  background: rgba(var(--v-theme-error), .1);
-  color: rgb(var(--v-theme-error));
 }
 </style>

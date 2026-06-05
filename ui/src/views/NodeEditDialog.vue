@@ -248,15 +248,25 @@ async function submit() {
   saving.value = true; error.value = null
   try {
     const parametersWire = parameters.value.map(buildParamWire).filter(Boolean)
-    if (isEdit.value) {
-      const r = await api.put('rest/node', { id: props.node.id, node: props.node.refined?.id, name: form.name, mode: wireMode(selected.mode), untouchedParameters: false, parameters: parametersWire })
-      if (r === false) { error.value = t('wizard.error.saveFailed'); return }
-      errorStore.success(t('wizard.success.nodeUpdated', { name: form.name }))
-    } else {
-      const r = await api.post('rest/node', { id: form.id, name: form.name, node: selected.tool?.id, mode: wireMode(selected.mode), untouchedParameters: false, parameters: parametersWire })
-      if (r === null) { error.value = t('wizard.error.nodeCreationFailed'); return }
-      errorStore.success(t('wizard.success.nodeCreated', { name: form.name }))
+    // Use `{ raw: true }` so we branch on the real HTTP status: a successful
+    // save returns 204 No Content, which `useApi` otherwise reports as the
+    // same `null` it returns on failure — that ambiguity left the dialog
+    // open with no feedback. `handleResponse` (still invoked) toasts any
+    // error (incl. the data-integrity case), so here we only act on success.
+    const res = isEdit.value
+      ? await api.put('rest/node', { id: props.node.id, node: props.node.refined?.id, name: form.name, mode: wireMode(selected.mode), untouchedParameters: false, parameters: parametersWire }, { raw: true })
+      : await api.post('rest/node', { id: form.id, name: form.name, node: selected.tool?.id, mode: wireMode(selected.mode), untouchedParameters: false, parameters: parametersWire }, { raw: true })
+    if (!res || !res.ok) {
+      error.value = t(isEdit.value ? 'wizard.error.saveFailed' : 'wizard.error.nodeCreationFailed')
+      return
     }
+    // Confirmation toast branded with the saved node's icon. For a new node
+    // the instance doesn't exist yet, so synthesise a node-like object from
+    // its id + the chosen tool's icon classes.
+    const savedNode = isEdit.value
+      ? props.node
+      : { id: form.id, name: form.name, uiClasses: selected.tool?.uiClasses }
+    errorStore.success(t(isEdit.value ? 'wizard.success.nodeUpdated' : 'wizard.success.nodeCreated', { name: form.name }), { node: savedNode })
     emit('saved'); emit('update:modelValue', false)
   } finally { saving.value = false }
 }
