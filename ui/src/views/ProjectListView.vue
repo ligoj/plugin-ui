@@ -22,7 +22,7 @@
     </div>
 
     <VibrantDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="id" :empty-text="t('common.noData') || 'Aucune donnée'"
-      @row-click="openProject">
+      filename="projects.csv" @row-click="openProject">
       <template #cell.name="{ item }">
         <div class="name-cell">
           <div class="folder-glyph"><v-icon color="#2f6df6" size="20">mdi-folder</v-icon></div>
@@ -105,10 +105,10 @@ const filtered = computed(() => {
 const headers = computed(() => [
   { key: 'name', label: t('common.name'), sortable: true },
   { key: 'description', label: t('common.description'), sortable: false },
-  { key: 'teamLeader', label: t('project.teamLeader') || 'Team leader', sortable: true },
-  { key: 'createdDate', label: t('common.createdDate') || 'Created', sortable: true },
+  { key: 'teamLeader', label: t('project.teamLeader') || 'Team leader', sortable: true, exportValue: (r) => r.teamLeader || '' },
+  { key: 'createdDate', label: t('common.createdDate') || 'Created', sortable: true, exportValue: (r) => fmtDate(r.createdDate) },
   { key: 'subs', label: t('project.subsShort'), sortable: true, align: 'center', width: '90px' },
-  { key: 'actions', label: '', sortable: false, align: 'end', width: '120px' },
+  { key: 'actions', label: '', sortable: false, align: 'end', width: '120px', exportable: false },
 ])
 
 /* Map a raw Ligoj project (DataTables row) to the card's shape. */

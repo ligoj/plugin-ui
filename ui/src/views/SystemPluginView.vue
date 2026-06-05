@@ -50,7 +50,7 @@
 
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
-    <VibrantDataTable :headers="headers" :items="rows" :items-length="rows.length" :loading="loading" item-value="id" default-sort="name" :empty-text="t('common.noData')">
+    <VibrantDataTable :headers="headers" :items="rows" :items-length="rows.length" :loading="loading" item-value="id" default-sort="name" :empty-text="t('common.noData')" filename="system-plugins.csv">
       <template #cell.name="{ item }">
         <div class="avatar-cell">
           <span v-if="item.node" class="logo-tile"><NodeIcon :node="item.node" /></span>
@@ -138,11 +138,11 @@ const restarting = ref(false)
 const TYPE_COLOR = { service: '#2f6df6', tool: '#d9701a', feature: '#1d9d63' }
 
 const headers = computed(() => [
-  { key: 'name', label: t('system.plugin.headerName'), sortable: true, icon: 'mdi-puzzle-outline' },
-  { key: 'key', label: t('system.plugin.headerKey'), sortable: true, icon: 'mdi-identifier' },
-  { key: 'version', label: t('system.plugin.headerVersion'), sortable: false, icon: 'mdi-tag-outline' },
-  { key: 'statut', label: t('system.plugin.headerStatus'), sortable: true, align: 'center', icon: 'mdi-shape-outline' },
-  { key: 'enabled', label: t('system.plugin.headerEnabled'), sortable: false, align: 'center', icon: 'mdi-power', width: '110px' },
+  { key: 'name', label: t('system.plugin.headerName'), sortable: true, icon: 'mdi-puzzle-outline', exportValue: (r) => r.name || '' },
+  { key: 'key', label: t('system.plugin.headerKey'), sortable: true, icon: 'mdi-identifier', exportValue: (r) => r.key || '' },
+  { key: 'version', label: t('system.plugin.headerVersion'), sortable: false, icon: 'mdi-tag-outline', exportValue: (r) => r.version || '' },
+  { key: 'statut', label: t('system.plugin.headerStatus'), sortable: true, align: 'center', icon: 'mdi-shape-outline', exportValue: (r) => statusLabel(r.status) },
+  { key: 'enabled', label: t('system.plugin.headerEnabled'), sortable: false, align: 'center', icon: 'mdi-power', width: '110px', exportValue: (r) => (r.node ? (r.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled')) : '') },
 ])
 
 function prettyName(artifact, name) {

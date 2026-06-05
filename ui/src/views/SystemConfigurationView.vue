@@ -55,7 +55,7 @@
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
     <VibrantDataTable :headers="headers" :items="paged" :items-length="filtered.length" :loading="loading" item-value="name"
-      :empty-text="query ? t('common.noData') : t('common.noData')" default-sort="name" @update:options="onOptions" @row-click="openEdit">
+      :empty-text="query ? t('common.noData') : t('common.noData')" default-sort="name" filename="system-configuration.csv" @update:options="onOptions" @row-click="openEdit">
       <template #cell.name="{ item }">
         <div class="avatar-cell">
           <span class="kglyph" :class="{ secured: item.secured }"><v-icon size="18">{{ item.secured ? 'mdi-lock' : 'mdi-cog-outline' }}</v-icon></span>
@@ -171,8 +171,8 @@ const paged = computed(() => {
 
 const headers = computed(() => [
   { key: 'name', label: t('system.config.headerName'), sortable: true, icon: 'mdi-key-outline' },
-  { key: 'value', label: t('system.config.headerValue'), sortable: false, icon: 'mdi-text-short' },
-  { key: 'source', label: t('system.config.headerSource'), sortable: true, align: 'center', icon: 'mdi-source-branch' },
+  { key: 'value', label: t('system.config.headerValue'), sortable: false, icon: 'mdi-text-short', exportValue: (r) => (r.secured ? '•••••••••' : (r.value ?? '')) },
+  { key: 'source', label: t('system.config.headerSource'), sortable: true, align: 'center', icon: 'mdi-source-branch', exportValue: (r) => sourceLabel(r.source) },
 ])
 
 /* --- KPI cards (clickable filters) --- */

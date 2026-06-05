@@ -31,7 +31,7 @@
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
     <VibrantDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="name" default-sort="name"
-      :empty-text="t('system.apiToken.empty')" @row-click="(item) => openShow(item.name, 'load')">
+      :empty-text="t('system.apiToken.empty')" filename="api-tokens.csv" @row-click="(item) => openShow(item.name, 'load')">
       <template #cell.name="{ item }">
         <div class="avatar-cell">
           <span class="kglyph"><v-icon size="18">mdi-key-variant</v-icon></span>

@@ -62,7 +62,7 @@
     </div>
 
     <!-- List -->
-    <VibrantDataTable v-else :headers="headers" :items="filtered" :items-length="filtered.length" item-value="key" default-sort="name" @row-click="$router.push('/project')">
+    <VibrantDataTable v-else :headers="headers" :items="filtered" :items-length="filtered.length" item-value="key" default-sort="name" :tools="false" @row-click="$router.push('/project')">
       <template #cell.name="{ item }">
         <div class="avatar-cell">
           <span class="glyph sm" :class="{ noimg: failed.has(item.key) }" :data-letter="item.name[0]" :style="{ '--c': colorOf(item, 0) }">

@@ -32,7 +32,7 @@
     <p v-if="dt.error.value" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ dt.error.value }}</p>
 
     <VibrantDataTable :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value" item-value="login"
-      default-sort="login" :empty-text="t('common.noData')" @update:options="loadData" @row-click="openEdit">
+      default-sort="login" :empty-text="t('common.noData')" :fetch-all="dt.loadAll" filename="system-users.csv" @update:options="loadData" @row-click="openEdit">
       <template #cell.login="{ item }">
         <div class="avatar-cell">
           <span class="uglyph"><v-icon size="18">mdi-account-circle</v-icon></span>
@@ -99,7 +99,7 @@ const rules = {
 
 const headers = computed(() => [
   { key: 'login', label: t('system.user.headerLogin'), sortable: true, icon: 'mdi-account' },
-  { key: 'roles', label: t('system.user.headerRoles'), sortable: false, icon: 'mdi-shield-account-outline' },
+  { key: 'roles', label: t('system.user.headerRoles'), sortable: false, icon: 'mdi-shield-account-outline', exportValue: (r) => (r.roles || []).map((x) => x.name).join(' ') },
 ])
 
 const stats = computed(() => [

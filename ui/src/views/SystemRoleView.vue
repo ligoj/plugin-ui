@@ -32,7 +32,7 @@
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
     <VibrantDataTable :headers="headers" :items="paged" :items-length="filtered.length" :loading="loading" item-value="id" default-sort="name"
-      :empty-text="t('common.noData')" @update:options="onOptions" @row-click="openEdit">
+      :empty-text="t('common.noData')" filename="system-roles.csv" @update:options="onOptions" @row-click="openEdit">
       <template #cell.name="{ item }">
         <div class="avatar-cell">
           <span class="rglyph" :class="{ admin: isUnrestricted(item) }"><v-icon size="18">mdi-shield-account-outline</v-icon></span>
@@ -155,8 +155,8 @@ const paged = computed(() => {
 
 const headers = computed(() => [
   { key: 'name', label: t('system.role.headerName'), sortable: true, icon: 'mdi-shield-outline' },
-  { key: 'authApi', label: t('system.role.headerApi'), sortable: false, icon: 'mdi-api' },
-  { key: 'authUi', label: t('system.role.headerUi'), sortable: false, icon: 'mdi-monitor' },
+  { key: 'authApi', label: t('system.role.headerApi'), sortable: false, icon: 'mdi-api', exportValue: (r) => (r['authorizations-api'] || []).map((a) => a.pattern).join(' ') },
+  { key: 'authUi', label: t('system.role.headerUi'), sortable: false, icon: 'mdi-monitor', exportValue: (r) => (r['authorizations-ui'] || []).map((a) => a.pattern).join(' ') },
 ])
 
 const stats = computed(() => {

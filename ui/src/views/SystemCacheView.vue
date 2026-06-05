@@ -30,7 +30,7 @@
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
     <VibrantDataTable :headers="headers" :items="paged" :items-length="filtered.length" :loading="loading" item-value="id" default-sort="hitCount" default-order="desc"
-      :empty-text="t('common.noData')" @update:options="onOptions">
+      :empty-text="t('common.noData')" filename="system-cache.csv" @update:options="onOptions">
       <template #cell.id="{ item }">
         <div class="avatar-cell" :class="{ idle: isIdle(item) }">
           <span class="cglyph" :class="{ live: !isIdle(item) }"><v-icon size="18">mdi-database-outline</v-icon></span>
@@ -116,10 +116,10 @@ const paged = computed(() => {
 
 const headers = computed(() => [
   { key: 'id', label: t('system.cache.headerName'), sortable: true, icon: 'mdi-database-outline' },
-  { key: 'size', label: t('system.cache.headerSize'), sortable: true, align: 'center', icon: 'mdi-counter' },
-  { key: 'hitCount', label: t('system.cache.headerHits'), sortable: true, icon: 'mdi-check-circle-outline' },
-  { key: 'missCount', label: t('system.cache.headerMisses'), sortable: true, icon: 'mdi-alert-circle-outline' },
-  { key: 'averageGetTime', label: t('system.cache.headerAvgGet'), sortable: true, align: 'center', icon: 'mdi-timer-outline' },
+  { key: 'size', label: t('system.cache.headerSize'), sortable: true, align: 'center', icon: 'mdi-counter', exportValue: (r) => r.size ?? 0 },
+  { key: 'hitCount', label: t('system.cache.headerHits'), sortable: true, icon: 'mdi-check-circle-outline', exportValue: (r) => r.hitCount ?? 0 },
+  { key: 'missCount', label: t('system.cache.headerMisses'), sortable: true, icon: 'mdi-alert-circle-outline', exportValue: (r) => r.missCount ?? 0 },
+  { key: 'averageGetTime', label: t('system.cache.headerAvgGet'), sortable: true, align: 'center', icon: 'mdi-timer-outline', exportValue: (r) => r.averageGetTime ?? '—' },
 ])
 
 function rateClass(score, hit, hitCount) {

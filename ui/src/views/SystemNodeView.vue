@@ -43,7 +43,7 @@
 
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
-    <VibrantDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="id" :empty-text="t('common.noData')" @row-click="startEdit">
+    <VibrantDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="id" :empty-text="t('common.noData')" filename="system-nodes.csv" @row-click="startEdit">
       <template #cell.name="{ item }">
         <div class="avatar-cell">
           <span class="nglyph">
@@ -117,9 +117,9 @@ const filtered = computed(() => filter.value === 'all' ? items.value : items.val
 
 const headers = computed(() => [
   { key: 'name', label: t('system.node.headerName'), sortable: true, icon: 'mdi-server-outline' },
-  { key: 'type', label: t('system.node.headerType'), sortable: true, align: 'center', icon: 'mdi-shape-outline' },
-  { key: 'mode', label: t('system.node.headerMode'), sortable: false, align: 'center', icon: 'mdi-cog-outline' },
-  { key: 'enabled', label: t('system.node.headerStatus'), sortable: true, icon: 'mdi-power' },
+  { key: 'type', label: t('system.node.headerType'), sortable: true, align: 'center', icon: 'mdi-shape-outline', exportValue: (r) => typeLabel(r) },
+  { key: 'mode', label: t('system.node.headerMode'), sortable: false, align: 'center', icon: 'mdi-cog-outline', exportValue: (r) => r.mode || 'all' },
+  { key: 'enabled', label: t('system.node.headerStatus'), sortable: true, icon: 'mdi-power', exportValue: (r) => (r.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled')) },
 ])
 
 function typeLabel(item) { const k = nodeType(item); return t('system.node.type' + k.charAt(0).toUpperCase() + k.slice(1)) }
