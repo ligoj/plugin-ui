@@ -39,6 +39,16 @@
           <code class="ulogin">{{ item.login }}</code>
         </div>
       </template>
+      <!-- IAM cache attributes (same PK as the system user); dash when the
+           login has no IAM entry. -->
+      <template #cell.name="{ item }">
+        <span v-if="fullName(item)" class="uname">{{ fullName(item) }}</span>
+        <span v-else class="dash">—</span>
+      </template>
+      <template #cell.mails="{ item }">
+        <a v-if="(item.mails || []).length" class="umail" :href="`mailto:${item.mails[0]}`" @click.stop>{{ item.mails.join(' ') }}</a>
+        <span v-else class="dash">—</span>
+      </template>
       <template #cell.roles="{ item }">
         <span class="chips">
           <span v-for="r in (item.roles || [])" :key="r.id" class="rchip"><v-icon size="12">mdi-shield-account-outline</v-icon>{{ r.name }}</span>
@@ -61,6 +71,17 @@
     <LjDialog v-model="editDialog" :title="editTarget ? t('system.user.editTitle') : t('system.user.newTitle')" icon="mdi-account" :max-width="540">
       <v-form ref="formRef" @submit.prevent="save">
         <v-text-field v-model="editForm.login" prepend-inner-icon="mdi-account" :label="t('system.user.fieldLogin')" :rules="[rules.required]" :disabled="!!editTarget" variant="outlined" class="mb-3" autofocus />
+        <!-- IAM details sharing the same login (when available): read-only,
+             they are owned by the identity provider, not by this dialog —
+             framed in a fieldset whose legend carries the source notice. -->
+        <fieldset v-if="editDetails" class="iam-frame">
+          <legend class="iam-legend"><v-icon size="13">mdi-information-outline</v-icon>{{ t('system.user.iamDetails') }}</legend>
+          <div v-if="editDetails.firstName || editDetails.lastName" class="d-flex ga-3" :class="{ 'mb-3': (editDetails.mails || []).length }">
+            <v-text-field :model-value="editDetails.firstName || '—'" prepend-inner-icon="mdi-badge-account-horizontal-outline" :label="t('system.user.fieldFirstName')" readonly hide-details variant="outlined" density="comfortable" class="ro-field" />
+            <v-text-field :model-value="editDetails.lastName || '—'" :label="t('system.user.fieldLastName')" readonly hide-details variant="outlined" density="comfortable" class="ro-field" />
+          </div>
+          <v-text-field v-if="(editDetails.mails || []).length" :model-value="editDetails.mails.join(' ')" prepend-inner-icon="mdi-email-outline" :label="t('system.user.fieldMail')" readonly hide-details variant="outlined" density="comfortable" class="ro-field" />
+        </fieldset>
         <v-autocomplete v-model="editForm.roles" :label="t('system.user.fieldRoles')" prepend-inner-icon="mdi-shield-account-outline" :items="allRoles" item-value="id" item-title="name"
           multiple chips closable-chips variant="outlined" :rules="[rules.requiredArray]" :hint="t('system.user.rolesHint')" persistent-hint />
       </v-form>
@@ -86,6 +107,9 @@ const app = useAppStore()
 const i18n = useI18nStore()
 const t = i18n.t
 
+// The lookup (bootstrap UserResource) searches the login and — through the
+// ISystemUserDetailsProvider extension point (plugin-core IAM provider) — the
+// first name, last name and mails sharing the same login, returned decorated.
 const dt = useDataTable('system/user/roles', { defaultSort: 'login' })
 let searchTimeout = null
 let lastOptions = {}
@@ -97,8 +121,14 @@ const rules = {
   requiredArray: (v) => (Array.isArray(v) && v.length > 0) || t('system.user.rolesHint'),
 }
 
+function fullName(r) { return [r.firstName, r.lastName].filter(Boolean).join(' ') }
+
 const headers = computed(() => [
   { key: 'login', label: t('system.user.headerLogin'), sortable: true, icon: 'mdi-account' },
+  // IAM cache attributes: present only when the login matches an IAM entry;
+  // not sortable (no JPA association server-side).
+  { key: 'name', label: t('system.user.headerName'), sortable: false, icon: 'mdi-badge-account-horizontal-outline', exportValue: (r) => fullName(r) },
+  { key: 'mails', label: t('system.user.headerMail'), sortable: false, icon: 'mdi-email-outline', exportValue: (r) => (r.mails || []).join(' ') },
   { key: 'roles', label: t('system.user.headerRoles'), sortable: false, icon: 'mdi-shield-account-outline', exportValue: (r) => (r.roles || []).map((x) => x.name).join(' ') },
 ])
 
@@ -127,6 +157,12 @@ const editDialog = ref(false)
 const editTarget = ref(null)
 const editForm = ref({ login: '', roles: [] })
 const saving = ref(false)
+// IAM details of the edited user (read-only in the dialog), or null when
+// creating or when the login has no IAM entry.
+const editDetails = computed(() => {
+  const it = editTarget.value
+  return it && (it.firstName || it.lastName || (it.mails || []).length) ? it : null
+})
 function openNew() {
   editTarget.value = null
   editForm.value = { login: '', roles: [] }
@@ -192,6 +228,16 @@ onMounted(() => {
 .avatar-cell { display: flex; align-items: center; gap: 12px; }
 .uglyph { width: 34px; height: 34px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: var(--pill); color: var(--ink-3); }
 .ulogin { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--ink); }
+.uname { font-family: var(--font); font-weight: 600; font-size: 13.5px; color: var(--ink); }
+.umail { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); text-decoration: none; }
+.umail:hover { color: var(--accent); text-decoration: underline; }
+
+/* Read-only IAM details in the edit dialog: framed in a fieldset so they
+   read as one informational group, with the identity-provider source notice
+   as the frame legend. */
+.iam-frame { border: var(--border-w, 1px) var(--lj-border-style, solid) var(--border-2); border-radius: var(--radius-sm); padding: 12px 14px 14px; margin: 0 0 16px; background: var(--hover); }
+.iam-legend { display: inline-flex; align-items: center; gap: 5px; padding: 0 7px; margin-left: 6px; font-size: 11.5px; font-weight: 600; color: var(--ink-3); }
+.ro-field :deep(input) { color: var(--ink-2); cursor: default; }
 .chips { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 .rchip { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font); font-weight: 700; font-size: 11.5px; padding: 3px 10px; border-radius: 999px; color: #8b5cf6; background: rgba(139, 92, 246, .13); }
 .dash { color: var(--ink-3); font-size: 13px; }
