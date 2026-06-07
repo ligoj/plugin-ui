@@ -133,6 +133,26 @@
       </template>
     </LjDialog>
 
+    <!-- Restart progress dialog: after the restart is requested, polls the API
+         availability and auto-closes (+ success toast) once it answers again. -->
+    <LjDialog v-model="restartDialog" :title="t('system.plugin.restartTitle')" icon="mdi-restart" :max-width="460" persistent>
+      <div class="restart-body">
+        <template v-if="restartState !== 'timeout'">
+          <v-progress-circular indeterminate size="44" width="4" color="primary" />
+          <p class="restart-msg">{{ restartState === 'ready' ? t('system.plugin.restartReady') : t('system.plugin.restartWaiting') }}</p>
+          <p class="restart-sub">{{ t('system.plugin.restartSub') }}</p>
+        </template>
+        <template v-else>
+          <span class="restart-warn"><v-icon size="40">mdi-alert-outline</v-icon></span>
+          <p class="restart-msg">{{ t('system.plugin.restartTimeout') }}</p>
+        </template>
+      </div>
+      <template v-if="restartState === 'timeout'" #footer>
+        <LjButton variant="ghost" @click="restartDialog = false">{{ t('common.close') }}</LjButton>
+        <LjButton icon="mdi-refresh" @click="startRestartPolling">{{ t('system.plugin.restartRetry') }}</LjButton>
+      </template>
+    </LjDialog>
+
     <LigojConfirmDialog v-model="confirm.open" :title="confirm.title" :icon="confirm.icon" :icon-color="confirm.color" :message="confirm.text" :confirm-label="confirm.label" :confirm-color="confirm.color" :loading="confirm.busy" @confirm="runConfirm">
       <template v-if="confirm.parts">{{ confirm.parts.before }}<strong class="text-error">{{ confirm.parts.name }}</strong>{{ confirm.parts.after }}</template>
     </LigojConfirmDialog>
@@ -326,7 +346,7 @@ watch(installSearch, (q) => {
     } finally { searching.value = false }
   }, 300)
 })
-onBeforeUnmount(() => { clearTimeout(searchTimer); document.removeEventListener('click', onDocClick) })
+onBeforeUnmount(() => { clearTimeout(searchTimer); stopRestartPolling(); document.removeEventListener('click', onDocClick) })
 
 async function doInstall() {
   if (!installSelection.value.length) return
@@ -351,7 +371,79 @@ function splitAround(key, value, param) {
   return i < 0 ? { before: full, name: '', after: '' } : { before: full.slice(0, i), name: value, after: full.slice(i + value.length) }
 }
 async function runConfirm() { confirm.busy = true; try { await confirm.action() } finally { confirm.busy = false; confirm.open = false } }
-function askRestart() { ask({ title: t('system.plugin.confirmRestartTitle'), text: t('system.plugin.confirmRestartText'), label: t('system.plugin.restart'), color: 'error', icon: 'mdi-restart', action: async () => { restarting.value = true; try { await api.put('rest/system/plugin/restart') } finally { restarting.value = false } } }) }
+
+/* ---- restart + availability polling ----
+   The API context is restarted server-side (its HTTP server is recreated), so
+   requests fail during the window then succeed again. We poll a cheap
+   authenticated endpoint silently (no error toast / no auth redirect on the
+   transient failures) and require having observed it DOWN at least once before
+   accepting an UP — so we don't mistake the not-yet-stopped instance for the
+   restarted one. A grace fallback accepts UP if the restart was faster than the
+   first poll, and an overall timeout surfaces a retry. */
+const RESTART_POLL_MS = 3000
+const RESTART_TIMEOUT_MS = 180000
+const restartDialog = ref(false)
+const restartState = ref('waiting') // waiting | ready | timeout
+let restartTimer = null
+let restartActive = false
+function stopRestartPolling() {
+  restartActive = false
+  if (restartTimer) { clearTimeout(restartTimer); restartTimer = null }
+}
+async function pingApi() {
+  try {
+    const res = await api.get('rest/system/configuration', { silent: true, raw: true })
+    return !!res?.ok
+  } catch { return false }
+}
+function startRestartPolling() {
+  stopRestartPolling()
+  restartActive = true
+  restartState.value = 'waiting'
+  restartDialog.value = true
+  const startedAt = Date.now()
+  let seenDown = false
+  // Self-scheduling poll (NOT setInterval): the next tick is armed only AFTER
+  // the current request resolves, so polls never overlap — during the restart
+  // window the API request hangs/refuses, and setInterval would otherwise queue
+  // several pending pings that all resolve at once when the API returns.
+  const tick = async () => {
+    restartTimer = null
+    if (!restartActive) return
+    const up = await pingApi()
+    if (!restartActive) return // dialog dismissed while the request was in flight
+    const elapsed = Date.now() - startedAt
+    // Up: accept once we saw it go down, or via the grace fallback (fast restart).
+    if (up && (seenDown || elapsed > RESTART_POLL_MS * 3)) {
+      stopRestartPolling()
+      restartState.value = 'ready'
+      errorStore.success(t('system.plugin.restartDone'))
+      load()
+      setTimeout(() => { restartDialog.value = false }, 1200)
+      return
+    }
+    if (!up) seenDown = true
+    if (elapsed > RESTART_TIMEOUT_MS) { stopRestartPolling(); restartState.value = 'timeout'; return }
+    restartTimer = setTimeout(tick, RESTART_POLL_MS)
+  }
+  restartTimer = setTimeout(tick, RESTART_POLL_MS)
+}
+// Stop polling if the dialog is dismissed manually.
+watch(restartDialog, (open) => { if (!open) stopRestartPolling() })
+
+function askRestart() {
+  ask({
+    title: t('system.plugin.confirmRestartTitle'), text: t('system.plugin.confirmRestartText'),
+    label: t('system.plugin.restart'), color: 'error', icon: 'mdi-restart',
+    action: async () => {
+      restarting.value = true
+      try {
+        await api.put('rest/system/plugin/restart')
+        startRestartPolling()
+      } finally { restarting.value = false }
+    },
+  })
+}
 function askCheckVersions() { ask({ title: t('system.plugin.confirmCheckTitle'), text: t('system.plugin.confirmCheckText', { repository: repository.value }), label: t('system.plugin.confirmCheckLabel'), color: 'brand', icon: 'mdi-magnify-plus-outline', action: async () => { checking.value = true; try { await api.put(`rest/system/plugin/cache?repository=${repository.value}`); await load() } finally { checking.value = false } } }) }
 function askRemove(artifact) { ask({ title: t('system.plugin.confirmDeleteTitle'), parts: splitAround('system.plugin.confirmDeleteText', artifact, 'artifact'), label: t('common.delete'), color: 'error', icon: 'mdi-delete-outline', action: async () => { await api.del(`rest/system/plugin/${artifact}`); await load() } }) }
 
@@ -412,6 +504,12 @@ onMounted(() => {
 .logo-tile :deep(img.tool-icon) { width: 22px; height: 22px; object-fit: contain; }
 .logo-tile :deep(i) { font-size: 20px; color: #475569; }
 /* Status chip (mockup .chip). */
+/* Restart progress dialog. */
+.restart-body { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding: 14px 8px 6px; }
+.restart-msg { font-family: var(--font); font-weight: 700; font-size: 15px; color: var(--ink); margin: 0; }
+.restart-sub { font-size: 12.5px; color: var(--ink-3); margin: 0; }
+.restart-warn { color: rgb(var(--v-theme-warning)); display: grid; place-items: center; }
+
 /* Code-signature / vendor cell. */
 .sig { display: inline-flex; align-items: center; gap: 6px; }
 .sig-name { font-family: var(--font); font-weight: 600; font-size: 12.5px; }
