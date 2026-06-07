@@ -30,6 +30,7 @@
         </div>
         <LjButton variant="ghost" icon="mdi-magnify-plus-outline" :disabled="checking" @click="askCheckVersions">{{ t('system.plugin.checkVersions') }}</LjButton>
         <LjButton variant="danger" icon="mdi-restart" :disabled="restarting" @click="askRestart">{{ t('system.plugin.restart') }}</LjButton>
+        <LjButton variant="ghost" icon="mdi-upload" @click="openUpload">{{ t('system.plugin.upload') }}</LjButton>
         <LjButton icon="mdi-plus" @click="openInstall">{{ t('system.plugin.install') }}</LjButton>
       </template>
     </LjPageHeader>
@@ -118,6 +119,20 @@
       </template>
     </LjDialog>
 
+    <!-- Upload dialog (legacy feature parity): install a plugin JAR from the
+         local file system via PUT rest/system/plugin/upload (multipart). The
+         plugin is staged locally and activated on the next restart. -->
+    <LjDialog v-model="uploadDialog" :title="t('system.plugin.uploadTitle')" icon="mdi-upload" :max-width="560">
+      <v-file-input v-model="uploadFile" :label="t('system.plugin.uploadFile')" accept=".jar" prepend-icon="" prepend-inner-icon="mdi-package-variant-closed"
+        variant="outlined" density="comfortable" :hint="t('system.plugin.uploadHint')" persistent-hint class="mb-3" />
+      <v-text-field v-model="uploadId" :label="t('system.plugin.uploadId')" prepend-inner-icon="mdi-identifier" variant="outlined" density="comfortable" class="mb-3" />
+      <v-text-field v-model="uploadVersion" :label="t('system.plugin.uploadVersion')" prepend-inner-icon="mdi-tag-outline" variant="outlined" density="comfortable" />
+      <template #footer>
+        <LjButton variant="ghost" :disabled="uploading" @click="uploadDialog = false">{{ t('common.cancel') }}</LjButton>
+        <LjButton icon="mdi-upload" :disabled="!uploadFile || !uploadId || !uploadVersion" :loading="uploading" @click="doUpload">{{ t('system.plugin.uploadAction') }}</LjButton>
+      </template>
+    </LjDialog>
+
     <LigojConfirmDialog v-model="confirm.open" :title="confirm.title" :icon="confirm.icon" :icon-color="confirm.color" :message="confirm.text" :confirm-label="confirm.label" :confirm-color="confirm.color" :loading="confirm.busy" @confirm="runConfirm">
       <template v-if="confirm.parts">{{ confirm.parts.before }}<strong class="text-error">{{ confirm.parts.name }}</strong>{{ confirm.parts.after }}</template>
     </LigojConfirmDialog>
@@ -126,7 +141,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useApi, useAppStore, useI18nStore, NodeIcon } from '@ligoj/host'
+import { useApi, useAppStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog } from '@ligoj/host'
 
 const api = useApi()
@@ -184,7 +199,9 @@ const rows = computed(() => items.value.map((it) => {
     enabled,
     status: it.deleted ? 'warn' : (enabled ? 'ok' : 'idle'),
     vendor: it.vendor || null,
-    signature: it.signature || null,
+    // The backend serializes the status enum in lowercase ("signed"): normalize
+    // to the uppercase enum names used by the i18n keys and the meta lookups.
+    signature: it.signature ? { ...it.signature, status: String(it.signature.status || 'UNSIGNED').toUpperCase() } : null,
   }
 }))
 
@@ -260,6 +277,42 @@ const installProgress = reactive({ current: 0, total: 0, label: '' })
 let searchTimer = null
 
 function openInstall() { installSelection.value = []; installSearch.value = ''; searchResults.value = []; installJavadoc.value = false; installDialog.value = true }
+
+/* Upload of a local plugin JAR (legacy feature parity): multipart PUT to
+   rest/system/plugin/upload. The plugin is staged in the local repository
+   and activated on the next restart (shows up as latestLocalVersion). */
+const errorStore = useErrorStore()
+const uploadDialog = ref(false)
+const uploadFile = ref(null)
+const uploadId = ref('')
+const uploadVersion = ref('')
+const uploading = ref(false)
+function openUpload() { uploadFile.value = null; uploadId.value = ''; uploadVersion.value = ''; uploadDialog.value = true }
+watch(uploadFile, (v) => {
+  const file = Array.isArray(v) ? v[0] : v
+  if (!file) return
+  // Prefill artifact/version from the conventional `<artifactId>-<version>.jar`
+  // filename (same version pattern as the backend PluginsClassLoader).
+  const m = /^(.+)-(\d[\da-zA-Z]*(?:\.[\da-zA-Z]+){1,3}(?:-SNAPSHOT)?)\.jar$/.exec(file.name)
+  if (m) { uploadId.value = m[1]; uploadVersion.value = m[2] }
+})
+async function doUpload() {
+  const file = Array.isArray(uploadFile.value) ? uploadFile.value[0] : uploadFile.value
+  if (!file || !uploadId.value || !uploadVersion.value) return
+  uploading.value = true
+  try {
+    const form = new FormData()
+    form.append('plugin-file', file)
+    form.append('plugin-id', uploadId.value)
+    form.append('plugin-version', uploadVersion.value)
+    // `raw`: the endpoint answers 204 No Content on success
+    const res = await api.request('rest/system/plugin/upload', { method: 'PUT', body: form, raw: true })
+    if (!res?.ok) return
+    errorStore.success(t('system.plugin.uploadSuccess', { id: uploadId.value, version: uploadVersion.value }))
+    uploadDialog.value = false
+    load()
+  } finally { uploading.value = false }
+}
 
 watch(installSearch, (q) => {
   clearTimeout(searchTimer)
