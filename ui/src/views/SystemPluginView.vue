@@ -67,6 +67,22 @@
         <span v-if="item.latestLocalVersion" class="vchip local" :title="t('system.plugin.cancelLocal')" @click.stop="cancelLocal(item)">{{ item.latestLocalVersion }}<v-icon size="13">mdi-close</v-icon></span>
         <span v-if="item.newVersion && item.newVersion !== item.latestLocalVersion" class="vchip up" :title="t('system.plugin.upgradeAvailable')" @click.stop="installOne(item.artifact)"><v-icon size="13">mdi-arrow-up</v-icon>{{ item.newVersion }}</span>
       </template>
+      <!-- Verified vendor: the code-signature state of the installed JAR, computed
+           at startup by the API. The signer identity is only trustworthy with the
+           VERIFIED status (certificate chained to the configured truststore);
+           without signature, the self-declared manifest vendor shows greyed. -->
+      <template #cell.vendor="{ item }">
+        <span v-if="item.signature" class="sig" :class="signatureMeta(item).cls">
+          <v-icon size="16">{{ signatureMeta(item).icon }}</v-icon>
+          <span class="sig-name">{{ ['VERIFIED', 'SIGNED'].includes(item.signature.status) ? signerCn(item.signature.signer) : signatureLabel(item) }}</span>
+          <v-tooltip activator="parent" location="top" :text="signatureLabel(item) + (item.signature.signer ? ' — ' + item.signature.signer : '')" />
+        </span>
+        <span v-else-if="item.vendor" class="sig unsigned">
+          <v-icon size="16">mdi-shield-off-outline</v-icon><span class="sig-name">{{ item.vendor }}</span>
+          <v-tooltip activator="parent" location="top" :text="t('system.plugin.signature.declared')" />
+        </span>
+        <span v-else class="muted">—</span>
+      </template>
       <template #cell.statut="{ item }"><span class="chip" :class="item.status">{{ statusLabel(item.status) }}</span></template>
       <template #cell.enabled="{ item }">
         <span v-if="item.node" class="switch" :class="{ on: item.enabled, busy: togglingKey === item.key }" role="switch" :aria-checked="item.enabled" :title="t('system.plugin.toggleHint')" @click.stop="toggleEnabled(item)" />
@@ -141,6 +157,7 @@ const headers = computed(() => [
   { key: 'name', label: t('system.plugin.headerName'), sortable: true, icon: 'mdi-puzzle-outline', exportValue: (r) => r.name || '' },
   { key: 'key', label: t('system.plugin.headerKey'), sortable: true, icon: 'mdi-identifier', exportValue: (r) => r.key || '' },
   { key: 'version', label: t('system.plugin.headerVersion'), sortable: false, icon: 'mdi-tag-outline', exportValue: (r) => r.version || '' },
+  { key: 'vendor', label: t('system.plugin.headerVendor'), sortable: false, icon: 'mdi-shield-account-outline', exportValue: (r) => (r.signature ? `${signatureLabel(r)}${r.signature.signer ? ' — ' + r.signature.signer : ''}` : (r.vendor || '')) },
   { key: 'statut', label: t('system.plugin.headerStatus'), sortable: true, align: 'center', icon: 'mdi-shape-outline', exportValue: (r) => statusLabel(r.status) },
   { key: 'enabled', label: t('system.plugin.headerEnabled'), sortable: false, align: 'center', icon: 'mdi-power', width: '110px', exportValue: (r) => (r.node ? (r.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled')) : '') },
 ])
@@ -166,8 +183,21 @@ const rows = computed(() => items.value.map((it) => {
     node: it.node || null,
     enabled,
     status: it.deleted ? 'warn' : (enabled ? 'ok' : 'idle'),
+    vendor: it.vendor || null,
+    signature: it.signature || null,
   }
 }))
+
+/* Code-signature presentation: icon/color per status + signer CN extraction. */
+const SIGNATURE_META = {
+  VERIFIED: { icon: 'mdi-shield-check', cls: 'verified' },
+  SIGNED: { icon: 'mdi-shield-outline', cls: 'signed' },
+  INVALID: { icon: 'mdi-shield-alert', cls: 'invalid' },
+  UNSIGNED: { icon: 'mdi-shield-off-outline', cls: 'unsigned' },
+}
+function signatureMeta(r) { return SIGNATURE_META[r.signature?.status] || SIGNATURE_META.UNSIGNED }
+function signatureLabel(r) { return t('system.plugin.signature.' + (r.signature?.status || 'UNSIGNED')) }
+function signerCn(dn) { const m = /(?:^|,)CN=([^,]+)/.exec(dn || ''); return m ? m[1] : (dn || '') }
 
 const stats = computed(() => {
   const by = (ty) => rows.value.filter((r) => r.type === ty).length
@@ -329,6 +359,14 @@ onMounted(() => {
 .logo-tile :deep(img.tool-icon) { width: 22px; height: 22px; object-fit: contain; }
 .logo-tile :deep(i) { font-size: 20px; color: #475569; }
 /* Status chip (mockup .chip). */
+/* Code-signature / vendor cell. */
+.sig { display: inline-flex; align-items: center; gap: 6px; }
+.sig-name { font-family: var(--font); font-weight: 600; font-size: 12.5px; }
+.sig.verified { color: #1d9d63; }
+.sig.signed { color: #d9701a; }
+.sig.invalid { color: #df4d42; }
+.sig.unsigned { color: var(--ink-3); }
+
 .chip { display: inline-flex; align-items: center; font-family: var(--font); font-weight: 700; font-size: 11.5px; padding: 3px 11px; border-radius: 999px; }
 .chip.ok { color: #1d9d63; background: rgba(29, 157, 99, .14); }
 .chip.warn { color: #d98a16; background: rgba(217, 138, 22, .16); }
