@@ -66,7 +66,8 @@
     <!-- Create / edit dialog (shared chrome). -->
     <LjDialog v-model="editDialog" :title="editTarget ? t('system.role.editTitle') : t('system.role.newTitle')" icon="mdi-shield-account-outline" :max-width="640">
       <v-form ref="formRef" @submit.prevent="save">
-        <v-text-field v-model="editForm.name" prepend-inner-icon="mdi-shield-outline" :label="t('system.role.fieldName')" :rules="[rules.required]" variant="outlined" class="mb-4" autofocus />
+        <LjAvailabilityField v-model="editForm.name" v-model:taken="nameTaken" endpoint="system/security/role/withAuth" :enabled="!editTarget"
+          prepend-inner-icon="mdi-shield-outline" :label="t('system.role.fieldName')" class="mb-4" autofocus />
         <v-combobox v-model="editForm.apiPatterns" :label="t('system.role.fieldApiPatterns')" prepend-inner-icon="mdi-api" :items="[]" chips closable-chips multiple variant="outlined" :hint="t('system.role.patternsHint')" persistent-hint class="mb-4" />
         <v-combobox v-model="editForm.uiPatterns" :label="t('system.role.fieldUiPatterns')" prepend-inner-icon="mdi-monitor" :items="[]" chips closable-chips multiple variant="outlined" :hint="t('system.role.patternsHint')" persistent-hint class="mb-2" />
       </v-form>
@@ -85,7 +86,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useI18nStore } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -95,8 +96,6 @@ const t = i18n.t
 const items = ref([])
 const loading = ref(false)
 const error = ref(null)
-
-const rules = { required: (v) => !!v || (t('common.required') || 'Required') }
 
 /* search / filter / sort / paging (client-side) */
 const query = ref('')
@@ -192,6 +191,7 @@ const formRef = ref(null)
 const editDialog = ref(false)
 const editTarget = ref(null)
 const editForm = ref({ name: '', apiPatterns: [], uiPatterns: [] })
+const nameTaken = ref(false)
 const saving = ref(false)
 function openNew() {
   editTarget.value = null
@@ -210,6 +210,7 @@ function openEdit(item) {
 async function save() {
   const { valid } = await formRef.value.validate()
   if (!valid) return
+  if (nameTaken.value) return
   saving.value = true
   try {
     const payload = {

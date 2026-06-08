@@ -36,7 +36,8 @@
         <!-- 3. Identity (id + name) -->
         <section class="step" :class="{ off: !isEdit && !selected.tool }">
           <div class="sh"><span class="n">3</span><v-icon size="18">mdi-server-outline</v-icon>{{ t('system.node.instanceStep') }}</div>
-          <v-text-field v-if="!isEdit" v-model="form.id" :label="t('wizard.label.id')" :hint="`${selected.tool?.id || ''}:my-instance`" persistent-hint variant="outlined" density="comfortable" class="mb-2" :rules="[rules.required, rules.nodeId]" />
+          <LjAvailabilityField v-if="!isEdit" v-model="form.id" v-model:taken="idTaken" endpoint="node" field="id" :min-length="3"
+            :label="t('wizard.label.id')" :hint="`${selected.tool?.id || ''}:my-instance`" persistent-hint density="comfortable" class="mb-2" :rules="[rules.required, rules.nodeId]" />
           <v-text-field v-model="form.name" :label="t('wizard.label.name')" variant="outlined" density="comfortable" hide-details="auto" :rules="[rules.required]" />
         </section>
 
@@ -70,7 +71,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, pluginRegistry, pluginIdFromKey, loadPlugin, LjDialog, LjButton, LjSegmented } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, pluginRegistry, pluginIdFromKey, loadPlugin, LjDialog, LjButton, LjSegmented, LjAvailabilityField } from '@ligoj/host'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -91,6 +92,7 @@ const dialogTitle = computed(() => isEdit.value
 
 const selected = reactive({ service: null, tool: null, node: null, mode: null })
 const form = reactive({ id: '', name: '' })
+const idTaken = ref(false)
 const services = ref([])
 const tools = ref([])
 const parameters = ref([])
@@ -245,6 +247,7 @@ watch(() => props.modelValue, (val) => {
 function wireMode(m) { return m ? String(m).toUpperCase() : m }
 async function submit() {
   if (!ready.value) return
+  if (idTaken.value) return
   saving.value = true; error.value = null
   try {
     const parametersWire = parameters.value.map(buildParamWire).filter(Boolean)

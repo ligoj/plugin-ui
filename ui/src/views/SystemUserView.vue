@@ -70,7 +70,8 @@
     <!-- Create / edit dialog (shared chrome). -->
     <LjDialog v-model="editDialog" :title="editTarget ? t('system.user.editTitle') : t('system.user.newTitle')" icon="mdi-account" :max-width="540">
       <v-form ref="formRef" @submit.prevent="save">
-        <v-text-field v-model="editForm.login" prepend-inner-icon="mdi-account" :label="t('system.user.fieldLogin')" :rules="[rules.required]" :disabled="!!editTarget" variant="outlined" class="mb-3" autofocus />
+        <LjAvailabilityField v-model="editForm.login" v-model:taken="loginTaken" endpoint="system/user/roles" field="login" :enabled="!editTarget"
+          prepend-inner-icon="mdi-account" :label="t('system.user.fieldLogin')" :disabled="!!editTarget" class="mb-3" autofocus />
         <!-- IAM details sharing the same login (when available): read-only,
              they are owned by the identity provider, not by this dialog —
              framed in a fieldset whose legend carries the source notice. -->
@@ -100,7 +101,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -156,6 +157,7 @@ const formRef = ref(null)
 const editDialog = ref(false)
 const editTarget = ref(null)
 const editForm = ref({ login: '', roles: [] })
+const loginTaken = ref(false)
 const saving = ref(false)
 // IAM details of the edited user (read-only in the dialog), or null when
 // creating or when the login has no IAM entry.
@@ -176,6 +178,7 @@ function openEdit(item) {
 async function save() {
   const { valid } = await formRef.value.validate()
   if (!valid) return
+  if (loginTaken.value) return
   saving.value = true
   try {
     await api[editTarget.value ? 'put' : 'post']('rest/system/user', { login: editForm.value.login, roles: editForm.value.roles })

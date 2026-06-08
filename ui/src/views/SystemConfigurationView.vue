@@ -87,7 +87,8 @@
     <!-- Create / edit dialog (shared chrome). -->
     <LjDialog v-model="editDialog" :title="editTarget ? t('system.config.editTitle') : t('system.config.newTitle')" icon="mdi-cog" :max-width="560">
       <v-form ref="formRef" @submit.prevent="save">
-        <v-text-field v-model="editForm.name" prepend-inner-icon="mdi-key-outline" :label="t('system.config.fieldName')" :rules="[rules.required]" variant="outlined" class="mb-3" autofocus :disabled="!!editTarget" />
+        <LjAvailabilityField v-model="editForm.name" v-model:taken="nameTaken" endpoint="system/configuration" :enabled="!editTarget"
+          prepend-inner-icon="mdi-key-outline" :label="t('system.config.fieldName')" class="mb-3" autofocus :disabled="!!editTarget" />
         <v-textarea v-model="editForm.value" prepend-inner-icon="mdi-text-long" :label="t('system.config.fieldValue')" :rules="[rules.required]" :counter="1023" maxlength="1023" rows="3" auto-grow variant="outlined" class="mb-2" />
         <label class="chk"><input type="checkbox" v-model="editForm.system" /><span class="chk-box" /><span>{{ t('system.config.fieldSystem') }}</span></label>
         <label class="chk"><input type="checkbox" v-model="editForm.secured" /><span class="chk-box" /><span>{{ t('system.config.fieldSecured') }}</span></label>
@@ -107,7 +108,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -243,6 +244,7 @@ const formRef = ref(null)
 const editDialog = ref(false)
 const editTarget = ref(null)
 const editForm = ref({ name: '', value: '', system: false, secured: false })
+const nameTaken = ref(false)
 const saving = ref(false)
 
 function openNew() {
@@ -258,6 +260,7 @@ function openEdit(item) {
 async function save() {
   const { valid } = await formRef.value.validate()
   if (!valid) return
+  if (nameTaken.value) return
   saving.value = true
   try {
     await api.post('rest/system/configuration', {
