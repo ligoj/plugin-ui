@@ -57,10 +57,7 @@
     <VibrantDataTable :headers="headers" :items="paged" :items-length="filtered.length" :loading="loading" item-value="name"
       :empty-text="query ? t('common.noData') : t('common.noData')" default-sort="name" filename="system-configuration.csv" @update:options="onOptions" @row-click="openEdit">
       <template #cell.name="{ item }">
-        <div class="avatar-cell">
-          <span class="kglyph" :class="{ secured: item.secured }"><v-icon size="18">{{ item.secured ? 'mdi-lock' : 'mdi-cog-outline' }}</v-icon></span>
-          <code class="kname">{{ item.name }}</code>
-        </div>
+        <code class="kname">{{ item.name }}</code>
       </template>
       <template #cell.value="{ item }">
         <span v-if="item.secured" class="masked">•••••••••</span>
@@ -338,9 +335,6 @@ onMounted(() => {
 .errline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: rgb(var(--v-theme-error)); margin: 0 0 14px; }
 
 /* Table cells. */
-.avatar-cell { display: flex; align-items: center; gap: 12px; }
-.kglyph { width: 34px; height: 34px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: var(--pill); color: var(--ink-3); }
-.kglyph.secured { background: rgba(139, 92, 246, .14); color: #8b5cf6; }
 .kname { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--ink); word-break: break-all; }
 .masked { font-family: var(--mono); color: var(--ink-3); letter-spacing: .1em; }
 .cval { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); background: var(--pill); padding: 2px 8px; border-radius: var(--radius-sm); display: inline-block; max-width: 460px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }

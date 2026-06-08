@@ -34,10 +34,7 @@
     <VibrantDataTable :headers="headers" :items="paged" :items-length="filtered.length" :loading="loading" item-value="id" default-sort="name"
       :empty-text="t('common.noData')" filename="system-roles.csv" @update:options="onOptions" @row-click="openEdit">
       <template #cell.name="{ item }">
-        <div class="avatar-cell">
-          <span class="rglyph" :class="{ admin: isUnrestricted(item) }"><v-icon size="18">mdi-shield-account-outline</v-icon></span>
-          <div class="ac-name">{{ item.name }}</div>
-        </div>
+        <div class="ac-name">{{ item.name }}</div>
       </template>
       <template #cell.authApi="{ item }">
         <span class="tokens">
@@ -269,9 +266,6 @@ onMounted(() => {
 
 .errline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: rgb(var(--v-theme-error)); margin: 0 0 14px; }
 
-.avatar-cell { display: flex; align-items: center; gap: 12px; }
-.rglyph { width: 34px; height: 34px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: var(--pill); color: var(--ink-3); }
-.rglyph.admin { background: rgba(217, 112, 26, .14); color: #d9701a; }
 .ac-name { font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); }
 .tokens { display: inline-flex; flex-wrap: wrap; gap: 5px; max-width: 420px; }
 .tok { font-family: var(--mono); font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-sm); color: var(--ink-2); background: var(--pill); }

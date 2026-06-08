@@ -32,10 +32,7 @@
     <VibrantDataTable :headers="headers" :items="paged" :items-length="filtered.length" :loading="loading" item-value="id" default-sort="hitCount" default-order="desc"
       :empty-text="t('common.noData')" filename="system-cache.csv" @update:options="onOptions">
       <template #cell.id="{ item }">
-        <div class="avatar-cell" :class="{ idle: isIdle(item) }">
-          <span class="cglyph" :class="{ live: !isIdle(item) }"><v-icon size="18">mdi-database-outline</v-icon></span>
-          <code class="cname">{{ item.id }}</code>
-        </div>
+        <code class="cname" :class="{ idle: isIdle(item) }">{{ item.id }}</code>
       </template>
       <template #cell.size="{ item }"><span class="num" :class="{ zero: !(item.size) }">{{ (item.size ?? 0).toLocaleString() }}</span></template>
       <template #cell.hitCount="{ item }">
@@ -198,11 +195,8 @@ onMounted(() => {
 
 .errline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: rgb(var(--v-theme-error)); margin: 0 0 14px; }
 
-.avatar-cell { display: flex; align-items: center; gap: 12px; transition: opacity .15s; }
-.avatar-cell.idle { opacity: .45; }
-.cglyph { width: 34px; height: 34px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: var(--pill); color: var(--ink-3); }
-.cglyph.live { background: rgba(29, 157, 99, .13); color: #1d9d63; }
-.cname { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--ink); word-break: break-all; }
+.cname { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--ink); word-break: break-all; transition: opacity .15s; }
+.cname.idle { opacity: .45; }
 .num { font-family: var(--mono); font-size: 13px; color: var(--ink-2); }
 .num.zero { color: var(--ink-3); opacity: .5; }
 .metric { display: flex; flex-direction: column; gap: 5px; }

@@ -34,10 +34,7 @@
     <VibrantDataTable :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value" item-value="login"
       default-sort="login" :empty-text="t('common.noData')" :fetch-all="dt.loadAll" filename="system-users.csv" @update:options="loadData" @row-click="openEdit">
       <template #cell.login="{ item }">
-        <div class="avatar-cell">
-          <span class="uglyph"><v-icon size="18">mdi-account-circle</v-icon></span>
-          <code class="ulogin">{{ item.login }}</code>
-        </div>
+        <code class="ulogin">{{ item.login }}</code>
       </template>
       <!-- IAM cache attributes (same PK as the system user); dash when the
            login has no IAM entry. -->
@@ -228,8 +225,6 @@ onMounted(() => {
 
 .errline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: rgb(var(--v-theme-error)); margin: 0 0 14px; }
 
-.avatar-cell { display: flex; align-items: center; gap: 12px; }
-.uglyph { width: 34px; height: 34px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: var(--pill); color: var(--ink-3); }
 .ulogin { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--ink); }
 .uname { font-family: var(--font); font-weight: 600; font-size: 13.5px; color: var(--ink); }
 .umail { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); text-decoration: none; }
