@@ -246,7 +246,7 @@ async function load() {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: t('nav.home'), to: '/' }, { title: t('api.title') }], { refresh: load })
+  app.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('api.title') }], { refresh: load })
   load()
 })
 </script>

@@ -192,7 +192,7 @@ function onSaved({ id, created }) {
 }
 
 onMounted(() => {
-  appStore.setBreadcrumbs([{ title: t('nav.home'), to: '/' }, { title: t('project.title') }], { refresh: load })
+  appStore.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('project.title') }], { refresh: load })
   load()
 })
 </script>

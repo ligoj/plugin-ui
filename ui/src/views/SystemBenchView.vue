@@ -119,7 +119,7 @@ async function run() {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.bench.title') }])
+  app.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.bench.title') }])
 })
 </script>
 

@@ -166,7 +166,7 @@ async function confirmDelete() {
 
 onMounted(() => {
   document.addEventListener('click', onDocClick)
-  app.setBreadcrumbs([{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.node.title') }], { refresh: load })
+  app.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.node.title') }], { refresh: load })
   load()
 })
 onBeforeUnmount(() => document.removeEventListener('click', onDocClick))

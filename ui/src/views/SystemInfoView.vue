@@ -166,7 +166,7 @@ async function saveTimeZone(type, value) {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.info.title') }], { refresh: load })
+  app.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.info.title') }], { refresh: load })
   load()
 })
 </script>

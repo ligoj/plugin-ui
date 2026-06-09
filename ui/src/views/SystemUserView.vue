@@ -199,7 +199,7 @@ async function confirmDelete() {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.user.title') }], { refresh: () => { loadRoles(); dt.load(lastOptions) } })
+  app.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.user.title') }], { refresh: () => { loadRoles(); dt.load(lastOptions) } })
   loadRoles()
 })
 </script>

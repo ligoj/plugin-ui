@@ -79,7 +79,7 @@ const origin = typeof window !== 'undefined' ? window.location.origin : ''
 const userName = computed(() => auth.userName || '<you>')
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: 'Home', to: '/' }, { title: 'Manual' }])
+  app.setBreadcrumbs(() => [{ title: 'Home', to: '/' }, { title: 'Manual' }])
 })
 </script>
 

@@ -286,8 +286,7 @@ function buildDemo(pkey) {
 }
 
 function setCrumbs(name) {
-  appStore.setBreadcrumbs(
-    [{ title: t('nav.home'), to: '/' }, { title: t('project.title'), to: '/project' }, { title: name }],
+  appStore.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('project.title'), to: '/project' }, { title: name }],
     { refresh: load },
   )
 }

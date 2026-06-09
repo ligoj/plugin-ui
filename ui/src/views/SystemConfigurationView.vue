@@ -287,7 +287,7 @@ async function confirmDelete() {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.config.title') }], { refresh: load })
+  app.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.config.title') }], { refresh: load })
   load()
 })
 </script>

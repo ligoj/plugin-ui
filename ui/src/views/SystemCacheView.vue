@@ -167,7 +167,7 @@ async function invalidate(item) {
 }
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.cache.title') }], { refresh: load })
+  app.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.cache.title') }], { refresh: load })
   load()
 })
 </script>

@@ -26,6 +26,6 @@ const items = computed(() => [
 ])
 
 onMounted(() => {
-  app.setBreadcrumbs([{ title: t('system.breadcrumb') }])
+  app.setBreadcrumbs(() => [{ title: t('system.breadcrumb') }])
 })
 </script>

@@ -449,7 +449,7 @@ function askRemove(artifact) { ask({ title: t('system.plugin.confirmDeleteTitle'
 
 onMounted(() => {
   document.addEventListener('click', onDocClick)
-  app.setBreadcrumbs([{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.plugin.title') }], { refresh: load })
+  app.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.plugin.title') }], { refresh: load })
   load()
 })
 </script>
