@@ -84,7 +84,10 @@
         </span>
         <span v-else class="muted">—</span>
       </template>
-      <template #cell.statut="{ item }"><span class="chip" :class="item.status">{{ statusLabel(item.status) }}</span></template>
+      <template #cell.statut="{ item }">
+        <LjStatus :status="item.status === 'ok' ? 'ok' : item.status === 'warn' ? 'warn' : 'idle'"
+                  :tooltip="statusLabel(item.status)" />
+      </template>
       <template #cell.enabled="{ item }">
         <span v-if="item.node" class="switch" :class="{ on: item.enabled, busy: togglingKey === item.key }" role="switch" :aria-checked="item.enabled" :title="t('system.plugin.toggleHint')" @click.stop="toggleEnabled(item)" />
         <span v-else class="muted">—</span>
@@ -162,7 +165,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useApi, useAppStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -503,7 +506,6 @@ onMounted(() => {
 .logo-tile { width: 36px; height: 36px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: #fff; box-shadow: 0 0 0 var(--border-w) var(--border-c), 0 2px 6px -3px rgba(0, 0, 0, .3); }
 .logo-tile :deep(img.tool-icon) { width: 22px; height: 22px; object-fit: contain; }
 .logo-tile :deep(i) { font-size: 20px; color: #475569; }
-/* Status chip (mockup .chip). */
 /* Restart progress dialog. */
 .restart-body { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding: 14px 8px 6px; }
 .restart-msg { font-family: var(--font); font-weight: 700; font-size: 15px; color: var(--ink); margin: 0; }
@@ -518,11 +520,6 @@ onMounted(() => {
 .sig.invalid { color: #df4d42; }
 .sig.unsigned { color: var(--ink-3); }
 
-.chip { display: inline-flex; align-items: center; font-family: var(--font); font-weight: 700; font-size: 11.5px; padding: 3px 11px; border-radius: 999px; }
-.chip.ok { color: #1d9d63; background: rgba(29, 157, 99, .14); }
-.chip.warn { color: #d98a16; background: rgba(217, 138, 22, .16); }
-.chip.err { color: #df4d42; background: rgba(223, 77, 66, .14); }
-.chip.idle { color: var(--ink-3); background: var(--pill); }
 /* Toggle switch (mockup .switch). */
 .switch { display: inline-block; width: 44px; height: 25px; border-radius: 20px; background: var(--border-2); position: relative; cursor: pointer; transition: background .2s, opacity .2s; vertical-align: middle; }
 .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .35); transition: left .2s; }
