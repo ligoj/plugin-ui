@@ -65,16 +65,11 @@
       <template #actions="{ item }">
         <!-- Only instances can be edited/deleted; service/tool/feature nodes
              have no actions, so the cog menu is omitted for them. -->
-        <v-menu v-if="isInstance(item)" location="bottom end">
-          <template #activator="{ props }">
-            <button class="lj-iconbtn" v-bind="props" :aria-label="t('common.actions')" @click.stop><v-icon size="18">mdi-cog</v-icon></button>
-          </template>
-          <div class="lj-popmenu">
-            <button @click="startEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
-            <div class="sep" />
-            <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
-          </div>
-        </v-menu>
+        <RowActionsCog v-if="isInstance(item)">
+          <button @click="startEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+          <div class="sep" />
+          <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+        </RowActionsCog>
       </template>
     </VibrantDataTable>
 
@@ -92,6 +87,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi, useAppStore, useI18nStore, NodeIcon, NodeModeChip, isInstance, nodeType } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjStatus } from '@ligoj/host'
 import NodeEditDialog from './NodeEditDialog.vue'
+import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()
 const app = useAppStore()

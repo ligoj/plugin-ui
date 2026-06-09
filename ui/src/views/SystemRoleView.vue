@@ -49,14 +49,11 @@
         </span>
       </template>
       <template #actions="{ item }">
-        <button class="lj-iconbtn" @click.stop="openEdit(item)">
-          <v-icon size="18">mdi-pencil-outline</v-icon>
-          <v-tooltip activator="parent" :text="t('common.edit')" location="top" />
-        </button>
-        <button class="lj-iconbtn danger" @click.stop="startDelete(item)">
-          <v-icon size="18">mdi-delete-outline</v-icon>
-          <v-tooltip activator="parent" :text="t('common.delete')" location="top" />
-        </button>
+        <RowActionsCog>
+          <button @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+          <div class="sep" />
+          <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+        </RowActionsCog>
       </template>
     </VibrantDataTable>
 
@@ -84,6 +81,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useI18nStore } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
+import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()
 const app = useAppStore()
@@ -272,6 +270,4 @@ onMounted(() => {
 .tok.api { color: #2f6df6; background: rgba(47, 109, 246, .12); }
 .tok.ui { color: #1d9d63; background: rgba(29, 157, 99, .13); }
 .dash { color: var(--ink-3); }
-/* Danger accent for the inline delete trigger (base `.lj-iconbtn` is global). */
-.lj-iconbtn.danger:hover { background: rgba(var(--v-theme-error), .1); color: rgb(var(--v-theme-error)); }
 </style>

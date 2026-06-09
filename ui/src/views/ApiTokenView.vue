@@ -39,18 +39,12 @@
         </div>
       </template>
       <template #actions="{ item }">
-        <button class="lj-iconbtn" @click.stop="openShow(item.name, 'load')">
-          <v-icon size="18">mdi-eye-outline</v-icon>
-          <v-tooltip activator="parent" :text="t('system.apiToken.show')" location="top" />
-        </button>
-        <button class="lj-iconbtn" @click.stop="openShow(item.name, 'regen')">
-          <v-icon size="18">mdi-refresh</v-icon>
-          <v-tooltip activator="parent" :text="t('system.apiToken.regenerate')" location="top" />
-        </button>
-        <button class="lj-iconbtn danger" @click.stop="startDelete(item.name)">
-          <v-icon size="18">mdi-delete-outline</v-icon>
-          <v-tooltip activator="parent" :text="t('system.apiToken.revoke')" location="top" />
-        </button>
+        <RowActionsCog>
+          <button @click="openShow(item.name, 'load')"><v-icon size="18">mdi-eye-outline</v-icon>{{ t('system.apiToken.show') }}</button>
+          <button @click="openShow(item.name, 'regen')"><v-icon size="18">mdi-refresh</v-icon>{{ t('system.apiToken.regenerate') }}</button>
+          <div class="sep" />
+          <button class="danger" @click="startDelete(item.name)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('system.apiToken.revoke') }}</button>
+        </RowActionsCog>
       </template>
     </VibrantDataTable>
 
@@ -97,6 +91,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useAuthStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog } from '@ligoj/host'
+import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()
 const app = useAppStore()
@@ -222,8 +217,6 @@ onMounted(() => {
 .avatar-cell { display: flex; align-items: center; gap: 12px; }
 .kglyph { width: 34px; height: 34px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: rgba(139, 92, 246, .13); color: #8b5cf6; }
 .kname { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--ink); }
-/* Danger accent for the inline revoke trigger (base `.lj-iconbtn` is global). */
-.lj-iconbtn.danger:hover { background: rgba(var(--v-theme-error), .1); color: rgb(var(--v-theme-error)); }
 
 /* Dialog body bits (slotted into LjDialog; --pill/--mono/--accent come from
    the dialog card's `.lj-surface`). */
