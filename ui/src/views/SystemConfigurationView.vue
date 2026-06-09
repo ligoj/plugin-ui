@@ -70,14 +70,11 @@
         <span v-if="item.overridden" class="ovr" :title="t('system.config.tipOverridden')"><v-icon size="13">mdi-alert</v-icon></span>
       </template>
       <template #actions="{ item }">
-        <button class="lj-iconbtn" @click.stop="openEdit(item)">
-          <v-icon size="18">mdi-pencil-outline</v-icon>
-          <v-tooltip activator="parent" :text="t('common.edit')" location="top" />
-        </button>
-        <button class="lj-iconbtn danger" @click.stop="startDelete(item)">
-          <v-icon size="18">mdi-delete-outline</v-icon>
-          <v-tooltip activator="parent" :text="t('common.delete')" location="top" />
-        </button>
+        <RowActionsCog>
+          <button @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+          <div class="sep" />
+          <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+        </RowActionsCog>
       </template>
     </VibrantDataTable>
 
@@ -106,6 +103,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
+import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()
 const app = useAppStore()
@@ -342,8 +340,6 @@ onMounted(() => {
 .srcpill :deep(.v-icon) { flex: none; }
 .src-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ovr { color: #d9701a; margin-left: 5px; vertical-align: middle; }
-/* Danger accent for the inline delete trigger (base `.lj-iconbtn` is global). */
-.lj-iconbtn.danger:hover { background: rgba(var(--v-theme-error), .1); color: rgb(var(--v-theme-error)); }
 
 /* Custom checkboxes inside the edit dialog (slotted content keeps this
    component's scope id; --accent/--border-2 come from the LjDialog card's
