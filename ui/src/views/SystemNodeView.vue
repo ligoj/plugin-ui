@@ -59,7 +59,8 @@
         <NodeModeChip :mode="item.mode || 'all'" size="small" />
       </template>
       <template #cell.enabled="{ item }">
-        <span class="status"><span class="sdot" :class="item.enabled ? 'ok' : 'err'" />{{ item.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled') }}</span>
+        <LjStatus :active="item.enabled"
+                  :tooltip="item.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled')" />
       </template>
       <template #actions="{ item }">
         <!-- Only instances can be edited/deleted; service/tool/feature nodes
@@ -89,7 +90,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi, useAppStore, useI18nStore, NodeIcon, NodeModeChip, isInstance, nodeType } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjStatus } from '@ligoj/host'
 import NodeEditDialog from './NodeEditDialog.vue'
 
 const api = useApi()
@@ -454,38 +455,4 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
   background: rgba(139, 92, 246, .14);
 }
 
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--ink-2);
-}
-
-.sdot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  position: relative;
-}
-
-.sdot::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: .2;
-}
-
-.sdot.ok {
-  background: #1d9d63;
-  color: #1d9d63;
-}
-
-.sdot.err {
-  background: #df4d42;
-  color: #df4d42;
-}
 </style>
