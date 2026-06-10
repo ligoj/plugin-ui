@@ -44,17 +44,30 @@
     <!-- Cards -->
     <div v-if="view === 'cards'" class="grid">
       <article v-for="(tool, i) in displayCards" :key="tool.key" class="card" :style="{ '--c': colorOf(tool, i), animationDelay: Math.min(i, 12) * 45 + 'ms' }">
+        <!-- Two-row header: long tool names can no longer get squeezed by the
+             health bar / counter sharing a single flex row. Row 1 = glyph +
+             name + collapse chevron; row 2 = kind + health bar + counter. -->
         <div class="card-head">
-          <span class="glyph" :class="{ noimg: failed.has(tool.key) }" :data-letter="tool.name[0]">
-            <NodeIcon v-if="tool.nodeId" :node="{ id: tool.nodeId }" />
-            <img v-else-if="!failed.has(tool.key)" class="tool-logo" :src="toolLogo(tool.name)" :alt="tool.name" loading="lazy" @error="failed.add(tool.key)" />
-          </span>
-          <div class="t"><div class="name">{{ tool.name }}</div><div class="kind">{{ tool.kind }}</div></div>
-          <span v-if="tool.health != null" class="health"><span class="barh"><i :style="{ width: Math.round(tool.health * 100) + '%' }" /></span>{{ Math.round(tool.health * 100) }}%</span>
-          <div class="count">{{ tool.total.toLocaleString('fr-FR') }}<small v-if="tool.health != null"> / {{ tool.active }}</small></div>
-          <button class="chev" type="button" :aria-label="collapsed.has(tool.key) ? t('common.expandAll') : t('common.collapseAll')" @click.stop="toggle(tool.key)">
-            <v-icon size="18">{{ collapsed.has(tool.key) ? 'mdi-chevron-down' : 'mdi-chevron-up' }}</v-icon>
-          </button>
+          <div class="ch-row top">
+            <span class="glyph" :class="{ noimg: failed.has(tool.key) }" :data-letter="tool.name[0]">
+              <NodeIcon v-if="tool.nodeId" :node="{ id: tool.nodeId }" />
+              <img v-else-if="!failed.has(tool.key)" class="tool-logo" :src="toolLogo(tool.name)" :alt="tool.name" loading="lazy" @error="failed.add(tool.key)" />
+            </span>
+            <div class="name">{{ tool.name }}</div>
+            <button class="chev" type="button" :aria-label="collapsed.has(tool.key) ? t('common.expandAll') : t('common.collapseAll')" @click.stop="toggle(tool.key)">
+              <v-icon size="18">{{ collapsed.has(tool.key) ? 'mdi-chevron-down' : 'mdi-chevron-up' }}</v-icon>
+            </button>
+          </div>
+          <div class="ch-row bottom">
+            <div class="kind">{{ tool.kind }}</div>
+            <span class="health">
+              <template v-if="tool.health != null">
+                <span class="barh"><i :style="{ width: Math.round(tool.health * 100) + '%' }" /></span>
+                <span class="pct">{{ Math.round(tool.health * 100) }}%</span>
+              </template>
+              <span class="count">{{ tool.total.toLocaleString('fr-FR') }}<small v-if="tool.health != null"> / {{ tool.active }}</small></span>
+            </span>
+          </div>
         </div>
         <v-expand-transition>
           <div v-show="!collapsed.has(tool.key)">
@@ -413,26 +426,24 @@ onMounted(load)
 @media (prefers-reduced-motion: reduce) { .card { animation: none; opacity: 1; transform: none; } }
 .card:hover { transform: translateY(-3px); box-shadow: 0 26px 50px -24px color-mix(in srgb, var(--c) 55%, transparent); }
 /* The preferred colour materialises as a 4px top edge, in addition to the
-   existing tinted header gradient. */
-.card-head { display: flex; align-items: center; gap: 10px; padding: 16px 16px 14px; border-top: 4px solid var(--c); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 16%, var(--card)), color-mix(in srgb, var(--c) 5%, var(--card))); border-bottom: 1px solid color-mix(in srgb, var(--c) 16%, var(--border)); }
+   existing tinted header gradient. Two stacked rows (see template). */
+.card-head { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px 12px; border-top: 4px solid var(--c); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 16%, var(--card)), color-mix(in srgb, var(--c) 5%, var(--card))); border-bottom: 1px solid color-mix(in srgb, var(--c) 16%, var(--border)); }
+.ch-row { display: flex; align-items: center; gap: 10px; }
+.ch-row.bottom { justify-content: space-between; }
 .glyph { width: 44px; height: 44px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: var(--card); box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--c) 50%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, var(--border)); }
 .glyph.sm { width: 36px; height: 36px; border-radius: var(--radius-sm); }
 .glyph .tool-logo, .glyph :deep(img.tool-icon) { width: 26px; height: 26px; object-fit: contain; }
 .glyph.sm .tool-logo, .glyph.sm :deep(img.tool-icon) { width: 22px; height: 22px; }
 .glyph :deep(i) { font-size: 24px; color: color-mix(in srgb, var(--c) 75%, var(--ink)); }
 .glyph.noimg::after { content: attr(data-letter); font-family: var(--font); font-weight: var(--bold); font-size: 20px; color: color-mix(in srgb, var(--c) 75%, var(--ink)); }
-/* The title owns the elastic space: `flex: 1 1 auto` (basis = content) lets it
-   claim its natural width first and only ellipsis-shrink on real overflow,
-   instead of `flex: 1 1 0` which collapses it to a couple of characters next
-   to the fixed-size health bar / counter / chevron. */
-.card-head .t { flex: 1 1 auto; min-width: 0; }
-.card-head .name { font-family: var(--font); font-weight: var(--bold); font-size: 16.5px; letter-spacing: -.03em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card-head .kind { font-family: var(--mono); font-size: 11px; font-weight: 700; color: color-mix(in srgb, var(--c) 55%, var(--ink-3)); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* Health bar, counter and chevron keep their intrinsic size (never grow, never
-   shrink) so only the title flexes. */
-.card-head .health { flex: none; }
-.card-head .count { flex: none; }
-.card-head .barh { width: 46px; }
+/* On each row only the text (name / kind) flexes and ellipsis-shrinks; the
+   glyph, chevron and health cluster keep their intrinsic size. With the bar +
+   counter moved to their own row, long names get the full card width. */
+.ch-row.top .name { flex: 1 1 auto; min-width: 0; font-family: var(--font); font-weight: var(--bold); font-size: 16.5px; letter-spacing: -.03em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-row.bottom .kind { flex: 1 1 auto; min-width: 0; font-family: var(--mono); font-size: 11px; font-weight: 700; color: color-mix(in srgb, var(--c) 55%, var(--ink-3)); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-row.bottom .health { flex: none; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.ch-row.bottom .pct { font-variant-numeric: tabular-nums; }
+.card-head .barh { width: 50px; }
 .count { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: color-mix(in srgb, var(--c) 65%, var(--ink)); background: var(--card); border: var(--border-w) var(--lj-border-style, solid) color-mix(in srgb, var(--c) 22%, var(--border)); border-radius: var(--radius-sm); padding: 5px 9px; white-space: nowrap; }
 .count small { opacity: .5; }
 /* Collapse chevron. */
