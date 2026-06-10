@@ -43,7 +43,7 @@
 
     <!-- Cards -->
     <div v-if="view === 'cards'" class="grid">
-      <article v-for="(tool, i) in displayCards" :key="tool.key" class="card" :style="{ '--c': colorOf(tool, i), animationDelay: Math.min(i, 12) * 45 + 'ms' }">
+      <article v-for="(tool, i) in displayCards" :key="tool.key" class="card" :class="{ collapsed: collapsed.has(tool.key) }" :style="{ '--c': colorOf(tool, i), animationDelay: Math.min(i, 12) * 45 + 'ms' }">
         <!-- Two-row header: long tool names can no longer get squeezed by the
              health bar / counter sharing a single flex row. Row 1 = glyph +
              name + collapse chevron; row 2 = kind + health bar + counter. -->
@@ -421,10 +421,11 @@ onMounted(load)
 .collapse-all:hover { background: var(--pill); color: var(--ink); }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
-/* `align-self: start` is required: grid items stretch to the tallest card in
-   their row by default, so a collapsed card would keep the height of its
-   expanded neighbours even though its body is `display:none`. */
-.card { align-self: start; position: relative; display: flex; flex-direction: column; background: var(--card); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); opacity: 0; transform: translateY(12px); animation: rise .5s cubic-bezier(.2,.7,.3,1) forwards; transition: transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .18s; }
+.card { position: relative; display: flex; flex-direction: column; background: var(--card); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); opacity: 0; transform: translateY(12px); animation: rise .5s cubic-bezier(.2,.7,.3,1) forwards; transition: transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .18s; }
+/* Expanded cards keep the grid's default `align-self: stretch` so a whole row
+   shares a common bottom edge (no "staircase"). Only a collapsed card opts out
+   of the stretch, shrinking to its header height on its own. */
+.card.collapsed { align-self: start; }
 @keyframes rise { to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .card { animation: none; opacity: 1; transform: none; } }
 .card:hover { transform: translateY(-3px); box-shadow: 0 26px 50px -24px color-mix(in srgb, var(--c) 55%, transparent); }
@@ -458,17 +459,21 @@ onMounted(load)
 
 /* Subscriptions mini-table. */
 .mini { padding: 6px 10px 10px; max-height: 232px; overflow-y: auto; }
-.mrow { display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 10px; padding: 8px; border-radius: 11px; }
-.mrow + .mrow { box-shadow: inset 0 1px 0 var(--border); }
+.mrow { position: relative; display: grid; grid-template-columns: 14px 1fr auto; align-items: center; gap: 10px; padding: 8px; border-radius: 11px; }
+/* Straight hairline divider, inset from the rounded row corners. An inset
+   box-shadow here would follow the 11px radius and curve into little hooks at
+   each end (the "weird rounding" between rows); a horizontally-inset pseudo
+   line stays perfectly straight while the hover pill keeps its rounded look. */
+.mrow + .mrow::before { content: ""; position: absolute; top: 0; left: 8px; right: 8px; height: 1px; background: var(--border); }
 .mrow.mhead { font-family: var(--mono); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); padding-bottom: 6px; }
-.mrow.mhead + .mrow { box-shadow: none; }
+.mrow.mhead + .mrow::before { display: none; }
 .mrow.mhead .m-sum { justify-self: end; }
 .mrow.clickable { cursor: pointer; transition: background .12s; }
 .mrow.clickable:hover { background: color-mix(in srgb, var(--c) 8%, var(--card)); }
 .mlabel { min-width: 0; font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-sum { justify-self: end; min-width: 0; }
 .mempty, .mmore { display: block; text-align: center; font-size: 12px; font-weight: 600; color: var(--ink-3); padding: 8px; }
-.mmore { box-shadow: none; }
+.mmore::before { display: none; }
 
 .pills { display: flex; gap: 5px; flex: none; }
 .pill { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-2); background: var(--pill); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); border-radius: var(--radius-sm); padding: 2px 7px; }
