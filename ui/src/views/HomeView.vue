@@ -421,7 +421,10 @@ onMounted(load)
 .collapse-all:hover { background: var(--pill); color: var(--ink); }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
-.card { position: relative; display: flex; flex-direction: column; background: var(--card); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); opacity: 0; transform: translateY(12px); animation: rise .5s cubic-bezier(.2,.7,.3,1) forwards; transition: transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .18s; }
+/* `align-self: start` is required: grid items stretch to the tallest card in
+   their row by default, so a collapsed card would keep the height of its
+   expanded neighbours even though its body is `display:none`. */
+.card { align-self: start; position: relative; display: flex; flex-direction: column; background: var(--card); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); opacity: 0; transform: translateY(12px); animation: rise .5s cubic-bezier(.2,.7,.3,1) forwards; transition: transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .18s; }
 @keyframes rise { to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .card { animation: none; opacity: 1; transform: none; } }
 .card:hover { transform: translateY(-3px); box-shadow: 0 26px 50px -24px color-mix(in srgb, var(--c) 55%, transparent); }
@@ -440,11 +443,14 @@ onMounted(load)
    glyph, chevron and health cluster keep their intrinsic size. With the bar +
    counter moved to their own row, long names get the full card width. */
 .ch-row.top .name { flex: 1 1 auto; min-width: 0; font-family: var(--font); font-weight: var(--bold); font-size: 16.5px; letter-spacing: -.03em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ch-row.bottom .kind { flex: 1 1 auto; min-width: 0; font-family: var(--mono); font-size: 11px; font-weight: 700; color: color-mix(in srgb, var(--c) 55%, var(--ink-3)); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ch-row.bottom .health { flex: none; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+/* Row 2 runs at a smaller type scale so the uppercase kind (e.g. "GESTION DE
+   TICKETS") fits in full alongside the health bar + percentage + counter,
+   without dropping any of them. */
+.ch-row.bottom .kind { flex: 1 1 auto; min-width: 0; font-family: var(--mono); font-size: 10px; font-weight: 700; color: color-mix(in srgb, var(--c) 55%, var(--ink-3)); text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-row.bottom .health { flex: none; display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--ink-3); }
 .ch-row.bottom .pct { font-variant-numeric: tabular-nums; }
-.card-head .barh { width: 50px; }
-.count { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: color-mix(in srgb, var(--c) 65%, var(--ink)); background: var(--card); border: var(--border-w) var(--lj-border-style, solid) color-mix(in srgb, var(--c) 22%, var(--border)); border-radius: var(--radius-sm); padding: 5px 9px; white-space: nowrap; }
+.card-head .barh { width: 44px; }
+.count { font-family: var(--mono); font-size: 11px; font-weight: 700; color: color-mix(in srgb, var(--c) 65%, var(--ink)); background: var(--card); border: var(--border-w) var(--lj-border-style, solid) color-mix(in srgb, var(--c) 22%, var(--border)); border-radius: var(--radius-sm); padding: 4px 8px; white-space: nowrap; }
 .count small { opacity: .5; }
 /* Collapse chevron. */
 .chev { flex: none; width: 30px; height: 30px; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--ink-3); cursor: pointer; display: grid; place-items: center; transition: background .12s, color .12s; }
