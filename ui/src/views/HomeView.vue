@@ -414,18 +414,25 @@ onMounted(load)
 .card:hover { transform: translateY(-3px); box-shadow: 0 26px 50px -24px color-mix(in srgb, var(--c) 55%, transparent); }
 /* The preferred colour materialises as a 4px top edge, in addition to the
    existing tinted header gradient. */
-.card-head { display: flex; align-items: center; gap: 13px; padding: 16px 16px 14px; border-top: 4px solid var(--c); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 16%, var(--card)), color-mix(in srgb, var(--c) 5%, var(--card))); border-bottom: 1px solid color-mix(in srgb, var(--c) 16%, var(--border)); }
+.card-head { display: flex; align-items: center; gap: 10px; padding: 16px 16px 14px; border-top: 4px solid var(--c); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 16%, var(--card)), color-mix(in srgb, var(--c) 5%, var(--card))); border-bottom: 1px solid color-mix(in srgb, var(--c) 16%, var(--border)); }
 .glyph { width: 44px; height: 44px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: var(--card); box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--c) 50%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, var(--border)); }
 .glyph.sm { width: 36px; height: 36px; border-radius: var(--radius-sm); }
 .glyph .tool-logo, .glyph :deep(img.tool-icon) { width: 26px; height: 26px; object-fit: contain; }
 .glyph.sm .tool-logo, .glyph.sm :deep(img.tool-icon) { width: 22px; height: 22px; }
 .glyph :deep(i) { font-size: 24px; color: color-mix(in srgb, var(--c) 75%, var(--ink)); }
 .glyph.noimg::after { content: attr(data-letter); font-family: var(--font); font-weight: var(--bold); font-size: 20px; color: color-mix(in srgb, var(--c) 75%, var(--ink)); }
-.card-head .t { flex: 1; min-width: 0; }
+/* The title owns the elastic space: `flex: 1 1 auto` (basis = content) lets it
+   claim its natural width first and only ellipsis-shrink on real overflow,
+   instead of `flex: 1 1 0` which collapses it to a couple of characters next
+   to the fixed-size health bar / counter / chevron. */
+.card-head .t { flex: 1 1 auto; min-width: 0; }
 .card-head .name { font-family: var(--font); font-weight: var(--bold); font-size: 16.5px; letter-spacing: -.03em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-head .kind { font-family: var(--mono); font-size: 11px; font-weight: 700; color: color-mix(in srgb, var(--c) 55%, var(--ink-3)); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Health bar, counter and chevron keep their intrinsic size (never grow, never
+   shrink) so only the title flexes. */
 .card-head .health { flex: none; }
-.card-head .barh { width: 54px; }
+.card-head .count { flex: none; }
+.card-head .barh { width: 46px; }
 .count { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: color-mix(in srgb, var(--c) 65%, var(--ink)); background: var(--card); border: var(--border-w) var(--lj-border-style, solid) color-mix(in srgb, var(--c) 22%, var(--border)); border-radius: var(--radius-sm); padding: 5px 9px; white-space: nowrap; }
 .count small { opacity: .5; }
 /* Collapse chevron. */
