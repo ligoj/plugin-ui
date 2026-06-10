@@ -295,6 +295,8 @@ export default {
   'wizard.rule.nodeId': 'Utilisez la forme séparée par des deux-points, ex. service:scm:git:internal',
 
   // 2026 redesign: project/system/api view keys
+  'common.collapseAll': "Tout réduire",
+  'common.expandAll': "Tout déplier",
   'api.collapseAll': "Tout replier",
   'api.deprecated': "déprécié",
   'api.downloadOpenapi': "Télécharger OpenAPI",
