@@ -296,6 +296,8 @@ export default {
   'wizard.rule.nodeId': 'Use the colon-separated form, e.g. service:scm:git:internal',
 
   // 2026 redesign: project/system/api view keys
+  'common.collapseAll': "Collapse all",
+  'common.expandAll': "Expand all",
   'api.collapseAll': "Collapse all",
   'api.deprecated': "deprecated",
   'api.downloadOpenapi': "Download OpenAPI",
