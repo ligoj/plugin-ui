@@ -11,7 +11,16 @@ if (typeof document !== 'undefined') {
     const link = document.createElement('link')
     link.id = id
     link.rel = 'stylesheet'
-    link.href = new URL(/* @vite-ignore */ './index.css', import.meta.url).href
+    // Carry over the `?v=<digest>` cache-busting query the host puts on the JS
+    // bundle URL (see app-ui plugins/loader.js): relative URL resolution drops
+    // the base query, so without this the stylesheet stays unversioned while
+    // the JS rotates its digest on every plugin upgrade. The scoped-style
+    // `data-v-*` ids then mismatch between a freshly-loaded JS bundle and a
+    // cached index.css, silently breaking every SFC layout in this plugin.
+    const cssUrl = new URL(/* @vite-ignore */ './index.css', import.meta.url)
+    const selfQuery = new URL(import.meta.url).search
+    if (selfQuery) cssUrl.search = selfQuery
+    link.href = cssUrl.href
     document.head.appendChild(link)
   }
 }
