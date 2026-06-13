@@ -10,7 +10,11 @@
 <template>
   <div class="sysinfo lj-surface">
     <LjPageHeader :title="t('system.info.title')" :subtitle="t('system.info.subtitle')"
-      :crumbs="[{ icon: 'mdi-cog-outline', label: t('system.breadcrumb') }, { label: t('system.info.title'), current: true }]" />
+      :crumbs="[{ icon: 'mdi-cog-outline', label: t('system.breadcrumb') }, { label: t('system.info.title'), current: true }]">
+      <template #actions>
+        <LjButton variant="ghost" icon="mdi-gauge" @click="router.push('/system/actuator')">{{ t('system.actuator.link') }}</LjButton>
+      </template>
+    </LjPageHeader>
 
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
@@ -84,8 +88,10 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useAuthStore, useClipboard, useI18nStore, APP_BASE, LjPageHeader } from '@ligoj/host'
+import { useRouter } from 'vue-router'
+import { useApi, useAppStore, useAuthStore, useClipboard, useI18nStore, APP_BASE, LjPageHeader, LjButton } from '@ligoj/host'
 
+const router = useRouter()
 const api = useApi()
 const app = useAppStore()
 const auth = useAuthStore()

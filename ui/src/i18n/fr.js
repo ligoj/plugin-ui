@@ -17,6 +17,16 @@ export default {
 
   // Système → Informations
   'system.info.title': 'Informations',
+  'system.actuator.title': 'Actuator',
+  'system.actuator.subtitle': 'Points de gestion Spring Boot',
+  'system.actuator.link': 'Actuator',
+  'system.actuator.endpoints': 'Points d\'accès',
+  'system.actuator.templated': 'Ce point nécessite une variable de chemin et ne peut pas être ouvert directement.',
+  'system.actuator.pickHint': 'Sélectionnez un point pour inspecter ses données.',
+  'system.actuator.copy': 'Copier la réponse',
+  'system.actuator.copied': 'Réponse copiée dans le presse-papiers',
+  'system.actuator.error': 'Impossible de charger les points actuator.',
+  'system.actuator.detailError': 'Impossible de charger ce point.',
   'system.info.system': 'Système',
   'system.info.memory': 'Mémoire',
   'system.info.memoryUsed': 'Utilisée',

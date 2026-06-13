@@ -58,6 +58,7 @@ import ManualView from './views/ManualView.vue'
 
 import SystemView from './views/SystemView.vue'
 import SystemInfoView from './views/SystemInfoView.vue'
+import ActuatorView from './views/ActuatorView.vue'
 import SystemConfigurationView from './views/SystemConfigurationView.vue'
 import SystemUserView from './views/SystemUserView.vue'
 import SystemRoleView from './views/SystemRoleView.vue'
@@ -90,6 +91,7 @@ const routes = [
   // legacy SystemView reachable at `/system` so the path isn't a dead end.
   { path: '/system', name: 'ui-system', component: SystemView },
   { path: '/system/information', name: 'ui-system-information', component: SystemInfoView },
+  { path: '/system/actuator', name: 'ui-system-actuator', component: ActuatorView },
   { path: '/system/configuration', name: 'ui-system-configuration', component: SystemConfigurationView },
   { path: '/system/user', name: 'ui-system-user', component: SystemUserView },
   { path: '/system/role', name: 'ui-system-role', component: SystemRoleView },

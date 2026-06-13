@@ -18,6 +18,16 @@ export default {
 
   // System → Information
   'system.info.title': 'Information',
+  'system.actuator.title': 'Actuator',
+  'system.actuator.subtitle': 'Spring Boot management endpoints',
+  'system.actuator.link': 'Actuator',
+  'system.actuator.endpoints': 'Endpoints',
+  'system.actuator.templated': 'This endpoint requires a path variable and cannot be opened directly.',
+  'system.actuator.pickHint': 'Select an endpoint to inspect its data.',
+  'system.actuator.copy': 'Copy response',
+  'system.actuator.copied': 'Response copied to clipboard',
+  'system.actuator.error': 'Unable to load the actuator endpoints.',
+  'system.actuator.detailError': 'Unable to load this endpoint.',
   'system.info.system': 'System',
   'system.info.memory': 'Memory',
   'system.info.memoryUsed': 'Used',
