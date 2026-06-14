@@ -14,7 +14,6 @@
 -->
 <template>
   <div class="pdetail lj-surface">
-    <a class="back" @click="router.push('/project')"><v-icon size="16">mdi-arrow-left</v-icon>{{ t('project.title') }}</a>
     <LjPageHeader :title="project?.name || '…'">
       <template #subtitle>
         <span class="pkey">{{ project?.pkey }}</span>
@@ -35,70 +34,16 @@
       <span v-if="project.description" class="desc">{{ project.description }}</span>
     </div>
 
-    <div v-if="loading && !groups.length" class="grid">
-      <div v-for="n in 4" :key="n" class="card skeleton" />
-    </div>
-
-    <div v-else-if="groups.length" class="grid">
-      <article v-for="(g, i) in groups" :key="g.key" class="card" :style="{ '--c': g.color, 'animation-delay': (i * 45) + 'ms' }">
-        <div class="card-head">
-          <div class="glyph">
-            <component :is="g.icon" />
-          </div>
-          <div class="t">
-            <div class="name">{{ g.name }}</div>
-            <div class="kind">{{ g.kind }}</div>
-          </div>
-          <div class="count">{{ g.rows.length }} <small>{{ t('project.detail.activeShort') }}</small></div>
+    <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length"
+      default-view="list" @rowmenu="onRowMenu">
+      <template #empty>
+        <div class="empty">
+          <v-icon size="44" color="rgba(var(--v-theme-on-surface),.25)">mdi-cloud-off-outline</v-icon>
+          <p>{{ t('project.detail.noSubscriptions') }}</p>
+          <LjButton icon="mdi-plus" @click="openSubscribe">{{ t('project.detail.addSubscription') }}</LjButton>
         </div>
-        <div class="rows">
-          <div v-for="(r, j) in (expanded[g.key] ? g.rows : g.rows.slice(0, 4))" :key="j" class="row">
-            <span class="st" :class="r.status" />
-            <span class="rn">{{ r.name }}</span>
-            <span class="pills">
-              <!-- Plugin-rendered subscription summary, split like the legacy
-                   `renderDetailsKey` / `renderDetailsFeatures` pair: the
-                   "key" carries the stable resource identity (group name,
-                   repository, instance id, …) and the "features" carries the
-                   live chips (member count, cost/quota, VM status). Both
-                   degrade to nothing when the owning plugin bundle isn't
-                   loaded — the synthetic status/id pills below always show. -->
-              <PluginFeatures v-if="r.sub" :subscription="r.sub" action="renderDetailsKey" />
-              <PluginFeatures v-if="r.sub" :subscription="r.sub" action="renderDetailsFeatures" />
-              <span v-for="(p, k) in r.pills" :key="k" class="pill" :class="{ cost: r.cost }">{{ p }}</span>
-            </span>
-            <span v-if="r.sub" class="rowact">
-              <!-- Plugin-contributed row actions (`renderFeatures`): the VM
-                   "Configure" cog, plugin-id's manage-members, the JIRA /
-                   console / repository home links, etc. The host never
-                   interprets HTML — each plugin paints its own buttons, and
-                   `PluginFeatures` promotes their `title:` to a themed
-                   tooltip. Delegation degrades to nothing when the plugin
-                   isn't loaded. -->
-              <PluginFeatures :subscription="r.sub" action="renderFeatures" />
-              <button v-if="r.sub.id" class="rowcog" :title="t('common.actions') || 'Actions'" @click.stop="openRowMenu($event, r.sub)">
-                <v-icon size="16">mdi-dots-vertical</v-icon>
-              </button>
-            </span>
-          </div>
-          <button v-if="g.rows.length > 4" class="rowmore" @click.stop="toggle(g.key)">
-            <v-icon size="14">{{ expanded[g.key] ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-            <span v-if="expanded[g.key]">{{ t('common.reduce') || 'Réduire' }}</span>
-            <span v-else>+{{ g.rows.length - 4 }} {{ t('project.detail.more') }}</span>
-          </button>
-        </div>
-        <div class="card-foot">
-          <a class="morelink">{{ t('project.detail.configure') }} →</a>
-          <span class="health"><span class="barh"><i :style="{ width: Math.round(g.health * 100) + '%' }" /></span>{{ Math.round(g.health * 100) }}%</span>
-        </div>
-      </article>
-    </div>
-
-    <div v-else class="empty">
-      <v-icon size="44" color="rgba(var(--v-theme-on-surface),.25)">mdi-cloud-off-outline</v-icon>
-      <p>{{ t('project.detail.noSubscriptions') }}</p>
-      <LjButton icon="mdi-plus" @click="openSubscribe">{{ t('project.detail.addSubscription') }}</LjButton>
-    </div>
+      </template>
+    </SubscriptionsPanel>
 
     <ProjectEditDialog v-model="editDialog" :project="project" @saved="load" />
     <SubscribeWizardDialog v-model="subscribeDialog" :project-id="project?.id" :project-name="project?.name" @saved="load" />
@@ -119,15 +64,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch, h } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore, useI18nStore, NodeIcon, VIcon, PluginFeatures, LjPageHeader, LjButton } from '@ligoj/host'
+import { ref, computed, onMounted, watch, h } from 'vue'
+import { useRoute } from 'vue-router'
+import { useApi, useAppStore, useI18nStore, NodeIcon, VIcon, LjPageHeader, LjButton } from '@ligoj/host'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import SubscribeWizardDialog from './SubscribeWizardView.vue'
 import AuditDialog from '../components/AuditDialog.vue'
+import SubscriptionsPanel from '../components/SubscriptionsPanel.vue'
 
 const route = useRoute()
-const router = useRouter()
 const api = useApi()
 const appStore = useAppStore()
 const i18n = useI18nStore()
@@ -300,9 +245,8 @@ function openSubscribe() {
   subscribeDialog.value = true
 }
 
-// expanded[g.key] === true → la card affiche toutes ses rows.
-const expanded = reactive({})
-function toggle(key) { expanded[key] = !expanded[key] }
+// SubscriptionsPanel emits { event, sub } from a row cog → host overflow menu.
+function onRowMenu({ event, sub }) { openRowMenu(event, sub) }
 
 const rowMenu = ref({ open: false, x: 0, y: 0, sub: null })
 function openRowMenu(ev, sub) {
@@ -330,31 +274,15 @@ onMounted(load)
 /* View-specific styling only — chrome (page header + primary/ghost buttons)
    comes from the shared host components + the global `.lj-surface` class,
    which supplies the ink, pill, radius, mono, surface, card and border vars
-   these cockpit cards read. The `.back` link, the `.rowact`/`.rowcog`
-   PluginFeatures cluster, the custom `.rowmenu` and the `.toast` are bespoke
-   to this view and PRESERVED. The status-dot colour vars below are bespoke. */
+   these cockpit cards read. The `.rowact`/`.rowcog` PluginFeatures cluster, the
+   custom `.rowmenu` and the `.toast` are bespoke to this view and PRESERVED.
+   The status-dot colour vars below are bespoke. (Back navigation now comes from
+   the shell breadcrumb, so the in-page back link was removed.) */
 .pdetail {
   --ok: #1d9d63;
   --warn: #d98a16;
   --err: #df4d42;
   --idle: #bcb6a8;
-}
-
-.back {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-family: var(--font);
-  font-weight: 700;
-  font-size: 12.5px;
-  color: var(--ink-3);
-  cursor: pointer;
-  margin-bottom: 6px;
-  transition: color .15s;
-}
-
-.back:hover {
-  color: var(--accent);
 }
 
 /* Subtitle inline bits (slotted into LjPageHeader's `.sub`). */
@@ -407,11 +335,29 @@ onMounted(load)
   color: var(--ink-3);
 }
 
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 18px;
 }
+
+/* List view (VibrantDataTable) cells. */
+.avatar-cell { display: flex; align-items: center; gap: 12px; }
+.glyph.sm { width: 36px; height: 36px; }
+.glyph.sm :deep(img.tool-icon), .glyph.sm :deep(.demo-logo) { width: 22px; height: 22px; }
+.glyph.sm :deep(i) { font-size: 20px; }
+.ac-name { font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); }
+.ac-kind { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.ln { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.lsum { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
 
 .card {
   position: relative;

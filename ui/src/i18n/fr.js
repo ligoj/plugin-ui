@@ -268,6 +268,7 @@ export default {
   'project.detail.created': 'Créé le :',
   'project.detail.updated': 'Mis à jour le :',
   'project.detail.subscriptions': 'Souscriptions',
+  'project.detail.tool': 'Outil',
   'project.detail.noSubscriptions': 'Aucune souscription rattachée à ce projet.',
   'project.detail.editTitle': 'Modifier le projet',
   'project.detail.fieldName': 'Nom',

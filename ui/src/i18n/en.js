@@ -269,6 +269,7 @@ export default {
   'project.detail.created': 'Created:',
   'project.detail.updated': 'Updated:',
   'project.detail.subscriptions': 'Subscriptions',
+  'project.detail.tool': 'Tool',
   'project.detail.noSubscriptions': 'No subscriptions attached to this project.',
   'project.detail.editTitle': 'Edit project',
   'project.detail.fieldName': 'Name',
