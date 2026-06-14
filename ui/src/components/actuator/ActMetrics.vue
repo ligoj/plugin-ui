@@ -40,9 +40,27 @@
       <v-expansion-panels v-else v-model="openPanels" multiple variant="accordion">
         <v-expansion-panel v-for="name in filtered" :key="name" :value="name">
           <v-expansion-panel-title>
-            <div class="pt">
+            <div class="pt mt-pt">
               <span class="mono cc-txt">{{ name }}</span>
               <button class="cc-copy" title="Copy metric name" @click.stop="copy && copy(name)"><v-icon size="13">mdi-content-copy</v-icon></button>
+              <template v-if="values[name] && values[name].data">
+                <!-- Tags as a chip list -->
+                <span v-if="values[name].tags.length" class="mt-tags">
+                  <v-chip v-for="tg in values[name].tags" :key="tg" size="x-small" variant="tonal" label class="mt-tag">{{ tg }}</v-chip>
+                </span>
+                <!-- Value rendered by metric type: progress / number+unit / multi-stat -->
+                <span class="mt-val" :class="'is-' + values[name].disp.kind">
+                  <template v-if="values[name].disp.kind === 'progress'">
+                    <span class="mt-bar"><i :style="{ width: values[name].disp.pct + '%' }" /></span>
+                    <span class="mt-num">{{ values[name].disp.text }}</span>
+                  </template>
+                  <template v-else-if="values[name].disp.kind === 'multi'">
+                    <v-chip v-for="m in values[name].disp.items" :key="m.statistic" size="x-small" variant="flat" label class="mt-mchip"><span class="mt-mstat">{{ m.statistic }}</span>{{ m.display }}</v-chip>
+                  </template>
+                  <span v-else class="mt-num">{{ values[name].disp.text }}</span>
+                </span>
+              </template>
+              <span v-else-if="values[name] && values[name].loading" class="mt-mini-spin" />
             </div>
           </v-expansion-panel-title>
           <v-expansion-panel-text>
@@ -94,23 +112,34 @@ const filtered = computed(() => {
   return needle ? names.value.filter((n) => n.toLowerCase().includes(needle)) : names.value
 })
 
-// Lazily load a meter's value the first time its panel is opened.
-watch(openPanels, (open) => {
-  for (const name of open) {
-    if (!(name in values)) loadMetric(name)
-  }
-}, { deep: true })
-
 async function loadMetric(name) {
   if (!props.fetch) { values[name] = { error: true }; return }
+  if (values[name]?.loading || values[name]?.data) return // idempotent
   values[name] = { loading: true }
   try {
     const d = await props.fetch(`metrics/${encodeURIComponent(name)}`)
-    values[name] = d && typeof d === 'object' ? { data: d } : { error: true }
+    values[name] = d && typeof d === 'object'
+      ? { data: d, disp: titleDisplay(d), tags: titleTags(d) }
+      : { error: true }
   } catch {
     values[name] = { error: true }
   }
 }
+
+// Eagerly load values for every visible meter (so each panel TITLE can show its
+// value + tags), batched to avoid firing a hundred requests at once. A token
+// guards against a stale run when the filter changes mid-load.
+let loadToken = 0
+async function loadVisible() {
+  const token = ++loadToken
+  const pending = filtered.value.filter((n) => !(n in values))
+  const CONCURRENCY = 8
+  for (let i = 0; i < pending.length; i += CONCURRENCY) {
+    if (token !== loadToken) return
+    await Promise.all(pending.slice(i, i + CONCURRENCY).map(loadMetric))
+  }
+}
+watch(filtered, loadVisible)
 
 // ---- formatting helpers --------------------------------------------------
 function humanBytes(n) {
@@ -161,6 +190,43 @@ function tagList(d) {
     const shown = vals.slice(0, 4).join(', ')
     return `${t?.tag}=[${shown}${vals.length > 4 ? ', …' : ''}]`
   })
+}
+
+// ---- title display -------------------------------------------------------
+// Tag NAMES as compact chips for the panel title (capped, with a "+N" overflow).
+function titleTags(d) {
+  const names = (Array.isArray(d?.availableTags) ? d.availableTags : []).map((t) => t?.tag).filter(Boolean)
+  return names.length > 4 ? names.slice(0, 4).concat(`+${names.length - 4}`) : names
+}
+
+// Number + unit, keeping a non-special baseUnit as a suffix (e.g. "12 threads").
+function fmtFull(d, value) {
+  const u = String(d?.baseUnit || '').toLowerCase()
+  if (['bytes', 'seconds', 'percent'].includes(u)) return fmtByUnit(value, d?.baseUnit)
+  const num = humanNumber(value)
+  return d?.baseUnit ? `${num} ${d.baseUnit}` : num
+}
+
+function shortStat(s) {
+  return String(s || '').replace('TOTAL_TIME', 'TOTAL').replace('ACTIVE_TASKS', 'ACTIVE').replace(/_/g, ' ')
+}
+
+// Pick the right title widget for a meter: a progress bar for ratios, a single
+// number+unit for a lone measurement, or a chip per statistic for multi-value
+// meters (timers/ranges).
+function titleDisplay(d) {
+  const ms = Array.isArray(d?.measurements) ? d.measurements : []
+  if (!ms.length) return { kind: 'value', text: '—' }
+  const unit = String(d?.baseUnit || '').toLowerCase()
+  const nm = String(d?.name || '')
+  const primary = ms.find((m) => m.statistic === 'VALUE') || ms.find((m) => m.statistic === 'COUNT') || ms[0]
+  const percentLike = unit === 'percent' || /usage|utilization/i.test(nm)
+  if (ms.length === 1 && percentLike && primary?.value != null) {
+    const ratio = Number(primary.value)
+    return { kind: 'progress', pct: Math.max(0, Math.min(100, Math.round(ratio * 100))), text: `${(ratio * 100).toFixed(1)}%` }
+  }
+  if (ms.length === 1) return { kind: 'value', text: fmtFull(d, primary?.value) }
+  return { kind: 'multi', items: ms.map((m) => ({ statistic: shortStat(m?.statistic), display: fmtByUnit(m?.value, d?.baseUnit) })) }
 }
 
 // ---- highlights ----------------------------------------------------------
@@ -222,7 +288,7 @@ async function loadHighlights() {
   highlightCards.value = cards.filter(Boolean)
 }
 
-onMounted(loadHighlights)
+onMounted(() => { loadHighlights(); loadVisible() })
 </script>
 
 <style scoped>
@@ -256,4 +322,17 @@ onMounted(loadHighlights)
 .meas-val small { font-size: 11px; font-weight: 500; color: var(--ink-3); }
 .tags { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .tags-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3, rgba(var(--v-theme-on-surface), .5)); margin-right: 4px; }
+
+/* Panel title: value widget + tag chips pushed to the right (name flex-grows). */
+.mt-pt { gap: 8px; }
+.mt-tags { display: inline-flex; flex: none; align-items: center; gap: 4px; }
+.mt-tag { opacity: .85; }
+.mt-val { display: inline-flex; flex: none; align-items: center; gap: 8px; margin-left: 4px; }
+.mt-num { font-family: var(--mono, ui-monospace, monospace); font-weight: 700; font-size: 13px; color: var(--ink); white-space: nowrap; }
+.mt-bar { width: 72px; height: 6px; flex: none; border-radius: 999px; background: var(--pill); overflow: hidden; }
+.mt-bar i { display: block; height: 100%; border-radius: 999px; background: rgb(var(--v-theme-primary)); }
+.mt-mchip { font-family: var(--mono, ui-monospace, monospace); font-weight: 700; }
+.mt-mstat { opacity: .55; margin-right: 4px; font-size: 9.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+.mt-mini-spin { width: 14px; height: 14px; flex: none; margin-left: auto; border: 2px solid var(--pill); border-top-color: rgb(var(--v-theme-primary)); border-radius: 50%; animation: mt-spin .7s linear infinite; }
+@media (max-width: 720px) { .mt-tags { display: none; } }
 </style>
