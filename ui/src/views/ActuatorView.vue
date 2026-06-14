@@ -21,11 +21,9 @@
       <!-- Endpoint catalog -->
       <aside class="act-list">
         <div class="act-list-head">{{ t('system.actuator.endpoints') }}<span class="act-count">{{ endpoints.length }}</span></div>
-        <button v-for="ep in endpoints" :key="ep.name" class="act-ep" :class="{ on: selected === ep.name, templated: ep.templated }"
-          :disabled="ep.templated" :title="ep.templated ? t('system.actuator.templated') : ep.href" @click="select(ep)">
+        <button v-for="ep in endpoints" :key="ep.name" class="act-ep" :class="{ on: selected === ep.name }" :title="ep.href" @click="select(ep)">
           <span class="act-ep-ic"><v-icon size="18">{{ ep.icon }}</v-icon></span>
           <span class="act-ep-txt"><span class="act-ep-name">{{ ep.label }}</span><span class="act-ep-key">{{ ep.name }}</span></span>
-          <v-icon v-if="ep.templated" size="14" class="act-ep-tpl">mdi-variable</v-icon>
         </button>
       </aside>
 
@@ -38,12 +36,17 @@
         <template v-else>
           <div class="act-detail-head">
             <span class="dh-ic"><v-icon size="20">{{ current.icon }}</v-icon></span>
-            <div class="dh-txt"><h3>{{ current.label }}</h3><code class="dh-href">{{ current.href }}</code></div>
+            <div class="dh-txt">
+              <h3>{{ current.label }}</h3><code class="dh-href">{{ current.href }}</code>
+            </div>
             <span class="sp" />
-            <button class="lj-iconbtn" :title="t('common.refresh')" :disabled="loadingDetail || isBinary || isWrite || isLogfile" @click="loadDetail(current)"><v-icon size="18">mdi-refresh</v-icon></button>
-            <button v-if="rendererComponent" class="lj-iconbtn" :class="{ on: rawMode }" :title="rawMode ? t('system.actuator.prettyView') : t('system.actuator.rawView')" :disabled="loadingDetail || detail == null" @click="rawMode = !rawMode"><v-icon size="18">{{ rawMode ? 'mdi-table-eye' : 'mdi-code-json' }}</v-icon></button>
+            <button class="lj-iconbtn" :title="t('common.refresh')" :disabled="loadingDetail || isBinary || isWrite || isLogfile" @click="loadDetail(current)"><v-icon
+                size="18">mdi-refresh</v-icon></button>
+            <button v-if="rendererComponent" class="lj-iconbtn" :class="{ on: rawMode }" :title="rawMode ? t('system.actuator.prettyView') : t('system.actuator.rawView')"
+              :disabled="loadingDetail || detail == null" @click="rawMode = !rawMode"><v-icon size="18">{{ rawMode ? 'mdi-table-eye' : 'mdi-code-json' }}</v-icon></button>
             <button class="lj-iconbtn" :title="t('system.actuator.download')" :disabled="loadingDetail || detail == null" @click="downloadJson"><v-icon size="18">mdi-download</v-icon></button>
-            <button class="lj-iconbtn" :title="t('system.actuator.copy')" :disabled="loadingDetail || detail == null" @click="copy(detailPretty, { message: t('system.actuator.copied') })"><v-icon size="18">mdi-content-copy</v-icon></button>
+            <button class="lj-iconbtn" :title="t('system.actuator.copy')" :disabled="loadingDetail || detail == null" @click="copy(detailPretty, { message: t('system.actuator.copied') })"><v-icon
+                size="18">mdi-content-copy</v-icon></button>
           </div>
 
           <!-- Binary / streaming endpoint: direct download instead of rendering -->
@@ -66,8 +69,8 @@
                 <v-btn color="error" variant="flat" :loading="opRunning" @click="runOperation">{{ t('system.actuator.op.submit') }}</v-btn>
               </div>
             </div>
-            <v-btn v-else :color="isDangerous ? 'error' : 'primary'" variant="flat" size="large"
-              prepend-icon="mdi-play" :loading="opRunning" @click="isDangerous ? (confirming = true) : runOperation()">{{ t('system.actuator.op.submit') }}</v-btn>
+            <v-btn v-else :color="isDangerous ? 'error' : 'primary'" variant="flat" size="large" prepend-icon="mdi-play" :loading="opRunning"
+              @click="isDangerous ? (confirming = true) : runOperation()">{{ t('system.actuator.op.submit') }}</v-btn>
           </div>
           <div v-else-if="loadingDetail" class="act-loading"><span class="mspin" /></div>
           <p v-else-if="detailError" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ detailError }}</p>
@@ -245,6 +248,12 @@ async function loadIndex() {
         const meta = EP_META[name] || { label: humanise(name), icon: 'mdi-api' }
         return { name, label: meta.label, icon: meta.icon, templated: !!link.templated, href: toPath(link.href) }
       })
+      // Drop templated endpoints (e.g. metrics/{name}, loggers/{name},
+      // configprops/{prefix}): they need a path variable and can't be opened
+      // directly — their data is reached via the base endpoint's renderer. Listing
+      // them only adds dead, disabled menu items. The counter then reflects the
+      // actually usable endpoints.
+      .filter((e) => !e.templated)
       .sort((a, b) => a.label.localeCompare(b.label))
     // Select the endpoint named in the route (default `info`).
     syncFromRoute()
@@ -353,76 +362,379 @@ loadIndex()
 </script>
 
 <style scoped>
-.actuator { padding-bottom: 24px; }
-.errline { display: flex; align-items: center; gap: 6px; color: rgb(var(--v-theme-warning)); font-size: 13px; margin: 0 0 12px; }
+.errline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgb(var(--v-theme-warning));
+  font-size: 13px;
+  margin: 0 0 12px;
+}
 
-.act-layout { display: grid; grid-template-columns: 260px 1fr; gap: 16px; align-items: start; }
-@media (max-width: 760px) { .act-layout { grid-template-columns: 1fr; } }
+.act-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .act-layout {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* Endpoint catalog */
-.act-list { background: var(--surface); border: var(--border-w) solid var(--border-c); border-radius: var(--radius); padding: 8px; box-shadow: var(--shadow); }
-.act-list-head { display: flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: var(--bold); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); padding: 6px 8px 8px; }
-.act-count { margin-left: auto; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--pill); color: var(--ink-2); }
-.act-ep { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 8px 10px; border: 0; background: transparent; border-radius: var(--radius-sm); cursor: pointer; color: var(--ink); transition: background .12s; }
-.act-ep:hover:not(:disabled) { background: var(--hover); }
-.act-ep.on { background: rgba(var(--v-theme-secondary), .14); }
-.act-ep.templated { opacity: .5; cursor: not-allowed; }
-.act-ep-ic { display: grid; place-items: center; width: 30px; height: 30px; flex: none; border-radius: var(--radius-sm); background: var(--pill); color: var(--ink-2); }
-.act-ep.on .act-ep-ic { background: rgba(var(--v-theme-secondary), .2); color: rgb(var(--v-theme-secondary)); }
-.act-ep-txt { display: flex; flex-direction: column; min-width: 0; }
-.act-ep-name { font-family: var(--font); font-weight: 700; font-size: 13.5px; }
-.act-ep-key { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
-.act-ep-tpl { color: var(--ink-3); margin-left: auto; }
+/* Sticky, self-scrolling catalog. Capped to the same 72vh as the detail renderer
+   so the menu is never the tallest column — a long list scrolls inside the menu
+   instead of stretching the view and forcing a second scrollbar on the page. */
+.act-list {
+  background: var(--surface);
+  border: var(--border-w) solid var(--border-c);
+  border-radius: var(--radius);
+  padding: 8px;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 202px);
+  overflow-y: auto;
+}
+
+.act-list-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font);
+  font-weight: var(--bold);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-3);
+  padding: 6px 8px 8px;
+}
+
+.act-count {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--pill);
+  color: var(--ink-2);
+}
+
+.act-ep {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--ink);
+  transition: background .12s;
+}
+
+.act-ep:hover {
+  background: var(--hover);
+}
+
+.act-ep.on {
+  background: rgba(var(--v-theme-secondary), .14);
+}
+
+.act-ep-ic {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  background: var(--pill);
+  color: var(--ink-2);
+}
+
+.act-ep.on .act-ep-ic {
+  background: rgba(var(--v-theme-secondary), .2);
+  color: rgb(var(--v-theme-secondary));
+}
+
+.act-ep-txt {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.act-ep-name {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+.act-ep-key {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
 
 /* Detail viewer */
-.act-detail { background: var(--surface); border: var(--border-w) solid var(--border-c); border-radius: var(--radius); box-shadow: var(--shadow); min-height: 220px; overflow: hidden; }
-.act-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 48px 16px; color: var(--ink-3); text-align: center; }
-.act-detail-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: var(--border-w) solid var(--border-c); }
-.dh-ic { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border-radius: var(--radius-sm); background: rgba(var(--v-theme-secondary), .15); color: rgb(var(--v-theme-secondary)); }
-.dh-txt { min-width: 0; }
-.dh-txt h3 { margin: 0; font-family: var(--font); font-weight: var(--bold); font-size: 16px; color: var(--ink); }
-.dh-href { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
-.sp { flex: 1; }
+.act-detail {
+  background: var(--surface);
+  border: var(--border-w) solid var(--border-c);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  min-height: 220px;
+  max-height: calc(100vh - 202px);
+  overflow: hidden;
+}
 
-.act-loading { display: flex; justify-content: center; padding: 40px; }
-.mspin { width: 26px; height: 26px; border: 3px solid var(--pill); border-top-color: rgb(var(--v-theme-secondary)); border-radius: 50%; animation: act-spin .7s linear infinite; }
-@keyframes act-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .mspin { animation: none; } }
+.act-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 16px;
+  color: var(--ink-3);
+  text-align: center;
+}
 
-.act-json { margin: 0; padding: 16px; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; color: var(--ink-2); white-space: pre; overflow: auto; max-height: 70vh; }
+.act-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: var(--border-w) solid var(--border-c);
+}
+
+.dh-ic {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  background: rgba(var(--v-theme-secondary), .15);
+  color: rgb(var(--v-theme-secondary));
+}
+
+.dh-txt {
+  min-width: 0;
+}
+
+.dh-txt h3 {
+  margin: 0;
+  font-family: var(--font);
+  font-weight: var(--bold);
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.dh-href {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.sp {
+  flex: 1;
+}
+
+.act-loading {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.mspin {
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--pill);
+  border-top-color: rgb(var(--v-theme-secondary));
+  border-radius: 50%;
+  animation: act-spin .7s linear infinite;
+}
+
+@keyframes act-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mspin {
+    animation: none;
+  }
+}
+
+.act-json {
+  margin: 0;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  white-space: pre;
+  overflow: auto;
+  max-height: 70vh;
+}
 
 /* Dedicated renderer wrapper */
-.act-render { padding: 16px; max-height: 72vh; overflow: auto; }
-.act-binary { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 40px 16px; color: var(--ink-3); text-align: center; }
-.act-logpanel { padding: 16px; }
+.act-render {
+  padding: 16px;
+  max-height: 72vh;
+  overflow: auto;
+}
+
+.act-binary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 16px;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.act-logpanel {
+  padding: 16px;
+}
 
 /* POST-only operation panel */
-.act-op { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 40px 24px; text-align: center; }
-.op-ic { display: grid; place-items: center; width: 64px; height: 64px; border-radius: var(--radius); background: rgba(var(--v-theme-primary), .12); color: rgb(var(--v-theme-primary)); }
-.op-ic.danger { background: rgba(var(--v-theme-error), .12); color: rgb(var(--v-theme-error)); }
-.op-desc { margin: 0; max-width: 460px; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
-.op-alert { width: 100%; max-width: 460px; }
-.op-confirm { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.op-confirm-q { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--ink); }
-.op-confirm-btns { display: flex; gap: 8px; }
+.act-op {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.op-ic {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius);
+  background: rgba(var(--v-theme-primary), .12);
+  color: rgb(var(--v-theme-primary));
+}
+
+.op-ic.danger {
+  background: rgba(var(--v-theme-error), .12);
+  color: rgb(var(--v-theme-error));
+}
+
+.op-desc {
+  margin: 0;
+  max-width: 460px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.op-alert {
+  width: 100%;
+  max-width: 460px;
+}
+
+.op-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.op-confirm-q {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.op-confirm-btns {
+  display: flex;
+  gap: 8px;
+}
 
 /* Shared table conventions for ALL actuator renderers (:deep reaches the child
    mounted as <component class="act-render">). Tables never scroll horizontally:
    fixed layout + single-line ellipsis cells. Plus the shared copy-cell and the
    right-aligned panel counter classes the renderers use. */
-.act-render :deep(.v-table__wrapper) { overflow-x: hidden; }
-.act-render :deep(.v-table table) { table-layout: fixed; width: 100%; }
+.act-render :deep(.v-table__wrapper) {
+  overflow-x: hidden;
+}
+
+.act-render :deep(.v-table table) {
+  table-layout: fixed;
+  width: 100%;
+}
+
 .act-render :deep(.v-table thead th),
-.act-render :deep(.v-table tbody td) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.act-render :deep(.v-table tbody td) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Copy-on-hover cell: ellipsised text + a reveal-on-hover copy button. */
-.act-render :deep(.cc) { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.act-render :deep(.cc-txt) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 auto; }
-.act-render :deep(.cc-copy) { flex: none; display: inline-flex; align-items: center; opacity: 0; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; color: var(--ink-3); transition: opacity .12s; }
+.act-render :deep(.cc) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.act-render :deep(.cc-txt) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.act-render :deep(.cc-copy) {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: var(--ink-3);
+  transition: opacity .12s;
+}
+
 .act-render :deep(tr:hover .cc-copy),
-.act-render :deep(.pt:hover .cc-copy) { opacity: .6; }
-.act-render :deep(.cc-copy:hover) { opacity: 1; }
+.act-render :deep(.pt:hover .cc-copy) {
+  opacity: .6;
+}
+
+.act-render :deep(.cc-copy:hover) {
+  opacity: 1;
+}
+
 /* Expansion-panel title row with a right-aligned counter chip. */
-.act-render :deep(.pt) { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; }
-.act-render :deep(.pt-count) { margin-left: auto; }
-.lj-iconbtn.on { background: rgba(var(--v-theme-secondary), .18); color: rgb(var(--v-theme-secondary)); }
+.act-render :deep(.pt) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.act-render :deep(.pt-count) {
+  margin-left: auto;
+}
+
+.lj-iconbtn.on {
+  background: rgba(var(--v-theme-secondary), .18);
+  color: rgb(var(--v-theme-secondary));
+}
 </style>
