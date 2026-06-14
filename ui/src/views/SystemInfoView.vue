@@ -12,7 +12,8 @@
     <LjPageHeader :title="t('system.info.title')" :subtitle="t('system.info.subtitle')"
       :crumbs="[{ icon: 'mdi-cog-outline', label: t('system.breadcrumb') }, { label: t('system.info.title'), current: true }]">
       <template #actions>
-        <LjButton variant="ghost" icon="mdi-gauge" @click="router.push('/system/actuator')">{{ t('system.actuator.link') }}</LjButton>
+        <LjButton variant="ghost" icon="mdi-text-box-outline" @click="router.push('/system/information/actuator/logfile')">{{ t('system.logs.link') }}</LjButton>
+        <LjButton variant="ghost" icon="mdi-gauge" @click="router.push('/system/information/actuator/info')">{{ t('system.actuator.link') }}</LjButton>
       </template>
     </LjPageHeader>
 

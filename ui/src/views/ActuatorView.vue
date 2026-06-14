@@ -9,8 +9,7 @@
 -->
 <template>
   <div class="actuator lj-surface">
-    <LjPageHeader :title="t('system.actuator.title')" :subtitle="t('system.actuator.subtitle')"
-      :crumbs="[{ icon: 'mdi-cog-outline', label: t('system.breadcrumb') }, { label: t('system.info.title'), to: '/system/information' }, { label: t('system.actuator.title'), current: true }]">
+    <LjPageHeader :title="t('system.actuator.title')" :subtitle="t('system.actuator.subtitle')" :crumbs="crumbs">
       <template #actions>
         <LjButton variant="ghost" icon="mdi-refresh" :loading="loadingIndex" @click="loadIndex">{{ t('common.refresh') }}</LjButton>
       </template>
@@ -41,26 +40,39 @@
             <span class="dh-ic"><v-icon size="20">{{ current.icon }}</v-icon></span>
             <div class="dh-txt"><h3>{{ current.label }}</h3><code class="dh-href">{{ current.href }}</code></div>
             <span class="sp" />
-            <button class="lj-iconbtn" :title="t('common.refresh')" :disabled="loadingDetail" @click="loadDetail(current)"><v-icon size="18">mdi-refresh</v-icon></button>
+            <button class="lj-iconbtn" :title="t('common.refresh')" :disabled="loadingDetail || isBinary || isWrite || isLogfile" @click="loadDetail(current)"><v-icon size="18">mdi-refresh</v-icon></button>
+            <button v-if="rendererComponent" class="lj-iconbtn" :class="{ on: rawMode }" :title="rawMode ? t('system.actuator.prettyView') : t('system.actuator.rawView')" :disabled="loadingDetail || detail == null" @click="rawMode = !rawMode"><v-icon size="18">{{ rawMode ? 'mdi-table-eye' : 'mdi-code-json' }}</v-icon></button>
+            <button class="lj-iconbtn" :title="t('system.actuator.download')" :disabled="loadingDetail || detail == null" @click="downloadJson"><v-icon size="18">mdi-download</v-icon></button>
             <button class="lj-iconbtn" :title="t('system.actuator.copy')" :disabled="loadingDetail || detail == null" @click="copy(detailPretty, { message: t('system.actuator.copied') })"><v-icon size="18">mdi-content-copy</v-icon></button>
           </div>
 
-          <div v-if="loadingDetail" class="act-loading"><span class="mspin" /></div>
-          <p v-else-if="detailError" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ detailError }}</p>
-
-          <!-- Friendly health board -->
-          <div v-else-if="selected === 'health' && isObject(detail)" class="act-health">
-            <div class="hstatus" :class="statusClass(detail.status)"><v-icon size="20">{{ statusIcon(detail.status) }}</v-icon>{{ detail.status || '—' }}</div>
-            <div v-if="healthComponents.length" class="hcomps">
-              <div v-for="c in healthComponents" :key="c.name" class="hcomp">
-                <span class="hc-dot" :class="statusClass(c.status)" />
-                <span class="hc-name">{{ c.name }}</span>
-                <span class="hc-status" :class="statusClass(c.status)">{{ c.status }}</span>
+          <!-- Binary / streaming endpoint: direct download instead of rendering -->
+          <div v-if="isBinary" class="act-binary">
+            <v-icon size="42">mdi-download-circle-outline</v-icon>
+            <p>{{ t('system.actuator.binaryHint') }}</p>
+            <v-btn :href="current.href" :download="`actuator-${selected}`" color="primary" variant="flat" prepend-icon="mdi-download">{{ t('system.actuator.download') }}</v-btn>
+          </div>
+          <!-- Log file: the dedicated tabbed log viewer (shared with LogsView) -->
+          <LogPanel v-else-if="isLogfile" class="act-logpanel" />
+          <!-- POST-only operation: invoke via a submit button (with confirm for destructive ones) -->
+          <div v-else-if="isWrite" class="act-op">
+            <span class="op-ic" :class="{ danger: isDangerous }"><v-icon size="40">{{ current.icon }}</v-icon></span>
+            <p class="op-desc">{{ opDesc }}</p>
+            <v-alert v-if="opResult" :type="opResult.ok ? 'success' : 'error'" variant="tonal" density="compact" class="op-alert">{{ opResult.msg }}</v-alert>
+            <div v-if="confirming" class="op-confirm">
+              <span class="op-confirm-q"><v-icon size="18" color="error">mdi-alert</v-icon>{{ t('system.actuator.op.confirm', { op: current.label }) }}</span>
+              <div class="op-confirm-btns">
+                <v-btn variant="text" :disabled="opRunning" @click="confirming = false">{{ t('common.cancel') }}</v-btn>
+                <v-btn color="error" variant="flat" :loading="opRunning" @click="runOperation">{{ t('system.actuator.op.submit') }}</v-btn>
               </div>
             </div>
+            <v-btn v-else :color="isDangerous ? 'error' : 'primary'" variant="flat" size="large"
+              prepend-icon="mdi-play" :loading="opRunning" @click="isDangerous ? (confirming = true) : runOperation()">{{ t('system.actuator.op.submit') }}</v-btn>
           </div>
-
-          <!-- Generic JSON / text -->
+          <div v-else-if="loadingDetail" class="act-loading"><span class="mspin" /></div>
+          <p v-else-if="detailError" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ detailError }}</p>
+          <!-- Dedicated user-friendly renderer, or the raw JSON fallback -->
+          <component :is="rendererComponent" v-else-if="rendererComponent && !rawMode" :data="detail" :copy="copy" :fetch="fetchManage" :post="postManage" class="act-render" />
           <pre v-else class="act-json">{{ detailPretty }}</pre>
         </template>
       </section>
@@ -69,8 +81,19 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useApi, useClipboard, useI18nStore, APP_BASE, LjPageHeader, LjButton } from '@ligoj/host'
+import { ref, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useApi, useAppStore, useClipboard, useI18nStore, APP_BASE, LjPageHeader, LjButton } from '@ligoj/host'
+import { ACTUATOR_RENDERERS } from '../components/actuator/registry.js'
+import LogPanel from '../components/LogPanel.vue'
+
+const route = useRoute()
+const router = useRouter()
+const app = useAppStore()
+// The actuator browser lives under /system/information/actuator/<endpoint>; the
+// selected endpoint is driven by the route param (default `info`).
+const ACTUATOR_BASE = '/system/information/actuator'
+const DEFAULT_EP = 'info'
 
 const api = useApi()
 const i18n = useI18nStore()
@@ -91,6 +114,7 @@ const EP_META = {
   loggers: { label: 'Loggers', icon: 'mdi-text-box-outline' },
   threaddump: { label: 'Thread dump', icon: 'mdi-cpu-64-bit' },
   heapdump: { label: 'Heap dump', icon: 'mdi-memory' },
+  logfile: { label: 'Log file', icon: 'mdi-file-document-outline' },
   scheduledtasks: { label: 'Scheduled tasks', icon: 'mdi-clock-outline' },
   caches: { label: 'Caches', icon: 'mdi-database-outline' },
   sbom: { label: 'SBOM', icon: 'mdi-package-variant-closed' },
@@ -108,15 +132,85 @@ const detailError = ref(null)
 const error = ref(null)
 const loadingIndex = ref(false)
 const loadingDetail = ref(false)
+const rawMode = ref(false)
+
+// Binary / streaming endpoints must not be fetched-and-rendered as text (a heap
+// dump can be hundreds of MB) — they're offered as a direct download instead.
+const BINARY_EPS = new Set(['heapdump'])
+const isBinary = computed(() => BINARY_EPS.has(selected.value))
+
+// `logfile` gets the dedicated tabbed log viewer (LogPanel, shared with
+// LogsView) instead of being fetched/rendered as a blob of text.
+const isLogfile = computed(() => selected.value === 'logfile')
+
+// POST-only lifecycle / Spring Cloud operations. These can't be GET-rendered
+// (a GET returns 405) — they're invoked from a submit button instead, with a
+// confirmation step for the destructive ones.
+const OP_META = {
+  restart: { danger: true, desc: 'Restart the Spring application context — beans are torn down and recreated (brief downtime).' },
+  shutdown: { danger: true, desc: 'Shut the application down. The process stops and must be restarted externally.' },
+  refresh: { danger: false, desc: 'Reload externalized configuration and re-bind @ConfigurationProperties / @RefreshScope beans.' },
+  pause: { danger: false, desc: 'Pause the application lifecycle (stop) without exiting the process.' },
+  resume: { danger: false, desc: 'Resume a paused application lifecycle (start).' },
+}
+const isWrite = computed(() => !!OP_META[selected.value])
+const isDangerous = computed(() => !!OP_META[selected.value]?.danger)
+const opDesc = computed(() => OP_META[selected.value]?.desc || '')
+const confirming = ref(false)
+const opRunning = ref(false)
+const opResult = ref(null)
 
 const current = computed(() => endpoints.value.find((e) => e.name === selected.value) || null)
-const detailPretty = computed(() => (typeof detail.value === 'string' ? detail.value : JSON.stringify(detail.value, null, 2)))
-const healthComponents = computed(() => {
-  const c = isObject(detail.value) ? (detail.value.components || detail.value.details) : null
-  return c ? Object.entries(c).map(([name, v]) => ({ name, status: v?.status ?? '—' })) : []
+
+// Breadcrumbs: System → Information → Actuator → <endpoint>, so the actuator
+// browser reads as a child of the Information view.
+const crumbs = computed(() => {
+  const trail = [
+    { icon: 'mdi-cog-outline', label: t('system.breadcrumb') },
+    { label: t('system.info.title'), to: '/system/information' },
+    { label: t('system.actuator.title'), to: `${ACTUATOR_BASE}/${DEFAULT_EP}` },
+  ]
+  if (current.value) trail.push({ label: current.value.label, current: true })
+  else trail[trail.length - 1].current = true
+  return trail
 })
 
-function isObject(v) { return v != null && typeof v === 'object' }
+// Shell breadcrumb (top bar) — driven by the app store, separate from the
+// in-page LjPageHeader crumbs above. Build the same trail so the bar reads
+// `Home › System › Information › Actuator › <endpoint>`. The store only re-runs
+// the factory on locale change, so re-set it whenever the selection changes.
+function breadcrumbFactory() {
+  const trail = [
+    { title: t('nav.home'), to: '/' },
+    { title: t('system.breadcrumb') },
+    { title: t('system.info.title'), to: '/system/information' },
+    { title: t('system.actuator.title'), to: `${ACTUATOR_BASE}/${DEFAULT_EP}` },
+  ]
+  if (current.value) trail.push({ title: current.value.label })
+  return trail
+}
+function updateBreadcrumbs() {
+  app.setBreadcrumbs(breadcrumbFactory, { refresh: loadIndex })
+}
+watch(current, updateBreadcrumbs, { immediate: true })
+const detailPretty = computed(() => (typeof detail.value === 'string' ? detail.value : JSON.stringify(detail.value, null, 2)))
+// The dedicated, user-friendly renderer for the selected endpoint (null → only
+// the raw JSON view is available).
+const rendererComponent = computed(() => ACTUATOR_RENDERERS[selected.value] || null)
+
+// Download the current endpoint's payload as a pretty-printed .json file.
+function downloadJson() {
+  if (detail.value == null) return
+  const blob = new Blob([detailPretty.value], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `actuator-${selected.value}.json`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
 
 function humanise(name) {
   const s = name.replace(/[-_]/g, ' ')
@@ -138,23 +232,6 @@ function toPath(href) {
   return href
 }
 
-function statusClass(status) {
-  switch (String(status || '').toUpperCase()) {
-    case 'UP': return 'ok'
-    case 'DOWN': return 'err'
-    case 'OUT_OF_SERVICE': return 'warn'
-    default: return 'muted'
-  }
-}
-function statusIcon(status) {
-  switch (String(status || '').toUpperCase()) {
-    case 'UP': return 'mdi-check-circle'
-    case 'DOWN': return 'mdi-alert-circle'
-    case 'OUT_OF_SERVICE': return 'mdi-pause-circle'
-    default: return 'mdi-help-circle'
-  }
-}
-
 async function loadIndex() {
   loadingIndex.value = true
   error.value = null
@@ -169,10 +246,8 @@ async function loadIndex() {
         return { name, label: meta.label, icon: meta.icon, templated: !!link.templated, href: toPath(link.href) }
       })
       .sort((a, b) => a.label.localeCompare(b.label))
-    // Auto-select a sensible default so the page isn't empty on arrival.
-    const def = endpoints.value.find((e) => e.name === 'health' && !e.templated)
-      || endpoints.value.find((e) => !e.templated)
-    if (def) select(def)
+    // Select the endpoint named in the route (default `info`).
+    syncFromRoute()
   } catch {
     error.value = t('system.actuator.error')
     endpoints.value = []
@@ -181,10 +256,78 @@ async function loadIndex() {
   }
 }
 
+// Endpoint catalog click → navigate; the route param drives the actual
+// selection (so deep links and the back button work).
 function select(ep) {
   if (ep.templated) return
+  if (route.params.endpoint === ep.name) { applySelect(ep); return }
+  router.push(`${ACTUATOR_BASE}/${ep.name}`)
+}
+
+// Reflect the route param onto the selected endpoint (default `info`).
+function syncFromRoute() {
+  if (!endpoints.value.length) return
+  const want = route.params.endpoint || DEFAULT_EP
+  const ep = endpoints.value.find((e) => e.name === want && !e.templated)
+    || endpoints.value.find((e) => e.name === DEFAULT_EP && !e.templated)
+    || endpoints.value.find((e) => !e.templated)
+  if (ep) applySelect(ep)
+}
+
+function applySelect(ep) {
   selected.value = ep.name
+  rawMode.value = false // default to the friendly view for each endpoint
+  detail.value = null
+  detailError.value = null
+  opResult.value = null
+  confirming.value = false
+  if (BINARY_EPS.has(ep.name)) return // offered as a direct download, not fetched
+  if (ep.name === 'logfile') return // rendered by the embedded LogPanel (self-fetching)
+  if (OP_META[ep.name]) return // POST-only operation — invoked via the submit button
   loadDetail(ep)
+}
+
+// React to in-app navigation between actuator endpoints.
+watch(() => route.params.endpoint, syncFromRoute)
+
+// Generic fetcher passed to renderers that need to pull sub-resources (e.g.
+// ActMetrics fetching `metrics/<name>` lazily). Same raw+parse handling as the
+// detail loader, against the reachable/proxied `${APP_BASE}manage/` base.
+async function fetchManage(subpath) {
+  const resp = await api.get(`${APP_BASE}manage/${subpath}`, { silent: true, raw: true })
+  if (!resp?.ok) return null
+  const text = await resp.text()
+  try { return JSON.parse(text) } catch { return text }
+}
+
+// Generic POST passed to renderers that mutate actuator state (e.g. ActLoggers
+// changing a logger's level). Returns the raw Response so callers can branch on
+// `.ok`. `body` is JSON-encoded by useApi when present.
+async function postManage(subpath, body) {
+  return api.post(`${APP_BASE}manage/${subpath}`, body, { silent: true, raw: true })
+}
+
+// Invoke the selected POST-only operation (restart/refresh/pause/resume/shutdown).
+async function runOperation() {
+  if (!current.value) return
+  const label = current.value.label
+  opRunning.value = true
+  opResult.value = null
+  try {
+    const resp = await postManage(selected.value)
+    opResult.value = resp?.ok
+      ? { ok: true, msg: t('system.actuator.op.success', { op: label }) }
+      : { ok: false, msg: t('system.actuator.op.failed', { op: label, status: resp?.status ?? '' }) }
+  } catch {
+    // restart/shutdown frequently drop the connection before replying — treat a
+    // network error on a destructive op as "triggered" rather than a failure.
+    opResult.value = isDangerous.value
+      ? { ok: true, msg: t('system.actuator.op.triggered', { op: label }) }
+      : { ok: false, msg: t('system.actuator.op.failed', { op: label, status: '' }) }
+  } finally {
+    opRunning.value = false
+    confirming.value = false
+  }
 }
 
 async function loadDetail(ep) {
@@ -248,24 +391,38 @@ loadIndex()
 
 .act-json { margin: 0; padding: 16px; font-family: var(--mono); font-size: 12.5px; line-height: 1.55; color: var(--ink-2); white-space: pre; overflow: auto; max-height: 70vh; }
 
-/* Health board */
-.act-health { padding: 16px; }
-.hstatus { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 800; font-size: 15px; padding: 8px 14px; border-radius: 999px; margin-bottom: 16px; }
-.hstatus.ok { background: rgba(29, 157, 99, .14); color: #1d9d63; }
-.hstatus.err { background: rgba(var(--v-theme-error), .14); color: rgb(var(--v-theme-error)); }
-.hstatus.warn { background: rgba(217, 112, 26, .14); color: #d9701a; }
-.hstatus.muted { background: var(--pill); color: var(--ink-2); }
-.hcomps { display: grid; gap: 6px; }
-.hcomp { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: var(--border-w) solid var(--border-c); border-radius: var(--radius-sm); }
-.hc-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
-.hc-dot.ok { background: #1d9d63; }
-.hc-dot.err { background: rgb(var(--v-theme-error)); }
-.hc-dot.warn { background: #d9701a; }
-.hc-dot.muted { background: var(--ink-3); }
-.hc-name { font-family: var(--mono); font-size: 13px; color: var(--ink); }
-.hc-status { margin-left: auto; font-size: 11.5px; font-weight: 700; }
-.hc-status.ok { color: #1d9d63; }
-.hc-status.err { color: rgb(var(--v-theme-error)); }
-.hc-status.warn { color: #d9701a; }
-.hc-status.muted { color: var(--ink-3); }
+/* Dedicated renderer wrapper */
+.act-render { padding: 16px; max-height: 72vh; overflow: auto; }
+.act-binary { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 40px 16px; color: var(--ink-3); text-align: center; }
+.act-logpanel { padding: 16px; }
+
+/* POST-only operation panel */
+.act-op { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 40px 24px; text-align: center; }
+.op-ic { display: grid; place-items: center; width: 64px; height: 64px; border-radius: var(--radius); background: rgba(var(--v-theme-primary), .12); color: rgb(var(--v-theme-primary)); }
+.op-ic.danger { background: rgba(var(--v-theme-error), .12); color: rgb(var(--v-theme-error)); }
+.op-desc { margin: 0; max-width: 460px; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+.op-alert { width: 100%; max-width: 460px; }
+.op-confirm { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.op-confirm-q { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--ink); }
+.op-confirm-btns { display: flex; gap: 8px; }
+
+/* Shared table conventions for ALL actuator renderers (:deep reaches the child
+   mounted as <component class="act-render">). Tables never scroll horizontally:
+   fixed layout + single-line ellipsis cells. Plus the shared copy-cell and the
+   right-aligned panel counter classes the renderers use. */
+.act-render :deep(.v-table__wrapper) { overflow-x: hidden; }
+.act-render :deep(.v-table table) { table-layout: fixed; width: 100%; }
+.act-render :deep(.v-table thead th),
+.act-render :deep(.v-table tbody td) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Copy-on-hover cell: ellipsised text + a reveal-on-hover copy button. */
+.act-render :deep(.cc) { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.act-render :deep(.cc-txt) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 auto; }
+.act-render :deep(.cc-copy) { flex: none; display: inline-flex; align-items: center; opacity: 0; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; color: var(--ink-3); transition: opacity .12s; }
+.act-render :deep(tr:hover .cc-copy),
+.act-render :deep(.pt:hover .cc-copy) { opacity: .6; }
+.act-render :deep(.cc-copy:hover) { opacity: 1; }
+/* Expansion-panel title row with a right-aligned counter chip. */
+.act-render :deep(.pt) { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; }
+.act-render :deep(.pt-count) { margin-left: auto; }
+.lj-iconbtn.on { background: rgba(var(--v-theme-secondary), .18); color: rgb(var(--v-theme-secondary)); }
 </style>

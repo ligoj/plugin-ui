@@ -91,7 +91,12 @@ const routes = [
   // legacy SystemView reachable at `/system` so the path isn't a dead end.
   { path: '/system', name: 'ui-system', component: SystemView },
   { path: '/system/information', name: 'ui-system-information', component: SystemInfoView },
-  { path: '/system/actuator', name: 'ui-system-actuator', component: ActuatorView },
+  // Actuator browser, nested under Information; one route per endpoint, default `info`.
+  { path: '/system/information/actuator', redirect: '/system/information/actuator/info' },
+  { path: '/system/information/actuator/:endpoint', name: 'ui-system-actuator', component: ActuatorView },
+  // Back-compat redirects for the previous flat paths.
+  { path: '/system/actuator', redirect: '/system/information/actuator/info' },
+  { path: '/system/logs', redirect: '/system/information/actuator/logfile' },
   { path: '/system/configuration', name: 'ui-system-configuration', component: SystemConfigurationView },
   { path: '/system/user', name: 'ui-system-user', component: SystemUserView },
   { path: '/system/role', name: 'ui-system-role', component: SystemRoleView },
