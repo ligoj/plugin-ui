@@ -139,7 +139,10 @@ const realGroups = computed(() => {
         name: tool.name || tool.id || key,
         kind: tool.refined?.name || '',
         color: toolColor(tool.name || tool.id),
-        icon: () => h(NodeIcon, { node: { id: tool.id } }),
+        // Pass the FULL resolved node (carries `uiClasses`) so NodeIcon renders
+        // the real mdi/font icon like ProjectDetailView, instead of falling back
+        // to the now-deleted /main/.../img/<tool>.png path.
+        icon: () => h(NodeIcon, { node: tool }),
         rows: [],
       }
       byTool.set(key, g)
