@@ -69,7 +69,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { PluginFeatures, useI18nStore, LjSegmented, LjSearch, VibrantDataTable } from '@ligoj/host'
 import SubscriptionGroupCard from './SubscriptionGroupCard.vue'
 import { vAppear } from '../directives/appear.js'
@@ -81,6 +81,7 @@ const props = defineProps({
   collapsible: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
   cog: { type: Boolean, default: true }, // show the host overflow (unsubscribe) cog
+  storageKey: { type: String, default: '' }, // localStorage scope for the cards/list choice; '' disables persistence
 })
 defineEmits(['rowmenu', 'row-appear'])
 
@@ -92,7 +93,22 @@ const viewOptions = [
   { value: 'list', icon: 'mdi-format-list-bulleted', label: 'Liste' },
 ]
 
-const view = ref(props.defaultView)
+// View mode (cards/list) is remembered per context in localStorage when a
+// `storageKey` is given (e.g. 'home', 'project'); without one the panel keeps
+// its previous in-memory-only behaviour (backward compatible).
+const STORAGE_PREFIX = 'ligoj-subview:'
+function readStoredView() {
+  if (!props.storageKey) return null
+  try {
+    const v = localStorage.getItem(STORAGE_PREFIX + props.storageKey)
+    return (v === 'cards' || v === 'list') ? v : null
+  } catch { return null }
+}
+const view = ref(readStoredView() ?? props.defaultView)
+watch(view, (v) => {
+  if (!props.storageKey) return
+  try { localStorage.setItem(STORAGE_PREFIX + props.storageKey, v) } catch { /* storage unavailable (private mode / quota) */ }
+})
 const query = ref('')
 const collapsedKeys = ref(new Set())
 
@@ -147,7 +163,9 @@ function toggleAll() {
 .collapse-all { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border-radius: var(--radius-sm); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: var(--card); color: var(--ink-2); font-family: var(--font); font-weight: 700; font-size: 13px; cursor: pointer; transition: background .12s, color .12s; }
 .collapse-all:hover { background: var(--pill); color: var(--ink); }
 
-.sp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
+.sp-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 1100px) { .sp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px)  { .sp-grid { grid-template-columns: 1fr; } }
 .sp-skel { height: 220px; border-radius: var(--radius); background: linear-gradient(100deg, var(--card), color-mix(in srgb, var(--ink) 4%, var(--card)), var(--card)); background-size: 200% 100%; animation: sp-shimmer 1.3s linear infinite; }
 @keyframes sp-shimmer { to { background-position: -200% 0; } }
 .sp-empty { padding: 48px 0; text-align: center; color: var(--ink-3); font-weight: 600; }

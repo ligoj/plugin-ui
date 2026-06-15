@@ -35,7 +35,7 @@
     </div>
 
     <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length"
-      default-view="list" @rowmenu="onRowMenu">
+      default-view="list" storage-key="project" @rowmenu="onRowMenu">
       <template #empty>
         <div class="empty">
           <v-icon size="44" color="rgba(var(--v-theme-on-surface),.25)">mdi-cloud-off-outline</v-icon>
