@@ -28,7 +28,7 @@
       </template>
     </LjPageHeader>
 
-    <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length" default-view="cards"
+    <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length" default-view="cards" storage-key="home"
       searchable collapsible :cog="false" @row-appear="onRowAppear">
       <template #toolbar>
         <label class="demo-toggle" :class="{ on: demo }">
