@@ -35,7 +35,7 @@
       <div v-if="view === 'cards'" class="sp-grid">
         <SubscriptionGroupCard v-for="(g, i) in filteredGroups" :key="g.key" :group="g" :cog="cog"
           :collapsed="collapsedKeys.has(g.key)" :style="{ animationDelay: (i * 45) + 'ms' }"
-          @toggle="toggle(g.key)" @rowmenu="$emit('rowmenu', $event)" @row-appear="$emit('row-appear', $event)" />
+          @toggle="toggle(g.key)" @rowmenu="$emit('rowmenu', $event)" @row-appear="$emit('row-appear', $event)" @refresh-node="$emit('refresh-node', $event)" />
       </div>
 
       <!-- List: one row per subscription, same delegation in the cells -->
@@ -83,7 +83,7 @@ const props = defineProps({
   cog: { type: Boolean, default: true }, // show the host overflow (unsubscribe) cog
   storageKey: { type: String, default: '' }, // localStorage scope for the cards/list choice; '' disables persistence
 })
-defineEmits(['rowmenu', 'row-appear'])
+defineEmits(['rowmenu', 'row-appear', 'refresh-node'])
 
 const t = useI18nStore().t
 

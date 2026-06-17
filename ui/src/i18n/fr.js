@@ -253,6 +253,10 @@ export default {
   'home.tilesSmall': 'Tuiles petites',
   'home.tilesMedium': 'Tuiles moyennes',
   'home.tilesList': 'Liste',
+  'home.nodeStatus.up': 'UP',
+  'home.nodeStatus.noStatus': 'Sans statut',
+  'home.nodeStatus.down': 'DOWN',
+  'home.nodeStatus.refresh': 'Rafraîchir le statut du nœud',
 
   // Projets
   'project.title': 'Projets',

@@ -254,6 +254,10 @@ export default {
   'home.tilesSmall': 'Small tiles',
   'home.tilesMedium': 'Medium tiles',
   'home.tilesList': 'List',
+  'home.nodeStatus.up': 'UP',
+  'home.nodeStatus.noStatus': 'No status',
+  'home.nodeStatus.down': 'DOWN',
+  'home.nodeStatus.refresh': 'Refresh node status',
 
   // Projects
   'project.title': 'Projects',

@@ -24,7 +24,23 @@
       </div>
       <div class="ch-row bottom">
         <div class="kind">{{ group.kind }}</div>
-        <span class="health">
+        <!-- Global node status: 3-segment bar (UP / no status / DOWN) + a
+             per-node recheck button. Falls back to the legacy health bar when
+             no aggregated status is available (demo groups, not-yet-loaded). -->
+        <span v-if="group.nodeStatus" class="nstatus" :title="statusTooltip">
+          <span class="nbar">
+            <i class="seg up" :style="{ width: pct(group.nodeStatus.up) + '%' }" />
+            <i class="seg nost" :style="{ width: pct(group.nodeStatus.noStatus) + '%' }" />
+            <i class="seg down" :style="{ width: pct(group.nodeStatus.down) + '%' }" />
+          </span>
+          <span class="ncount">{{ group.nodeStatus.up }}/{{ group.nodeStatus.total }}</span>
+          <button class="nrefresh" type="button" :class="{ spin: group.refreshing }" :disabled="group.refreshing"
+            :aria-label="t('home.nodeStatus.refresh')" :title="t('home.nodeStatus.refresh')"
+            @click.stop="$emit('refresh-node', { key: group.key, nodeIds: group.nodeIds })">
+            <v-icon size="15">mdi-refresh</v-icon>
+          </button>
+        </span>
+        <span v-else class="health">
           <span class="barh"><i :style="{ width: Math.round(group.health * 100) + '%' }" /></span>
           <span class="pct">{{ Math.round(group.health * 100) }}%</span>
           <span class="count">{{ group.rows.length }}</span>
@@ -74,11 +90,22 @@ const props = defineProps({
   // Collapse is controlled by the parent panel (so "collapse all" can drive it).
   collapsed: { type: Boolean, default: false },
 })
-defineEmits(['rowmenu', 'toggle', 'row-appear'])
+defineEmits(['rowmenu', 'toggle', 'row-appear', 'refresh-node'])
 
 const t = useI18nStore().t
 const expanded = ref(false)
 const shownRows = computed(() => (expanded.value ? props.group.rows : props.group.rows.slice(0, 4)))
+
+// Segment width as a percentage of the node's total subscriptions.
+function pct(n) {
+  const total = props.group.nodeStatus?.total || 0
+  return total ? Math.round((n / total) * 100) : 0
+}
+const statusTooltip = computed(() => {
+  const s = props.group.nodeStatus
+  if (!s) return ''
+  return `${t('home.nodeStatus.up')} ${s.up} · ${t('home.nodeStatus.noStatus')} ${s.noStatus} · ${t('home.nodeStatus.down')} ${s.down}`
+})
 </script>
 
 <style scoped>
@@ -110,6 +137,21 @@ const shownRows = computed(() => (expanded.value ? props.group.rows : props.grou
 .barh { width: 44px; height: 7px; border-radius: 5px; background: var(--pill); overflow: hidden; }
 .barh i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c) 60%, white)); }
 .count { font-family: var(--mono); font-size: 11px; font-weight: 700; color: color-mix(in srgb, var(--c) 65%, var(--ink)); background: var(--card); border: var(--border-w) var(--lj-border-style, solid) color-mix(in srgb, var(--c) 22%, var(--border)); border-radius: var(--radius-sm); padding: 4px 8px; white-space: nowrap; }
+
+/* Global node status: 3-segment bar (UP / no status / DOWN) + recheck button. */
+.nstatus { flex: none; display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 700; color: var(--ink-3); }
+.nbar { display: flex; width: 64px; height: 7px; border-radius: 5px; overflow: hidden; background: var(--idle); }
+.nbar .seg { height: 100%; transition: width .4s cubic-bezier(.2, .7, .3, 1); }
+.nbar .seg.up { background: var(--ok); }
+.nbar .seg.nost { background: var(--idle); }
+.nbar .seg.down { background: var(--err); }
+.ncount { font-family: var(--mono); font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--ok) 70%, var(--ink)); }
+.nrefresh { flex: none; width: 26px; height: 26px; border: 0; background: transparent; border-radius: var(--radius-sm); color: var(--ink-3); cursor: pointer; display: grid; place-items: center; transition: background .12s, color .12s; }
+.nrefresh:hover:not(:disabled) { background: color-mix(in srgb, var(--c) 12%, var(--card)); color: var(--ink); }
+.nrefresh:disabled { cursor: default; opacity: .65; }
+.nrefresh.spin :deep(.v-icon) { animation: nspin .8s linear infinite; }
+@keyframes nspin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .nrefresh.spin :deep(.v-icon) { animation: none; } }
 
 /* Mini-table rows (HomeView look) carrying the per-subscription delegation. */
 .mini { padding: 6px 10px 10px; max-height: 360px; overflow-y: auto; }
