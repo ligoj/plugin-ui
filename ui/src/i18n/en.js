@@ -76,6 +76,7 @@ export default {
   'system.info.buildTimestamp': 'Timestamp',
   'system.info.buildDate': 'Date',
   'system.info.buildVersion': 'Version',
+  'system.info.reportBug': 'Report a bug',
 
   // System → Configuration
   'system.config.title': 'Configuration',
