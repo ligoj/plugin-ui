@@ -29,7 +29,7 @@
     </LjPageHeader>
 
     <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length" default-view="cards" storage-key="home"
-      searchable collapsible :cog="false" @row-appear="onRowAppear">
+      searchable collapsible :cog="false" @row-appear="onRowAppear" @refresh-node="onRefreshNode">
       <template #toolbar>
         <label class="demo-toggle" :class="{ on: demo }">
           <input type="checkbox" v-model="demo" />
@@ -89,6 +89,11 @@ const subscriptions = ref([])
 const usersTotal = ref(0)
 // Full per-subscription details (parameters/data/status), fetched lazily.
 const detailsById = ref(new Map())
+// Aggregated subscription status per node (id → { total, up, down }), from
+// GET rest/node/status/subscription. Drives the 3-state bar on each card.
+const nodeStats = ref(new Map())
+// Group keys whose node status is being re-checked (spinner on the button).
+const refreshingKeys = ref(new Set())
 
 const nodesMap = computed(() => {
   const m = {}
@@ -122,6 +127,23 @@ async function load() {
     usersTotal.value = u?.recordsTotal ?? 0
   } catch { usersTotal.value = 0 }
   loading.value = false
+}
+
+// Fetch the aggregated per-node subscription status. The backend keys the
+// stats by the subscription's node (instance level, e.g. `service:prov:aws`),
+// with `values = { total, UP, DOWN }`; everything not UP/DOWN is "no status".
+async function loadNodeStats() {
+  try {
+    const data = await api.get('rest/node/status/subscription')
+    const m = new Map()
+    if (Array.isArray(data)) {
+      for (const e of data) {
+        const v = e?.values || {}
+        m.set(e.node, { total: v.total || 0, up: v.UP || 0, down: v.DOWN || 0 })
+      }
+    }
+    nodeStats.value = m
+  } catch { /* keep the previous stats on a transient failure */ }
 }
 
 // Group the current user's subscriptions by tool, merging any lazily-fetched
@@ -159,9 +181,29 @@ const realGroups = computed(() => {
     // One row per subscription, labelled by the project that owns it.
     byTool.get(key).rows.push({ name: project?.name || project?.pkey || node.name || ('#' + s.id), status, pills, sub })
   }
+  const stats = nodeStats.value
   for (const g of out) {
     const ok = g.rows.filter((r) => r.status === 'ok').length
     g.health = g.rows.length ? ok / g.rows.length : 0
+
+    // A group is keyed at the TOOL level but aggregates one row per
+    // subscription, each carrying its own (instance-level) node id. The
+    // backend keys its stats by that same node id, so the group's status is
+    // the SUM over its distinct node ids.
+    const ids = [...new Set(g.rows.map((r) => r.sub?.node?.id).filter(Boolean))]
+    g.nodeIds = ids
+    if (stats.size && ids.some((id) => stats.has(id))) {
+      let total = 0
+      let up = 0
+      let down = 0
+      for (const id of ids) {
+        const s = stats.get(id)
+        if (s) { total += s.total; up += s.up; down += s.down }
+      }
+      g.nodeStatus = { total, up, down, noStatus: Math.max(0, total - up - down) }
+    } else {
+      g.nodeStatus = null
+    }
   }
   return out.sort((a, b) => b.rows.length - a.rows.length)
 })
@@ -184,7 +226,12 @@ const demoGroups = computed(() => DEMO_TOOLS.map((td) => ({
   rows: td.rows.map((r) => ({ name: r.n, status: r.s, pills: r.p, cost: r.cost, sub: null })),
 })))
 
-const groups = computed(() => (demo.value ? realGroups.value.concat(demoGroups.value) : realGroups.value))
+// Inject the live per-group `refreshing` flag here (cheap map) so toggling it
+// doesn't rebuild the heavier `realGroups` aggregation.
+const groups = computed(() => {
+  const base = demo.value ? realGroups.value.concat(demoGroups.value) : realGroups.value
+  return base.map((g) => ({ ...g, refreshing: refreshingKeys.value.has(g.key) }))
+})
 
 const kpis = computed(() => [
   { l: 'Projets', v: projects.value.length.toLocaleString('fr-FR'), c: '#2f6df6', icon: 'mdi-folder-multiple-outline' },
@@ -225,7 +272,26 @@ async function flushDetails() {
   detailsById.value = next // triggers a single regroup with the merged details
 }
 
-onMounted(load)
+// Re-check the status of a group's nodes, then refresh the aggregated stats.
+async function onRefreshNode(payload) {
+  const key = payload?.key
+  const ids = payload?.nodeIds || []
+  if (!key || !ids.length) return
+  refreshingKeys.value = new Set(refreshingKeys.value).add(key)
+  try {
+    await Promise.allSettled(ids.map((id) => api.post(`rest/node/status/refresh/${encodeURIComponent(id)}`)))
+    await loadNodeStats()
+  } finally {
+    const next = new Set(refreshingKeys.value)
+    next.delete(key)
+    refreshingKeys.value = next
+  }
+}
+
+onMounted(() => {
+  load()
+  loadNodeStats()
+})
 </script>
 
 <style scoped>
