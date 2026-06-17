@@ -44,14 +44,20 @@ if (typeof document !== 'undefined') {
  * Shared host surface is imported from `@ligoj/host` (kept external so the
  * plugin and host share the same pinia / reactive instances).
  */
-import { useI18nStore } from '@ligoj/host'
+import { useI18nStore, useAppStore } from '@ligoj/host'
 import UiPlugin from './UiPlugin.vue'
 import service from './service.js'
 
 import enMessages from './i18n/en.js'
 import frMessages from './i18n/fr.js'
 
+// Dialogs moved from the host (#121): the route-less ones are mounted
+// persistently via registerHeaderItem and self-bind to their store flags.
+import BugReportDialog from './components/BugReportDialog.vue'
+import LoginPromptDialog from './components/LoginPromptDialog.vue'
+
 import HomeView from './views/HomeView.vue'
+import AboutView from './views/AboutView.vue'
 import ProjectListView from './views/ProjectListView.vue'
 import ProjectDetailView from './views/ProjectDetailView.vue'
 import ManualView from './views/ManualView.vue'
@@ -83,6 +89,8 @@ const features = {
 // still resolve to the same component.
 const routes = [
   { path: '/', name: 'ui-home', component: HomeView, alias: ['/home'] },
+  // About page — moved here from the host shell (#121).
+  { path: '/about', name: 'about', component: AboutView },
   { path: '/home/manual', name: 'ui-manual', component: ManualView },
   { path: '/project', name: 'ui-project-list', component: ProjectListView, alias: ['/home/project'] },
   { path: '/project/:id', name: 'ui-project-detail', component: ProjectDetailView, alias: ['/home/project/:id'] },
@@ -130,6 +138,14 @@ export default {
     for (const route of routes) {
       router.addRoute(route)
     }
+    // Mount the global, route-less dialogs persistently in the host shell.
+    // They are v-dialogs (teleported to <body>) that self-bind to their store
+    // flags — app.bugDialogOpen (footer / build card / About) and
+    // auth.authPromptOpen (401 re-auth) — so 'ui' being always loaded
+    // (REQUIRED_PLUGINS) keeps them available app-wide.
+    const app = useAppStore()
+    app.registerHeaderItem(BugReportDialog)
+    app.registerHeaderItem(LoginPromptDialog)
   },
   feature(action, ...args) {
     const fn = features[action]
