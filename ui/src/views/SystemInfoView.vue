@@ -14,6 +14,7 @@
       <template #actions>
         <LjButton variant="ghost" icon="mdi-text-box-outline" @click="router.push('/system/information/actuator/logfile')">{{ t('system.logs.link') }}</LjButton>
         <LjButton variant="ghost" icon="mdi-gauge" @click="router.push('/system/information/actuator/info')">{{ t('system.actuator.link') }}</LjButton>
+        <LjButton variant="ghost" icon="mdi-clipboard-alert-outline" @click="router.push('/system/information/user-logs')">{{ t('system.userLog.link') }}</LjButton>
       </template>
     </LjPageHeader>
 

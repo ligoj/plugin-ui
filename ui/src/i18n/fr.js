@@ -54,6 +54,18 @@ export default {
   'system.logs.error': 'Impossible de charger ce journal.',
   'system.logs.lines': '{n} lignes',
   'system.logs.bottom': 'Aller en bas',
+
+  // Système → Information → Journaux d'erreurs
+  'system.userLog.title': "Journaux d'erreurs",
+  'system.userLog.subtitle': 'Erreurs navigateur signalées par les utilisateurs',
+  'system.userLog.link': "Journaux d'erreurs",
+  'system.userLog.headerDate': 'Date',
+  'system.userLog.headerUser': 'Utilisateur',
+  'system.userLog.headerMessage': 'Message',
+  'system.userLog.headerUrl': 'URL',
+  'system.userLog.filterFrom': 'Du',
+  'system.userLog.filterTo': 'Au',
+
   'system.info.system': 'Système',
   'system.info.memory': 'Mémoire',
   'system.info.memoryUsed': 'Utilisée',

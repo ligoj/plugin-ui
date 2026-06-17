@@ -55,6 +55,18 @@ export default {
   'system.logs.error': 'Unable to load this log.',
   'system.logs.lines': '{n} lines',
   'system.logs.bottom': 'Scroll to bottom',
+
+  // System → Information → User logs
+  'system.userLog.title': 'User logs',
+  'system.userLog.subtitle': 'Browser errors reported by users',
+  'system.userLog.link': 'User logs',
+  'system.userLog.headerDate': 'Date',
+  'system.userLog.headerUser': 'User',
+  'system.userLog.headerMessage': 'Message',
+  'system.userLog.headerUrl': 'URL',
+  'system.userLog.filterFrom': 'From',
+  'system.userLog.filterTo': 'To',
+
   'system.info.system': 'System',
   'system.info.memory': 'Memory',
   'system.info.memoryUsed': 'Used',
