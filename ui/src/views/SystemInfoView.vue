@@ -82,16 +82,21 @@
           <div class="frow"><span class="fk"><v-icon size="15">mdi-clock-outline</v-icon>{{ t('system.info.buildTimestamp') }}</span><span class="fv mono">{{ build.timestamp || '—' }}</span></div>
           <div class="frow"><span class="fk"><v-icon size="15">mdi-clock-outline</v-icon>{{ t('system.info.buildDate') }}</span><span class="fv mono">{{ build.date || '—' }}</span></div>
           <div class="frow"><span class="fk"><v-icon size="15">mdi-tag-outline</v-icon>{{ t('system.info.buildVersion') }}</span><span class="fv mono">{{ build.version || '—' }}</span></div>
+          <button class="bug-link" type="button" @click="bugDialog = true">
+            <v-icon size="16">mdi-bug-outline</v-icon>{{ t('system.info.reportBug') }}
+          </button>
         </div>
       </section>
     </div>
+
+    <BugReportDialog v-model="bugDialog" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useApi, useAppStore, useAuthStore, useClipboard, useI18nStore, APP_BASE, LjPageHeader, LjButton } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useClipboard, useI18nStore, APP_BASE, LjPageHeader, LjButton, BugReportDialog } from '@ligoj/host'
 
 const router = useRouter()
 const api = useApi()
@@ -102,6 +107,7 @@ const t = i18n.t
 const { copy } = useClipboard()
 
 const error = ref(null)
+const bugDialog = ref(false)
 const updatingTz = ref(null)
 const cpu = ref('')
 const dateIso = ref('')
@@ -202,6 +208,11 @@ onMounted(() => {
 .used-badge.warn { background: rgba(217, 112, 26, .14); } .used-badge.warn b { color: #d9701a; }
 .used-badge.err { background: rgba(223, 77, 66, .14); } .used-badge.err b { color: #df4d42; }
 .card-body { padding: 4px 18px 18px; }
+
+/* "Report a bug" trigger at the bottom of the Build card. */
+.bug-link { display: inline-flex; align-items: center; gap: 7px; margin-top: 12px; padding: 8px 12px; border: var(--border-w) var(--lj-border-style, solid) var(--border-c); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink-2); font-family: var(--font); font-weight: 600; font-size: 13px; cursor: pointer; transition: background .14s, color .14s, border-color .14s; }
+.bug-link:hover { background: var(--hover); color: var(--ink); border-color: var(--border-2); }
+.bug-link :deep(.v-icon) { color: #d9701a; }
 
 .mem { margin-bottom: 12px; }
 .mem.big { margin-bottom: 16px; }
