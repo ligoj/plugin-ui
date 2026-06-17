@@ -58,6 +58,7 @@ import ManualView from './views/ManualView.vue'
 
 import SystemView from './views/SystemView.vue'
 import SystemInfoView from './views/SystemInfoView.vue'
+import SystemUserLogView from './views/SystemUserLogView.vue'
 import ActuatorView from './views/ActuatorView.vue'
 import SystemConfigurationView from './views/SystemConfigurationView.vue'
 import SystemUserView from './views/SystemUserView.vue'
@@ -91,6 +92,7 @@ const routes = [
   // legacy SystemView reachable at `/system` so the path isn't a dead end.
   { path: '/system', name: 'ui-system', component: SystemView },
   { path: '/system/information', name: 'ui-system-information', component: SystemInfoView },
+  { path: '/system/information/user-logs', name: 'ui-system-user-logs', component: SystemUserLogView },
   // Actuator browser, nested under Information; one route per endpoint, default `info`.
   { path: '/system/information/actuator', redirect: '/system/information/actuator/info' },
   { path: '/system/information/actuator/:endpoint', name: 'ui-system-actuator', component: ActuatorView },
