@@ -82,21 +82,19 @@
           <div class="frow"><span class="fk"><v-icon size="15">mdi-clock-outline</v-icon>{{ t('system.info.buildTimestamp') }}</span><span class="fv mono">{{ build.timestamp || '—' }}</span></div>
           <div class="frow"><span class="fk"><v-icon size="15">mdi-clock-outline</v-icon>{{ t('system.info.buildDate') }}</span><span class="fv mono">{{ build.date || '—' }}</span></div>
           <div class="frow"><span class="fk"><v-icon size="15">mdi-tag-outline</v-icon>{{ t('system.info.buildVersion') }}</span><span class="fv mono">{{ build.version || '—' }}</span></div>
-          <button class="bug-link" type="button" @click="bugDialog = true">
+          <button class="bug-link" type="button" @click="app.openBugDialog()">
             <v-icon size="16">mdi-bug-outline</v-icon>{{ t('system.info.reportBug') }}
           </button>
         </div>
       </section>
     </div>
-
-    <BugReportDialog v-model="bugDialog" />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useApi, useAppStore, useAuthStore, useClipboard, useI18nStore, APP_BASE, LjPageHeader, LjButton, BugReportDialog } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useClipboard, useI18nStore, APP_BASE, LjPageHeader, LjButton } from '@ligoj/host'
 
 const router = useRouter()
 const api = useApi()
@@ -107,7 +105,6 @@ const t = i18n.t
 const { copy } = useClipboard()
 
 const error = ref(null)
-const bugDialog = ref(false)
 const updatingTz = ref(null)
 const cpu = ref('')
 const dateIso = ref('')
