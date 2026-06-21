@@ -88,6 +88,7 @@ import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHea
 import NodeEditDialog from './NodeEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
 import SubscriptionStatus from '../components/SubscriptionStatus.vue'
+import { statusHeader } from '../useUiHelpers.js'
 
 const api = useApi()
 const app = useAppStore()
@@ -116,7 +117,7 @@ const filtered = computed(() => filter.value === 'all' ? items.value : items.val
 
 const headers = computed(() => [
   // Status first; icon-only header (label in a tooltip), cell is the status icon + tooltip.
-  { key: 'status', icon: 'mdi-heart-pulse', tooltip: t('system.node.headerStatus'), sortable: true, align: 'center', exportValue: (r) => r.status || (r.enabled === false ? t('system.node.statusDisabled') : '') },
+  statusHeader({ tooltip: t('system.node.headerStatus'), exportValue: (r) => r.status || (r.enabled === false ? t('system.node.statusDisabled') : '') }),
   { key: 'name', label: t('system.node.headerName'), sortable: true, icon: 'mdi-server-outline' },
   { key: 'type', label: t('system.node.headerType'), sortable: true, align: 'center', icon: 'mdi-shape-outline', exportValue: (r) => typeLabel(r) },
   { key: 'mode', label: t('system.node.headerMode'), sortable: false, align: 'center', icon: 'mdi-cog-outline', exportValue: (r) => r.mode || 'all' },

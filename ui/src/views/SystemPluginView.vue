@@ -166,6 +166,7 @@
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useApi, useAppStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus } from '@ligoj/host'
+import { statusHeader } from '../useUiHelpers.js'
 
 const api = useApi()
 const app = useAppStore()
@@ -192,11 +193,12 @@ const restarting = ref(false)
 const TYPE_COLOR = { service: '#2f6df6', tool: '#d9701a', feature: '#1d9d63' }
 
 const headers = computed(() => [
+  // Status first: icon-only heart header + tooltip + fixed width (shared helper).
+  statusHeader({ key: 'statut', tooltip: t('system.plugin.headerStatus'), exportValue: (r) => statusLabel(r.status) }),
   { key: 'name', label: t('system.plugin.headerName'), sortable: true, icon: 'mdi-puzzle-outline', exportValue: (r) => r.name || '' },
   { key: 'key', label: t('system.plugin.headerKey'), sortable: true, icon: 'mdi-identifier', exportValue: (r) => r.key || '' },
   { key: 'version', label: t('system.plugin.headerVersion'), sortable: false, icon: 'mdi-tag-outline', exportValue: (r) => r.version || '' },
   { key: 'vendor', label: t('system.plugin.headerVendor'), sortable: false, icon: 'mdi-shield-account-outline', exportValue: (r) => (r.signature ? `${signatureLabel(r)}${r.signature.signer ? ' — ' + r.signature.signer : ''}` : (r.vendor || '')) },
-  { key: 'statut', label: t('system.plugin.headerStatus'), sortable: true, align: 'center', icon: 'mdi-shape-outline', exportValue: (r) => statusLabel(r.status) },
   { key: 'enabled', label: t('system.plugin.headerEnabled'), sortable: false, align: 'center', icon: 'mdi-power', width: '110px', exportValue: (r) => (r.node ? (r.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled')) : '') },
 ])
 

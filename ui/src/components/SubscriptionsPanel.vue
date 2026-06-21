@@ -73,6 +73,7 @@ import { PluginFeatures, useI18nStore, LjSegmented, LjSearch, VibrantDataTable }
 import SubscriptionGroupCard from './SubscriptionGroupCard.vue'
 import SubscriptionStatus from './SubscriptionStatus.vue'
 import { vAppear } from '../directives/appear.js'
+import { statusHeader } from '../useUiHelpers.js'
 
 const props = defineProps({
   groups: { type: Array, default: () => [] },
@@ -135,9 +136,10 @@ const subRows = computed(() => filteredGroups.value.flatMap((g) => g.rows.map((r
 }))))
 
 const listHeaders = computed(() => [
+  // Status first: icon-only heart header + tooltip + fixed width (shared helper).
+  statusHeader({ tooltip: t('common.status'), sortable: false }),
   { key: 'tool', label: t('project.detail.tool') || 'Outil', sortable: true, icon: 'mdi-hammer-wrench' },
   { key: 'details', label: t('project.detail.subscriptions'), sortable: false },
-  { key: 'status', label: t('common.status'), sortable: false, align: 'center' },
 ])
 
 // Per-card collapse (cards view); "collapse all" toggles the whole filtered set.
