@@ -301,7 +301,8 @@ export default {
   'home.nodeStatus.refresh': 'Refresh instance status',
   'home.nodeStatus.label': 'Instances',
   'home.subStatus.label': 'Subscriptions',
-  'home.subStatus.refresh': 'Refresh subscription status',
+  'home.status.refresh': 'Refresh status',
+  'home.status.refreshHint': 'Click: instances · Shift+click: subscriptions',
 
   // Projects
   'project.title': 'Projects',

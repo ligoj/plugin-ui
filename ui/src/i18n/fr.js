@@ -300,7 +300,8 @@ export default {
   'home.nodeStatus.refresh': 'Rafraîchir le statut des instances',
   'home.nodeStatus.label': 'Instances',
   'home.subStatus.label': 'Souscriptions',
-  'home.subStatus.refresh': 'Rafraîchir le statut des souscriptions',
+  'home.status.refresh': 'Rafraîchir le statut',
+  'home.status.refreshHint': 'Clic : instances · Maj+clic : souscriptions',
 
   // Projets
   'project.title': 'Projets',

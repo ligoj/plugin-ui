@@ -18,6 +18,12 @@
       <div class="ch-row top">
         <span class="glyph"><component :is="group.icon" /></span>
         <div class="name">{{ group.name }}</div>
+        <!-- One Ligoj status dot summarising BOTH node operational health
+             (getNodeStatus) and subscription health; tooltip shows both
+             breakdowns. Click → refresh nodes, Shift+click → refresh
+             subscriptions. Sits just left of the collapse toggle. -->
+        <NodeStatusBadge v-if="hasStats" :node-stats="group.instanceStatus" :sub-stats="group.subStatus" :refreshing="!!group.refreshing"
+          @refresh="(shift) => $emit('refresh-node', { key: group.key, nodeIds: group.nodeIds, subIds: group.subIds, kind: shift ? 'subscription' : 'node' })" />
         <button class="chev" type="button" :aria-label="collapsed ? t('common.expandAll') : t('common.collapseAll')" @click.stop="$emit('toggle')">
           <v-icon size="18">{{ collapsed ? 'mdi-chevron-down' : 'mdi-chevron-up' }}</v-icon>
         </button>
@@ -31,20 +37,6 @@
           <span class="pct">{{ Math.round(group.health * 100) }}%</span>
           <span class="count">{{ group.rows.length }}</span>
         </span>
-      </div>
-
-      <!-- Status statistics — a per-node SUBSCRIPTION bar and a node/INSTANCE
-           operational-status bar. Same <StatusStatBar>, two data sources; each
-           is its own 3-segment progress bar + recheck button. -->
-      <div v-if="hasStats" class="statbars">
-        <StatusStatBar v-if="group.nodeStatus" :stats="group.nodeStatus" icon="mdi-connection"
-          :label="t('home.subStatus.label')" :refresh-label="t('home.subStatus.refresh')"
-          :refreshing="!!group.refreshing?.subscription"
-          @refresh="$emit('refresh-node', { key: group.key, nodeIds: group.nodeIds, kind: 'subscription' })" />
-        <StatusStatBar v-if="group.instanceStatus" :stats="group.instanceStatus" icon="mdi-server-outline"
-          :label="t('home.nodeStatus.label')" :refresh-label="t('home.nodeStatus.refresh')"
-          :refreshing="!!group.refreshing?.node"
-          @refresh="$emit('refresh-node', { key: group.key, nodeIds: group.nodeIds, kind: 'node' })" />
       </div>
     </div>
 
@@ -84,7 +76,7 @@
 import { ref, computed } from 'vue'
 import { PluginFeatures, useI18nStore } from '@ligoj/host'
 import SubscriptionStatus from './SubscriptionStatus.vue'
-import StatusStatBar from './StatusStatBar.vue'
+import NodeStatusBadge from './NodeStatusBadge.vue'
 import { vAppear } from '../directives/appear.js'
 
 const props = defineProps({
@@ -98,9 +90,9 @@ const t = useI18nStore().t
 const expanded = ref(false)
 const shownRows = computed(() => (expanded.value ? props.group.rows : props.group.rows.slice(0, 4)))
 
-// Show the status bars when either aggregation is present; otherwise the card
+// Show the status badge when either aggregation is present; otherwise the card
 // falls back to the legacy health bar.
-const hasStats = computed(() => !!(props.group.nodeStatus || props.group.instanceStatus))
+const hasStats = computed(() => !!(props.group.instanceStatus || props.group.subStatus))
 </script>
 
 <style scoped>
@@ -133,9 +125,6 @@ const hasStats = computed(() => !!(props.group.nodeStatus || props.group.instanc
 .barh i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c) 60%, white)); }
 .count { font-family: var(--mono); font-size: 11px; font-weight: 700; color: color-mix(in srgb, var(--c) 65%, var(--ink)); background: var(--card); border: var(--border-w) var(--lj-border-style, solid) color-mix(in srgb, var(--c) 22%, var(--border)); border-radius: var(--radius-sm); padding: 4px 8px; white-space: nowrap; }
 
-/* Status statistics: the two stacked <StatusStatBar> bars (subscriptions +
-   instances). The bar/segment/count/refresh chrome lives in StatusStatBar. */
-.statbars { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
 
 /* Mini-table rows (HomeView look) carrying the per-subscription delegation. */
 .mini { padding: 6px 10px 10px; max-height: 360px; overflow-y: auto; }
