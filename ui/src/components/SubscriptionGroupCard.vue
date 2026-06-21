@@ -23,7 +23,7 @@
              breakdowns. Click → refresh nodes, Shift+click → refresh
              subscriptions. Sits just left of the collapse toggle. -->
         <NodeStatusBadge v-if="hasStats" :node-stats="group.instanceStatus" :sub-stats="group.subStatus" :refreshing="!!group.refreshing"
-          @refresh="(shift) => $emit('refresh-node', { key: group.key, nodeIds: group.nodeIds, subIds: group.subIds, kind: shift ? 'subscription' : 'node' })" />
+          @refresh="(shift) => $emit('refresh-node', { key: group.key, subIds: group.subIds, kind: shift ? 'subscription' : 'node' })" />
         <button class="chev" type="button" :aria-label="collapsed ? t('common.expandAll') : t('common.collapseAll')" @click.stop="$emit('toggle')">
           <v-icon size="18">{{ collapsed ? 'mdi-chevron-down' : 'mdi-chevron-up' }}</v-icon>
         </button>

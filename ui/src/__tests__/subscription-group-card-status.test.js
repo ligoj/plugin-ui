@@ -53,12 +53,9 @@ describe('SubscriptionGroupCard — status badge', () => {
     const w = mountCard(makeGroup({ instanceStatus: { total: 4, up: 3, down: 1, unknown: 0 } }))
     await w.find('.nsb-dot').trigger('click')
     await w.find('.nsb-dot').trigger('click', { shiftKey: true })
-    expect(w.emitted('refresh-node')[0][0]).toEqual({
-      key: 'service:prov:aws', nodeIds: ['service:prov:aws:enedis'], subIds: [1], kind: 'node',
-    })
-    expect(w.emitted('refresh-node')[1][0]).toEqual({
-      key: 'service:prov:aws', nodeIds: ['service:prov:aws:enedis'], subIds: [1], kind: 'subscription',
-    })
+    // Node refresh targets the tool (the group key); subscription refresh the subs.
+    expect(w.emitted('refresh-node')[0][0]).toEqual({ key: 'service:prov:aws', subIds: [1], kind: 'node' })
+    expect(w.emitted('refresh-node')[1][0]).toEqual({ key: 'service:prov:aws', subIds: [1], kind: 'subscription' })
   })
 
   it('falls back to the health bar when no stats are present', () => {

@@ -89,11 +89,14 @@ const subscriptions = ref([])
 const usersTotal = ref(0)
 // Full per-subscription details (parameters/data/status), fetched lazily.
 const detailsById = ref(new Map())
-// Last known operational status per node (id → 'UP' | 'DOWN'), flattened from
-// GET rest/node/status. Drives the NODE side of the status badge.
-const instanceStatuses = ref(new Map())
-// Aggregated SUBSCRIPTION status per node (id → { total, up, down }), from
-// GET rest/node/status/subscription. Drives the subscription side of the badge.
+// Node operational statuses — NodeResource#getNodeStatus (GET rest/node/status):
+// a nested service→tool→instance tree of precomputed UP/DOWN values. Indexed by
+// node id → { total:#directChildren, up, down } so the NODE section reads the
+// TOOL level (total = number of instance children).
+const nodeStatuses = ref(new Map())
+// Subscription counts per (instance) node — NodeResource#getNodeStatistics
+// (GET rest/node/status/subscription): { total, up, down }. Drives the
+// SUBSCRIPTION section.
 const subStats = ref(new Map())
 // Tags `${groupKey}:${kind}` currently being re-checked (badge blink/spinner).
 const refreshingKeys = ref(new Set())
@@ -132,31 +135,38 @@ async function load() {
   loading.value = false
 }
 
-// Fetch the operational health of every visible node from
-// NodeResource#getNodeStatus (GET rest/node/status) — node/tool status from the
-// last UP/DOWN event, INDEPENDENT of subscriptions (unlike the subscription
-// stats). The payload is a nested service→tool→instance tree (each EventVo:
-// `{ node:{id}, value, specifics:[…] }`); we flatten it to a per-node-id map.
-// Nodes without an event are simply absent → counted as "no status" per group.
-function collectStatuses(list, m) {
+// Index the getNodeStatus tree: every node id → { total, up, down } of its
+// DIRECT children's precomputed status (so a TOOL maps to its instance children).
+function indexNodeStatuses(list, m) {
   for (const e of (list || [])) {
     const id = e?.node?.id
-    if (id && e?.value && !m.has(id)) m.set(id, String(e.value).toUpperCase())
-    if (Array.isArray(e?.specifics) && e.specifics.length) collectStatuses(e.specifics, m)
+    const kids = Array.isArray(e?.specifics) ? e.specifics : []
+    if (id && kids.length) {
+      let up = 0
+      let down = 0
+      for (const c of kids) {
+        const v = String(c?.value || '').toUpperCase()
+        if (v === 'UP') up++
+        else if (v === 'DOWN') down++
+      }
+      m.set(id, { total: kids.length, up, down })
+    }
+    if (kids.length) indexNodeStatuses(kids, m)
   }
 }
-async function loadInstanceStatuses() {
+
+// Node operational statuses (GET rest/node/status) — the NODE section's source.
+async function loadNodeStatuses() {
   try {
     const data = await api.get('rest/node/status')
     const m = new Map()
-    collectStatuses(Array.isArray(data) ? data : [], m)
-    instanceStatuses.value = m
+    indexNodeStatuses(Array.isArray(data) ? data : [], m)
+    nodeStatuses.value = m
   } catch { /* keep the previous statuses on a transient failure */ }
 }
 
-// Aggregated per-node SUBSCRIPTION status (GET rest/node/status/subscription),
-// keyed by the subscription's node id with `values = { total, UP, DOWN }`;
-// anything not UP/DOWN is "unknown".
+// Subscription counts per node (GET rest/node/status/subscription, getNodeStatistics)
+// — the SUBSCRIPTION section's source. `values = { total, UP, DOWN }`.
 async function loadSubStats() {
   try {
     const data = await api.get('rest/node/status/subscription')
@@ -204,36 +214,20 @@ const realGroups = computed(() => {
     // project that owns it.
     byTool.get(key).rows.push({ name: project?.name || project?.pkey || node.name || ('#' + s.id), status, pills: [], sub })
   }
-  const nstatuses = instanceStatuses.value
+  const nstats = nodeStatuses.value
   const sstats = subStats.value
   for (const g of out) {
     const ok = g.rows.filter((r) => r.status === 'ok').length
     g.health = g.rows.length ? ok / g.rows.length : 0
 
     // A group is keyed at the TOOL level but aggregates one row per
-    // subscription, each carrying its own (instance-level) node id. Both the
-    // node status and the subscription status are summed over those node ids.
+    // subscription, each carrying its own (instance-level) node id.
     const ids = [...new Set(g.rows.map((r) => r.sub?.node?.id).filter(Boolean))]
     g.nodeIds = ids
     g.subIds = g.rows.map((r) => r.sub?.id).filter((id) => id != null)
 
-    // Node operational health from getNodeStatus: total = #instances; up/down
-    // from the last status event; the rest never reported a status (unknown).
-    if (ids.length) {
-      let up = 0
-      let down = 0
-      for (const id of ids) {
-        const v = nstatuses.get(id)
-        if (v === 'UP') up++
-        else if (v === 'DOWN') down++
-      }
-      g.instanceStatus = { total: ids.length, up, down, unknown: ids.length - up - down }
-    } else {
-      g.instanceStatus = null
-    }
-
-    // Subscription health (rest/node/status/subscription), summed over the
-    // group's node ids: total = #subscriptions; unknown = neither UP nor DOWN.
+    // Subscription section: sum the per-node subscription counts over the group's
+    // subscribed instance nodes (unknown = total − up − down).
     if (sstats.size && ids.some((id) => sstats.has(id))) {
       let total = 0
       let up = 0
@@ -246,6 +240,11 @@ const realGroups = computed(() => {
     } else {
       g.subStatus = null
     }
+
+    // Node section: the TOOL level from getNodeStatus — total = number of
+    // instance children, up/down precomputed by the backend.
+    const ns = nstats.get(g.key)
+    g.instanceStatus = ns ? { total: ns.total, up: ns.up, down: ns.down, unknown: Math.max(0, ns.total - ns.up - ns.down) } : null
   }
   return out.sort((a, b) => b.rows.length - a.rows.length)
 })
@@ -316,11 +315,12 @@ async function flushDetails() {
   detailsById.value = next // triggers a single regroup with the merged details
 }
 
-// Click-to-refresh on a group's status badge. Click (kind 'node') re-probes the
-// group's instance nodes (POST rest/node/status/refresh/{id}, a live check that
-// registers a fresh status event) then reloads the node statuses. SHIFT+click
-// (kind 'subscription') re-checks the group's subscriptions
-// (GET rest/subscription/status/{id}/refresh) then reloads the subscription stats.
+// Click-to-refresh on a group's status badge. Click (kind 'node') re-checks the
+// group's TOOL node (POST rest/node/status/refresh/{toolId}, i.e. the tool — not
+// each instance — which the backend probes and cascades to its subscriptions
+// when the status changes). SHIFT+click (kind 'subscription') re-checks the
+// group's subscriptions (GET rest/subscription/status/{id}/refresh). Either way
+// the global node stats are reloaded afterwards.
 async function onRefreshNode(payload) {
   const key = payload?.key
   const kind = payload?.kind === 'subscription' ? 'subscription' : 'node'
@@ -330,16 +330,12 @@ async function onRefreshNode(payload) {
   try {
     if (kind === 'subscription') {
       const subIds = payload?.subIds || []
-      if (subIds.length) {
-        await Promise.allSettled(subIds.map((id) => api.get(`rest/subscription/status/${encodeURIComponent(id)}/refresh`, { silent: true })))
-        await loadSubStats()
-      }
+      await Promise.allSettled(subIds.map((id) => api.get(`rest/subscription/status/${encodeURIComponent(id)}/refresh`, { silent: true })))
+      await loadSubStats()
     } else {
-      const ids = payload?.nodeIds || []
-      if (ids.length) {
-        await Promise.allSettled(ids.map((id) => api.post(`rest/node/status/refresh/${encodeURIComponent(id)}`)))
-        await loadInstanceStatuses()
-      }
+      // The node refresh targets the tool node (the group key), not its instances.
+      await api.post(`rest/node/status/refresh/${encodeURIComponent(key)}`, null, { silent: true })
+      await loadNodeStatuses()
     }
   } finally {
     const next = new Set(refreshingKeys.value)
@@ -350,7 +346,7 @@ async function onRefreshNode(payload) {
 
 onMounted(() => {
   load()
-  loadInstanceStatuses()
+  loadNodeStatuses()
   loadSubStats()
 })
 </script>
