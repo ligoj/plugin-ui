@@ -297,7 +297,10 @@ export default {
   'home.nodeStatus.up': 'UP',
   'home.nodeStatus.noStatus': 'Sans statut',
   'home.nodeStatus.down': 'DOWN',
-  'home.nodeStatus.refresh': 'Rafraîchir le statut du nœud',
+  'home.nodeStatus.refresh': 'Rafraîchir le statut des instances',
+  'home.nodeStatus.label': 'Instances',
+  'home.subStatus.label': 'Souscriptions',
+  'home.subStatus.refresh': 'Rafraîchir le statut des souscriptions',
 
   // Projets
   'project.title': 'Projets',

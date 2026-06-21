@@ -90,9 +90,12 @@ const usersTotal = ref(0)
 // Full per-subscription details (parameters/data/status), fetched lazily.
 const detailsById = ref(new Map())
 // Aggregated subscription status per node (id → { total, up, down }), from
-// GET rest/node/status/subscription. Drives the 3-state bar on each card.
+// GET rest/node/status/subscription. Drives the SUBSCRIPTION bar on each card.
 const nodeStats = ref(new Map())
-// Group keys whose node status is being re-checked (spinner on the button).
+// Last known operational status per instance node (id → 'UP' | 'DOWN'), from
+// GET rest/node/status. Drives the INSTANCE bar on each card.
+const instanceStatuses = ref(new Map())
+// Tags `${groupKey}:${kind}` currently being re-checked (per-bar spinner).
 const refreshingKeys = ref(new Set())
 
 const nodesMap = computed(() => {
@@ -146,6 +149,23 @@ async function loadNodeStats() {
   } catch { /* keep the previous stats on a transient failure */ }
 }
 
+// Fetch the last known operational status of every visible node, keyed by id.
+// We use the FLAT `rest/node?status=true` (each NodeVo carries `.status` = last
+// UP/DOWN event, like SystemNodeView) rather than `rest/node/status`, whose
+// payload is a nested service→tool→instance tree. rows=1000 defeats the default
+// 10-row page. Instances without an event are absent → counted as "no status".
+async function loadInstanceStatuses() {
+  try {
+    const d = await api.get('rest/node?status=true&rows=1000')
+    const list = Array.isArray(d) ? d : (d?.data || [])
+    const m = new Map()
+    for (const n of list) {
+      if (n?.id && n?.status) m.set(n.id, String(n.status).toUpperCase())
+    }
+    instanceStatuses.value = m
+  } catch { /* keep the previous statuses on a transient failure */ }
+}
+
 // Group the current user's subscriptions by tool, merging any lazily-fetched
 // details. Each row keeps a `sub` object for the plugin delegation.
 const realGroups = computed(() => {
@@ -180,6 +200,7 @@ const realGroups = computed(() => {
     byTool.get(key).rows.push({ name: project?.name || project?.pkey || node.name || ('#' + s.id), status, pills: [], sub })
   }
   const stats = nodeStats.value
+  const nstatuses = instanceStatuses.value
   for (const g of out) {
     const ok = g.rows.filter((r) => r.status === 'ok').length
     g.health = g.rows.length ? ok / g.rows.length : 0
@@ -201,6 +222,22 @@ const realGroups = computed(() => {
       g.nodeStatus = { total, up, down, noStatus: Math.max(0, total - up - down) }
     } else {
       g.nodeStatus = null
+    }
+
+    // Instance (node) operational status: one count over the group's distinct
+    // instance nodes (total = #instances; up/down from the last status event;
+    // the rest = no status). Always shown when the group has instances.
+    if (ids.length) {
+      let up = 0
+      let down = 0
+      for (const id of ids) {
+        const v = nstatuses.get(id)
+        if (v === 'UP') up++
+        else if (v === 'DOWN') down++
+      }
+      g.instanceStatus = { total: ids.length, up, down, noStatus: ids.length - up - down }
+    } else {
+      g.instanceStatus = null
     }
   }
   return out.sort((a, b) => b.rows.length - a.rows.length)
@@ -228,7 +265,11 @@ const demoGroups = computed(() => DEMO_TOOLS.map((td) => ({
 // doesn't rebuild the heavier `realGroups` aggregation.
 const groups = computed(() => {
   const base = demo.value ? realGroups.value.concat(demoGroups.value) : realGroups.value
-  return base.map((g) => ({ ...g, refreshing: refreshingKeys.value.has(g.key) }))
+  const keys = refreshingKeys.value
+  return base.map((g) => ({
+    ...g,
+    refreshing: { subscription: keys.has(`${g.key}:subscription`), node: keys.has(`${g.key}:node`) },
+  }))
 })
 
 const kpis = computed(() => [
@@ -270,18 +311,23 @@ async function flushDetails() {
   detailsById.value = next // triggers a single regroup with the merged details
 }
 
-// Re-check the status of a group's nodes, then refresh the aggregated stats.
+// Re-check a group's nodes, then reload the bar that asked for it. Both bars
+// re-probe the same instance nodes (POST rest/node/status/refresh/{id}); the
+// `kind` only decides which aggregation to reload afterwards — the subscription
+// stats or the instance statuses.
 async function onRefreshNode(payload) {
   const key = payload?.key
   const ids = payload?.nodeIds || []
+  const kind = payload?.kind || 'subscription'
   if (!key || !ids.length) return
-  refreshingKeys.value = new Set(refreshingKeys.value).add(key)
+  const tag = `${key}:${kind}`
+  refreshingKeys.value = new Set(refreshingKeys.value).add(tag)
   try {
     await Promise.allSettled(ids.map((id) => api.post(`rest/node/status/refresh/${encodeURIComponent(id)}`)))
-    await loadNodeStats()
+    await (kind === 'node' ? loadInstanceStatuses() : loadNodeStats())
   } finally {
     const next = new Set(refreshingKeys.value)
-    next.delete(key)
+    next.delete(tag)
     refreshingKeys.value = next
   }
 }
@@ -289,6 +335,7 @@ async function onRefreshNode(payload) {
 onMounted(() => {
   load()
   loadNodeStats()
+  loadInstanceStatuses()
 })
 </script>
 

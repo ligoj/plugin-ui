@@ -298,7 +298,10 @@ export default {
   'home.nodeStatus.up': 'UP',
   'home.nodeStatus.noStatus': 'No status',
   'home.nodeStatus.down': 'DOWN',
-  'home.nodeStatus.refresh': 'Refresh node status',
+  'home.nodeStatus.refresh': 'Refresh instance status',
+  'home.nodeStatus.label': 'Instances',
+  'home.subStatus.label': 'Subscriptions',
+  'home.subStatus.refresh': 'Refresh subscription status',
 
   // Projects
   'project.title': 'Projects',
