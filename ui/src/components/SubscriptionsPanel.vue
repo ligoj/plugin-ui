@@ -46,7 +46,6 @@
             <div><div class="ac-name">{{ item.tool }}</div><div class="ac-kind">{{ item.kind }}</div></div>
           </div>
         </template>
-        <template #cell.name="{ item }"><span class="ln">{{ item.name }}</span></template>
         <template #cell.details="{ item }">
           <span class="lsum">
             <PluginFeatures v-if="item.sub" :subscription="item.sub" action="renderDetailsKey" />
@@ -54,7 +53,7 @@
             <span v-for="(p, k) in item.pills" :key="k" class="pill" :class="{ cost: item.cost }">{{ p }}</span>
           </span>
         </template>
-        <template #cell.status="{ item }"><span class="st" :class="item.status" /></template>
+        <template #cell.status="{ item }"><SubscriptionStatus :subscription="item.sub" :status="item.status" /></template>
         <template #actions="{ item }">
           <span v-if="item.sub" class="rowact">
             <PluginFeatures :subscription="item.sub" action="renderFeatures" />
@@ -72,6 +71,7 @@
 import { ref, computed, watch } from 'vue'
 import { PluginFeatures, useI18nStore, LjSegmented, LjSearch, VibrantDataTable } from '@ligoj/host'
 import SubscriptionGroupCard from './SubscriptionGroupCard.vue'
+import SubscriptionStatus from './SubscriptionStatus.vue'
 import { vAppear } from '../directives/appear.js'
 
 const props = defineProps({
@@ -136,7 +136,6 @@ const subRows = computed(() => filteredGroups.value.flatMap((g) => g.rows.map((r
 
 const listHeaders = computed(() => [
   { key: 'tool', label: t('project.detail.tool') || 'Outil', sortable: true, icon: 'mdi-hammer-wrench' },
-  { key: 'name', label: t('common.name'), sortable: true },
   { key: 'details', label: t('project.detail.subscriptions'), sortable: false },
   { key: 'status', label: t('common.status'), sortable: false, align: 'center' },
 ])

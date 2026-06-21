@@ -522,4 +522,13 @@ export default {
   'api.allMethods': "All",
   'system.apiToken.subtitle': "Password-less access keys for the REST API",
   'system.apiToken.statTokens': "Tokens",
+
+  // Subscription / node status tooltip (SubscriptionStatus component)
+  'subscription.tip.status': 'Status',
+  'subscription.tip.mode': 'Mode',
+  'subscription.tip.enabled': 'Enabled',
+  'subscription.tip.parameters': 'Parameters',
+  'subscription.tip.created': 'Created',
+  'subscription.tip.modified': 'Modified',
+  'subscription.tip.modeAll': 'All',
 }

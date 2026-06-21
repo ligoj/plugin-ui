@@ -133,11 +133,9 @@ const groups = computed(() => {
       })
     }
     const status = statusDot(s.status)
-    const pills = []
-    const frag = (node.id || '').split(':').pop()
-    if (frag && frag !== node.id) pills.push(frag)
-    pills.push(t('subscription.status.' + status))
-    byTool.get(key).rows.push({ name: node.name || node.id || ('#' + s.id), status, pills, sub: s })
+    // No synthetic status / node-name chips — that identity is now carried by
+    // the SubscriptionStatus tooltip on the status dot.
+    byTool.get(key).rows.push({ name: node.name || node.id || ('#' + s.id), status, pills: [], sub: s })
   }
   const out = [...byTool.values()]
   for (const g of out) {

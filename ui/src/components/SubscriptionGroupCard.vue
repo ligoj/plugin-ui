@@ -51,7 +51,7 @@
     <v-expand-transition>
       <div v-show="!collapsed" class="mini">
         <div v-for="(r, j) in shownRows" :key="j" class="mrow" v-appear="() => r.sub && $emit('row-appear', r.sub)">
-          <span class="st" :class="r.status" />
+          <SubscriptionStatus :subscription="r.sub" :status="r.status" />
           <span class="mlabel">{{ r.name }}</span>
           <span class="m-sum">
             <!-- Plugin-rendered summary, split like the legacy renderDetailsKey /
@@ -83,6 +83,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { PluginFeatures, useI18nStore } from '@ligoj/host'
+import SubscriptionStatus from './SubscriptionStatus.vue'
 import { vAppear } from '../directives/appear.js'
 
 const props = defineProps({

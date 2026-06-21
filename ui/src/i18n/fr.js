@@ -521,4 +521,13 @@ export default {
   'api.allMethods': "Toutes",
   'system.apiToken.subtitle': "Clés d'accès sans mot de passe pour l'API REST",
   'system.apiToken.statTokens': "Jetons",
+
+  // Info-bulle de statut d'abonnement / nœud (composant SubscriptionStatus)
+  'subscription.tip.status': 'Statut',
+  'subscription.tip.mode': 'Mode',
+  'subscription.tip.enabled': 'Activé',
+  'subscription.tip.parameters': 'Paramètres',
+  'subscription.tip.created': 'Créé',
+  'subscription.tip.modified': 'Modifié',
+  'subscription.tip.modeAll': 'Tous',
 }

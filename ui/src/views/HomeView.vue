@@ -174,12 +174,10 @@ const realGroups = computed(() => {
     const det = detailsById.value.get(String(s.id))
     const status = statusDot(det?.status ?? null)
     const sub = det ? { id: s.id, node, status: det.status, parameters: det.parameters, data: det.data } : { id: s.id, node, status: null }
-    const pills = []
-    const frag = (node.id || '').split(':').pop()
-    if (frag && frag !== node.id) pills.push(frag)
-    pills.push(t('subscription.status.' + status))
-    // One row per subscription, labelled by the project that owns it.
-    byTool.get(key).rows.push({ name: project?.name || project?.pkey || node.name || ('#' + s.id), status, pills, sub })
+    // No synthetic status / node-name chips — that identity is now in the
+    // SubscriptionStatus tooltip. One row per subscription, labelled by the
+    // project that owns it.
+    byTool.get(key).rows.push({ name: project?.name || project?.pkey || node.name || ('#' + s.id), status, pills: [], sub })
   }
   const stats = nodeStats.value
   for (const g of out) {
