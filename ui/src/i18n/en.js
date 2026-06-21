@@ -181,6 +181,11 @@ export default {
   'system.role.fieldApiPatterns': 'API authorization patterns (regex)',
   'system.role.fieldUiPatterns': 'UI authorization patterns (regex)',
   'system.role.patternsHint': 'Press Enter after each pattern',
+  'system.role.fieldMethod': 'HTTP method',
+  'system.role.methodAny': 'Any method',
+  'system.role.addApi': 'Add API authorization',
+  'system.role.patternPlaceholder': 'Pattern (regex)',
+  'system.role.methodAnyShort': 'ANY',
 
   // System → Nodes
   'system.node.title': 'Nodes',

@@ -180,6 +180,11 @@ export default {
   'system.role.fieldApiPatterns': 'Patterns d\'autorisation API (regex)',
   'system.role.fieldUiPatterns': 'Patterns d\'autorisation UI (regex)',
   'system.role.patternsHint': 'Appuyer sur Entrée après chaque pattern',
+  'system.role.fieldMethod': 'Méthode HTTP',
+  'system.role.methodAny': 'Toute méthode',
+  'system.role.addApi': 'Ajouter une autorisation API',
+  'system.role.patternPlaceholder': 'Pattern (regex)',
+  'system.role.methodAnyShort': 'TOUTE',
 
   // Système → Nœuds
   'system.node.title': 'Nœuds',

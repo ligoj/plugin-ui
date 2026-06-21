@@ -38,7 +38,9 @@
       </template>
       <template #cell.authApi="{ item }">
         <span class="tokens">
-          <code v-for="a in (item['authorizations-api'] || [])" :key="a.id || a.pattern" class="tok api">{{ a.pattern }}</code>
+          <code v-for="a in (item['authorizations-api'] || [])" :key="a.id || (a.method || '') + a.pattern" class="tok api">
+            <span class="method" :class="methodClass(a.method)">{{ a.method || t('system.role.methodAnyShort') }}</span>{{ a.pattern }}
+          </code>
           <span v-if="!(item['authorizations-api'] || []).length" class="dash">—</span>
         </span>
       </template>
@@ -62,7 +64,21 @@
       <v-form ref="formRef" @submit.prevent="save">
         <LjAvailabilityField v-model="editForm.name" v-model:taken="nameTaken" endpoint="system/security/role/withAuth" :enabled="!editTarget"
           prepend-inner-icon="mdi-shield-outline" :label="t('system.role.fieldName')" class="mb-4" autofocus />
-        <v-combobox v-model="editForm.apiPatterns" :label="t('system.role.fieldApiPatterns')" prepend-inner-icon="mdi-api" :items="[]" chips closable-chips multiple variant="outlined" :hint="t('system.role.patternsHint')" persistent-hint class="mb-4" />
+
+        <!-- API authorizations: each row is a regex pattern + an OPTIONAL HTTP
+             method. Clearing the method (= "Any method") removes the HTTP
+             restriction. -->
+        <div class="api-editor mb-4">
+          <div class="ed-label"><v-icon size="16">mdi-api</v-icon><span>{{ t('system.role.fieldApiPatterns') }}</span></div>
+          <div v-for="(a, i) in editForm.apiAuths" :key="a._k" class="api-row">
+            <v-text-field v-model="a.pattern" :placeholder="t('system.role.patternPlaceholder')" density="compact" variant="outlined" hide-details class="api-pat" />
+            <v-select v-model="a.method" :items="METHODS" :placeholder="t('system.role.methodAny')" density="compact" variant="outlined" hide-details clearable class="api-method" />
+            <button type="button" class="api-del" :aria-label="t('common.delete')" @click="editForm.apiAuths.splice(i, 1)"><v-icon size="18">mdi-close</v-icon></button>
+          </div>
+          <button type="button" class="api-add" @click="editForm.apiAuths.push({ pattern: '', method: null, _k: ++rowKey })"><v-icon size="16">mdi-plus</v-icon><span>{{ t('system.role.addApi') }}</span></button>
+          <div class="ed-hint">{{ t('system.role.patternsHint') }}</div>
+        </div>
+
         <v-combobox v-model="editForm.uiPatterns" :label="t('system.role.fieldUiPatterns')" prepend-inner-icon="mdi-monitor" :items="[]" chips closable-chips multiple variant="outlined" :hint="t('system.role.patternsHint')" persistent-hint class="mb-2" />
       </v-form>
       <template #footer>
@@ -91,6 +107,17 @@ const t = i18n.t
 const items = ref([])
 const loading = ref(false)
 const error = ref(null)
+
+// HTTP methods selectable for an API authorization; clearing it (null) means
+// "any method" — no HTTP method restriction.
+const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
+
+// Semantic colour per method: any/all (the broadest grant) → danger, DELETE →
+// warning, GET → info, POST → success, PUT and the rest → default (neutral).
+const METHOD_CLASS = { '': 'm-danger', DELETE: 'm-warning', GET: 'm-info', POST: 'm-success' }
+function methodClass(method) {
+  return METHOD_CLASS[String(method || '').toUpperCase()] || 'm-default'
+}
 
 /* search / filter / sort / paging (client-side) */
 const query = ref('')
@@ -149,7 +176,7 @@ const paged = computed(() => {
 
 const headers = computed(() => [
   { key: 'name', label: t('system.role.headerName'), sortable: true, icon: 'mdi-shield-outline' },
-  { key: 'authApi', label: t('system.role.headerApi'), sortable: false, icon: 'mdi-api', exportValue: (r) => (r['authorizations-api'] || []).map((a) => a.pattern).join(' ') },
+  { key: 'authApi', label: t('system.role.headerApi'), sortable: false, icon: 'mdi-api', exportValue: (r) => (r['authorizations-api'] || []).map((a) => (a.method ? a.method + ' ' : '') + a.pattern).join(' ') },
   { key: 'authUi', label: t('system.role.headerUi'), sortable: false, icon: 'mdi-monitor', exportValue: (r) => (r['authorizations-ui'] || []).map((a) => a.pattern).join(' ') },
 ])
 
@@ -185,19 +212,22 @@ async function load() {
 const formRef = ref(null)
 const editDialog = ref(false)
 const editTarget = ref(null)
-const editForm = ref({ name: '', apiPatterns: [], uiPatterns: [] })
+const editForm = ref({ name: '', apiAuths: [], uiPatterns: [] })
 const nameTaken = ref(false)
 const saving = ref(false)
+// Stable per-row key so removing an API row doesn't desync the inputs.
+let rowKey = 0
 function openNew() {
   editTarget.value = null
-  editForm.value = { name: '', apiPatterns: [], uiPatterns: [] }
+  editForm.value = { name: '', apiAuths: [], uiPatterns: [] }
   editDialog.value = true
 }
 function openEdit(item) {
   editTarget.value = item
   editForm.value = {
     name: item.name,
-    apiPatterns: (item['authorizations-api'] || []).map((a) => a.pattern),
+    // API authorizations carry an optional HTTP method (null = any).
+    apiAuths: (item['authorizations-api'] || []).map((a) => ({ pattern: a.pattern, method: a.method || null, _k: ++rowKey })),
     uiPatterns: (item['authorizations-ui'] || []).map((a) => a.pattern),
   }
   editDialog.value = true
@@ -212,7 +242,11 @@ async function save() {
       id: editTarget.value?.id,
       name: editForm.value.name,
       authorizations: [
-        ...editForm.value.apiPatterns.map((p) => ({ pattern: p, type: 'api' })),
+        // Drop blank patterns; only send `method` when set (omitting it = no
+        // HTTP method restriction).
+        ...editForm.value.apiAuths
+          .filter((a) => String(a.pattern || '').trim())
+          .map((a) => ({ type: 'api', pattern: a.pattern.trim(), ...(a.method ? { method: a.method } : {}) })),
         ...editForm.value.uiPatterns.map((p) => ({ pattern: p, type: 'ui' })),
       ],
     }
@@ -267,7 +301,29 @@ onMounted(() => {
 .ac-name { font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); }
 .tokens { display: inline-flex; flex-wrap: wrap; gap: 5px; max-width: 420px; }
 .tok { font-family: var(--mono); font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-sm); color: var(--ink-2); background: var(--pill); }
-.tok.api { color: #2f6df6; background: rgba(47, 109, 246, .12); }
+.tok.api { display: inline-flex; align-items: center; gap: 5px; color: #2f6df6; background: rgba(47, 109, 246, .12); }
 .tok.ui { color: #1d9d63; background: rgba(29, 157, 99, .13); }
 .dash { color: var(--ink-3); }
+/* HTTP method badge inside an API token, colour-coded by method:
+   any/all → danger, DELETE → warning, GET → info, POST → success,
+   PUT & others → default (neutral). */
+.method { font-family: var(--mono); font-size: 9px; font-weight: 800; letter-spacing: .02em; line-height: 1.5; padding: 0 4px; border-radius: 3px; color: #fff; }
+.method.m-danger { background: rgb(var(--v-theme-error)); }
+.method.m-warning { background: rgb(var(--v-theme-warning)); }
+.method.m-info { background: rgb(var(--v-theme-info)); }
+.method.m-success { background: rgb(var(--v-theme-success)); }
+.method.m-default { background: color-mix(in srgb, var(--ink-3) 22%, transparent); color: var(--ink-2); }
+
+/* API authorizations editor (in the edit dialog): one row per pattern + an
+   optional HTTP method. Tokens come from the dialog card's `.lj-surface`. */
+.api-editor { display: flex; flex-direction: column; }
+.ed-label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 8px; }
+.api-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.api-pat { flex: 1 1 auto; }
+.api-method { flex: 0 0 150px; }
+.api-del { flex: none; width: 34px; height: 40px; border: 0; background: transparent; border-radius: var(--radius-sm); color: var(--ink-3); cursor: pointer; display: grid; place-items: center; transition: background .12s, color .12s; }
+.api-del:hover { background: var(--hover); color: var(--ink); }
+.api-add { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: var(--accent); font-family: var(--font); font-weight: 700; font-size: 13px; cursor: pointer; padding: 4px 2px; }
+.api-add:hover { text-decoration: underline; }
+.ed-hint { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
 </style>
