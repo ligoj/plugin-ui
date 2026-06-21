@@ -140,7 +140,9 @@ const stats = computed(() => {
 async function load() {
   loading.value = true; error.value = null
   // status=true → NodeResource#findAll also returns each node's last known status.
-  try { const d = await api.get('rest/node?status=true'); items.value = Array.isArray(d) ? d : (d?.data || []) }
+  // rows=1000 → defeat PaginationJson's default 10-row page; this view does its
+  // own client-side filter / sort / paging over the full set (like the wizard).
+  try { const d = await api.get('rest/node?status=true&rows=1000'); items.value = Array.isArray(d) ? d : (d?.data || []) }
   catch { error.value = t('common.loadError') || 'Load error' }
   loading.value = false
 }
