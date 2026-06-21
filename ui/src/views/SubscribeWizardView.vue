@@ -1,568 +1,363 @@
+<!--
+  SubscribeWizardDialog — 2026 "Vibrant" subscription wizard (subscribe mode
+  only; edit-node / create-node belong to the Administration views). Same
+  `.vmodal` chrome as the other dialogs, but taller and scrollable. Cascading
+  pickers: service → tool → instance (with an optional inline "new instance"
+  form), then a segmented mode control, then the node's dynamic parameter
+  fields. POSTs rest/subscription on confirm.
+
+  Ported from plugin-ui's SubscribeWizardView. Standalone caveat: plugin
+  parameter-field overrides and plugin i18n labels need the plugin bundles
+  loaded (install()), which the 2026 app doesn't do — so parameters render
+  with the default type-based fields and raw ids as labels. The core flow
+  (service/tool/instance/mode/params → subscribe) works against the live
+  backend nodes.
+-->
 <template>
-  <div>
-    <div class="d-flex align-center mb-4">
-      <h1 class="text-h4">Subscribe</h1>
-      <v-spacer />
-      <v-btn variant="text" :to="cancelTo">Cancel</v-btn>
-    </div>
+  <LjDialog :model-value="modelValue" :title="t('wizard.title')" icon="mdi-cloud-plus-outline" :max-width="720" @update:model-value="onDialogModel">
+        <p v-if="projectName" class="ctx">{{ t('wizard.contextBefore') }} <strong>{{ projectName }}</strong>.</p>
+        <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
-    <v-alert
-      v-if="!projectId"
-      type="info"
-      variant="tonal"
-      density="compact"
-      class="mb-4"
-    >
-      No project selected. The wizard needs a project —
-      <router-link to="/home/project">pick one</router-link>,
-      then open this page from the project's "Add subscription" button.
-    </v-alert>
+        <!-- 1. Service -->
+        <section class="step">
+          <div class="sh"><span class="n">1</span><v-icon size="18">mdi-room-service-outline</v-icon>{{ t('wizard.step.service') }}</div>
+          <v-select v-model="selected.service" :items="services" item-title="name" item-value="id" return-object :placeholder="t('wizard.label.service')" :loading="loadingServices"
+            variant="outlined" density="comfortable" hide-details>
+            <template #selection="{ item }"><span v-if="item" class="opt"><NodeIcon :node="item" /> {{ item.name || item.id }}</span></template>
+            <template #item="{ props: ip, item }">
+              <v-list-item v-if="item" v-bind="ip" :title="item.name || item.id" :subtitle="item.id">
+                <template #prepend><NodeIcon :node="item" class="mr-2" /></template>
+              </v-list-item>
+            </template>
+          </v-select>
+        </section>
 
-    <v-alert v-else-if="loadingProject" type="info" variant="tonal" density="compact" class="mb-4">
-      Loading project…
-    </v-alert>
+        <!-- 2. Tool -->
+        <section class="step" :class="{ off: !selected.service }">
+          <div class="sh"><span class="n">2</span><v-icon size="18">mdi-wrench-outline</v-icon>{{ t('wizard.step.tool') }}</div>
+          <v-select v-model="selected.tool" :items="tools" item-title="name" item-value="id" return-object :placeholder="t('wizard.label.tool')" :loading="loadingTools" :disabled="!selected.service"
+            variant="outlined" density="comfortable" hide-details>
+            <template #selection="{ item }"><span v-if="item" class="opt"><NodeIcon :node="item" /> {{ item.name || item.id }}</span></template>
+            <template #item="{ props: ip, item }">
+              <v-list-item v-if="item" v-bind="ip" :title="item.name || item.id" :subtitle="item.id">
+                <template #prepend><NodeIcon :node="item" class="mr-2" /></template>
+              </v-list-item>
+            </template>
+          </v-select>
+        </section>
 
-    <v-alert v-else-if="project" type="info" variant="tonal" density="compact" class="mb-4">
-      Adding a subscription to <strong>{{ project.name }}</strong> ({{ project.pkey }}).
-      <br>
-      <span class="text-caption text-warning">Subscribing is not an idempotent operation — removing a subscription later may not clean up remote data automatically.</span>
-    </v-alert>
+        <!-- 3. Instance -->
+        <section class="step" :class="{ off: !selected.tool }">
+          <div class="sh"><span class="n">3</span><v-icon size="18">mdi-server-outline</v-icon>{{ t('wizard.step.instance') }}</div>
+          <div class="inst-row">
+            <v-select v-model="selected.node" :items="nodes" item-title="name" item-value="id" return-object :placeholder="t('wizard.label.instance')" :loading="loadingNodes"
+              :disabled="!selected.tool || showNewNode" variant="outlined" density="comfortable" hide-details class="flex-grow-1">
+              <template #selection="{ item }"><span v-if="item" class="opt"><NodeIcon :node="item" /> {{ item.name || item.id }}</span></template>
+              <template #item="{ props: ip, item }">
+                <v-list-item v-if="item" v-bind="ip" :title="item.name || item.id" :subtitle="item.id">
+                  <template #prepend><NodeIcon :node="item" class="mr-2" /></template>
+                </v-list-item>
+              </template>
+            </v-select>
+            <LjButton variant="ghost" :icon="showNewNode ? 'mdi-close' : 'mdi-plus'" :disabled="!selected.tool" @click="toggleNewNode">{{ showNewNode ? t('wizard.pickExisting') : t('wizard.newInstance') }}</LjButton>
+          </div>
 
-    <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
-
-    <v-stepper
-      v-if="project"
-      v-model="step"
-      :items="stepLabels"
-      alt-labels
-      :editable="stepEditable"
-      class="mb-4"
-    >
-      <template #item.1>
-        <StepChoice
-          heading="Select a service"
-          sub="A service groups features implemented by one or more tools."
-          :choices="services"
-          :loading="loadingServices"
-          :selected-id="selected.service?.id"
-          @select="pickService"
-        />
-      </template>
-
-      <template #item.2>
-        <StepChoice
-          :heading="`Select a tool providing ${selected.service?.name ?? '…'}`"
-          sub="A tool is one implementation of the service; several instances may be deployed."
-          :choices="tools"
-          :loading="loadingTools"
-          :selected-id="selected.tool?.id"
-          @select="pickTool"
-        />
-      </template>
-
-      <template #item.3>
-        <StepChoice
-          :heading="`Pick a node running ${selected.tool?.name ?? '…'}`"
-          sub="A node is a running instance of the tool."
-          :choices="nodes"
-          :loading="loadingNodes"
-          :selected-id="selected.node?.id"
-          @select="pickNode"
-        />
-      </template>
-
-      <template #item.4>
-        <div class="pa-4">
-          <h3 class="text-h6 mb-2">Subscription mode</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
-            <strong>Link</strong> attaches this project to an existing
-            instance in the tool. <strong>Create</strong> additionally
-            provisions a new instance inside the tool.
-          </p>
-          <v-radio-group v-model="selected.mode" inline>
-            <v-radio
-              v-for="m in availableModes"
-              :key="m.value"
-              :value="m.value"
-              :label="m.label"
-            />
-          </v-radio-group>
-        </div>
-      </template>
-
-      <template #item.5>
-        <div class="pa-4">
-          <h3 class="text-h6 mb-1">Parameters</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">
-            Values required to link the project to
-            <code>{{ selected.node?.id }}</code>.
-          </p>
-
-          <v-progress-linear v-if="loadingParams" indeterminate color="primary" class="mb-3" />
-
-          <v-alert
-            v-if="!loadingParams && parameters.length === 0"
-            type="info"
-            variant="tonal"
-            density="compact"
-          >
-            This subscription requires no additional parameters — just click Create.
-          </v-alert>
-
-          <v-form ref="paramFormRef">
-            <div
-              v-for="p in parameters"
-              :key="p.id"
-              class="mb-3"
-            >
-              <v-text-field
-                v-if="isTextParam(p)"
-                v-model="paramValues[p.id]"
-                :type="isPassword(p) ? 'password' : 'text'"
-                :label="paramLabel(p)"
-                :rules="ruleFor(p)"
-                :hint="p.description"
-                persistent-hint
-                variant="outlined"
-                density="compact"
-              />
-
-              <v-text-field
-                v-else-if="p.type === 'integer'"
-                v-model.number="paramValues[p.id]"
-                type="number"
-                :min="p.min"
-                :max="p.max"
-                :label="paramLabel(p)"
-                :rules="ruleFor(p)"
-                :hint="p.description"
-                persistent-hint
-                variant="outlined"
-                density="compact"
-              />
-
-              <v-checkbox
-                v-else-if="p.type === 'bool'"
-                v-model="paramValues[p.id]"
-                :label="paramLabel(p)"
-                :hint="p.description"
-                persistent-hint
-                density="compact"
-              />
-
-              <v-select
-                v-else-if="p.type === 'select'"
-                v-model="paramValues[p.id]"
-                :items="p.values || []"
-                :label="paramLabel(p)"
-                :rules="ruleFor(p)"
-                :hint="p.description"
-                persistent-hint
-                variant="outlined"
-                density="compact"
-              />
-
-              <v-select
-                v-else-if="p.type === 'multiselect' || p.type === 'tags'"
-                v-model="paramValues[p.id]"
-                :items="p.values || []"
-                :label="paramLabel(p)"
-                :rules="ruleFor(p)"
-                :hint="p.description"
-                persistent-hint
-                chips
-                multiple
-                variant="outlined"
-                density="compact"
-              />
-
-              <v-text-field
-                v-else
-                v-model="paramValues[p.id]"
-                :label="paramLabel(p)"
-                :rules="ruleFor(p)"
-                :hint="`${p.description || ''} [${p.type}]`"
-                persistent-hint
-                variant="outlined"
-                density="compact"
-              />
+          <v-expand-transition>
+            <div v-if="showNewNode" class="newnode">
+              <v-text-field v-model="newNode.id" :label="t('wizard.label.id')" :hint="`${selected.tool?.id || ''}:my-instance`" persistent-hint variant="outlined" density="comfortable" class="mb-2" />
+              <v-text-field v-model="newNode.name" :label="t('wizard.label.name')" variant="outlined" density="comfortable" class="mb-2" hide-details />
+              <p v-if="newNodeError" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ newNodeError }}</p>
+              <LjButton icon="mdi-plus" :icon-size="16" :disabled="!newNode.id || !newNode.name" :loading="creatingNode" @click="createNode">{{ t('wizard.createInstance') }}</LjButton>
             </div>
-          </v-form>
-        </div>
-      </template>
+          </v-expand-transition>
+        </section>
 
-      <template #actions="{ prev, next }">
-        <div class="d-flex align-center pa-2">
-          <v-btn
-            v-if="step > 1"
-            variant="text"
-            prepend-icon="mdi-arrow-left"
-            @click="prev"
-          >Previous</v-btn>
-          <v-spacer />
-          <v-btn
-            v-if="step < stepLabels.length"
-            color="primary"
-            :disabled="!canAdvance"
-            append-icon="mdi-arrow-right"
-            @click="next"
-          >Next</v-btn>
-          <v-btn
-            v-else
-            color="success"
-            prepend-icon="mdi-check"
-            :loading="creating"
-            :disabled="!selected.node"
-            @click="submit"
-          >Create subscription</v-btn>
-        </div>
+        <!-- 4. Mode -->
+        <section class="step" :class="{ off: !selected.node }">
+          <div class="sh"><span class="n">4</span><v-icon size="18">mdi-link-variant</v-icon>{{ t('wizard.step.mode') }}</div>
+          <LjSegmented v-if="availableModes.length" v-model="selected.mode" :options="availableModes" />
+          <p v-if="selected.mode" class="modehint">{{ modeHint }}</p>
+        </section>
+
+        <!-- 5. Parameters -->
+        <section class="step" :class="{ off: !selected.mode }">
+          <div class="sh"><span class="n">5</span><v-icon size="18">mdi-tune-variant</v-icon>{{ t('wizard.step.parameters') }}<v-progress-circular v-if="loadingParams" size="13" width="2" indeterminate class="ml-2" /></div>
+          <p v-if="!loadingParams && selected.mode && selected.node && !parameters.length" class="muted">{{ t('wizard.params.emptySubscribe') }}</p>
+          <div v-for="p in parameters" :key="p.id" class="pfield">
+            <!-- Plugin-supplied field (e.g. id-ldap's live group/OU
+                 autocomplete) takes precedence over the default type-based
+                 rendering — same hook as plugin-ui's wizard. Only resolves
+                 when the owning plugin bundle is loaded. -->
+            <component v-if="resolveParameterField(p)" :is="resolveParameterField(p)" v-model="paramValues[p.id]" :parameter="p" :form-values="paramValues" :mode="selected.mode"
+              :is-node="false" :node-id="selected.tool?.id" :instance-node-id="selected.node?.id" />
+            <v-text-field v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+            <v-text-field v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+            <v-checkbox v-else-if="typeKind(p) === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" density="comfortable" hide-details />
+            <v-select v-else-if="typeKind(p) === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+            <v-select v-else-if="['multiple','multiselect','tags'].includes(typeKind(p))" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" chips multiple variant="outlined" density="comfortable" hide-details="auto" />
+            <v-text-field v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+          </div>
+        </section>
+      <template #footer>
+        <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
+        <LjButton icon="mdi-check" :disabled="!ready" :loading="creating" @click="submit">{{ t('wizard.action.createSubscription') }}</LjButton>
       </template>
-    </v-stepper>
-  </div>
+  </LjDialog>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, h } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useApi, useAppStore } from '@ligoj/host'
+import { ref, reactive, computed, watch } from 'vue'
+import { useApi, useErrorStore, useI18nStore, NodeIcon, pluginRegistry, pluginIdFromKey, loadPlugin, LjDialog, LjButton, LjSegmented } from '@ligoj/host'
 
-const route = useRoute()
-const router = useRouter()
-const api = useApi()
-const app = useAppStore()
-
-const projectId = computed(() => route.query.project ?? route.params.id ?? null)
-
-const project = ref(null)
-const loadingProject = ref(false)
-const error = ref(null)
-
-const step = ref(1)
-
-const selected = reactive({
-  service: null,
-  tool: null,
-  node: null,
-  mode: null,
+const props = defineProps({
+  modelValue: { type: Boolean, default: false },
+  projectId: { type: [String, Number], default: null },
+  projectName: { type: String, default: '' },
 })
+const emit = defineEmits(['update:modelValue', 'saved'])
 
+const api = useApi()
+const errorStore = useErrorStore()
+const i18n = useI18nStore()
+const t = (k, p) => i18n.t(k, p)
+
+const selected = reactive({ service: null, tool: null, node: null, mode: null })
 const services = ref([])
 const tools = ref([])
 const nodes = ref([])
 const parameters = ref([])
 const paramValues = reactive({})
-const paramFormRef = ref(null)
 
 const loadingServices = ref(false)
 const loadingTools = ref(false)
 const loadingNodes = ref(false)
 const loadingParams = ref(false)
 const creating = ref(false)
+const error = ref(null)
 
-const stepLabels = computed(() => ['Service', 'Tool', 'Node', 'Mode', 'Parameters'])
+const showNewNode = ref(false)
+const newNode = reactive({ id: '', name: '' })
+const creatingNode = ref(false)
+const newNodeError = ref(null)
 
-const stepEditable = computed(() => (n) => {
-  // Allow returning to any earlier step if its selection still exists.
-  if (n === 1) return true
-  if (n === 2) return !!selected.service
-  if (n === 3) return !!selected.tool
-  if (n === 4) return !!selected.node
-  if (n === 5) return !!selected.node && !!selected.mode
-  return false
-})
+const rules = {
+  required: (v) => (v != null && v !== '' && (!Array.isArray(v) || v.length > 0)) || t('wizard.rule.required'),
+}
 
-const canAdvance = computed(() => {
-  if (step.value === 1) return !!selected.service
-  if (step.value === 2) return !!selected.tool
-  if (step.value === 3) return !!selected.node
-  if (step.value === 4) return !!selected.mode
-  return false
-})
-
+/* Modes offered by the picked tool (backend SubscriptionMode: LINK/CREATE/ALL). */
 const availableModes = computed(() => {
-  const m = selected.tool?.mode
-  const result = []
-  if (m === 'all' || m === 'create') {
-    result.push({ value: 'create', label: 'Create — provision a new instance inside the tool' })
-  }
-  if (m === 'all' || m === 'link' || !m) {
-    result.push({ value: 'link', label: 'Link — attach this project to an existing instance' })
-  }
-  return result
+  const m = String(selected.tool?.mode || '').toLowerCase()
+  const out = []
+  if (m === 'all' || m === 'create') out.push({ value: 'create', label: t('wizard.modeCreate') })
+  if (m === 'all' || m === 'link' || !m) out.push({ value: 'link', label: t('wizard.modeLink') })
+  return out
 })
+const modeHint = computed(() => selected.mode === 'create' ? t('wizard.modeHintCreate') : t('wizard.modeHintLink'))
 
-const cancelTo = computed(() =>
-  project.value ? `/home/project/${project.value.id}` : '/home/project',
-)
+const ready = computed(() =>
+  !!props.projectId && !!selected.service && !!selected.tool && !!selected.node && !!selected.mode && !showNewNode.value)
 
-/* -------------- param type helpers -------------- */
+/* ---- param helpers (ported) ---- */
+function typeKind(p) { return String(p?.type || '').toLowerCase() }
+function isTextParam(p) { const k = typeKind(p); return !k || ['text', 'password', 'node', 'project'].includes(k) }
+function isPassword(p) { return !!p.secured || typeKind(p) === 'password' }
+function tOrNull(key) { const v = i18n.t(key); return v === key ? null : v }
+function paramLabel(p) { return `${tOrNull(p.id) ?? p.id}${(p.mandatory || p.required) ? ' *' : ''}` }
+function ruleFor(p) { return (p.mandatory || p.required) ? [rules.required] : [] }
 
-function isTextParam(p) {
-  return !p.type || p.type === 'text' || p.type === 'password' || p.type === 'node' || p.type === 'project'
-}
-function isPassword(p) {
-  return p.type === 'password' || (p.name || '').toLowerCase().includes('password')
-}
-function paramLabel(p) {
-  const req = p.mandatory || p.required ? ' *' : ''
-  return `${p.name || p.id}${req}`
-}
-function ruleFor(p) {
-  const rules = []
-  if (p.mandatory || p.required) {
-    rules.push((v) => (v !== '' && v != null) || 'Required')
+/* Lazy-load the tool's sub-plugin bundle (e.g. service:id:ldap → id-ldap) so
+   its i18n labels and custom parameter fields are available. Best effort. */
+async function ensureToolPluginLoaded(nodeId) {
+  if (typeof nodeId !== 'string') return
+  const pluginId = pluginIdFromKey(nodeId.split(':').filter(Boolean).slice(0, 3).join(':'))
+  if (!pluginId || pluginRegistry.has(pluginId)) return
+  try {
+    await loadPlugin(pluginId)
+  } catch {
+    // The browser module-map permanently caches a failed dynamic import by
+    // URL — so if the bundle 404'd once early (e.g. before the session was
+    // ready), the host loader keeps re-importing the same poisoned URL and
+    // keeps failing. Retry with a cache-busting query and register the
+    // freshly-loaded definition ourselves so its custom parameter fields and
+    // i18n resolve. (requires/parents are already loaded at boot.)
+    if (pluginRegistry.has(pluginId)) return
+    try {
+      const url = `${import.meta.env.BASE_URL}main/${pluginId}/vue/index.js?cb=${Date.now()}`
+      const def = (await import(/* @vite-ignore */ url))?.default
+      if (def && typeof def === 'object') {
+        if (!def.id) def.id = pluginId
+        pluginRegistry.register(def.id, def)
+        if (typeof def.install === 'function') await def.install({ pluginId })
+      }
+    } catch { /* give up — default fields render */ }
   }
-  return rules
 }
 
-/* -------------- loaders -------------- */
-
-async function loadProject() {
-  if (!projectId.value) return
-  loadingProject.value = true
-  const data = await api.get(`rest/project/${projectId.value}`)
-  project.value = data || null
-  loadingProject.value = false
+/* Ask the owning plugin (sub-plugin first, then parent service plugin) for a
+   custom field component for parameter `p`. Returns null when none — the
+   default type-based field then renders. Mirrors plugin-ui's wizard. */
+function resolveParameterField(p) {
+  const nodeId = selected.tool?.id
+  if (!nodeId) return null
+  const ctx = { parameter: p, mode: selected.mode || null, isNode: false, formValues: paramValues, nodeId, instanceNodeId: selected.node?.id || null }
+  const candidates = []
+  const sub = pluginIdFromKey(nodeId)
+  if (sub) candidates.push(sub)
+  const parts = String(nodeId).split(':').filter(Boolean)
+  if (parts.length >= 2 && parts[1] && parts[1] !== sub) candidates.push(parts[1])
+  for (const id of candidates) {
+    const plugin = pluginRegistry.get(id)
+    if (typeof plugin?.feature !== 'function') continue
+    try {
+      const comp = plugin.feature('parameterField', ctx)
+      if (comp) return comp
+    } catch (err) {
+      if (!/no feature ["']parameterField["']/.test(err?.message || '')) console.warn(`[wizard] parameterField from ${id} threw`, err)
+    }
+  }
+  return null
 }
 
-async function loadServices() {
-  loadingServices.value = true
-  services.value = await fetchNodes('rest/node?refined=service&rows=1000')
-  loadingServices.value = false
+/* ---- loaders ---- */
+async function fetchNodes(url) {
+  const data = await api.get(url)
+  const list = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : [])
+  return list.filter((n) => n.enabled !== false)
 }
-
-async function loadTools(serviceId) {
-  loadingTools.value = true
-  tools.value = await fetchNodes(`rest/node?refined=${encodeURIComponent(serviceId)}&rows=1000`)
-  loadingTools.value = false
-}
-
-async function loadNodes(toolId) {
-  loadingNodes.value = true
-  nodes.value = await fetchNodes(`rest/node?refined=${encodeURIComponent(toolId)}&rows=1000`)
-  loadingNodes.value = false
-}
+async function loadServices() { loadingServices.value = true; try { services.value = await fetchNodes('rest/node?refined=service&rows=1000') } finally { loadingServices.value = false } }
+async function loadTools(id) { loadingTools.value = true; try { tools.value = await fetchNodes(`rest/node?refined=${encodeURIComponent(id)}&rows=1000`) } finally { loadingTools.value = false } }
+async function loadNodes(id) { loadingNodes.value = true; try { nodes.value = await fetchNodes(`rest/node?refined=${encodeURIComponent(id)}&rows=1000`) } finally { loadingNodes.value = false } }
 
 async function loadParameters(nodeId, mode) {
   loadingParams.value = true
-  const data = await api.get(`rest/node/${encodeURIComponent(nodeId)}/parameter/${mode.toUpperCase()}`)
-  parameters.value = Array.isArray(data) ? data : (data?.data || [])
-  // Seed default values
-  for (const key of Object.keys(paramValues)) delete paramValues[key]
-  for (const p of parameters.value) {
-    if (p.defaultValue != null) {
-      paramValues[p.id] = coerceDefault(p)
-    } else if (p.type === 'bool') {
-      paramValues[p.id] = false
-    } else if (p.type === 'multiselect' || p.type === 'tags') {
-      paramValues[p.id] = []
-    } else {
-      paramValues[p.id] = ''
+  // AWAIT the tool's plugin bundle BEFORE assigning parameters, so the
+  // registry already holds it when the param fields first render — otherwise
+  // resolveParameterField() returns null on first paint and the custom field
+  // (e.g. id-ldap's IdGroupField) silently falls back to a plain text field.
+  await ensureToolPluginLoaded(selected.tool?.id || nodeId)
+  try {
+    const data = await api.get(`rest/node/${encodeURIComponent(nodeId)}/parameter/${mode.toUpperCase()}`)
+    const raw = Array.isArray(data) ? data : (data?.data || [])
+    parameters.value = raw.filter((p) => p && p.availableForSubscription !== false)
+    for (const k of Object.keys(paramValues)) delete paramValues[k]
+    for (const p of parameters.value) {
+      if (p.defaultValue != null) paramValues[p.id] = coerce(p)
+      else { const k = typeKind(p); paramValues[p.id] = k === 'bool' ? false : (['multiple', 'multiselect', 'tags'].includes(k) ? [] : '') }
     }
-  }
-  loadingParams.value = false
+  } finally { loadingParams.value = false }
 }
+function coerce(p) { const k = typeKind(p); if (k === 'integer') return Number(p.defaultValue); if (k === 'bool') return p.defaultValue === true || p.defaultValue === 'true'; return p.defaultValue }
 
-function coerceDefault(p) {
-  if (p.type === 'integer') return Number(p.defaultValue)
-  if (p.type === 'bool') return p.defaultValue === true || p.defaultValue === 'true'
-  return p.defaultValue
-}
-
-async function fetchNodes(url) {
-  const data = await api.get(url)
-  if (Array.isArray(data)) return filterEnabled(data)
-  if (Array.isArray(data?.data)) return filterEnabled(data.data)
-  return []
-}
-
-function filterEnabled(list) {
-  return list.filter((n) => n.enabled !== false)
-}
-
-/* -------------- step transitions -------------- */
-
-function pickService(svc) {
-  if (selected.service?.id === svc.id) return
-  selected.service = svc
-  selected.tool = null
-  selected.node = null
-  selected.mode = null
-  tools.value = []
-  nodes.value = []
-}
-
-function pickTool(tool) {
-  if (selected.tool?.id === tool.id) return
-  selected.tool = tool
-  selected.node = null
-  selected.mode = null
-  nodes.value = []
-}
-
-function pickNode(node) {
-  if (selected.node?.id === node.id) return
-  selected.node = node
-  selected.mode = null
-}
-
-// Populate each step's data when the user arrives on it.
-watch(step, async (n) => {
-  if (n === 1 && services.value.length === 0) await loadServices()
-  if (n === 2 && selected.service && tools.value.length === 0) await loadTools(selected.service.id)
-  if (n === 3 && selected.tool && nodes.value.length === 0) await loadNodes(selected.tool.id)
-  if (n === 4 && !selected.mode && availableModes.value.length > 0) {
-    selected.mode = availableModes.value[0].value
-  }
-  if (n === 5 && selected.node && selected.mode) {
-    await loadParameters(selected.node.id, selected.mode)
+/* ---- cascading invalidation ---- */
+watch(() => selected.service, async (svc) => {
+  selected.tool = null; selected.node = null; selected.mode = null
+  tools.value = []; nodes.value = []; parameters.value = []
+  newNode.id = ''; newNode.name = ''; newNodeError.value = null; showNewNode.value = false
+  if (svc) await loadTools(svc.id)
+})
+watch(() => selected.tool, async (tool) => {
+  selected.node = null; selected.mode = null
+  nodes.value = []; parameters.value = []
+  newNode.id = ''; newNode.name = ''; newNodeError.value = null; showNewNode.value = false
+  if (tool) {
+    await loadNodes(tool.id)
+    const modes = availableModes.value
+    if (modes.length === 1) selected.mode = modes[0].value
   }
 })
+watch([() => selected.node, () => selected.mode], async () => {
+  parameters.value = []
+  if (!selected.mode || !selected.node) return
+  await loadParameters(selected.node.id, selected.mode)
+})
 
-/* -------------- submit -------------- */
-
-async function submit() {
-  const { valid } = paramFormRef.value ? await paramFormRef.value.validate() : { valid: true }
-  if (!valid) return
-  creating.value = true
-  error.value = null
-
-  const payload = {
-    node: selected.node.id,
-    project: Number(projectId.value),
-    mode: selected.mode,
-    parameters: parameters.value.map((p) => buildParamWire(p)).filter(Boolean),
-  }
-  const id = await api.post('rest/subscription', payload)
-  creating.value = false
-  if (id != null) {
-    router.push(`/home/project/${projectId.value}`)
-  } else {
-    error.value = 'Subscription creation failed — please review the highlighted parameters.'
-  }
+/* ---- new instance ---- */
+function toggleNewNode() {
+  showNewNode.value = !showNewNode.value
+  newNodeError.value = null
+  if (showNewNode.value) { selected.node = null; if (!newNode.id && selected.tool?.id) newNode.id = `${selected.tool.id}:` }
+  else { newNode.id = ''; newNode.name = '' }
+}
+async function createNode() {
+  newNodeError.value = null; creatingNode.value = true
+  try {
+    const result = await api.post('rest/node', { id: newNode.id, name: newNode.name, node: selected.tool?.id })
+    if (result === null) { newNodeError.value = t('wizard.error.newNodeRejected'); return }
+    await loadNodes(selected.tool.id)
+    const created = nodes.value.find((n) => n.id === newNode.id)
+    if (created) selected.node = created
+    showNewNode.value = false; newNode.id = ''; newNode.name = ''
+  } finally { creatingNode.value = false }
 }
 
+/* ---- submit ---- */
 function buildParamWire(p) {
   const value = paramValues[p.id]
-  if ((value === '' || value == null || (Array.isArray(value) && value.length === 0)) && !p.mandatory && !p.required) {
-    return null
-  }
-  const base = { parameter: p.id }
-  if (p.type === 'integer') return { ...base, integer: Number(value) }
-  if (p.type === 'bool') return { ...base, bool: !!value }
-  if (p.type === 'multiselect' || p.type === 'tags') return { ...base, selections: value || [] }
-  if (p.type === 'select') return { ...base, text: value }
+  if ((value === '' || value == null || (Array.isArray(value) && !value.length)) && !p.mandatory && !p.required) return null
+  const base = { parameter: p.id }; const k = typeKind(p)
+  if (k === 'integer') return { ...base, integer: Number(value) }
+  if (k === 'bool') return { ...base, bool: !!value }
+  if (['multiple', 'multiselect', 'tags'].includes(k)) return { ...base, selections: value || [] }
   return { ...base, text: value }
 }
+async function submit() {
+  if (!ready.value) return
+  creating.value = true; error.value = null
+  try {
+    const payload = {
+      node: selected.node.id,
+      project: Number(props.projectId),
+      mode: String(selected.mode).toUpperCase(),
+      parameters: parameters.value.map(buildParamWire).filter(Boolean),
+    }
+    const id = await api.post('rest/subscription', payload)
+    if (id != null) {
+      errorStore.success(t('wizard.success.subscriptionCreated'))
+      emit('saved', { id })
+      emit('update:modelValue', false)
+    } else {
+      error.value = t('wizard.error.subscriptionFailed')
+    }
+  } finally { creating.value = false }
+}
 
-/* -------------- bootstrap -------------- */
+function reset() {
+  selected.service = null; selected.tool = null; selected.node = null; selected.mode = null
+  tools.value = []; nodes.value = []; parameters.value = []
+  for (const k of Object.keys(paramValues)) delete paramValues[k]
+  showNewNode.value = false; newNode.id = ''; newNode.name = ''; newNodeError.value = null; error.value = null
+}
+function onDialogModel(v) { if (!v) emit('update:modelValue', false) }
 
-onMounted(async () => {
-  app.setTitle('Subscribe')
-  app.setBreadcrumbs([
-    { title: 'Home', to: '/' },
-    { title: 'Projects', to: '/home/project' },
-    ...(projectId.value
-      ? [{ title: projectId.value, to: `/home/project/${projectId.value}` }, { title: 'Subscribe' }]
-      : [{ title: 'Subscribe' }]),
-  ])
-  await loadProject()
-  if (project.value) await loadServices()
+watch(() => props.modelValue, (val) => {
+  if (val) { reset(); if (!services.value.length) loadServices() }
 })
-
-/* -------------- inline step-choice component --------------
- * A small grid of radio-style cards. Declared inline to keep the wizard in
- * one file; it has no state of its own beyond what the parent passes.
- */
-const StepChoice = {
-  name: 'StepChoice',
-  props: {
-    heading: String,
-    sub: String,
-    choices: { type: Array, default: () => [] },
-    loading: Boolean,
-    selectedId: String,
-  },
-  emits: ['select'],
-  setup(props, { emit }) {
-    return () => h('div', { class: 'pa-4' }, [
-      h('h3', { class: 'text-h6 mb-1' }, props.heading),
-      props.sub && h('p', { class: 'text-body-2 text-medium-emphasis mb-4' }, props.sub),
-      props.loading
-        ? h('div', { class: 'text-body-2 text-medium-emphasis pa-4' }, 'Loading…')
-        : !props.choices.length
-          ? h('div', { class: 'text-body-2 text-medium-emphasis' }, 'No entries available.')
-          : h(
-              'div',
-              { class: 'choice-grid' },
-              props.choices.map((c) =>
-                h(
-                  'button',
-                  {
-                    key: c.id,
-                    type: 'button',
-                    class: [
-                      'choice-card',
-                      { 'choice-card--active': c.id === props.selectedId },
-                    ],
-                    onClick: () => emit('select', c),
-                    title: c.description || undefined,
-                  },
-                  [
-                    h('div', { class: 'choice-icon' }, uiClassIcon(c)),
-                    h('div', { class: 'choice-name' }, c.name || c.id),
-                  ],
-                ),
-              ),
-            ),
-    ])
-  },
-}
-
-function uiClassIcon(node) {
-  const ui = node?.uiClasses || node?.refined?.uiClasses
-  if (ui && ui.startsWith('$')) return ui.slice(1)
-  if (ui) return h('i', { class: ui })
-  return h('i', { class: 'mdi mdi-puzzle' })
-}
 </script>
 
 <style scoped>
-.choice-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 0.75rem;
-}
-.choice-card {
-  background: rgba(var(--v-theme-surface-variant), 0.06);
-  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-  border-radius: 8px;
-  padding: 1rem 0.75rem;
-  text-align: center;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, transform 0.12s;
-  font: inherit;
-}
-.choice-card:hover {
-  background: rgba(var(--v-theme-primary), 0.06);
-  border-color: rgba(var(--v-theme-primary), 0.4);
-}
-.choice-card--active {
-  background: rgba(var(--v-theme-primary), 0.14);
-  border-color: rgb(var(--v-theme-primary));
-  box-shadow: 0 0 0 2px rgba(var(--v-theme-primary), 0.3);
-}
-.choice-icon {
-  font-size: 2rem;
-  margin-bottom: 0.35rem;
-  line-height: 1;
-  min-height: 2.2rem;
-}
-.choice-icon i {
-  font-size: 2rem;
-}
-.choice-name {
-  font-size: 0.9rem;
-  font-weight: 500;
-}
+/* Dialog chrome (card, header, footer, mode segment, buttons, base field
+   rounding) now comes from <LjDialog> / <LjSegmented> / <LjButton> + the
+   global `.lj-surface` on the dialog card, which supplies the ink, font,
+   radius, hover, surface and border vars these wizard-step rules read. Only
+   the step layout specific to this form remains. */
+:deep(.v-field) { border-radius: var(--radius-sm); font-family: var(--font); }
+:deep(.v-label) { font-weight: 600; }
+
+.ctx { font-size: 13.5px; color: var(--ink-2); margin: 2px 0 14px; }
+.errline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: rgb(var(--v-theme-error)); margin: 6px 0; }
+
+.step { padding: 12px 0; border-top: 1px solid var(--border); transition: opacity .2s; }
+.step:first-of-type { border-top: 0; }
+.step.off { opacity: .45; pointer-events: none; }
+.sh { display: flex; align-items: center; gap: 9px; font-family: var(--font); font-weight: var(--bold); font-size: 14.5px; color: var(--ink); margin-bottom: 10px; }
+.sh .n { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); }
+.opt { display: inline-flex; align-items: center; gap: 8px; }
+.opt :deep(img.tool-icon), .opt :deep(i) { width: 20px; height: 20px; font-size: 18px; }
+
+.inst-row { display: flex; align-items: flex-start; gap: 10px; }
+.newnode { margin-top: 12px; padding: 14px; border-radius: var(--radius-sm); background: var(--hover); border: var(--border-w) dashed var(--border-2); }
+
+.modehint { font-size: 12.5px; color: var(--ink-3); margin: 8px 0 0; }
+.muted { font-size: 13px; color: var(--ink-3); }
+.pfield { margin-bottom: 12px; }
 </style>

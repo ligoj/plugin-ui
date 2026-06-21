@@ -1,3 +1,30 @@
+// Load the sibling index.css at runtime. Vite's library build emits it as
+// a separate file but does NOT add `import './index.css'` to the JS entry
+// — so when the host dynamic-imports this bundle the stylesheet never
+// loads and none of the scoped or global SFC styles apply. Injecting a
+// <link rel="stylesheet"> resolved against import.meta.url keeps the
+// approach path-agnostic (works under /ligoj/webjars/ui/vue/... in prod
+// and under the dev proxy).
+if (typeof document !== 'undefined') {
+  const id = 'ligoj-plugin-ui-css'
+  if (!document.getElementById(id)) {
+    const link = document.createElement('link')
+    link.id = id
+    link.rel = 'stylesheet'
+    // Carry over the `?v=<digest>` cache-busting query the host puts on the JS
+    // bundle URL (see app-ui plugins/loader.js): relative URL resolution drops
+    // the base query, so without this the stylesheet stays unversioned while
+    // the JS rotates its digest on every plugin upgrade. The scoped-style
+    // `data-v-*` ids then mismatch between a freshly-loaded JS bundle and a
+    // cached index.css, silently breaking every SFC layout in this plugin.
+    const cssUrl = new URL(/* @vite-ignore */ './index.css', import.meta.url)
+    const selfQuery = new URL(import.meta.url).search
+    if (selfQuery) cssUrl.search = selfQuery
+    link.href = cssUrl.href
+    document.head.appendChild(link)
+  }
+}
+
 /*
  * Plugin "ui" — Ligoj shared UI (dashboard, project browser, system admin,
  * API docs, subscribe wizard). Ported from the legacy Cascade.js
@@ -17,16 +44,28 @@
  * Shared host surface is imported from `@ligoj/host` (kept external so the
  * plugin and host share the same pinia / reactive instances).
  */
+import { useI18nStore, useAppStore } from '@ligoj/host'
 import UiPlugin from './UiPlugin.vue'
 import service from './service.js'
 
+import enMessages from './i18n/en.js'
+import frMessages from './i18n/fr.js'
+
+// Dialogs moved from the host (#121): the route-less ones are mounted
+// persistently via registerHeaderItem and self-bind to their store flags.
+import BugReportDialog from './components/BugReportDialog.vue'
+import LoginPromptDialog from './components/LoginPromptDialog.vue'
+
 import HomeView from './views/HomeView.vue'
+import AboutView from './views/AboutView.vue'
 import ProjectListView from './views/ProjectListView.vue'
 import ProjectDetailView from './views/ProjectDetailView.vue'
 import ManualView from './views/ManualView.vue'
 
 import SystemView from './views/SystemView.vue'
 import SystemInfoView from './views/SystemInfoView.vue'
+import SystemUserLogView from './views/SystemUserLogView.vue'
+import ActuatorView from './views/ActuatorView.vue'
 import SystemConfigurationView from './views/SystemConfigurationView.vue'
 import SystemUserView from './views/SystemUserView.vue'
 import SystemRoleView from './views/SystemRoleView.vue'
@@ -38,34 +77,52 @@ import SystemBenchView from './views/SystemBenchView.vue'
 import ApiHomeView from './views/ApiHomeView.vue'
 import ApiTokenView from './views/ApiTokenView.vue'
 
-import SubscribeWizardView from './views/SubscribeWizardView.vue'
+// SubscribeWizardView is imported by `ProjectDetailView` and
+// `SystemNodeView` directly — it's a dialog component now, not a route.
 
 const features = {
   sample: service.sample,
 }
 
+// Canonical 2026 route scheme — matches the host shell's sidebar nav
+// (App.vue): dashboard at `/`, projects at `/project`, system/api as below.
+// Legacy `/home/*` paths are kept as `alias` so existing bookmarks / emails
+// still resolve to the same component.
 const routes = [
-  { path: '/home',                      name: 'ui-home',              component: HomeView },
-  { path: '/home/manual',               name: 'ui-manual',            component: ManualView },
-  { path: '/home/project',              name: 'ui-project-list',      component: ProjectListView },
-  { path: '/home/project/:id',          name: 'ui-project-detail',    component: ProjectDetailView },
+  { path: '/', name: 'ui-home', component: HomeView, alias: ['/home'] },
+  // About page — moved here from the host shell (#121).
+  { path: '/about', name: 'about', component: AboutView },
+  { path: '/home/manual', name: 'ui-manual', component: ManualView },
+  { path: '/project', name: 'ui-project-list', component: ProjectListView, alias: ['/home/project'] },
+  { path: '/project/:id', name: 'ui-project-detail', component: ProjectDetailView, alias: ['/home/project/:id'] },
 
-  { path: '/system',                    name: 'ui-system',            component: SystemView },
-  { path: '/system/information',        name: 'ui-system-information', component: SystemInfoView },
-  { path: '/system/configuration',      name: 'ui-system-configuration', component: SystemConfigurationView },
-  { path: '/system/user',               name: 'ui-system-user',       component: SystemUserView },
-  { path: '/system/role',               name: 'ui-system-role',       component: SystemRoleView },
-  { path: '/system/plugin',             name: 'ui-system-plugin',     component: SystemPluginView },
-  { path: '/system/node',               name: 'ui-system-node',       component: SystemNodeView },
-  { path: '/system/cache',              name: 'ui-system-cache',      component: SystemCacheView },
-  { path: '/system/bench',              name: 'ui-system-bench',      component: SystemBenchView },
+  // `/system` has no landing page in the 2026 nav (children only); keep the
+  // legacy SystemView reachable at `/system` so the path isn't a dead end.
+  { path: '/system', name: 'ui-system', component: SystemView },
+  { path: '/system/information', name: 'ui-system-information', component: SystemInfoView },
+  { path: '/system/information/user-logs', name: 'ui-system-user-logs', component: SystemUserLogView },
+  // Actuator browser, nested under Information; one route per endpoint, default `info`.
+  { path: '/system/information/actuator', redirect: '/system/information/actuator/info' },
+  { path: '/system/information/actuator/:endpoint', name: 'ui-system-actuator', component: ActuatorView },
+  // Back-compat redirects for the previous flat paths.
+  { path: '/system/actuator', redirect: '/system/information/actuator/info' },
+  { path: '/system/logs', redirect: '/system/information/actuator/logfile' },
+  { path: '/system/configuration', name: 'ui-system-configuration', component: SystemConfigurationView },
+  { path: '/system/user', name: 'ui-system-user', component: SystemUserView },
+  { path: '/system/role', name: 'ui-system-role', component: SystemRoleView },
+  { path: '/system/plugin', name: 'ui-system-plugin', component: SystemPluginView },
+  { path: '/system/node', name: 'ui-system-node', component: SystemNodeView },
+  { path: '/system/cache', name: 'ui-system-cache', component: SystemCacheView },
+  { path: '/system/bench', name: 'ui-system-bench', component: SystemBenchView },
 
-  { path: '/api',                       name: 'ui-api',               component: ApiHomeView },
-  { path: '/api/token',                 name: 'ui-api-token',         component: ApiTokenView },
+  { path: '/api', name: 'ui-api', component: ApiHomeView },
+  { path: '/api/token', name: 'ui-api-token', component: ApiTokenView },
 
-  { path: '/subscribe',                            name: 'ui-subscribe',           component: SubscribeWizardView },
-  // Project-scoped entry used by ProjectDetailView's "Add subscription" button.
-  { path: '/home/project/:id/subscription',        name: 'ui-subscribe-project',   component: SubscribeWizardView },
+  // SubscribeWizardView / ProjectEditDialog / NodeEditDialog / AuditDialog
+  // are not routed pages — they're dialog components mounted by
+  // ProjectDetailView (subscribe), SystemNodeView (edit/create node), and
+  // ProjectListView/ProjectDetailView (edit + audit). They read their target
+  // from props, not the route.
 ]
 
 export default {
@@ -74,9 +131,23 @@ export default {
   component: UiPlugin,
   routes,
   install({ router }) {
+    // Ship our translations alongside the plugin code: merging both
+    // locales into the i18n store means the host's en.js / fr.js stay
+    // free of plugin-ui-specific keys.
+    const i18n = useI18nStore()
+    i18n.merge(enMessages, 'en')
+    i18n.merge(frMessages, 'fr')
     for (const route of routes) {
       router.addRoute(route)
     }
+    // Mount the global, route-less dialogs persistently in the host shell.
+    // They are v-dialogs (teleported to <body>) that self-bind to their store
+    // flags — app.bugDialogOpen (footer / build card / About) and
+    // auth.authPromptOpen (401 re-auth) — so 'ui' being always loaded
+    // (REQUIRED_PLUGINS) keeps them available app-wide.
+    const app = useAppStore()
+    app.registerHeaderItem(BugReportDialog)
+    app.registerHeaderItem(LoginPromptDialog)
   },
   feature(action, ...args) {
     const fn = features[action]

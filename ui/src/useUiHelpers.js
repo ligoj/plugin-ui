@@ -8,6 +8,17 @@
  * (e.g. <UserLink :user="…" />), not a string builder.
  */
 
+/**
+ * Shared "status" data-table column (VibrantDataTable): icon-only heart header
+ * with a tooltip (the column name) and a fixed narrow width, meant to sit first.
+ * Used by the node / subscription / plugin status columns so they look and size
+ * the same. Pass the tooltip label; override `key` (e.g. 'statut'), `sortable`
+ * or `exportValue` as needed.
+ */
+export function statusHeader({ key = 'status', tooltip, sortable = true, exportValue } = {}) {
+  return { key, icon: 'mdi-heart-pulse', tooltip, align: 'center', width: '64px', sortable, exportValue }
+}
+
 /** Strip undefined/null/''/false entries from a plain object (non-recursive). */
 export function trimObject(data) {
   if (!data || typeof data !== 'object') return data

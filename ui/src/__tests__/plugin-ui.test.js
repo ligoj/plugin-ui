@@ -1,0 +1,51 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { setActivePinia, createPinia } from 'pinia'
+import { pluginRegistry, callFeature } from '@ligoj/host'
+import pluginUiDef from '../index.js'
+
+describe('plugin-ui contract', () => {
+  it('exports required fields', () => {
+    expect(pluginUiDef.id).toBe('ui')
+    expect(typeof pluginUiDef.label).toBe('string')
+    expect(typeof pluginUiDef.install).toBe('function')
+    expect(typeof pluginUiDef.feature).toBe('function')
+    expect(pluginUiDef.service).toBeTypeOf('object')
+    expect(pluginUiDef.meta).toMatchObject({ icon: expect.any(String), color: expect.any(String) })
+  })
+
+  it('feature("sample") returns the stub string', () => {
+    expect(pluginUiDef.feature('sample')).toMatch(/sample feature called/)
+  })
+
+  it('feature() throws for unknown actions', () => {
+    expect(() => pluginUiDef.feature('unknown-action')).toThrow(/no feature "unknown-action"/)
+  })
+
+  it('install() registers all expected routes on the given router', () => {
+    setActivePinia(createPinia())
+    const addRoute = vi.fn()
+    pluginUiDef.install({ pluginId: 'ui', router: { addRoute } })
+    const registered = addRoute.mock.calls.map(([route]) => route.path)
+    expect(registered).toEqual(expect.arrayContaining([
+      // Canonical 2026 scheme (the host shell nav targets). Legacy
+      // `/home`, `/home/project`, `/home/project/:id` survive as route
+      // `alias` entries, so they don't appear as separate addRoute paths.
+      '/', '/project', '/project/:id', '/home/manual',
+      '/system', '/system/information', '/system/configuration',
+      '/system/user', '/system/role', '/system/plugin',
+      '/system/node', '/system/cache', '/system/bench',
+      '/api', '/api/token',
+      // NB: subscribing is now an in-dialog wizard (no '/subscribe' route).
+    ]))
+    expect(registered.length).toBeGreaterThanOrEqual(14)
+  })
+})
+
+describe('plugin-ui via callFeature()', () => {
+  beforeEach(() => { pluginRegistry.register('ui', pluginUiDef) })
+  afterEach(() => { pluginRegistry.remove('ui') })
+
+  it('dispatches through the shared registry', () => {
+    expect(callFeature('ui', 'sample')).toMatch(/sample feature called/)
+  })
+})

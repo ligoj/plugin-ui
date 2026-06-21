@@ -1,160 +1,123 @@
+<!--
+  ApiTokenView — 2026 "Vibrant" API token manager (API → Tokens). Ports
+  plugin-ui's ApiTokenView logic (rest/api/token list of names; POST creates and
+  returns the secret; GET shows it; PUT regenerates; DELETE revokes) onto the
+  Vibrant chrome: breadcrumb-chip header, a usage explainer card, KPI stat, a
+  VibrantDataTable with a key glyph and show / regenerate / revoke row actions,
+  plus Vibrant modals for create, the freshly-minted value, show/regenerate and
+  a confirm dialog for revocation. The secret is shown in a copyable box.
+-->
 <template>
-  <div>
-    <div class="d-flex align-center mb-4">
-      <h1 class="text-h4">API tokens</h1>
-      <v-spacer />
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">New token</v-btn>
+  <div class="tokens lj-surface">
+    <LjPageHeader :title="t('system.apiToken.title')" :crumbs="[{ icon: 'mdi-api', label: t('api.title') }, { label: t('system.apiToken.title'), current: true }]">
+      <template #subtitle>
+        <b>{{ rows.length }}</b> {{ t('system.apiToken.countLabel') }}
+      </template>
+      <template #actions>
+        <LjSearch v-model="query" :placeholder="t('system.apiToken.searchPlaceholder')" />
+        <LjButton icon="mdi-plus" @click="openCreate">{{ t('system.apiToken.new') }}</LjButton>
+      </template>
+    </LjPageHeader>
+
+    <!-- Usage explainer. -->
+    <div class="usage">
+      <span class="us-ic"><v-icon size="20">mdi-key-chain-variant</v-icon></span>
+      <div class="us-body">
+        <p class="us-intro">{{ t('system.apiToken.intro') }}</p>
+        <code class="us-ex">GET {{ origin }}{{ base }}rest/project?api-key=&lt;token&gt;&amp;api-user={{ userName }}</code>
+      </div>
     </div>
 
-    <v-card variant="tonal" class="mb-4">
-      <v-card-text>
-        <p class="mb-2">
-          Tokens let you call the Ligoj API without a password. Pass the token
-          in the <code>api-key</code> parameter along with your user id in
-          <code>api-user</code>.
-        </p>
-        <p class="mb-0 text-body-2">
-          Example:
-          <code>
-            GET {{ origin }}{{ base }}rest/project?api-key=&lt;token&gt;&amp;api-user={{ userName }}
-          </code>
-        </p>
-      </v-card-text>
-    </v-card>
+    <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
-    <v-alert v-if="error" type="warning" variant="tonal" class="mb-4">{{ error }}</v-alert>
-
-    <v-data-table
-      :headers="headers"
-      :items="rows"
-      :loading="loading"
-      :items-per-page="-1"
-      hide-default-footer
-      density="compact"
-    >
-      <template #item.actions="{ item }">
-        <v-btn icon size="small" variant="text" title="Show token" @click="openShow(item.name, 'load')">
-          <v-icon size="small">mdi-eye</v-icon>
-        </v-btn>
-        <v-btn icon size="small" variant="text" title="Regenerate" @click="openShow(item.name, 'regen')">
-          <v-icon size="small">mdi-refresh</v-icon>
-        </v-btn>
-        <v-btn icon size="small" variant="text" color="error" title="Delete" @click="startDelete(item.name)">
-          <v-icon size="small">mdi-delete</v-icon>
-        </v-btn>
+    <VibrantDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="name" default-sort="name"
+      :empty-text="t('system.apiToken.empty')" filename="api-tokens.csv" @row-click="(item) => openShow(item.name, 'load')">
+      <template #cell.name="{ item }">
+        <div class="avatar-cell">
+          <span class="kglyph"><v-icon size="18">mdi-key-variant</v-icon></span>
+          <code class="kname">{{ item.name }}</code>
+        </div>
       </template>
-    </v-data-table>
+      <template #actions="{ item }">
+        <RowActionsCog>
+          <button @click="openShow(item.name, 'load')"><v-icon size="18">mdi-eye-outline</v-icon>{{ t('system.apiToken.show') }}</button>
+          <button @click="openShow(item.name, 'regen')"><v-icon size="18">mdi-refresh</v-icon>{{ t('system.apiToken.regenerate') }}</button>
+          <div class="sep" />
+          <button class="danger" @click="startDelete(item.name)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('system.apiToken.revoke') }}</button>
+        </RowActionsCog>
+      </template>
+    </VibrantDataTable>
 
-    <!-- Create token dialog -->
-    <v-dialog v-model="createDialog" max-width="480" persistent>
-      <v-card>
-        <v-card-title>New API token</v-card-title>
-        <v-card-text>
-          <v-form ref="createFormRef" @submit.prevent="doCreate">
-            <v-text-field
-              v-model="createName"
-              label="Name"
-              :rules="[rules.required]"
-              variant="outlined"
-              autofocus
-              maxlength="250"
-            />
-          </v-form>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="createDialog = false">Cancel</v-btn>
-          <v-btn color="primary" variant="elevated" :loading="creating" @click="doCreate">Create</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <!-- Create dialog. -->
+    <LjDialog v-model="createDialog" :title="t('system.apiToken.newTitle')" icon="mdi-key" :max-width="480">
+      <v-form ref="createFormRef" @submit.prevent="doCreate">
+        <v-text-field v-model="createName" prepend-inner-icon="mdi-key-outline" :label="t('system.apiToken.fieldName')" :rules="[rules.required]" variant="outlined" autofocus maxlength="250" />
+      </v-form>
+      <template #footer>
+        <LjButton variant="ghost" @click="createDialog = false">{{ t('common.cancel') }}</LjButton>
+        <LjButton icon="mdi-plus" :loading="creating" @click="doCreate">{{ t('system.apiToken.create') }}</LjButton>
+      </template>
+    </LjDialog>
 
-    <!-- Show / regenerate token dialog -->
-    <v-dialog v-model="tokenDialog" max-width="520">
-      <v-card>
-        <v-card-title>
-          Token:&nbsp;<code>{{ tokenTarget }}</code>
-        </v-card-title>
-        <v-card-text>
-          <v-progress-linear v-if="tokenLoading" indeterminate color="primary" class="mb-3" />
-          <v-textarea
-            v-model="tokenValue"
-            readonly
-            rows="3"
-            variant="outlined"
-            hide-details
-            :append-inner-icon="'mdi-content-copy'"
-            @click:append-inner="copy"
-          />
-          <v-alert v-if="copyDone" type="success" variant="tonal" density="compact" class="mt-2">
-            Copied to clipboard.
-          </v-alert>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="tokenDialog = false">Close</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <!-- Freshly-created token value. -->
+    <LjDialog v-model="createdDialog" :title="`${t('system.apiToken.newTokenLabel')} ${createdName}`" icon="mdi-key-plus" :max-width="540">
+      <p class="hint"><v-icon size="16">mdi-information-outline</v-icon>{{ t('system.apiToken.newSaveHint', { showLabel: t('system.apiToken.show') }) }}</p>
+      <div class="secret"><code>{{ createdValue }}</code><button class="copy" :title="t('common.copy') || 'Copier'" @click="doCopy(createdValue)"><v-icon size="16">mdi-content-copy</v-icon></button></div>
+      <template #footer>
+        <LjButton @click="createdDialog = false">{{ t('system.apiToken.done') }}</LjButton>
+      </template>
+    </LjDialog>
 
-    <!-- Created token dialog (shows the freshly-minted value) -->
-    <v-dialog v-model="createdDialog" max-width="520" persistent>
-      <v-card>
-        <v-card-title>
-          New token:&nbsp;<code>{{ createdName }}</code>
-        </v-card-title>
-        <v-card-text>
-          <v-alert type="info" variant="tonal" density="compact" class="mb-3">
-            Save this value now — you can re-display it later through
-            <strong>Show token</strong>.
-          </v-alert>
-          <v-textarea
-            :model-value="createdValue"
-            readonly
-            rows="3"
-            variant="outlined"
-            hide-details
-            :append-inner-icon="'mdi-content-copy'"
-            @click:append-inner="copyCreated"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn color="primary" @click="createdDialog = false">Done</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <!-- Show / regenerate token value. -->
+    <LjDialog v-model="tokenDialog" :title="`${t('system.apiToken.tokenLabel')} ${tokenTarget}`" icon="mdi-key" :max-width="540">
+      <div class="secret" :class="{ loading: tokenLoading }">
+        <span v-if="tokenLoading" class="mspin sm dark" aria-hidden="true" />
+        <code v-else>{{ tokenValue }}</code>
+        <button v-if="!tokenLoading" class="copy" :title="t('common.copy') || 'Copier'" @click="doCopy(tokenValue, true)"><v-icon size="16">mdi-content-copy</v-icon></button>
+      </div>
+      <p v-if="copyDone" class="copied"><v-icon size="15">mdi-check-circle</v-icon>{{ t('system.apiToken.copyDone') }}</p>
+      <template #footer>
+        <LjButton variant="ghost" @click="tokenDialog = false">{{ t('common.close') || 'Fermer' }}</LjButton>
+      </template>
+    </LjDialog>
 
-    <!-- Delete confirmation -->
-    <v-dialog v-model="deleteDialog" max-width="420">
-      <v-card>
-        <v-card-title>Delete token</v-card-title>
-        <v-card-text>Revoke token <code>{{ deleteTarget }}</code>?</v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn color="error" variant="elevated" :loading="deleting" @click="confirmDelete">Revoke</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <LigojConfirmDialog v-model="deleteDialog" :title="t('system.apiToken.deleteTitle')" icon="mdi-key-remove" confirm-color="error" :confirm-label="t('system.apiToken.revoke')" :loading="deleting" @confirm="confirmDelete">
+      {{ t('system.apiToken.deleteConfirmBefore') }}<strong class="text-error">{{ deleteTarget }}</strong>{{ t('system.apiToken.deleteConfirmAfter') }}
+    </LigojConfirmDialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useAuthStore } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog } from '@ligoj/host'
+import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()
 const app = useAppStore()
 const auth = useAuthStore()
+const i18n = useI18nStore()
+const t = i18n.t
+const { copy } = useClipboard()
 
-const base = import.meta.env.BASE_URL
+const base = APP_BASE
 const origin = typeof window !== 'undefined' ? window.location.origin : ''
 const userName = computed(() => auth.userName || '<you>')
 
 const rows = ref([])
 const loading = ref(false)
 const error = ref(null)
+const query = ref('')
+
+const headers = computed(() => [
+  { key: 'name', label: t('system.apiToken.headerName'), sortable: true, icon: 'mdi-key-outline' },
+])
+const filtered = computed(() => {
+  const q = query.value.trim().toLowerCase()
+  return q ? rows.value.filter((r) => r.name.toLowerCase().includes(q)) : rows.value
+})
+
+const rules = { required: (v) => !!v || (t('common.required') || 'Required') }
 
 const createDialog = ref(false)
 const createFormRef = ref(null)
@@ -175,39 +138,29 @@ const deleteDialog = ref(false)
 const deleteTarget = ref('')
 const deleting = ref(false)
 
-const rules = { required: (v) => !!v || 'Required' }
-
-const headers = [
-  { title: 'Name',    key: 'name',    sortable: true },
-  { title: '',        key: 'actions', sortable: false, width: '140px', align: 'end' },
-]
-
 async function load() {
-  loading.value = true
-  error.value = null
-  const data = await api.get('rest/api/token')
-  // Endpoint returns plain strings; map to rows for v-data-table.
-  rows.value = Array.isArray(data) ? data.map((name) => ({ name })) : []
+  loading.value = true; error.value = null
+  try {
+    const data = await api.get('rest/api/token')
+    rows.value = Array.isArray(data) ? data.map((name) => ({ name })) : []
+  } catch { error.value = t('common.loadError') || 'Load error' }
   loading.value = false
 }
 
-function openCreate() {
-  createName.value = ''
-  createDialog.value = true
-}
-
+function openCreate() { createName.value = ''; createDialog.value = true }
 async function doCreate() {
   const { valid } = await createFormRef.value.validate()
   if (!valid) return
   creating.value = true
-  const result = await api.post(`rest/api/token/${encodeURIComponent(createName.value)}`)
-  creating.value = false
-  if (result === null) return
-  createdName.value = createName.value
-  createdValue.value = typeof result === 'string' ? result : result?.id || ''
-  createDialog.value = false
-  createdDialog.value = true
-  load()
+  try {
+    const result = await api.post(`rest/api/token/${encodeURIComponent(createName.value)}`)
+    if (result === null) return
+    createdName.value = createName.value
+    createdValue.value = typeof result === 'string' ? result : result?.id || ''
+    createDialog.value = false
+    createdDialog.value = true
+    load()
+  } finally { creating.value = false }
 }
 
 async function openShow(name, mode) {
@@ -216,44 +169,67 @@ async function openShow(name, mode) {
   copyDone.value = false
   tokenDialog.value = true
   tokenLoading.value = true
-  const url = `rest/api/token/${encodeURIComponent(name)}`
-  const data = mode === 'regen' ? await api.put(url) : await api.get(url)
-  tokenValue.value = typeof data === 'string' ? data : data?.id || ''
-  tokenLoading.value = false
-}
-
-async function copy() {
   try {
-    await navigator.clipboard.writeText(tokenValue.value)
-    copyDone.value = true
-    setTimeout(() => { copyDone.value = false }, 2000)
-  } catch {
-    /* clipboard denied — user can still select the textarea */
-  }
+    const url = `rest/api/token/${encodeURIComponent(name)}`
+    const data = mode === 'regen' ? await api.put(url) : await api.get(url)
+    tokenValue.value = typeof data === 'string' ? data : data?.id || ''
+  } finally { tokenLoading.value = false }
 }
 
-async function copyCreated() {
-  try {
-    await navigator.clipboard.writeText(createdValue.value)
-  } catch { /* ignore */ }
+async function doCopy(value, flag) {
+  if (!value) return
+  copy(value)
+  if (flag) { copyDone.value = true; setTimeout(() => { copyDone.value = false }, 2000) }
 }
 
-function startDelete(name) {
-  deleteTarget.value = name
-  deleteDialog.value = true
-}
-
+function startDelete(name) { deleteTarget.value = name; deleteDialog.value = true }
 async function confirmDelete() {
   deleting.value = true
-  await api.del(`rest/api/token/${encodeURIComponent(deleteTarget.value)}`)
-  deleting.value = false
-  deleteDialog.value = false
-  load()
+  try {
+    await api.del(`rest/api/token/${encodeURIComponent(deleteTarget.value)}`)
+    deleteDialog.value = false
+    load()
+  } finally { deleting.value = false }
 }
 
 onMounted(() => {
-  app.setTitle('API tokens')
-  app.setBreadcrumbs([{ title: 'API', to: '/api' }, { title: 'Tokens' }])
+  app.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('api.title'), to: '/api' }, { title: t('system.apiToken.title') }], { refresh: load })
   load()
 })
 </script>
+
+<style scoped>
+/* View-specific styling only — chrome (header, search, primary button,
+   create/show/regenerate dialogs, row icon buttons) comes from the shared
+   host components + the global `.lj-surface` / `.lj-iconbtn` classes, which
+   supply the ink, pill, radius, mono, surface, card and border vars these
+   rules read. The `.usage` explainer and `.secret` token box are bespoke. */
+.sub b { color: var(--ink-2); font-family: var(--mono); }
+
+.usage { display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px; border: var(--border-w) var(--lj-border-style, solid) var(--border-c); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); margin-bottom: 18px; }
+.us-ic { width: 42px; height: 42px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #8b5cf6, #6d28d9); box-shadow: 0 8px 18px -8px rgba(139, 92, 246, .55); }
+.us-body { min-width: 0; flex: 1; }
+.us-intro { margin: 0 0 8px; font-size: 13.5px; color: var(--ink-2); font-weight: 500; line-height: 1.5; }
+.us-ex { display: block; font-family: var(--mono); font-size: 12px; color: var(--ink-2); background: var(--pill); padding: 9px 12px; border-radius: 9px; overflow-x: auto; white-space: nowrap; }
+
+.errline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: rgb(var(--v-theme-error)); margin: 0 0 14px; }
+
+.avatar-cell { display: flex; align-items: center; gap: 12px; }
+.kglyph { width: 34px; height: 34px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: rgba(139, 92, 246, .13); color: #8b5cf6; }
+.kname { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--ink); }
+
+/* Dialog body bits (slotted into LjDialog; --pill/--mono/--accent come from
+   the dialog card's `.lj-surface`). */
+.hint { display: flex; align-items: flex-start; gap: 7px; margin: 0 0 12px; font-size: 12.5px; font-weight: 500; color: var(--ink-2); background: rgba(47, 109, 246, .1); padding: 9px 12px; border-radius: 10px; }
+.hint :deep(.v-icon) { color: #2f6df6; flex: none; margin-top: 1px; }
+.secret { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 12px 14px; border-radius: var(--radius-sm); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: var(--pill); }
+.secret code { flex: 1; font-family: var(--mono); font-size: 13px; color: var(--ink); word-break: break-all; line-height: 1.5; }
+.secret .copy { flex: none; }
+.copy { border: 0; background: transparent; cursor: pointer; color: var(--ink-3); display: inline-grid; place-items: center; padding: 6px; border-radius: 8px; }
+.copy:hover { color: var(--accent); background: var(--hover); }
+.copied { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: 12.5px; font-weight: 600; color: #1d9d63; }
+.copied :deep(.v-icon) { color: #1d9d63; }
+/* Busy spinner shown while the token value loads in the show dialog. */
+.mspin.sm.dark { width: 18px; height: 18px; border: 2px solid var(--border-2); border-top-color: var(--accent); border-radius: 50%; animation: sspin .7s linear infinite; }
+@keyframes sspin { to { transform: rotate(360deg); } }
+</style>

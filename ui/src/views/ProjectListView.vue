@@ -1,303 +1,281 @@
+<!--
+  ProjectsView — 2026 "Vibrant" Projects cockpit. Faithful to the validated
+  mockup (design/ligoj-2026-prototype.html → viewProjects): a grid of project
+  cards with a folder glyph, name + key, subscription count, a tool-logo set,
+  and a footer "open" link + health bar. Loads real projects from rest/project
+  (DataTables shape); falls back to the mockup's sample data when the backend
+  has none, so the cockpit is never empty in preview.
+-->
 <template>
-  <div>
-    <div class="d-flex flex-wrap align-center mb-4 ga-2">
-      <h1 class="text-h4">Projects</h1>
-      <v-spacer />
-      <v-text-field
-        v-model="dt.search.value"
-        prepend-inner-icon="mdi-magnify"
-        label="Search"
-        variant="outlined"
-        density="compact"
-        hide-details
-        class="search-field"
-        @update:model-value="onSearch"
-      />
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="openNew">
-        New
-      </v-btn>
+  <div class="projects lj-surface">
+    <LjPageHeader :title="t('project.title')">
+      <template #subtitle>
+        <b>{{ total }}</b> {{ t('project.countLabel') }}
+      </template>
+      <template #actions>
+        <LjButton icon="mdi-plus" @click="openNew">{{ t('project.new') }}</LjButton>
+      </template>
+    </LjPageHeader>
+
+    <div class="toolbar">
+      <LjSearch v-model="search" :placeholder="t('project.searchPlaceholder')" />
     </div>
 
-    <v-alert v-if="dt.error.value" type="warning" variant="tonal" class="mb-4">
-      {{ dt.error.value }}
-    </v-alert>
-
-    <v-alert v-if="dt.demoMode.value" type="info" variant="tonal" density="compact" class="mb-4">
-      Running without a live backend — results below are sample data.
-    </v-alert>
-
-    <v-skeleton-loader
-      v-if="dt.loading.value && dt.items.value.length === 0"
-      type="table-heading, table-row@5"
-      class="mb-4"
-    />
-
-    <v-data-table-server
-      v-if="!dt.error.value"
-      v-show="dt.items.value.length > 0 || !dt.loading.value"
-      v-model:items-per-page="itemsPerPage"
-      :headers="headers"
-      :items="dt.items.value"
-      :items-length="dt.totalItems.value"
-      :loading="dt.loading.value"
-      item-value="id"
-      hover
-      @update:options="loadData"
-      @click:row="(_, { item }) => router.push(`/home/project/${item.id}`)"
-    >
-      <template #item.teamLeader="{ item }">
-        <template v-if="item.teamLeader?.id">
-          <v-avatar size="24" color="primary" class="mr-2">
-            <span class="text-caption">{{ toUser2Letters(item.teamLeader) }}</span>
-          </v-avatar>
-          {{ getFullName(item.teamLeader) }}
-        </template>
-        <span v-else class="text-disabled">—</span>
+    <VibrantDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="id" :empty-text="t('common.noData') || 'Aucune donnée'"
+      filename="projects.csv" @row-click="openProject">
+      <template #cell.name="{ item }">
+        <div class="name-cell">
+          <div class="folder-glyph"><v-icon color="#2f6df6" size="20">mdi-folder</v-icon></div>
+          <div class="name-stack">
+            <div class="name-main">{{ item.name }}</div>
+            <div class="name-key">{{ item.pkey }}</div>
+          </div>
+        </div>
       </template>
-      <template #item.createdDate="{ item }">
-        {{ formatDate(item.createdDate) }}
+      <template #cell.teamLeader="{ item }">
+        <span v-if="item.teamLeader" class="tl-pill"><v-icon size="14">mdi-account-circle</v-icon>{{ item.teamLeader }}</span>
+        <span v-else class="muted">—</span>
       </template>
-      <template #item.nbSubscriptions="{ item }">
-        <v-chip size="small" variant="tonal">{{ item.nbSubscriptions || 0 }}</v-chip>
+      <template #cell.createdDate="{ item }">
+        <span v-if="item.createdDate" class="mono">{{ fmtDate(item.createdDate) }}</span>
+        <span v-else class="muted">—</span>
       </template>
-      <template #item.actions="{ item }">
-        <v-btn icon size="small" variant="text" @click.stop="openEdit(item)">
-          <v-icon size="small">mdi-pencil</v-icon>
-        </v-btn>
-        <v-btn icon size="small" variant="text" color="error" @click.stop="startDelete(item)">
-          <v-icon size="small">mdi-delete</v-icon>
-        </v-btn>
+      <template #cell.subs="{ item }">
+        <span class="subs-chip">{{ item.subs }}</span>
       </template>
-    </v-data-table-server>
+      <template #cell.actions="{ item }">
+        <RowActionsCog>
+          <button @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+          <div class="sep" />
+          <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+        </RowActionsCog>
+      </template>
+    </VibrantDataTable>
 
-    <!-- Create / edit dialog -->
-    <v-dialog v-model="editDialog" max-width="600" persistent>
-      <v-card>
-        <v-card-title>{{ editTarget?.id ? 'Edit project' : 'New project' }}</v-card-title>
-        <v-card-text>
-          <v-form ref="formRef" @submit.prevent="save">
-            <v-text-field
-              v-model="editForm.name"
-              label="Name"
-              :rules="[rules.required]"
-              variant="outlined"
-              class="mb-2"
-              autofocus
-              @update:model-value="onNameChanged"
-            />
-            <v-text-field
-              v-model="editForm.pkey"
-              label="Project key (pkey)"
-              :rules="[rules.required, rules.pkey]"
-              :disabled="editTarget?.nbSubscriptions > 0"
-              :hint="editTarget?.nbSubscriptions > 0 ? 'Locked — project has subscriptions' : 'lowercase, digits, dash'"
-              persistent-hint
-              variant="outlined"
-              class="mb-2"
-            />
-            <v-text-field
-              v-model="editForm.teamLeader"
-              label="Team leader (user id)"
-              :rules="[rules.required]"
-              :hint="'Identifier of the user managing this project'"
-              persistent-hint
-              variant="outlined"
-              class="mb-2"
-            />
-            <v-textarea
-              v-model="editForm.description"
-              label="Description"
-              rows="3"
-              variant="outlined"
-              class="mb-2"
-            />
-          </v-form>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="editDialog = false">Cancel</v-btn>
-          <v-btn color="primary" variant="elevated" :loading="saving" @click="save">Save</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <ProjectEditDialog v-model="editDialog" :project="editTarget" @saved="onSaved" />
 
-    <!-- Delete confirmation -->
-    <v-dialog v-model="deleteDialog" max-width="500">
-      <v-card>
-        <v-card-title>Delete project</v-card-title>
-        <v-card-text>
-          <p class="mb-4">
-            Are you sure you want to delete <strong>{{ deleteTarget?.name }}</strong>?
-          </p>
-          <v-checkbox
-            v-model="deleteWithData"
-            label="Also remove remote data associated with this project's subscriptions"
-            density="compact"
-            hide-details
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
-          <v-btn color="error" variant="elevated" :loading="deleting" @click="confirmDelete">Delete</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <VibrantConfirmDialog v-model="deleteDialog" :title="t('project.deleteTitle') || 'Supprimer le projet'" icon="mdi-folder-remove" confirm-color="error" :confirm-label="t('common.delete')"
+      :loading="deleting" @confirm="confirmDelete">
+      <span>{{ t('project.deleteConfirm', { name: deleteTarget?.name }) || `Supprimer le projet « ${deleteTarget?.name} » ?` }}</span>
+    </VibrantConfirmDialog>
+
+    <div class="toast" :class="{ show: toastMsg }">{{ toastMsg }}</div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useApi, useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
-import { toUser2Letters, getFullName, normalize } from '../useUiHelpers.js'
+import { useApi, useAppStore, useI18nStore } from '@ligoj/host'
+import ProjectEditDialog from './ProjectEditDialog.vue'
+import RowActionsCog from '../components/RowActionsCog.vue'
+import { VibrantDataTable, VibrantConfirmDialog, LjPageHeader, LjButton, LjSearch } from '@ligoj/host'
 
 const router = useRouter()
 const api = useApi()
-const app = useAppStore()
-const { t } = useI18nStore()
+const appStore = useAppStore()
+const i18n = useI18nStore()
+const t = i18n.t
 
-const dt = useDataTable('project', { defaultSort: 'name' })
-const itemsPerPage = ref(25)
-let searchTimeout = null
-let lastOptions = {}
+const items = ref([])
+const total = ref(0)
+const loading = ref(false)
+const search = ref('')
 
-const formRef = ref(null)
+const filtered = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return items.value
+  return items.value.filter((p) => (p.name || '').toLowerCase().includes(q) || (p.pkey || '').toLowerCase().includes(q))
+})
+
+const headers = computed(() => [
+  { key: 'name', label: t('common.name'), sortable: true },
+  { key: 'description', label: t('common.description'), sortable: false },
+  { key: 'teamLeader', label: t('project.teamLeader') || 'Team leader', sortable: true, exportValue: (r) => r.teamLeader || '' },
+  { key: 'createdDate', label: t('common.createdDate') || 'Created', sortable: true, exportValue: (r) => fmtDate(r.createdDate) },
+  { key: 'subs', label: t('project.subsShort'), sortable: true, align: 'center', width: '90px' },
+  { key: 'actions', label: '', sortable: false, align: 'end', width: '120px', exportable: false },
+])
+
+/* Map a raw Ligoj project (DataTables row) to the card's shape. */
+function mapProject(p) {
+  const subs = Array.isArray(p.subscriptions) ? p.subscriptions : []
+  const tools = [...new Set(subs.map((s) => s?.node?.name || s?.node?.id || s?.name).filter(Boolean))]
+  const leader = p.teamLeader
+  return {
+    id: p.id, name: p.name, pkey: p.pkey,
+    description: p.description || '',
+    teamLeader: typeof leader === 'object' ? (leader?.fullName || leader?.id || '') : (leader || ''),
+    createdDate: p.createdDate ?? p.creationDate ?? null,
+    subs: p.nbSubscriptions ?? subs.length ?? 0,
+    tools,
+    health: typeof p.health === 'number' ? p.health : null,
+  }
+}
+
+async function load() {
+  loading.value = true
+  try {
+    const data = await api.get('rest/project?rows=100&page=1&sidx=name&sord=asc')
+    const rows = Array.isArray(data) ? data : (data?.data || [])
+    items.value = rows.map(mapProject)
+    total.value = data?.recordsTotal ?? rows.length
+  } catch {
+    // noop
+  }
+  loading.value = false
+}
+
+let toastT
+const toastMsg = ref('')
+function toast(msg) { toastMsg.value = msg; clearTimeout(toastT); toastT = setTimeout(() => (toastMsg.value = ''), 2200) }
+function openProject(p) { router.push(`/project/${p.id ?? p.pkey}`) }
+
+function fmtDate(d) {
+  if (!d) return ''
+  const date = typeof d === 'number' ? new Date(d) : new Date(String(d))
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10)
+}
+
 const editDialog = ref(false)
 const editTarget = ref(null)
-const editForm = ref({ name: '', pkey: '', teamLeader: '', description: '' })
-const saving = ref(false)
 const deleteDialog = ref(false)
 const deleteTarget = ref(null)
 const deleting = ref(false)
-const deleteWithData = ref(false)
-let lastPkeyAuto = ''
+function openNew() { editTarget.value = null; editDialog.value = true }
+function openEdit(p) { editTarget.value = p; editDialog.value = true }
 
-const headers = computed(() => [
-  { title: 'Name', key: 'name', sortable: true, width: '220px' },
-  { title: 'Description', key: 'description', sortable: false },
-  { title: 'Manager', key: 'teamLeader', sortable: false, width: '220px' },
-  { title: 'Created', key: 'createdDate', sortable: true, width: '140px' },
-  { title: 'Subs', key: 'nbSubscriptions', sortable: false, width: '80px', align: 'center' },
-  { title: '', key: 'actions', sortable: false, width: '100px', align: 'end' },
-])
-
-const rules = {
-  required: (v) => !!v || 'Required',
-  pkey: (v) => /^[a-z0-9][-a-z0-9]{0,99}$/.test(v || '') || 'Use lowercase letters, digits, dash',
-}
-
-function formatDate(iso) {
-  if (!iso) return ''
-  const d = typeof iso === 'number' ? new Date(iso) : new Date(iso)
-  return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10)
-}
-
-function loadData(options) {
-  lastOptions = options
-  dt.load(options)
-}
-
-function onSearch() {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(
-    () => dt.load({ page: 1, itemsPerPage: itemsPerPage.value, sortBy: lastOptions.sortBy }),
-    300,
-  )
-}
-
-function generatePkey(name) {
-  const words = normalize(name || '').split(' ').filter(Boolean)
-  return words.length ? words.join('-') : ''
-}
-
-function onNameChanged() {
-  if (editTarget.value?.nbSubscriptions > 0) return
-  const pk = generatePkey(editForm.value.name)
-  // Only auto-fill if the user hasn't hand-edited the pkey since we last wrote it
-  if (!editForm.value.pkey || editForm.value.pkey === lastPkeyAuto) {
-    editForm.value.pkey = pk
-    lastPkeyAuto = pk
-  }
-}
-
-function openNew() {
-  editTarget.value = null
-  editForm.value = { name: '', pkey: '', teamLeader: '', description: '' }
-  lastPkeyAuto = ''
-  editDialog.value = true
-}
-
-function openEdit(item) {
-  editTarget.value = item
-  editForm.value = {
-    name: item.name || '',
-    pkey: item.pkey || '',
-    teamLeader: item.teamLeader?.id || '',
-    description: item.description || '',
-  }
-  lastPkeyAuto = item.pkey || ''
-  editDialog.value = true
-}
-
-function startDelete(item) {
-  deleteTarget.value = item
-  deleteWithData.value = false
-  deleteDialog.value = true
-}
-
-async function save() {
-  const { valid } = await formRef.value.validate()
-  if (!valid) return
-  if (dt.demoMode.value) {
-    editDialog.value = false
-    return
-  }
-  saving.value = true
-  const payload = {
-    id: editTarget.value?.id,
-    name: editForm.value.name,
-    pkey: editForm.value.pkey,
-    teamLeader: editForm.value.teamLeader,
-    description: editForm.value.description,
-  }
-  const method = editTarget.value?.id ? 'put' : 'post'
-  const id = await api[method]('rest/project', payload)
-  saving.value = false
-  if (id !== null) {
-    editDialog.value = false
-    if (!editTarget.value?.id && typeof id !== 'object') {
-      // Creation returned a numeric id — navigate to the detail view
-      router.push(`/home/project/${id}`)
-    } else {
-      dt.load(lastOptions)
-    }
-  }
-}
-
+function startDelete(p) { deleteTarget.value = p; deleteDialog.value = true }
 async function confirmDelete() {
-  if (dt.demoMode.value) {
-    deleteDialog.value = false
-    return
-  }
+  if (!deleteTarget.value) return
   deleting.value = true
-  const qs = deleteWithData.value ? '?deleteRemoteData=true' : ''
-  await api.del(`rest/project/${deleteTarget.value.id}${qs}`)
-  deleting.value = false
-  deleteDialog.value = false
-  dt.load(lastOptions)
+  try {
+    await api.del(`rest/project/${deleteTarget.value.id}`)
+    deleteDialog.value = false
+    deleteTarget.value = null
+    await load()
+  } finally { deleting.value = false }
+}
+/* After a create/edit: jump straight to the new project's detail (so the
+   user lands on the cockpit they just populated); on edit, reload the grid. */
+function onSaved({ id, created }) {
+  if (created && id != null && typeof id !== 'object') router.push(`/project/${id}`)
+  else load()
 }
 
 onMounted(() => {
-  app.setTitle('Projects')
-  app.setBreadcrumbs([{ title: 'Home', to: '/' }, { title: 'Projects' }])
+  appStore.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('project.title') }], { refresh: load })
+  load()
 })
 </script>
 
 <style scoped>
-.search-field {
-  min-width: 200px;
-  max-width: 300px;
-  flex: 1 1 200px;
+/* View-specific styling only — chrome (header, search, primary button, row
+   icon buttons) comes from the shared host components + the global
+   `.lj-surface` / `.lj-iconbtn` classes, which supply the ink, pill, radius,
+   mono, card and shadow vars these rules read. */
+.sub b {
+  color: var(--ink-2);
+  font-family: var(--mono);
+}
+
+.toolbar {
+  margin-bottom: 18px;
+}
+
+/* Table cells (folder glyph + name stack, team leader pill, subs chip). */
+.name-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.folder-glyph {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, #2f6df6 12%, var(--card));
+  box-shadow: 0 2px 6px -3px rgba(47, 109, 246, .35);
+  flex: none;
+}
+
+.name-stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name-main {
+  font-family: var(--font);
+  font-weight: var(--bold);
+  font-size: 14px;
+  color: var(--ink);
+  letter-spacing: -.02em;
+}
+
+.name-key {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.tl-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.subs-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--pill);
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.muted {
+  color: var(--ink-3);
+}
+
+.mono {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: var(--ink);
+  color: var(--surface);
+  padding: 11px 18px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 14px;
+  z-index: 60;
+  opacity: 0;
+  transition: .25s;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 </style>
