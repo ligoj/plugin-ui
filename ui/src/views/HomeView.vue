@@ -22,14 +22,17 @@
         <div class="kpis">
           <div v-for="k in kpis" :key="k.l" class="kpi" :style="{ '--a': k.c }">
             <div class="kpi-ic"><v-icon size="18">{{ k.icon }}</v-icon></div>
-            <div class="kpi-b"><div class="v">{{ k.v }}</div><div class="l">{{ k.l }}</div></div>
+            <div class="kpi-b">
+              <div class="v">{{ k.v }}</div>
+              <div class="l">{{ k.l }}</div>
+            </div>
           </div>
         </div>
       </template>
     </LjPageHeader>
 
-    <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length" default-view="cards" storage-key="home"
-      searchable collapsible :cog="false" @row-appear="onRowAppear" @refresh-node="onRefreshNode">
+    <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length" default-view="cards" storage-key="home" searchable collapsible :cog="false" @row-appear="onRowAppear"
+      @refresh-node="onRefreshNode">
       <template #toolbar>
         <label class="demo-toggle" :class="{ on: demo }">
           <input type="checkbox" v-model="demo" />
@@ -251,9 +254,9 @@ const realGroups = computed(() => {
 
 /* ---- demo dataset (additive, behind the toggle) ---- */
 const DEMO_TOOLS = [
-  { key: 'Jira', name: 'Jira', kind: 'Gestion de tickets', health: 0.82, rows: [{ n: 'Airbus — Keycopter', s: 'ok', p: ['38 ouv.', '73 clos'] }, { n: 'ANRU — Agora', s: 'ok', p: ['28 ouv.'] }, { n: 'BNPP — KYC', s: 'warn', p: ['12 ouv.'] }, { n: 'EDF — Consoweb', s: 'ok', p: ['185 clos'] }] },
-  { key: 'Jenkins', name: 'Jenkins', kind: 'Intégration continue', health: 0.61, rows: [{ n: 'Airbus — Keycopter', s: 'ok', p: ['#1842'] }, { n: 'BNPP — KYC', s: 'err', p: ['échec'] }, { n: 'EDF — PPA Sonar', s: 'ok', p: ['#77'] }, { n: 'EPO — EPO', s: 'warn', p: ['instable'] }] },
-  { key: 'SonarQube', name: 'SonarQube', kind: 'Qualité de code', health: 0.7, rows: [{ n: 'bnpp-pse-android', s: 'warn', p: ['B'] }, { n: 'BNPP — Accueil iPad', s: 'ok', p: ['A'] }, { n: 'CA — Caroline', s: 'err', p: ['C'] }] },
+  { key: 'Jira', name: 'Jira', kind: 'Gestion de tickets', health: 0.82, rows: [{ n: 'Company1 — Keycopter', s: 'ok', p: ['38 ouv.', '73 clos'] }, { n: 'ANRU — Agora', s: 'ok', p: ['28 ouv.'] }, { n: 'Bank — KYC', s: 'warn', p: ['12 ouv.'] }, { n: 'EDF — Consoweb', s: 'ok', p: ['185 clos'] }] },
+  { key: 'Jenkins', name: 'Jenkins', kind: 'Intégration continue', health: 0.61, rows: [{ n: 'Company1 — Keycopter', s: 'ok', p: ['#1842'] }, { n: 'Bank — KYC', s: 'err', p: ['échec'] }, { n: 'EDF — PPA Sonar', s: 'ok', p: ['#77'] }, { n: 'EPO — EPO', s: 'warn', p: ['instable'] }] },
+  { key: 'SonarQube', name: 'SonarQube', kind: 'Qualité de code', health: 0.7, rows: [{ n: 'bank-pse-android', s: 'warn', p: ['B'] }, { n: 'Bank — Accueil iPad', s: 'ok', p: ['A'] }, { n: 'CA — Caroline', s: 'err', p: ['C'] }] },
   { key: 'Provisioning AWS', name: 'Provisioning AWS', kind: 'Coûts cloud', health: 0.76, rows: [{ n: 'Datasync Framework', s: 'ok', p: ['8 CPU', '303 $'], cost: true }, { n: 'Loader SAP GP074', s: 'warn', p: ['428 $'], cost: true }] },
 ]
 const demo = ref(false)
@@ -354,16 +357,90 @@ onMounted(() => {
 <style scoped>
 /* View-specific chrome only; the cards/list/toolbar come from SubscriptionsPanel
    and the global `.lj-surface` tokens. */
-.kpis { display: flex; gap: 12px; flex-wrap: wrap; }
-.kpi { display: flex; align-items: center; gap: 11px; padding: 12px 16px; border-radius: var(--radius); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: linear-gradient(135deg, color-mix(in srgb, var(--a) 10%, var(--card)), var(--card)); box-shadow: var(--shadow); min-width: 132px; }
-.kpi-ic { width: 38px; height: 38px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--a), color-mix(in srgb, var(--a) 70%, #000)); box-shadow: 0 8px 16px -8px color-mix(in srgb, var(--a) 65%, transparent); }
-.kpi .v { font-family: var(--mono); font-weight: 700; font-size: 22px; line-height: 1; color: var(--ink); }
-.kpi .l { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); margin-top: 3px; }
+.kpis {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.kpi {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--a) 10%, var(--card)), var(--card));
+  box-shadow: var(--shadow);
+  min-width: 132px;
+}
+
+.kpi-ic {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, var(--a), color-mix(in srgb, var(--a) 70%, #000));
+  box-shadow: 0 8px 16px -8px color-mix(in srgb, var(--a) 65%, transparent);
+}
+
+.kpi .v {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.kpi .l {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--ink-3);
+  margin-top: 3px;
+}
 
 /* "Démo" toggle injected into the panel toolbar. */
-.demo-toggle { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border-radius: var(--radius-sm); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: var(--card); color: var(--ink-3); font-family: var(--font); font-weight: 700; font-size: 13px; cursor: pointer; user-select: none; transition: background .12s, color .12s; }
-.demo-toggle input { accent-color: rgb(var(--v-theme-primary)); cursor: pointer; }
-.demo-toggle.on { color: rgb(var(--v-theme-primary)); border-color: color-mix(in srgb, rgb(var(--v-theme-primary)) 40%, var(--border-c)); background: color-mix(in srgb, rgb(var(--v-theme-primary)) 8%, var(--card)); }
+.demo-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
+  background: var(--card);
+  color: var(--ink-3);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .12s, color .12s;
+}
 
-.dash-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 56px 0; color: var(--ink-3); font-weight: 600; }
+.demo-toggle input {
+  accent-color: rgb(var(--v-theme-primary));
+  cursor: pointer;
+}
+
+.demo-toggle.on {
+  color: rgb(var(--v-theme-primary));
+  border-color: color-mix(in srgb, rgb(var(--v-theme-primary)) 40%, var(--border-c));
+  background: color-mix(in srgb, rgb(var(--v-theme-primary)) 8%, var(--card));
+}
+
+.dash-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 56px 0;
+  color: var(--ink-3);
+  font-weight: 600;
+}
 </style>

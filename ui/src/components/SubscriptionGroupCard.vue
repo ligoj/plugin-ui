@@ -13,11 +13,14 @@
 -->
 <template>
   <article class="subcard" :style="{ '--c': group.color }">
-    <!-- Two-row header (HomeView style): glyph + name + collapse; kind + health + count. -->
+    <!-- Two-row header (HomeView style): glyph + name + count + status + collapse; kind + (health bar when no stats). -->
     <div class="card-head">
       <div class="ch-row top">
         <span class="glyph"><component :is="group.icon" /></span>
         <div class="name">{{ group.name }}</div>
+        <!-- Amount of subscriptions in this group — shown on every card (the
+             demo `.count` badge style), just left of the status dot. -->
+        <span class="count" :aria-label="group.rows.length + ' ' + t('project.detail.subscriptions')">{{ group.rows.length }}</span>
         <!-- One Ligoj status dot summarising BOTH node operational health
              (getNodeStatus) and subscription health; tooltip shows both
              breakdowns. Click → refresh nodes, Shift+click → refresh
@@ -35,7 +38,6 @@
         <span v-if="!hasStats" class="health">
           <span class="barh"><i :style="{ width: Math.round(group.health * 100) + '%' }" /></span>
           <span class="pct">{{ Math.round(group.health * 100) }}%</span>
-          <span class="count">{{ group.rows.length }}</span>
         </span>
       </div>
     </div>

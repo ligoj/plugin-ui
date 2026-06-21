@@ -19,11 +19,10 @@
         <span class="pkey">{{ project?.pkey }}</span>
         <span class="dot">·</span>
         <b>{{ subscriptions.length }}</b> {{ t('project.detail.subscriptions').toLowerCase() }}
-        <span v-if="demoMode"> · {{ t('common.preview') }}</span>
       </template>
       <template #actions>
-        <LjButton v-if="project && !demoMode" variant="ghost" icon="mdi-clock-outline" @click="auditDialog = true">{{ t('common.audit') || 'Audit' }}</LjButton>
-        <LjButton v-if="!demoMode" variant="ghost" icon="mdi-pencil" @click="editDialog = true">{{ t('project.detail.edit') }}</LjButton>
+        <LjButton v-if="project" variant="ghost" icon="mdi-clock-outline" @click="auditDialog = true">{{ t('common.audit') || 'Audit' }}</LjButton>
+        <LjButton variant="ghost" icon="mdi-pencil" @click="editDialog = true">{{ t('project.detail.edit') }}</LjButton>
         <LjButton icon="mdi-plus" @click="openSubscribe">{{ t('project.detail.addSubscription') }}</LjButton>
       </template>
     </LjPageHeader>
@@ -34,8 +33,7 @@
       <span v-if="project.description" class="desc">{{ project.description }}</span>
     </div>
 
-    <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length"
-      default-view="list" storage-key="project" @rowmenu="onRowMenu">
+    <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length" default-view="list" storage-key="project" @rowmenu="onRowMenu">
       <template #empty>
         <div class="empty">
           <v-icon size="44" color="rgba(var(--v-theme-on-surface),.25)">mdi-cloud-off-outline</v-icon>
@@ -104,7 +102,6 @@ function statusDot(raw) {
 
 const project = ref(null)
 const loading = ref(false)
-const demoMode = ref(false)
 
 const subscriptions = computed(() => project.value?.subscriptions || [])
 const leaderName = computed(() => {
@@ -116,7 +113,6 @@ const leaderName = computed(() => {
 /* Group the project's subscriptions by their tool (node.refined) into cockpit
    cards. Each row is one subscription; health = share of UP rows. */
 const groups = computed(() => {
-  if (demoMode.value) return demoGroups.value
   const byTool = new Map()
   for (const s of subscriptions.value) {
     const node = s.node || {}
@@ -147,21 +143,12 @@ const groups = computed(() => {
 
 async function load() {
   const id = route.params.id
-  // Demo projects are keyed by pkey (non-numeric) — render the mockup tools.
-  if (!/^\d+$/.test(String(id))) { buildDemo(String(id)); return }
   loading.value = true
-  try {
-    const data = await api.get(`rest/project/${id}`)
-    if (data && data.id != null) {
-      project.value = data
-      demoMode.value = false
-      setCrumbs(data.name)
-      refreshSubscriptions()
-    } else {
-      buildDemo(String(id))
-    }
-  } catch {
-    buildDemo(String(id))
+  const data = await api.get(`rest/project/${id}`)
+  if (data && data.id != null) {
+    project.value = data
+    setCrumbs(data.name)
+    refreshSubscriptions()
   }
   loading.value = false
 }
@@ -185,49 +172,6 @@ async function refreshSubscriptions() {
   } catch { /* keep stale */ }
 }
 
-/* ---- Demo fallback (mockup viewProject) ---- */
-const DEMO_PROJECTS = {
-  'bnpp-kyc': { name: 'BNPP — KYC', tools: ['Jira', 'Jenkins', 'SonarQube', 'GitLab'] },
-  'airbus-keycopter': { name: 'Airbus — Keycopter', tools: ['Jira', 'Jenkins', 'Confluence'] },
-  'edf-consoweb': { name: 'EDF — Consoweb', tools: ['Jira', 'SonarQube', 'LDAP'] },
-  'datasync-fw': { name: 'Datasync Framework', tools: ['Provisioning AWS', 'AWS EC2', 'GitLab'] },
-  'acoss-kpi': { name: 'Acoss — Portail KPI', tools: ['Squash TM', 'Jira', 'Confluence'] },
-  'anru-agora': { name: 'ANRU — Agora', tools: ['Jira', 'LDAP'] },
-}
-const DEMO_TOOLS = {
-  Jira: { kind: 'Tickets', logo: 'logos:jira', health: .82, rows: [{ n: 'JIRA — Prod', s: 'ok', p: ['38 open', '73 closed'] }, { n: 'JIRA — Staging', s: 'warn', p: ['12 open'] }] },
-  Jenkins: { kind: 'CI', logo: 'logos:jenkins', health: .61, rows: [{ n: 'Pipeline — main', s: 'ok', p: ['#1842'] }, { n: 'Pipeline — release', s: 'err', p: ['failed'] }] },
-  LDAP: { kind: 'Directory', logo: 'mdi:folder-account-outline', health: .94, rows: [{ n: 'delivery-core', s: 'ok', p: ['10 mbr'] }, { n: 'support-lille', s: 'ok', p: ['5 mbr'] }] },
-  SonarQube: { kind: 'Code quality', logo: 'logos:sonarqube', health: .7, rows: [{ n: 'core', s: 'ok', p: ['A'] }, { n: 'android', s: 'warn', p: ['B'] }] },
-  Confluence: { kind: 'Docs', logo: 'logos:confluence', health: .88, rows: [{ n: 'Space — Delivery', s: 'ok', p: ['2.3 k'] }] },
-  'AWS EC2': { kind: 'Provisioning', logo: 'logos:aws-ec2', health: .55, rows: [{ n: 'i-06755957', s: 'ok', p: ['running'] }, { n: 'i-0ecb5aca', s: 'err', p: ['stopped'] }] },
-  GitLab: { kind: 'Source & MR', logo: 'logos:gitlab', health: .9, rows: [{ n: 'platform / core', s: 'ok', p: ['4 MR'] }, { n: 'platform / ui', s: 'ok', p: ['2 MR'] }] },
-  'Provisioning AWS': { kind: 'Cloud cost', logo: 'logos:aws', health: .76, rows: [{ n: 'Datasync', s: 'ok', p: ['8 CPU', '303 $'], cost: true }, { n: 'Loader SAP', s: 'warn', p: ['428 $'], cost: true }] },
-  'Squash TM': { kind: 'Tests', logo: 'mdi:clipboard-check-outline', health: .8, rows: [{ n: 'Portail KPI', s: 'ok', p: ['120'] }] },
-}
-function logoVNode(name) {
-  const icon = DEMO_TOOLS[name]?.logo
-  if (!icon) return () => h(VIcon, null, () => 'mdi-puzzle-outline')
-  const tint = icon.startsWith('logos:') ? '' : ('&color=' + encodeURIComponent(toolColor(name).replace('#', '%23')))
-  const src = `https://api.iconify.design/${icon}.svg?height=26${tint}`
-  return () => h('img', { src, alt: name, class: 'demo-logo' })
-}
-const demoGroups = ref([])
-function buildDemo(pkey) {
-  const dp = DEMO_PROJECTS[pkey] || DEMO_PROJECTS['bnpp-kyc']
-  demoMode.value = true
-  project.value = { name: dp.name, pkey, subscriptions: dp.tools.flatMap((tn) => (DEMO_TOOLS[tn]?.rows || []).map((_, k) => ({ id: tn + k }))) }
-  demoGroups.value = dp.tools.map((tn) => {
-    const td = DEMO_TOOLS[tn] || { kind: '', health: 0, rows: [] }
-    return {
-      key: tn, name: tn, kind: td.kind, color: toolColor(tn), icon: logoVNode(tn),
-      health: td.health,
-      rows: td.rows.map((r) => ({ name: r.n, status: r.s, cost: r.cost, pills: r.p })),
-    }
-  })
-  setCrumbs(dp.name)
-}
-
 function setCrumbs(name) {
   appStore.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('project.title'), to: '/project' }, { title: name }],
     { refresh: load },
@@ -237,9 +181,7 @@ function setCrumbs(name) {
 const editDialog = ref(false)
 const subscribeDialog = ref(false)
 const auditDialog = ref(false)
-/* The wizard needs a real project id; demo projects can't subscribe. */
 function openSubscribe() {
-  if (demoMode.value) { toast(t('project.detail.demoSubscribe')); return }
   subscribeDialog.value = true
 }
 
@@ -255,7 +197,7 @@ function closeRowMenu() { rowMenu.value.open = false }
 async function deleteSub() {
   const s = rowMenu.value.sub
   closeRowMenu()
-  if (!s?.id || demoMode.value) return
+  if (!s?.id) return
   if (!confirm(t('subscription.deleteConfirm') || 'Supprimer cet abonnement ?')) return
   try { await api.del(`rest/subscription/${s.id}`) } finally { load() }
 }
@@ -348,14 +290,48 @@ onMounted(load)
 }
 
 /* List view (VibrantDataTable) cells. */
-.avatar-cell { display: flex; align-items: center; gap: 12px; }
-.glyph.sm { width: 36px; height: 36px; }
-.glyph.sm :deep(img.tool-icon), .glyph.sm :deep(.demo-logo) { width: 22px; height: 22px; }
-.glyph.sm :deep(i) { font-size: 20px; }
-.ac-name { font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); }
-.ac-kind { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
-.ln { font-size: 13.5px; font-weight: 600; color: var(--ink); }
-.lsum { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.avatar-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.glyph.sm {
+  width: 36px;
+  height: 36px;
+}
+
+.glyph.sm :deep(img.tool-icon),
+
+.glyph.sm :deep(i) {
+  font-size: 20px;
+}
+
+.ac-name {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.ac-kind {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.ln {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.lsum {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
 
 .card {
   position: relative;
@@ -416,12 +392,6 @@ onMounted(load)
   place-items: center;
   background: var(--card);
   box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--c) 50%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, var(--border));
-}
-
-.glyph :deep(.demo-logo) {
-  width: 26px;
-  height: 26px;
-  object-fit: contain;
 }
 
 .glyph :deep(img.tool-icon) {

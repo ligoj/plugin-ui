@@ -10,7 +10,7 @@
   <div class="projects lj-surface">
     <LjPageHeader :title="t('project.title')">
       <template #subtitle>
-        <b>{{ total }}</b> {{ t('project.countLabel') }}<span v-if="demoMode"> · {{ t('common.preview') || 'aperçu' }}</span>
+        <b>{{ total }}</b> {{ t('project.countLabel') }}
       </template>
       <template #actions>
         <LjButton icon="mdi-plus" @click="openNew">{{ t('project.new') }}</LjButton>
@@ -77,21 +77,9 @@ const appStore = useAppStore()
 const i18n = useI18nStore()
 const t = i18n.t
 
-/* Sample projects from the validated mockup — shown when the backend has
-   none, so the cockpit is never empty in the preview. */
-const DEMO_PROJECTS = [
-  { pkey: 'bnpp-kyc', name: 'BNPP — KYC', description: 'Customer KYC orchestration', teamLeader: 'Aïcha Dubois', createdDate: '2024-03-12', tools: ['Jira', 'Jenkins', 'SonarQube', 'GitLab'], subs: 14, health: .78 },
-  { pkey: 'airbus-keycopter', name: 'Airbus — Keycopter', description: 'Rotor telemetry platform', teamLeader: 'Julien Mercier', createdDate: '2024-06-28', tools: ['Jira', 'Jenkins', 'Confluence'], subs: 9, health: .9 },
-  { pkey: 'edf-consoweb', name: 'EDF — Consoweb', description: 'Energy consumption portal', teamLeader: 'Sophie Lefèvre', createdDate: '2024-09-04', tools: ['Jira', 'SonarQube', 'LDAP'], subs: 11, health: .84 },
-  { pkey: 'datasync-fw', name: 'Datasync Framework', description: 'Cross-cloud data sync toolkit', teamLeader: 'Karim Benali', createdDate: '2025-01-17', tools: ['Provisioning AWS', 'AWS EC2', 'GitLab'], subs: 7, health: .66 },
-  { pkey: 'acoss-kpi', name: 'Acoss — Portail KPI', description: 'Indicator reporting dashboard', teamLeader: 'Marie Garnier', createdDate: '2025-02-23', tools: ['Squash TM', 'Jira', 'Confluence'], subs: 8, health: .81 },
-  { pkey: 'anru-agora', name: 'ANRU — Agora', description: 'Urban renewal collaboration hub', teamLeader: 'Thomas Rousseau', createdDate: '2025-04-09', tools: ['Jira', 'LDAP'], subs: 5, health: .93 },
-]
-
 const items = ref([])
 const total = ref(0)
 const loading = ref(false)
-const demoMode = ref(false)
 const search = ref('')
 
 const filtered = computed(() => {
@@ -130,19 +118,10 @@ async function load() {
   try {
     const data = await api.get('rest/project?rows=100&page=1&sidx=name&sord=asc')
     const rows = Array.isArray(data) ? data : (data?.data || [])
-    if (rows.length) {
-      items.value = rows.map(mapProject)
-      total.value = data?.recordsTotal ?? rows.length
-      demoMode.value = false
-    } else {
-      items.value = DEMO_PROJECTS
-      total.value = DEMO_PROJECTS.length
-      demoMode.value = true
-    }
+    items.value = rows.map(mapProject)
+    total.value = data?.recordsTotal ?? rows.length
   } catch {
-    items.value = DEMO_PROJECTS
-    total.value = DEMO_PROJECTS.length
-    demoMode.value = true
+    // noop
   }
   loading.value = false
 }
@@ -169,11 +148,6 @@ function openEdit(p) { editTarget.value = p; editDialog.value = true }
 function startDelete(p) { deleteTarget.value = p; deleteDialog.value = true }
 async function confirmDelete() {
   if (!deleteTarget.value) return
-  if (demoMode.value) {
-    deleteDialog.value = false
-    toast(t('project.demoDelete') || 'Aperçu — suppression non persistée')
-    return
-  }
   deleting.value = true
   try {
     await api.del(`rest/project/${deleteTarget.value.id}`)
