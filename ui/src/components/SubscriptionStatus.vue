@@ -77,14 +77,34 @@ const DOT_META = {
   err: { c: '#df4d42', i: 'mdi-close-circle' },
   idle: { c: '#9aa0a6', i: 'mdi-help-circle' },
 }
-const dot = computed(() => statusDot(rawStatus.value))
+// Node rows have no operational UP/DOWN status — fall back to the enabled flag
+// so the dot still reflects something meaningful (enabled → green, else grey).
+const enabledFlag = computed(() => {
+  if (typeof rootNode.value?.enabled === 'boolean') return rootNode.value.enabled
+  if (typeof props.subscription?.enabled === 'boolean') return props.subscription.enabled
+  return null
+})
+const hasOpStatus = computed(() => {
+  const r = rawStatus.value
+  return r != null && String(r?.status ?? r) !== ''
+})
+const dot = computed(() => {
+  if (hasOpStatus.value) return statusDot(rawStatus.value)
+  if (enabledFlag.value === true) return 'ok'
+  return 'idle'
+})
 const dotColor = computed(() => DOT_META[dot.value].c)
 const dotIcon = computed(() => DOT_META[dot.value].i)
 const statusText = computed(() => {
+  if (hasOpStatus.value) {
+    const key = `subscription.status.${dot.value}`
+    const v = t(key)
+    return v !== key ? v : (String(rawStatus.value?.status ?? rawStatus.value ?? '').toUpperCase() || dot.value)
+  }
+  if (enabledFlag.value !== null) return t(enabledFlag.value ? 'system.node.statusEnabled' : 'system.node.statusDisabled')
   const key = `subscription.status.${dot.value}`
   const v = t(key)
-  if (v !== key) return v
-  return String(rawStatus.value?.status ?? rawStatus.value ?? '').toUpperCase() || dot.value
+  return v !== key ? v : dot.value
 })
 
 // Node chain (instance → tool → service), classified by id depth, oldest first.
@@ -112,19 +132,18 @@ const nodeRows = computed(() => {
 
 const MODE_KEY = { LINK: 'wizard.modeLink', CREATE: 'wizard.modeCreate', ALL: 'subscription.tip.modeAll' }
 const modeText = computed(() => {
-  const m = props.subscription?.mode
+  // Mode is a subscription field, but node rows carry it too (NodeVo.mode).
+  const m = props.subscription?.mode ?? rootNode.value?.mode
   if (!m) return ''
-  const key = MODE_KEY[m]
+  const key = MODE_KEY[String(m).toUpperCase()]
   return key ? t(key) : String(m)
 })
 
 const enabledText = computed(() => {
-  const node = rootNode.value
-  const e = typeof node?.enabled === 'boolean'
-    ? node.enabled
-    : (typeof props.subscription?.enabled === 'boolean' ? props.subscription.enabled : null)
-  if (e === null) return ''
-  return t(e ? 'system.node.statusEnabled' : 'system.node.statusDisabled')
+  // Shown as a separate line only when the dot reflects an OPERATIONAL status;
+  // for node rows the Status line already conveys enabled/disabled.
+  if (!hasOpStatus.value || enabledFlag.value === null) return ''
+  return t(enabledFlag.value ? 'system.node.statusEnabled' : 'system.node.statusDisabled')
 })
 
 function userName(u) {

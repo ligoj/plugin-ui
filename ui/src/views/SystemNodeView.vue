@@ -59,8 +59,7 @@
         <NodeModeChip :mode="item.mode || 'all'" size="small" />
       </template>
       <template #cell.enabled="{ item }">
-        <LjStatus :active="item.enabled"
-                  :tooltip="item.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled')" />
+        <SubscriptionStatus :node="item" />
       </template>
       <template #actions="{ item }">
         <!-- Only instances can be edited/deleted; service/tool/feature nodes
@@ -85,9 +84,10 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi, useAppStore, useI18nStore, NodeIcon, NodeModeChip, isInstance, nodeType } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjStatus } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton } from '@ligoj/host'
 import NodeEditDialog from './NodeEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
+import SubscriptionStatus from '../components/SubscriptionStatus.vue'
 
 const api = useApi()
 const app = useAppStore()
