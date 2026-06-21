@@ -13,7 +13,7 @@
   or a bare `node` (+ `status`) for node-only contexts (e.g. node tables).
 -->
 <template>
-  <v-tooltip location="top" max-width="420" open-delay="120">
+  <v-tooltip location="top" max-width="420" open-delay="120" @update:model-value="onToggle">
     <template #activator="{ props: a }">
       <span v-bind="a" class="sst-dot" :class="dot" :aria-label="statusText" />
     </template>
@@ -50,19 +50,40 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { NodeIcon, useI18nStore, nodeType } from '@ligoj/host'
 
 const props = defineProps({
   subscription: { type: Object, default: null },
   node: { type: Object, default: null },
   status: { type: [String, Object, Number], default: null },
+  // Optional lazy loader: called ONCE when the tooltip first opens, with the
+  // base subscription/node. The resolved object is merged over the base to
+  // complete the tooltip (e.g. a node's live status / parameters). null = skip.
+  fetch: { type: Function, default: null },
 })
 
 const t = useI18nStore().t
 
-const rootNode = computed(() => props.subscription?.node || props.node || null)
-const rawStatus = computed(() => props.subscription?.status ?? props.status ?? props.node?.status ?? null)
+const isSub = computed(() => !!props.subscription)
+const base = computed(() => props.subscription || props.node || null)
+// Details fetched lazily on first tooltip open, shallow-merged over the base.
+const extra = ref(null)
+const data = computed(() => (extra.value && base.value ? { ...base.value, ...extra.value } : (base.value || {})))
+
+// Lazy fetch the first time the tooltip is shown (hover / focus).
+let fetched = false
+async function onToggle(open) {
+  if (!open || fetched || typeof props.fetch !== 'function') return
+  fetched = true
+  try {
+    const d = await props.fetch(base.value)
+    if (d && typeof d === 'object') extra.value = d
+  } catch { /* keep the base data */ }
+}
+
+const rootNode = computed(() => (isSub.value ? (data.value.node || null) : (props.node ? data.value : null)))
+const rawStatus = computed(() => data.value.status ?? props.status ?? null)
 
 function statusDot(raw) {
   const s = String(raw?.status ?? raw ?? '').toLowerCase()
@@ -81,7 +102,7 @@ const DOT_META = {
 // so the dot still reflects something meaningful (enabled → green, else grey).
 const enabledFlag = computed(() => {
   if (typeof rootNode.value?.enabled === 'boolean') return rootNode.value.enabled
-  if (typeof props.subscription?.enabled === 'boolean') return props.subscription.enabled
+  if (typeof data.value.enabled === 'boolean') return data.value.enabled
   return null
 })
 const hasOpStatus = computed(() => {
@@ -133,7 +154,7 @@ const nodeRows = computed(() => {
 const MODE_KEY = { LINK: 'wizard.modeLink', CREATE: 'wizard.modeCreate', ALL: 'subscription.tip.modeAll' }
 const modeText = computed(() => {
   // Mode is a subscription field, but node rows carry it too (NodeVo.mode).
-  const m = props.subscription?.mode ?? rootNode.value?.mode
+  const m = data.value.mode ?? rootNode.value?.mode
   if (!m) return ''
   const key = MODE_KEY[String(m).toUpperCase()]
   return key ? t(key) : String(m)
@@ -157,7 +178,7 @@ function fmtDate(d) {
   return Number.isNaN(dt.getTime()) ? '' : dt.toLocaleString()
 }
 const audit = computed(() => {
-  const s = props.subscription || {}
+  const s = data.value
   return {
     created: [fmtDate(s.createdDate), userName(s.createdBy)].filter(Boolean).join(' · '),
     modified: [fmtDate(s.lastModifiedDate), userName(s.lastModifiedBy)].filter(Boolean).join(' · '),
@@ -166,7 +187,7 @@ const audit = computed(() => {
 
 const SENSITIVE = /secret|key|password|token/i
 const params = computed(() => {
-  const p = props.subscription?.parameters
+  const p = data.value.parameters
   if (!p || typeof p !== 'object') return []
   return Object.keys(p).sort().map((id) => {
     const label = (() => { const v = t(id); return v === id ? id : v })()

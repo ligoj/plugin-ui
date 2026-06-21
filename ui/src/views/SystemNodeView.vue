@@ -59,7 +59,7 @@
         <NodeModeChip :mode="item.mode || 'all'" size="small" />
       </template>
       <template #cell.enabled="{ item }">
-        <SubscriptionStatus :node="item" />
+        <SubscriptionStatus :node="item" :fetch="loadNodeDetails" />
       </template>
       <template #actions="{ item }">
         <!-- Only instances can be edited/deleted; service/tool/feature nodes
@@ -122,6 +122,17 @@ const headers = computed(() => [
 ])
 
 function typeLabel(item) { const k = nodeType(item); return t('system.node.type' + k.charAt(0).toUpperCase() + k.slice(1)) }
+
+// Lazy-load a node's live operational status when its status tooltip first
+// opens — only for instances (service/tool nodes have no runtime status). The
+// SubscriptionStatus component merges the result to complete its tooltip.
+async function loadNodeDetails(node) {
+  if (!node?.id || !isInstance(node)) return null
+  try {
+    const status = await api.get(`rest/node/status/${encodeURIComponent(node.id)}`, { silent: true })
+    return status ? { status } : null
+  } catch { return null }
+}
 
 const stats = computed(() => {
   const by = (ty) => items.value.filter((n) => nodeType(n) === ty).length
