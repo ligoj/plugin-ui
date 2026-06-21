@@ -58,8 +58,8 @@
       <template #cell.mode="{ item }">
         <NodeModeChip :mode="item.mode || 'all'" size="small" />
       </template>
-      <template #cell.enabled="{ item }">
-        <SubscriptionStatus :node="item" :fetch="loadNodeDetails" />
+      <template #cell.status="{ item }">
+        <SubscriptionStatus :node="item" />
       </template>
       <template #actions="{ item }">
         <!-- Only instances can be edited/deleted; service/tool/feature nodes
@@ -115,24 +115,14 @@ function onDocClick(e) { if (filterSel.value && !filterSel.value.contains(e.targ
 const filtered = computed(() => filter.value === 'all' ? items.value : items.value.filter((n) => nodeType(n) === filter.value))
 
 const headers = computed(() => [
+  // Status first; icon-only header (label in a tooltip), cell is the status icon + tooltip.
+  { key: 'status', icon: 'mdi-heart-pulse', tooltip: t('system.node.headerStatus'), sortable: true, align: 'center', exportValue: (r) => r.status || (r.enabled === false ? t('system.node.statusDisabled') : '') },
   { key: 'name', label: t('system.node.headerName'), sortable: true, icon: 'mdi-server-outline' },
   { key: 'type', label: t('system.node.headerType'), sortable: true, align: 'center', icon: 'mdi-shape-outline', exportValue: (r) => typeLabel(r) },
   { key: 'mode', label: t('system.node.headerMode'), sortable: false, align: 'center', icon: 'mdi-cog-outline', exportValue: (r) => r.mode || 'all' },
-  { key: 'enabled', label: t('system.node.headerStatus'), sortable: true, icon: 'mdi-power', exportValue: (r) => (r.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled')) },
 ])
 
 function typeLabel(item) { const k = nodeType(item); return t('system.node.type' + k.charAt(0).toUpperCase() + k.slice(1)) }
-
-// Lazy-load a node's live operational status when its status tooltip first
-// opens — only for instances (service/tool nodes have no runtime status). The
-// SubscriptionStatus component merges the result to complete its tooltip.
-async function loadNodeDetails(node) {
-  if (!node?.id || !isInstance(node)) return null
-  try {
-    const status = await api.get(`rest/node/status/${encodeURIComponent(node.id)}`, { silent: true })
-    return status ? { status } : null
-  } catch { return null }
-}
 
 const stats = computed(() => {
   const by = (ty) => items.value.filter((n) => nodeType(n) === ty).length
@@ -148,7 +138,8 @@ const stats = computed(() => {
 
 async function load() {
   loading.value = true; error.value = null
-  try { const d = await api.get('rest/node'); items.value = Array.isArray(d) ? d : (d?.data || []) }
+  // status=true → NodeResource#findAll also returns each node's last known status.
+  try { const d = await api.get('rest/node?status=true'); items.value = Array.isArray(d) ? d : (d?.data || []) }
   catch { error.value = t('common.loadError') || 'Load error' }
   loading.value = false
 }

@@ -530,4 +530,6 @@ export default {
   'subscription.tip.created': 'Créé',
   'subscription.tip.modified': 'Modifié',
   'subscription.tip.modeAll': 'Tous',
+  'subscription.tip.clickRefresh': 'Cliquer pour actualiser',
+  'subscription.tip.refreshing': 'Actualisation…',
 }

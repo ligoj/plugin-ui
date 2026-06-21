@@ -13,9 +13,10 @@
   or a bare `node` (+ `status`) for node-only contexts (e.g. node tables).
 -->
 <template>
-  <v-tooltip location="top" max-width="420" open-delay="120" @update:model-value="onToggle">
+  <v-tooltip v-if="showStatus" location="top" max-width="420" open-delay="120">
     <template #activator="{ props: a }">
-      <span v-bind="a" class="sst-dot" :class="dot" :aria-label="statusText" />
+      <span v-bind="a" class="sst-dot" :class="[dot, { clickable: canRefresh, refreshing }]" :aria-label="statusText"
+        :role="canRefresh ? 'button' : undefined" @click.stop="doRefresh" />
     </template>
     <div class="sst">
       <!-- node chain: service → tool → instance -->
@@ -45,42 +46,37 @@
         <div class="sst-ptitle">{{ t('subscription.tip.parameters') }}</div>
         <div v-for="p in params" :key="p.id" class="sst-param"><span class="sst-pk">{{ p.label }}</span><span class="sst-pv">{{ p.value }}</span></div>
       </template>
+
+      <!-- Footer notice: click the dot to actively re-check the status. -->
+      <template v-if="canRefresh">
+        <div class="sst-sep" />
+        <div class="sst-foot">
+          <v-icon size="13" :class="{ spin: refreshing }">mdi-refresh</v-icon>
+          <span>{{ refreshing ? t('subscription.tip.refreshing') : t('subscription.tip.clickRefresh') }}</span>
+        </div>
+      </template>
     </div>
   </v-tooltip>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { NodeIcon, useI18nStore, nodeType } from '@ligoj/host'
+import { NodeIcon, useApi, useI18nStore, nodeType } from '@ligoj/host'
 
 const props = defineProps({
   subscription: { type: Object, default: null },
   node: { type: Object, default: null },
   status: { type: [String, Object, Number], default: null },
-  // Optional lazy loader: called ONCE when the tooltip first opens, with the
-  // base subscription/node. The resolved object is merged over the base to
-  // complete the tooltip (e.g. a node's live status / parameters). null = skip.
-  fetch: { type: Function, default: null },
 })
 
 const t = useI18nStore().t
+const api = useApi()
 
 const isSub = computed(() => !!props.subscription)
 const base = computed(() => props.subscription || props.node || null)
-// Details fetched lazily on first tooltip open, shallow-merged over the base.
+// Live-refresh result, shallow-merged over the base (status / parameters / data).
 const extra = ref(null)
 const data = computed(() => (extra.value && base.value ? { ...base.value, ...extra.value } : (base.value || {})))
-
-// Lazy fetch the first time the tooltip is shown (hover / focus).
-let fetched = false
-async function onToggle(open) {
-  if (!open || fetched || typeof props.fetch !== 'function') return
-  fetched = true
-  try {
-    const d = await props.fetch(base.value)
-    if (d && typeof d === 'object') extra.value = d
-  } catch { /* keep the base data */ }
-}
 
 const rootNode = computed(() => (isSub.value ? (data.value.node || null) : (props.node ? data.value : null)))
 const rawStatus = computed(() => data.value.status ?? props.status ?? null)
@@ -97,36 +93,73 @@ const DOT_META = {
   warn: { c: '#d98a16', i: 'mdi-alert-circle' },
   err: { c: '#df4d42', i: 'mdi-close-circle' },
   idle: { c: '#9aa0a6', i: 'mdi-help-circle' },
+  disabled: { c: '#6b7280', i: 'mdi-power-off' },
 }
-// Node rows have no operational UP/DOWN status — fall back to the enabled flag
-// so the dot still reflects something meaningful (enabled → green, else grey).
+// `enabled === false` (NodeVo: plug-in / resource unavailable) → a BLACK dot,
+// regardless of any stale operational status.
 const enabledFlag = computed(() => {
   if (typeof rootNode.value?.enabled === 'boolean') return rootNode.value.enabled
   if (typeof data.value.enabled === 'boolean') return data.value.enabled
   return null
+})
+const isDisabled = computed(() => enabledFlag.value === false)
+// service / tool / feature nodes have no status check to perform → show nothing,
+// UNLESS the node is disabled (black dot). Subscriptions and instances always show.
+const showStatus = computed(() => {
+  if (isSub.value) return true
+  if (isDisabled.value) return true
+  return !!rootNode.value && nodeType(rootNode.value) === 'instance'
 })
 const hasOpStatus = computed(() => {
   const r = rawStatus.value
   return r != null && String(r?.status ?? r) !== ''
 })
 const dot = computed(() => {
+  if (isDisabled.value) return 'disabled'
   if (hasOpStatus.value) return statusDot(rawStatus.value)
-  if (enabledFlag.value === true) return 'ok'
   return 'idle'
 })
 const dotColor = computed(() => DOT_META[dot.value].c)
 const dotIcon = computed(() => DOT_META[dot.value].i)
 const statusText = computed(() => {
+  if (isDisabled.value) return t('system.node.statusDisabled')
   if (hasOpStatus.value) {
     const key = `subscription.status.${dot.value}`
     const v = t(key)
     return v !== key ? v : (String(rawStatus.value?.status ?? rawStatus.value ?? '').toUpperCase() || dot.value)
   }
-  if (enabledFlag.value !== null) return t(enabledFlag.value ? 'system.node.statusEnabled' : 'system.node.statusDisabled')
-  const key = `subscription.status.${dot.value}`
+  const key = 'subscription.status.idle'
   const v = t(key)
-  return v !== key ? v : dot.value
+  return v !== key ? v : '—'
 })
+
+// Click-to-refresh: actively re-check the status. Node → checkNodeStatus (a live
+// probe, POST), subscription → refreshStatus (GET). Only instances are
+// node-refreshable (service/tool nodes have no runtime status).
+const canRefresh = computed(() => isSub.value || (!!rootNode.value && nodeType(rootNode.value) === 'instance'))
+const refreshing = ref(false)
+async function doRefresh() {
+  const target = base.value
+  if (!canRefresh.value || refreshing.value || target?.id == null) return
+  refreshing.value = true
+  try {
+    if (isSub.value) {
+      const resp = await api.get(`rest/subscription/status/${encodeURIComponent(target.id)}/refresh`, { silent: true, raw: true })
+      if (resp.ok) {
+        const d = await resp.json()
+        if (d && typeof d === 'object') extra.value = { ...(extra.value || {}), status: d.status, parameters: d.parameters, data: d.data }
+      }
+    } else {
+      const resp = await api.post(`rest/node/status/refresh/${encodeURIComponent(target.id)}`, null, { silent: true, raw: true })
+      if (resp.ok) {
+        const txt = (await resp.text()).trim().replace(/^"|"$/g, '')
+        extra.value = { ...(extra.value || {}), status: txt || null }
+      }
+    }
+  } catch { /* keep the current data */ } finally {
+    refreshing.value = false
+  }
+}
 
 // Node chain (instance → tool → service), classified by id depth, oldest first.
 const TYPE_LABEL = {
@@ -161,9 +194,9 @@ const modeText = computed(() => {
 })
 
 const enabledText = computed(() => {
-  // Shown as a separate line only when the dot reflects an OPERATIONAL status;
-  // for node rows the Status line already conveys enabled/disabled.
-  if (!hasOpStatus.value || enabledFlag.value === null) return ''
+  // Separate line only for an OPERATIONAL status (not the disabled-black case,
+  // where the Status line already says "Disabled").
+  if (isDisabled.value || !hasOpStatus.value || enabledFlag.value === null) return ''
   return t(enabledFlag.value ? 'system.node.statusEnabled' : 'system.node.statusDisabled')
 })
 
@@ -207,6 +240,13 @@ const params = computed(() => {
 .sst-dot.warn { background: #d98a16; color: #d98a16; }
 .sst-dot.err { background: #df4d42; color: #df4d42; }
 .sst-dot.idle { background: #9aa0a6; color: #9aa0a6; }
+/* enabled === false → a black dot. */
+.sst-dot.disabled { background: #111827; color: #111827; }
+.sst-dot.clickable { cursor: pointer; }
+/* Loading indicator: blink the dot while a refresh is in flight. */
+.sst-dot.refreshing { animation: sst-blink .8s ease-in-out infinite; }
+@keyframes sst-blink { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
+@media (prefers-reduced-motion: reduce) { .sst-dot.refreshing { animation: none; } }
 
 /* Tooltip body (teleported; avoid .lj-surface tokens — they don't cascade
    there. The dim styling rides on the tooltip's own text colour). */
@@ -228,4 +268,8 @@ const params = computed(() => {
 .sst-param { display: flex; justify-content: space-between; gap: 12px; }
 .sst-pk { opacity: .7; white-space: nowrap; }
 .sst-pv { font-family: ui-monospace, SFMono-Regular, monospace; text-align: right; word-break: break-all; }
+.sst-foot { display: flex; align-items: center; gap: 6px; font-size: 11px; opacity: .8; }
+.sst-foot .spin { animation: sst-spin .8s linear infinite; }
+@keyframes sst-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .sst-foot .spin { animation: none; } }
 </style>
