@@ -23,7 +23,7 @@
       <template #actions>
         <LjButton v-if="project" variant="ghost" icon="mdi-clock-outline" @click="auditDialog = true">{{ t('common.audit') || 'Audit' }}</LjButton>
         <LjButton variant="ghost" icon="mdi-pencil" @click="editDialog = true">{{ t('project.detail.edit') }}</LjButton>
-        <LjButton icon="mdi-plus" @click="openSubscribe">{{ t('project.detail.addSubscription') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi('rest/subscription', 'POST')" icon="mdi-plus" @click="openSubscribe">{{ t('project.detail.addSubscription') }}</LjButton>
       </template>
     </LjPageHeader>
 
@@ -38,7 +38,7 @@
         <div class="empty">
           <v-icon size="44" color="rgba(var(--v-theme-on-surface),.25)">mdi-cloud-off-outline</v-icon>
           <p>{{ t('project.detail.noSubscriptions') }}</p>
-          <LjButton icon="mdi-plus" @click="openSubscribe">{{ t('project.detail.addSubscription') }}</LjButton>
+          <LjButton v-if="auth.isAllowedApi('rest/subscription', 'POST')" icon="mdi-plus" @click="openSubscribe">{{ t('project.detail.addSubscription') }}</LjButton>
         </div>
       </template>
     </SubscriptionsPanel>
@@ -53,7 +53,7 @@
              route — it's a plugin concern surfaced through the plugin's own
              `renderFeatures` button (e.g. the VM Configure cog), rendered
              inline on the row. The host menu keeps only unsubscribe. -->
-        <button class="danger" @click="deleteSub"><v-icon size="16">mdi-delete-outline</v-icon>{{ t('project.detail.unsubscribe') || t('common.delete') || 'Supprimer' }}</button>
+        <button v-if="auth.isAllowedApi('rest/subscription', 'DELETE')" class="danger" @click="deleteSub"><v-icon size="16">mdi-delete-outline</v-icon>{{ t('project.detail.unsubscribe') || t('common.delete') || 'Supprimer' }}</button>
       </div>
     </div>
 
@@ -64,7 +64,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, h } from 'vue'
 import { useRoute } from 'vue-router'
-import { useApi, useAppStore, useI18nStore, NodeIcon, VIcon, LjPageHeader, LjButton } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useI18nStore, NodeIcon, VIcon, LjPageHeader, LjButton } from '@ligoj/host'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import SubscribeWizardDialog from './SubscribeWizardView.vue'
 import AuditDialog from '../components/AuditDialog.vue'
@@ -73,6 +73,7 @@ import SubscriptionsPanel from '../components/SubscriptionsPanel.vue'
 const route = useRoute()
 const api = useApi()
 const appStore = useAppStore()
+const auth = useAuthStore()
 const i18n = useI18nStore()
 const t = i18n.t
 
