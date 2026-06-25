@@ -77,7 +77,7 @@
           </div>
           <v-text-field v-if="(editDetails.mails || []).length" :model-value="editDetails.mails.join(' ')" prepend-inner-icon="mdi-email-outline" :label="t('system.user.fieldMail')" readonly hide-details variant="outlined" density="comfortable" class="ro-field" />
         </fieldset>
-        <v-autocomplete v-model="editForm.roles" :label="t('system.user.fieldRoles')" prepend-inner-icon="mdi-shield-account-outline" :items="allRoles" item-value="id" item-title="name"
+        <LigojAutocomplete v-model="editForm.roles" :label="t('system.user.fieldRoles')" prepend-inner-icon="mdi-shield-account-outline" :items="allRoles" item-value="id" item-title="name"
           multiple chips closable-chips variant="outlined" :rules="[rules.requiredArray]" :hint="t('system.user.rolesHint')" persistent-hint />
       </v-form>
       <template #footer>
@@ -95,7 +95,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField, LigojAutocomplete } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()

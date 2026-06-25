@@ -13,7 +13,7 @@
         <v-text-field v-model="form.name" :label="t('project.name')" :rules="[rules.required]" prepend-inner-icon="mdi-form-textbox" variant="outlined" class="mb-2" autofocus @update:model-value="onNameChanged" />
         <v-text-field v-model="form.pkey" :label="t('project.pkey')" :rules="[rules.required, rules.pkey]" :disabled="pkeyLocked" :hint="pkeyLocked ? t('project.pkeyLocked') : t('project.pkeyHint')" persistent-hint
           prepend-inner-icon="mdi-key" variant="outlined" class="mb-2" />
-        <v-autocomplete v-model="form.teamLeader" v-model:search="leaderSearch" :label="t('project.teamLeader')" :items="leaderDisplayItems" item-title="label" item-value="id" :loading="leaderLoading"
+        <LigojAutocomplete v-model="form.teamLeader" v-model:search="leaderSearch" :label="t('project.teamLeader')" :items="leaderDisplayItems" item-title="label" item-value="id" :loading="leaderLoading"
           :rules="[rules.required]" :hint="t('project.teamLeaderHint')" persistent-hint prepend-inner-icon="mdi-account-star" no-filter clearable auto-select-first variant="outlined" class="mb-2"
           autocomplete="off" @update:search="onLeaderSearch" @update:menu="onLeaderMenu" />
         <v-textarea v-model="form.description" :label="t('project.description')" rows="3" prepend-inner-icon="mdi-text-long" variant="outlined" class="mb-2" />
@@ -27,7 +27,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useApi, useI18nStore, LjDialog, LjButton } from '@ligoj/host'
+import { useApi, useI18nStore, LjDialog, LjButton, LigojAutocomplete } from '@ligoj/host'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },

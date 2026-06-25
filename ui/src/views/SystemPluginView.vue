@@ -103,7 +103,7 @@
 
     <!-- Install dialog (shared chrome) -->
     <LjDialog v-model="installDialog" :title="t('system.plugin.installTitle')" icon="mdi-puzzle-plus-outline" :max-width="640">
-      <v-autocomplete v-model="installSelection" v-model:search="installSearch" :items="searchResults" item-value="artifact" :label="t('system.plugin.searchArtifacts')"
+      <LigojAutocomplete v-model="installSelection" v-model:search="installSearch" :items="searchResults" item-value="artifact" :label="t('system.plugin.searchArtifacts')"
         :hint="t('system.plugin.searchHint', { repository })" persistent-hint multiple chips closable-chips clearable variant="outlined" :loading="searching" no-filter return-object autofocus
         prepend-inner-icon="mdi-puzzle-plus-outline">
         <template #item="{ props: ip, item }">
@@ -112,7 +112,7 @@
         <template #no-data>
           <v-list-item :title="installSearch ? t('system.plugin.searchNoMatch') : t('system.plugin.searchPrompt')" />
         </template>
-      </v-autocomplete>
+      </LigojAutocomplete>
       <v-checkbox v-model="installJavadoc" :label="t('system.plugin.installJavadoc')" density="comfortable" hide-details class="mt-1" />
       <div v-if="installing" class="prog"><div class="bar"><i :style="{ width: (installProgress.total ? Math.round(installProgress.current / installProgress.total * 100) : 0) + '%' }" /></div>
         <p>{{ t('system.plugin.installProgress', { current: installProgress.current, total: installProgress.total, label: installProgress.label }) }}</p></div>
@@ -165,7 +165,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useApi, useAppStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus, LigojAutocomplete } from '@ligoj/host'
 import { statusHeader } from '../useUiHelpers.js'
 
 const api = useApi()
