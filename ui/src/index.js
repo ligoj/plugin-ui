@@ -67,6 +67,7 @@ import SystemInfoView from './views/SystemInfoView.vue'
 import SystemUserLogView from './views/SystemUserLogView.vue'
 import ActuatorView from './views/ActuatorView.vue'
 import SystemConfigurationView from './views/SystemConfigurationView.vue'
+import SystemHookView from './views/SystemHookView.vue'
 import SystemUserView from './views/SystemUserView.vue'
 import SystemRoleView from './views/SystemRoleView.vue'
 import SystemPluginView from './views/SystemPluginView.vue'
@@ -108,6 +109,7 @@ const routes = [
   { path: '/system/actuator', redirect: '/system/information/actuator/info' },
   { path: '/system/logs', redirect: '/system/information/actuator/logfile' },
   { path: '/system/configuration', name: 'ui-system-configuration', component: SystemConfigurationView },
+  { path: '/system/hook', name: 'ui-system-hook', component: SystemHookView },
   { path: '/system/user', name: 'ui-system-user', component: SystemUserView },
   { path: '/system/role', name: 'ui-system-role', component: SystemRoleView },
   { path: '/system/plugin', name: 'ui-system-plugin', component: SystemPluginView },
