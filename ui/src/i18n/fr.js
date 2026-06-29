@@ -151,6 +151,11 @@ export default {
   'system.config.tipOverridden': 'Surchargée',
   'system.config.sourcePrefix': 'Source : {source}',
   'system.config.sourceOverridden': '{base} — surchargée',
+  'system.config.source.systemEnvironment': 'Variable d\'environnement du système d\'exploitation.',
+  'system.config.source.systemProperties': 'Propriété système Java (-D…).',
+  'system.config.source.applicationConfig': 'Fichier de configuration de l\'application.',
+  'system.config.source.database': 'Stockée en base Ligoj (modifiable ici).',
+  'system.config.source.classpath': 'Embarquée dans le classpath de l\'application.',
 
   // Système → Cache
   'system.cache.title': 'Caches',

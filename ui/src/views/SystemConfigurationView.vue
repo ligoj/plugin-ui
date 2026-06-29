@@ -64,10 +64,19 @@
         <code v-else class="cval" :title="item.value">{{ item.value }}</code>
       </template>
       <template #cell.source="{ item }">
-        <span class="srcpill" :title="item.source || ''">
-          <v-icon size="14">{{ sourceIcon(item.source) }}</v-icon><span class="src-txt">{{ sourceLabel(item.source) }}</span>
+        <span class="srcpill">
+          <v-icon size="15">{{ sourceIcon(item.source) }}</v-icon>
+          <v-tooltip activator="parent" location="top" max-width="320">
+            <div class="src-tip">
+              <b class="src-tip-name">{{ sourceLabel(item.source) }}</b>
+              <span class="src-tip-exp">{{ sourceExplanation(item.source) }}</span>
+            </div>
+          </v-tooltip>
         </span>
-        <span v-if="item.overridden" class="ovr" :title="t('system.config.tipOverridden')"><v-icon size="13">mdi-alert</v-icon></span>
+        <span v-if="item.overridden" class="ovr">
+          <v-icon size="13">mdi-alert</v-icon>
+          <v-tooltip activator="parent" location="top" :text="t('system.config.tipOverridden')" />
+        </span>
       </template>
       <template #actions="{ item }">
         <RowActionsCog>
@@ -194,14 +203,31 @@ const SOURCE_ICONS = {
   database: 'mdi-database',
   classpath: 'mdi-file-code-outline',
 }
+const SOURCE_EXPLANATIONS = {
+  systemEnvironment: 'system.config.source.systemEnvironment',
+  systemProperties: 'system.config.source.systemProperties',
+  applicationConfig: 'system.config.source.applicationConfig',
+  database: 'system.config.source.database',
+  classpath: 'system.config.source.classpath',
+}
+// Map a raw source string to its known type key (shared by icon + tooltip):
+// classpath wins if mentioned anywhere, otherwise the prefix before ':'.
+function sourceKey(source) {
+  if (!source) return null
+  return source.includes('classpath') ? 'classpath' : source.split(':')[0]
+}
 function sourceIcon(source) {
-  if (!source) return 'mdi-help-circle-outline'
-  const key = source.split(':')[0]
-  return SOURCE_ICONS[source.includes('classpath') ? 'classpath' : key] || 'mdi-help-circle-outline'
+  return SOURCE_ICONS[sourceKey(source)] || 'mdi-help-circle-outline'
 }
 function sourceLabel(source) {
   if (!source) return '—'
   return source.split(':')[0].replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase()).trim()
+}
+// Business explanation shown in the tooltip; unknown types fall back to the
+// raw source string so nothing is hidden from the operator.
+function sourceExplanation(source) {
+  const key = sourceKey(source)
+  return SOURCE_EXPLANATIONS[key] ? t(SOURCE_EXPLANATIONS[key]) : (source || '')
 }
 
 /* --- crypto helper --- */
@@ -336,9 +362,13 @@ onMounted(() => {
 .kname { font-family: var(--mono); font-size: 12.5px; font-weight: 600; color: var(--ink); word-break: break-all; }
 .masked { font-family: var(--mono); color: var(--ink-3); letter-spacing: .1em; }
 .cval { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); background: var(--pill); padding: 2px 8px; border-radius: var(--radius-sm); display: inline-block; max-width: 460px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
-.srcpill { display: inline-flex; align-items: center; gap: 5px; max-width: 240px; font-family: var(--font); font-weight: 700; font-size: 11px; padding: 3px 10px; border-radius: 999px; color: var(--ink-2); background: var(--pill); }
+/* Source column is icon-only (the name + business explanation live in the
+   hover tooltip): a compact circular badge sized to the glyph. */
+.srcpill { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; color: var(--ink-2); background: var(--pill); cursor: default; }
 .srcpill :deep(.v-icon) { flex: none; }
-.src-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.src-tip { display: flex; flex-direction: column; gap: 2px; }
+.src-tip-name { font-weight: 700; }
+.src-tip-exp { font-size: 12px; opacity: .85; }
 .ovr { color: #d9701a; margin-left: 5px; vertical-align: middle; }
 
 /* Custom checkboxes inside the edit dialog (slotted content keeps this
