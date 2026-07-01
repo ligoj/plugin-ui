@@ -73,6 +73,7 @@ import SystemPluginView from './views/SystemPluginView.vue'
 import SystemNodeView from './views/SystemNodeView.vue'
 import SystemCacheView from './views/SystemCacheView.vue'
 import SystemBenchView from './views/SystemBenchView.vue'
+import SystemTaskView from './views/SystemTaskView.vue'
 
 import ApiHomeView from './views/ApiHomeView.vue'
 import ApiTokenView from './views/ApiTokenView.vue'
@@ -114,6 +115,7 @@ const routes = [
   { path: '/system/node', name: 'ui-system-node', component: SystemNodeView },
   { path: '/system/cache', name: 'ui-system-cache', component: SystemCacheView },
   { path: '/system/bench', name: 'ui-system-bench', component: SystemBenchView },
+  { path: '/system/task', name: 'ui-system-task', component: SystemTaskView },
 
   { path: '/api', name: 'ui-api', component: ApiHomeView },
   { path: '/api/token', name: 'ui-api-token', component: ApiTokenView },
