@@ -254,6 +254,8 @@ export default {
   // System → Nodes
   'system.node.title': 'Nodes',
   'system.node.new': 'New node',
+  'system.node.refreshStatus': 'Refresh status',
+  'system.node.refreshStatuses': 'Refresh all statuses',
   'system.node.createTitle': 'Create node',
   'system.node.headerIdentifier': 'Identifier',
   'system.node.headerName': 'Name',

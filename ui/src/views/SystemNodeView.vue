@@ -62,13 +62,28 @@
         <SubscriptionStatus :node="item" />
       </template>
       <template #actions="{ item }">
-        <!-- Only instances can be edited/deleted; service/tool/feature nodes
-             have no actions, so the cog menu is omitted for them. -->
-        <RowActionsCog v-if="isInstance(item)">
-          <button @click="startEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
-          <div class="sep" />
-          <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+        <!-- Every row gets a status-refresh action in the cog menu; instances
+             additionally expose edit / delete. -->
+        <RowActionsCog>
+          <button :disabled="isRefreshing(item.id)" @click="refreshNode(item)">
+            <v-progress-circular v-if="isRefreshing(item.id)" size="18" width="2" indeterminate />
+            <v-icon v-else size="18">mdi-refresh</v-icon>{{ t('system.node.refreshStatus') }}
+          </button>
+          <template v-if="isInstance(item)">
+            <div class="sep" />
+            <button @click="startEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+            <div class="sep" />
+            <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+          </template>
         </RowActionsCog>
+      </template>
+      <!-- Table-wide status refresh, appended to the tools cog after a divider
+           (separated from the built-in Export / Copy). -->
+      <template #tools-extra>
+        <button :disabled="refreshingAll" @click="refreshAllStatuses">
+          <v-progress-circular v-if="refreshingAll" size="18" width="2" indeterminate />
+          <v-icon v-else size="18">mdi-refresh</v-icon>{{ t('system.node.refreshStatuses') }}
+        </button>
       </template>
     </VibrantDataTable>
 
@@ -155,6 +170,29 @@ function startCreate() { createDialog.value = true }
 // parameters to update, so a row click on them is a no-op.
 function startEdit(item) { if (!isInstance(item)) return; editTarget.value = item; editDialog.value = true }
 function onSaved() { load() }
+
+// Status refresh — a single tool node (row action) or every node (tools cog).
+// Both POST NodeResource's status/refresh endpoints then reload, so the new
+// node status (and any cascaded subscription status) shows. `silent: true`
+// keeps the global error snackbar quiet: a failed probe just leaves the
+// previous status untouched. A per-id Set drives the row spinner (re-keyed on
+// change so the ref reacts) and survives the reload since it keys by node id.
+const refreshingIds = ref(new Set())
+const refreshingAll = ref(false)
+function isRefreshing(id) { return refreshingIds.value.has(id) }
+async function refreshNode(item) {
+  const id = item?.id
+  if (id == null || refreshingIds.value.has(id)) return
+  refreshingIds.value = new Set(refreshingIds.value).add(id)
+  try { await api.post(`rest/node/status/refresh/${encodeURIComponent(id)}`, null, { silent: true }); await load() }
+  finally { const s = new Set(refreshingIds.value); s.delete(id); refreshingIds.value = s }
+}
+async function refreshAllStatuses() {
+  if (refreshingAll.value) return
+  refreshingAll.value = true
+  try { await api.post('rest/node/status/refresh', null, { silent: true }); await load() }
+  finally { refreshingAll.value = false }
+}
 
 const deleteDialog = ref(false)
 const deleteTarget = ref(null)

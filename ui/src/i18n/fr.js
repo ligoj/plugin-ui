@@ -253,6 +253,8 @@ export default {
   // Système → Nœuds
   'system.node.title': 'Nœuds',
   'system.node.new': 'Nouveau nœud',
+  'system.node.refreshStatus': 'Rafraîchir le statut',
+  'system.node.refreshStatuses': 'Rafraîchir tous les statuts',
   'system.node.createTitle': 'Créer un nœud',
   'system.node.headerIdentifier': 'Identifiant',
   'system.node.headerName': 'Nom',
