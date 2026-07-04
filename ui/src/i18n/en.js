@@ -152,6 +152,11 @@ export default {
   'system.config.tipOverridden': 'Overridden',
   'system.config.sourcePrefix': 'Source: {source}',
   'system.config.sourceOverridden': '{base} — overridden',
+  'system.config.source.systemEnvironment': 'Operating-system environment variable.',
+  'system.config.source.systemProperties': 'Java system property (-D…).',
+  'system.config.source.applicationConfig': 'Application configuration file.',
+  'system.config.source.database': 'Stored in the Ligoj database (editable here).',
+  'system.config.source.classpath': 'Bundled in the application classpath.',
 
   // System → Hooks
   'system.hook.title': 'Hooks',
