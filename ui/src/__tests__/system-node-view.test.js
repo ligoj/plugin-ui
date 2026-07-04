@@ -102,4 +102,59 @@ describe('SystemNodeView status refresh', () => {
     const urls = postCalls().map((c) => c[0])
     expect(urls).toContain('rest/node/status/refresh')
   })
+
+  it('shows a computed health dot + bi-colour bar per stat card', async () => {
+    // Two instances — one up, one down → the instance/total cards are mixed.
+    globalThis.fetch = vi.fn((url, opts) =>
+      Promise.resolve((opts?.method || 'GET') === 'GET'
+        ? jsonResponse([
+          { id: 'service:build:jenkins:1', name: 'up', status: 'UP' },
+          { id: 'service:build:jenkins:2', name: 'down', status: 'DOWN' },
+        ])
+        : jsonResponse('UP')))
+    const w = mountView()
+    await flushPromises()
+
+    // One LjStatus dot per stat card (total / service / tool / instance).
+    expect(w.findAll('.stat .lj-status')).toHaveLength(4)
+    // Instance card (last): 1 up + 1 down → warn dot, red segment at 50%.
+    const instanceCard = w.findAll('.stat')[3]
+    expect(instanceCard.find('.lj-status--warn').exists()).toBe(true)
+    expect(instanceCard.find('.sbar .up').attributes('style')).toContain('width: 50%')
+    expect(instanceCard.find('.sbar .down').attributes('style')).toContain('width: 50%')
+    // Service card: no such nodes → idle dot, empty bar.
+    expect(w.findAll('.stat')[1].find('.lj-status--idle').exists()).toBe(true)
+  })
+
+  it('derives tool/service health from instances; no-status is never an error', async () => {
+    // jenkins (tool) has a healthy instance; git (tool) has NO instances but a
+    // failed direct probe. build (service) covers jenkins; scm covers git.
+    globalThis.fetch = vi.fn((url, opts) =>
+      Promise.resolve((opts?.method || 'GET') === 'GET'
+        ? jsonResponse([
+          { id: 'service:build' },
+          { id: 'service:build:jenkins' },
+          { id: 'service:build:jenkins:1', name: 'inst', status: 'UP', refined: { id: 'service:build:jenkins', refined: { id: 'service:build' } } },
+          { id: 'service:scm' },
+          { id: 'service:scm:git', status: 'DOWN' },
+        ])
+        : jsonResponse('UP')))
+    const w = mountView()
+    await flushPromises()
+    const cards = w.findAll('.stat') // total · service · tool · instance
+
+    // Tool card: jenkins healthy (via its instance) + git "no status data"
+    // (its own DOWN probe is ignored) → GREEN, not error; red segment empty.
+    const tool = cards[2]
+    expect(tool.find('.lj-status--ok').exists()).toBe(true)
+    expect(tool.find('.lj-status--error').exists()).toBe(false)
+    expect(tool.find('.sbar .down').attributes('style')).toContain('width: 0%')
+    const tip = tool.find('.lj-status').attributes('aria-label')
+    expect(tip).toContain('1 healthy')
+    expect(tip).toContain('1 no status data')
+
+    // Service card: build healthy (descendant instance) + scm no-status → green.
+    expect(cards[1].find('.lj-status--ok').exists()).toBe(true)
+    expect(cards[1].find('.lj-status').attributes('aria-label')).toContain('1 no status data')
+  })
 })

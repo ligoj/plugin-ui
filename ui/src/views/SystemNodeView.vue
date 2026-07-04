@@ -2,7 +2,7 @@
   SystemNodesView — 2026 "Vibrant" node manager (Administration → Nodes).
   Ports plugin-ui's SystemNodeView logic (rest/node list + create/edit via the
   node dialog + delete of instances) onto the Vibrant chrome: breadcrumb-chip
-  header, KPI stat cards with proportion bars, a custom type filter (same
+  header, KPI stat cards with a computed status dot + bi-colour health bar, a custom type filter (same
   picker pattern as the locale selector), VibrantDataTable with NodeIcon
   branding, a coloured type pill, NodeModeChip, a glowing status dot and
   edit/delete row actions. Mockup ref: viewNodes.
@@ -36,8 +36,16 @@
             <div class="snum">{{ s.value }}</div>
             <div class="slabel">{{ s.label }}</div>
           </div>
+          <!-- Computed group health as the shared status dot (ok / warn / error
+               / idle), with an up-vs-down summary tooltip. -->
+          <LjStatus class="sstatus" :status="s.health" :tooltip="s.healthTip" />
         </div>
-        <div class="sbar"><i :style="{ width: s.pct + '%' }" /></div>
+        <!-- Bi-coloured health bar: green (healthy / up) then red (unhealthy /
+             down); the remaining track is nodes with no known status. -->
+        <div class="sbar">
+          <i class="up" :style="{ width: s.upPct + '%' }" />
+          <i class="down" :style="{ width: s.downPct + '%' }" />
+        </div>
       </div>
     </div>
 
@@ -99,7 +107,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi, useAppStore, useI18nStore, NodeIcon, NodeModeChip, isInstance, nodeType } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjStatus } from '@ligoj/host'
 import NodeEditDialog from './NodeEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
 import SubscriptionStatus from '../components/SubscriptionStatus.vue'
@@ -140,15 +148,83 @@ const headers = computed(() => [
 
 function typeLabel(item) { const k = nodeType(item); return t('system.node.type' + k.charAt(0).toUpperCase() + k.slice(1)) }
 
+// Operational health of an INSTANCE from its own last status: 'up' (healthy),
+// 'down' (a failed/degraded probe or a disabled instance) or 'unknown' (never
+// probed). Only instances carry a real runtime status — tools/services below
+// aggregate the instances beneath them, not their own (rare) direct probe.
+function instanceHealth(n) {
+  if (n.enabled === false) return 'down'
+  const s = String(n.status ?? '').toLowerCase()
+  if (s === 'up' || s === 'ok') return 'up'
+  if (s === 'down' || s === 'ko' || s === 'error' || s === 'warn' || s === 'blocked') return 'down'
+  return 'unknown'
+}
+
+// Roll instance health up the hierarchy: each instance's health is attributed
+// to itself and every ancestor via the `refined` parent chain. Returns a Map of
+// node id → { up, down } instance counts. A node missing from the map (a tool
+// with no instances, an unprobed service) has "no status data" — NOT an error.
+function buildHealthIndex(nodes) {
+  const idx = new Map()
+  for (const n of nodes) {
+    if (nodeType(n) !== 'instance') continue
+    const h = instanceHealth(n)
+    if (h === 'unknown') continue
+    let cur = n
+    let guard = 0
+    while (cur && cur.id && guard++ < 6) {
+      const e = idx.get(cur.id) || { up: 0, down: 0 }
+      e[h]++
+      idx.set(cur.id, e)
+      cur = cur.refined
+    }
+  }
+  return idx
+}
+
+// Derived health bucket of any node from the instances beneath it.
+function derivedHealth(node, idx) {
+  const e = idx.get(node.id)
+  if (!e || e.up + e.down === 0) return 'unknown'
+  return e.down === 0 ? 'up' : 'down'
+}
+
 const stats = computed(() => {
-  const by = (ty) => items.value.filter((n) => nodeType(n) === ty).length
-  const total = items.value.length || 1
-  const mk = (key, fkey, label, icon, color, value) => ({ key, fkey, label, icon, color, value, pct: fkey === 'all' ? 100 : Math.round(value / total * 100) })
+  const nodes = items.value
+  const idx = buildHealthIndex(nodes)
+  const nodesOf = (fkey) => fkey === 'all' ? nodes : nodes.filter((n) => nodeType(n) === fkey)
+  const mk = (key, fkey, label, icon, color) => {
+    const group = nodesOf(fkey)
+    const value = group.length
+    let up = 0
+    let down = 0
+    for (const n of group) {
+      const h = derivedHealth(n, idx)
+      if (h === 'up') up++
+      else if (h === 'down') down++
+    }
+    const unknown = value - up - down
+    const known = up + down
+    // "No status data" never makes a group unhealthy: idle = nothing
+    // determinate · ok = no failures · error = all-known failing · warn = mixed.
+    const health = known === 0 ? 'idle' : down === 0 ? 'ok' : up === 0 ? 'error' : 'warn'
+    const parts = []
+    if (up) parts.push(t('system.node.healthUp', { count: up }))
+    if (down) parts.push(t('system.node.healthDown', { count: down }))
+    if (unknown) parts.push(t('system.node.healthUnknown', { count: unknown }))
+    const denom = value || 1
+    return {
+      key, fkey, label, icon, color, value, health,
+      upPct: Math.round(up / denom * 100),
+      downPct: Math.round(down / denom * 100),
+      healthTip: parts.length ? parts.join(' · ') : t('system.node.healthNone'),
+    }
+  }
   return [
-    mk('total', 'all', t('system.node.statTotal'), 'mdi-server-network', 'rgb(var(--v-theme-secondary))', items.value.length),
-    mk('service', 'service', t('system.node.typeService'), 'mdi-cube-outline', TYPE_COLOR.service, by('service')),
-    mk('tool', 'tool', t('system.node.typeTool'), 'mdi-hammer-wrench', TYPE_COLOR.tool, by('tool')),
-    mk('instance', 'instance', t('system.node.typeInstance'), 'mdi-server-outline', TYPE_COLOR.instance, by('instance')),
+    mk('total', 'all', t('system.node.statTotal'), 'mdi-server-network', 'rgb(var(--v-theme-secondary))'),
+    mk('service', 'service', t('system.node.typeService'), 'mdi-cube-outline', TYPE_COLOR.service),
+    mk('tool', 'tool', t('system.node.typeTool'), 'mdi-hammer-wrench', TYPE_COLOR.tool),
+    mk('instance', 'instance', t('system.node.typeInstance'), 'mdi-server-outline', TYPE_COLOR.instance),
   ]
 })
 
@@ -367,6 +443,11 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
   gap: 14px;
 }
 
+.sstatus {
+  margin-left: auto;
+  --lj-status-size: 12px;
+}
+
 .sicon {
   width: 46px;
   height: 46px;
@@ -399,14 +480,22 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
   border-radius: 4px;
   background: var(--pill);
   overflow: hidden;
+  display: flex;
 }
 
 .sbar i {
   display: block;
   height: 100%;
-  border-radius: 4px;
-  background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c) 55%, white));
   transition: width .5s cubic-bezier(.2, .7, .3, 1);
+}
+
+/* Healthy (up) then unhealthy (down); leftover width stays the grey track. */
+.sbar .up {
+  background: linear-gradient(90deg, #1d9d63, #37b877);
+}
+
+.sbar .down {
+  background: linear-gradient(90deg, #df4d42, #e8756c);
 }
 
 .errline {
