@@ -261,6 +261,7 @@ export default {
   'system.node.healthNone': 'Aucun statut',
   'system.node.subscriptions': 'Souscriptions',
   'system.node.createTitle': 'Créer un nœud',
+  'system.node.createInstance': 'Créer une instance',
   'system.node.headerIdentifier': 'Identifiant',
   'system.node.headerName': 'Nom',
   'system.node.headerMode': 'Mode',

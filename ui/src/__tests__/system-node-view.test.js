@@ -73,8 +73,9 @@ describe('SystemNodeView status refresh', () => {
       expect(cog.exists()).toBe(true)
       expect(cog.findAll('button').some((b) => b.text().includes('Refresh'))).toBe(true)
     }
-    // Tool row (0): refresh only. Instance row (1): refresh + edit + delete.
-    expect(rows[0].findAll('.cog button')).toHaveLength(1)
+    // Tool row (0): refresh + create-instance. Instance row (1): refresh + edit + delete.
+    expect(rows[0].findAll('.cog button')).toHaveLength(2)
+    expect(rows[0].findAll('.cog button').some((b) => b.text().includes('Create instance'))).toBe(true)
     expect(rows[1].findAll('.cog button')).toHaveLength(3)
     expect(rows[1].find('.cog button.danger').exists()).toBe(true)
   })

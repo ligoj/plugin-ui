@@ -82,6 +82,10 @@
             <v-progress-circular v-if="isRefreshing(item.id)" size="18" width="2" indeterminate />
             <v-icon v-else size="18">mdi-refresh</v-icon>{{ t('system.node.refreshStatus') }}
           </button>
+          <template v-if="isTool(item)">
+            <div class="sep" />
+            <button @click="startCreateInstance(item)"><v-icon size="18">mdi-plus</v-icon>{{ t('system.node.createInstance') }}</button>
+          </template>
           <template v-if="isInstance(item)">
             <div class="sep" />
             <button @click="startEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
@@ -100,7 +104,7 @@
       </template>
     </VibrantDataTable>
 
-    <NodeEditDialog v-model="createDialog" @saved="onSaved" />
+    <NodeEditDialog v-model="createDialog" :seed="createSeed" @saved="onSaved" />
     <NodeEditDialog v-model="editDialog" :node="editTarget" @saved="onSaved" />
     <LigojConfirmDialog v-model="deleteDialog" :title="t('system.node.deleteTitle')" icon="mdi-server-network" confirm-color="error" :confirm-label="t('common.delete')" :loading="deleting"
       @confirm="confirmDelete">
@@ -289,9 +293,14 @@ async function load() {
 }
 
 const createDialog = ref(false)
+const createSeed = ref(null)
 const editDialog = ref(false)
 const editTarget = ref(null)
-function startCreate() { createDialog.value = true }
+function isTool(item) { return nodeType(item) === 'tool' }
+function startCreate() { createSeed.value = null; createDialog.value = true }
+// Create an instance under a tool row: open the create dialog pre-filled with
+// that tool (and its parent service). `refined` on a tool node is its service.
+function startCreateInstance(tool) { createSeed.value = { service: tool.refined, tool }; createDialog.value = true }
 // Only instances are editable: service / tool / feature nodes have no
 // parameters to update, so a row click on them is a no-op.
 function startEdit(item) { if (!isInstance(item)) return; editTarget.value = item; editDialog.value = true }

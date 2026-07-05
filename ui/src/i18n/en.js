@@ -262,6 +262,7 @@ export default {
   'system.node.healthNone': 'No status data',
   'system.node.subscriptions': 'Subscriptions',
   'system.node.createTitle': 'Create node',
+  'system.node.createInstance': 'Create instance',
   'system.node.headerIdentifier': 'Identifier',
   'system.node.headerName': 'Name',
   'system.node.headerMode': 'Mode',

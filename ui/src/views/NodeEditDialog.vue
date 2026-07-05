@@ -79,11 +79,15 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, LjDialog, LjButton, LjSegmented, LjAvailabilityField } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
-import { typeKind, isTextParam, isPassword, coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout } from '../utils/pluginParams.js'
+import { typeKind, isTextParam, isPassword, coerce, buildParamWire, selectValue, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout } from '../utils/pluginParams.js'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   node: { type: Object, default: null }, // present → edit-node
+  // Create-node only: pre-fill the (still editable) service + tool pickers.
+  // Shape: { service: <serviceNode>, tool: <toolNode> }. e.g. "create an
+  // instance" from a tool row in SystemNodeView.
+  seed: { type: Object, default: null },
 })
 const emit = defineEmits(['update:modelValue', 'saved'])
 
@@ -110,6 +114,9 @@ const loadingTools = ref(false)
 const loadingParams = ref(false)
 const saving = ref(false)
 const error = ref(null)
+// Set while pre-filling from `seed` so the cascade watchers don't clobber the
+// values we assign imperatively (they reset tool/mode on service/tool change).
+const seeding = ref(false)
 
 const rules = {
   required: (v) => (v != null && v !== '' && (!Array.isArray(v) || v.length > 0)) || t('wizard.rule.required'),
@@ -174,19 +181,26 @@ async function loadParameters(nodeId, mode) {
 
 /* ---- cascade (create-node) ---- */
 watch(() => selected.service, async (svc) => {
-  if (isEdit.value) return
-  selected.tool = null; selected.mode = null; tools.value = []; parameters.value = []; form.id = ''
+  if (isEdit.value || seeding.value) return
+  selected.tool = null; tools.value = []; form.id = ''
   if (svc) await loadTools(svc.id)
 })
-watch(() => selected.tool, async (tool) => {
-  if (isEdit.value) return
-  selected.mode = null; parameters.value = []
+watch(() => selected.tool, (tool) => {
+  if (isEdit.value || seeding.value) return
   form.id = tool ? `${tool.id}:` : ''
-  if (tool) { const modes = availableModes.value; if (modes.length === 1) selected.mode = modes[0].value }
+  // Auto-pick the mode only when there is exactly one; else force a re-choice.
+  const modes = availableModes.value
+  selected.mode = (tool && modes.length === 1) ? modes[0].value : null
 })
-watch(() => selected.mode, async (mode) => {
-  if (isEdit.value || !mode || !selected.tool) return
-  await loadParameters(selected.tool.id, mode)
+// Load parameters from BOTH the tool and the mode. Watching the mode alone
+// misses a tool switch that leaves the mode value unchanged (e.g. harbor→nexus,
+// both single-mode 'link'): the mode ref ends on the same value so its watcher
+// never refires. Keying on the tool id as well guarantees a reload.
+watch([() => selected.tool?.id, () => selected.mode], async ([toolId, mode]) => {
+  if (isEdit.value || seeding.value) return
+  parameters.value = []
+  if (!toolId || !mode) return
+  await loadParameters(toolId, mode)
 })
 
 /* ---- edit bootstrap ---- */
@@ -210,6 +224,7 @@ async function bootstrapEdit(node) {
       if (k === 'integer') paramValues[p.id] = it.integer ?? ''
       else if (k === 'bool') paramValues[p.id] = !!it.bool
       else if (['multiple', 'multiselect', 'tags'].includes(k)) paramValues[p.id] = it.selections || []
+      else if (k === 'select') paramValues[p.id] = it.index != null ? selectValue(p, it.index) : (it.text ?? '')
       else paramValues[p.id] = it.text ?? ''
     }
   } finally { loadingParams.value = false }
@@ -220,12 +235,35 @@ function reset() {
   tools.value = []; parameters.value = []; form.id = ''; form.name = ''; error.value = null
   for (const k of Object.keys(paramValues)) delete paramValues[k]
 }
+
+/* Create-node with a pre-filled service + tool (e.g. "create an instance" from
+   a tool row). Assigns the selections imperatively behind the `seeding` guard
+   so the cascade watchers don't reset them, then loads tools/params directly.
+   The pickers stay editable — this only seeds the initial choice. */
+async function seedCreate(seed) {
+  seeding.value = true
+  try {
+    if (!services.value.length) await loadServices()
+    selected.service = seed.service
+    if (seed.service?.id) await loadTools(seed.service.id)
+    selected.tool = seed.tool
+    form.id = seed.tool?.id ? `${seed.tool.id}:` : ''
+    const modes = availableModes.value
+    selected.mode = modes.length === 1 ? modes[0].value : null
+    // Load inside the guard so the combined [tool, mode] watcher stays quiet
+    // (it would otherwise fire once seeding clears and double-load).
+    if (selected.tool?.id && selected.mode) await loadParameters(selected.tool.id, selected.mode)
+  } finally {
+    seeding.value = false
+  }
+}
 function onDialogModel(v) { if (!v) emit('update:modelValue', false) }
 
 watch(() => props.modelValue, (val) => {
   if (!val) return
   reset()
   if (isEdit.value) bootstrapEdit(props.node)
+  else if (props.seed) seedCreate(props.seed)
   else if (!services.value.length) loadServices()
 })
 

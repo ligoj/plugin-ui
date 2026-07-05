@@ -21,12 +21,23 @@ export function isTextParam(p) { const k = typeKind(p); return !k || ['text', 'p
 /** Whether a parameter's value must be masked. */
 export function isPassword(p) { return !!p?.secured || typeKind(p) === 'password' }
 
-/** Coerce a parameter's raw default value to the type its field expects. */
+/** Coerce a parameter's raw default value to the type its field expects. A
+ *  SELECT is edited in the form as its option VALUE (see buildParamWire); if the
+ *  default is stored as an option index, resolve it back to the value. */
 export function coerce(p) {
   const k = typeKind(p)
   if (k === 'integer') return Number(p.defaultValue)
   if (k === 'bool') return p.defaultValue === true || p.defaultValue === 'true'
+  if (k === 'select') return selectValue(p, p.defaultValue)
   return p.defaultValue
+}
+
+/** Resolve a SELECT raw value (which may be an option INDEX or the option value
+ *  itself) to the option VALUE the form fields bind to. */
+export function selectValue(p, raw) {
+  const values = p?.values || []
+  const i = Number(raw)
+  return (Number.isInteger(i) && String(i) === String(raw) && i >= 0 && i < values.length) ? values[i] : raw
 }
 
 /**
@@ -42,6 +53,13 @@ export function buildParamWire(p, value) {
   if (k === 'integer') return { ...base, integer: Number(value) }
   if (k === 'bool') return { ...base, bool: !!value }
   if (['multiple', 'multiselect', 'tags'].includes(k)) return { ...base, selections: value || [] }
+  // A SELECT is persisted by its option INDEX (the backend's checkSelect reads
+  // vo.getIndex()); the form binds the option value, so map it back here.
+  if (k === 'select') {
+    const values = p.values || []
+    const idx = values.indexOf(value)
+    return { ...base, index: idx >= 0 ? idx : Number(value) }
+  }
   return { ...base, text: value }
 }
 
