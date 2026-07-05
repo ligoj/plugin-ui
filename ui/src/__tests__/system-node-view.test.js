@@ -34,7 +34,9 @@ const stubs = {
   VibrantDataTable: {
     props: ['headers', 'items', 'itemsLength', 'loading'],
     template: '<div class="vdt">'
-      + '<div v-for="it in items" :key="it.id" class="row"><slot name="actions" :item="it" /></div>'
+      + '<div v-for="it in items" :key="it.id" class="row">'
+      + '<span class="subs-cell"><slot name="cell.subscriptions" :item="it" /></span>'
+      + '<slot name="actions" :item="it" /></div>'
       + '<div class="tools"><slot name="tools-extra" /></div></div>',
   },
   'v-tooltip': { template: '<div class="tt"><slot name="activator" :props="{}" /></div>' },
@@ -115,8 +117,8 @@ describe('SystemNodeView status refresh', () => {
     const w = mountView()
     await flushPromises()
 
-    // One LjStatus dot per stat card (total / service / tool / instance).
-    expect(w.findAll('.stat .lj-status')).toHaveLength(4)
+    // One LjStatus dot per stat card (total / service / tool / instance / subscriptions).
+    expect(w.findAll('.stat .lj-status')).toHaveLength(5)
     // Instance card (last): 1 up + 1 down → warn dot, red segment at 50%.
     const instanceCard = w.findAll('.stat')[3]
     expect(instanceCard.find('.lj-status--warn').exists()).toBe(true)
@@ -156,5 +158,33 @@ describe('SystemNodeView status refresh', () => {
     // Service card: build healthy (descendant instance) + scm no-status → green.
     expect(cards[1].find('.lj-status--ok').exists()).toBe(true)
     expect(cards[1].find('.lj-status').attributes('aria-label')).toContain('1 no status data')
+  })
+
+  it('shows attached-subscription counts per node and a Subscriptions KPI', async () => {
+    globalThis.fetch = vi.fn((url, opts) => {
+      const method = opts?.method || 'GET'
+      if (method !== 'GET') return Promise.resolve(jsonResponse('UP'))
+      if (String(url).includes('status/subscription')) {
+        return Promise.resolve(jsonResponse([
+          { node: 'service:build:jenkins:1', values: { total: 3, UP: 2, DOWN: 1 } },
+          { node: 'service:build:jenkins', values: { total: 1, UP: 1 } },
+        ]))
+      }
+      return Promise.resolve(jsonResponse([TOOL, INSTANCE]))
+    })
+    const w = mountView()
+    await flushPromises()
+
+    // Per-node counts in the subscriptions column (row 0 = tool, row 1 = instance).
+    const rows = w.findAll('.row')
+    expect(rows[0].find('.subs-cell').text()).toBe('1')
+    expect(rows[1].find('.subs-cell').text()).toBe('3')
+    // A fifth, non-clickable KPI card totals the attached subscriptions (3 + 1).
+    const cards = w.findAll('.stat')
+    expect(cards).toHaveLength(5)
+    expect(cards[4].find('.snum').text()).toBe('4')
+    expect(cards[4].classes()).toContain('static')
+    // The async fetch hit the statistics endpoint.
+    expect(globalThis.fetch.mock.calls.some((c) => String(c[0]).includes('rest/node/status/subscription'))).toBe(true)
   })
 })

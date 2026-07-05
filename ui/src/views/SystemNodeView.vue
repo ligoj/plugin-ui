@@ -29,7 +29,7 @@
     </LjPageHeader>
 
     <div class="stats">
-      <div v-for="(s, i) in stats" :key="s.key" class="stat" :class="{ active: filter === s.fkey }" :style="{ '--c': s.color, 'animation-delay': (i * 50) + 'ms' }" @click="pickFilter(s.fkey)">
+      <div v-for="(s, i) in stats" :key="s.key" class="stat" :class="{ active: s.fkey && filter === s.fkey, static: !s.fkey }" :style="{ '--c': s.color, 'animation-delay': (i * 50) + 'ms' }" @click="s.fkey && pickFilter(s.fkey)">
         <div class="stop">
           <span class="sicon"><v-icon size="22">{{ s.icon }}</v-icon></span>
           <div class="sbody">
@@ -65,6 +65,11 @@
       <template #cell.type="{ item }"><span class="pill" :class="nodeType(item)">{{ typeLabel(item) }}</span></template>
       <template #cell.mode="{ item }">
         <NodeModeChip :mode="item.mode || 'all'" size="small" />
+      </template>
+      <!-- Attached subscriptions count (rest/node/status/subscription, loaded
+           asynchronously); a dash while unknown / when the node has none. -->
+      <template #cell.subscriptions="{ item }">
+        <span class="mono subs">{{ subsTotal(item.id) || '—' }}</span>
       </template>
       <template #cell.status="{ item }">
         <SubscriptionStatus :node="item" />
@@ -123,6 +128,34 @@ const items = ref([])
 const loading = ref(false)
 const error = ref(null)
 
+// Attached-subscriptions per node, loaded asynchronously from
+// rest/node/status/subscription (NodeResource#getNodeStatistics). Keyed by node
+// id → { total, up, down } (per-subscription statuses folded into up/down).
+const subStats = ref({})
+function subsTotal(id) { return subStats.value[id]?.total || 0 }
+async function loadSubStats() {
+  try {
+    const d = await api.get('rest/node/status/subscription')
+    const list = Array.isArray(d) ? d : (d?.data || [])
+    const map = {}
+    for (const vo of list) {
+      if (!vo?.node) continue
+      const values = vo.values || {}
+      let up = 0
+      let down = 0
+      for (const [k, n] of Object.entries(values)) {
+        const key = String(k).toLowerCase()
+        const c = Number(n) || 0
+        if (key === 'total') continue
+        else if (key === 'up' || key === 'ok') up += c
+        else if (key === 'down' || key === 'ko' || key === 'error' || key === 'warn' || key === 'blocked') down += c
+      }
+      map[vo.node] = { total: Number(values.total) || 0, up, down }
+    }
+    subStats.value = map
+  } catch { /* keep the previous stats; the column falls back to a dash */ }
+}
+
 const FILTERS = computed(() => [
   { id: 'all', label: t('system.node.filterAll'), icon: 'mdi-format-list-bulleted' },
   { id: 'service', label: t('system.node.typeService'), icon: 'mdi-cube-outline' },
@@ -144,6 +177,8 @@ const headers = computed(() => [
   { key: 'name', label: t('system.node.headerName'), sortable: true, icon: 'mdi-server-outline' },
   { key: 'type', label: t('system.node.headerType'), sortable: true, align: 'center', icon: 'mdi-shape-outline', exportValue: (r) => typeLabel(r) },
   { key: 'mode', label: t('system.node.headerMode'), sortable: false, align: 'center', icon: 'mdi-cog-outline', exportValue: (r) => r.mode || 'all' },
+  // Last data column → renders just before the gear/actions column.
+  { key: 'subscriptions', label: t('system.node.subscriptions'), sortable: false, align: 'center', icon: 'mdi-link-variant', exportValue: (r) => subsTotal(r.id) },
 ])
 
 function typeLabel(item) { const k = nodeType(item); return t('system.node.type' + k.charAt(0).toUpperCase() + k.slice(1)) }
@@ -189,13 +224,34 @@ function derivedHealth(node, idx) {
   return e.down === 0 ? 'up' : 'down'
 }
 
+// Build a stat card's dot + bi-colour bar + tooltip from up/down counts over
+// `value` items (nodes or subscriptions). `fkey` is the type filter the card
+// toggles, or null for a non-filtering card (subscriptions). "No status data"
+// (value − up − down) never makes it unhealthy: idle = nothing determinate ·
+// ok = no failures · error = all-known failing · warn = mixed.
+function healthCard({ key, fkey, label, icon, color, value, up, down }) {
+  const unknown = value - up - down
+  const known = up + down
+  const health = known === 0 ? 'idle' : down === 0 ? 'ok' : up === 0 ? 'error' : 'warn'
+  const parts = []
+  if (up) parts.push(t('system.node.healthUp', { count: up }))
+  if (down) parts.push(t('system.node.healthDown', { count: down }))
+  if (unknown) parts.push(t('system.node.healthUnknown', { count: unknown }))
+  const denom = value || 1
+  return {
+    key, fkey, label, icon, color, value, health,
+    upPct: Math.round(up / denom * 100),
+    downPct: Math.round(down / denom * 100),
+    healthTip: parts.length ? parts.join(' · ') : t('system.node.healthNone'),
+  }
+}
+
 const stats = computed(() => {
   const nodes = items.value
   const idx = buildHealthIndex(nodes)
   const nodesOf = (fkey) => fkey === 'all' ? nodes : nodes.filter((n) => nodeType(n) === fkey)
-  const mk = (key, fkey, label, icon, color) => {
+  const typeCard = (key, fkey, label, icon, color) => {
     const group = nodesOf(fkey)
-    const value = group.length
     let up = 0
     let down = 0
     for (const n of group) {
@@ -203,33 +259,27 @@ const stats = computed(() => {
       if (h === 'up') up++
       else if (h === 'down') down++
     }
-    const unknown = value - up - down
-    const known = up + down
-    // "No status data" never makes a group unhealthy: idle = nothing
-    // determinate · ok = no failures · error = all-known failing · warn = mixed.
-    const health = known === 0 ? 'idle' : down === 0 ? 'ok' : up === 0 ? 'error' : 'warn'
-    const parts = []
-    if (up) parts.push(t('system.node.healthUp', { count: up }))
-    if (down) parts.push(t('system.node.healthDown', { count: down }))
-    if (unknown) parts.push(t('system.node.healthUnknown', { count: unknown }))
-    const denom = value || 1
-    return {
-      key, fkey, label, icon, color, value, health,
-      upPct: Math.round(up / denom * 100),
-      downPct: Math.round(down / denom * 100),
-      healthTip: parts.length ? parts.join(' · ') : t('system.node.healthNone'),
-    }
+    return healthCard({ key, fkey, label, icon, color, value: group.length, up, down })
   }
+  // Subscriptions KPI: total attached subscriptions across nodes + their health.
+  const sub = Object.values(subStats.value).reduce((a, s) => {
+    a.value += s.total
+    a.up += s.up
+    a.down += s.down
+    return a
+  }, { value: 0, up: 0, down: 0 })
   return [
-    mk('total', 'all', t('system.node.statTotal'), 'mdi-server-network', 'rgb(var(--v-theme-secondary))'),
-    mk('service', 'service', t('system.node.typeService'), 'mdi-cube-outline', TYPE_COLOR.service),
-    mk('tool', 'tool', t('system.node.typeTool'), 'mdi-hammer-wrench', TYPE_COLOR.tool),
-    mk('instance', 'instance', t('system.node.typeInstance'), 'mdi-server-outline', TYPE_COLOR.instance),
+    typeCard('total', 'all', t('system.node.statTotal'), 'mdi-server-network', 'rgb(var(--v-theme-secondary))'),
+    typeCard('service', 'service', t('system.node.typeService'), 'mdi-cube-outline', TYPE_COLOR.service),
+    typeCard('tool', 'tool', t('system.node.typeTool'), 'mdi-hammer-wrench', TYPE_COLOR.tool),
+    typeCard('instance', 'instance', t('system.node.typeInstance'), 'mdi-server-outline', TYPE_COLOR.instance),
+    healthCard({ key: 'subs', fkey: null, label: t('system.node.subscriptions'), icon: 'mdi-link-variant', color: '#0ea5a4', value: sub.value, up: sub.up, down: sub.down }),
   ]
 })
 
 async function load() {
   loading.value = true; error.value = null
+  loadSubStats() // async, non-blocking: fills the Subscriptions column + KPI when ready
   // status=true → NodeResource#findAll also returns each node's last known status.
   // rows=1000 → defeat PaginationJson's default 10-row page; this view does its
   // own client-side filter / sort / paging over the full set (like the wizard).
@@ -437,6 +487,11 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 45%, transparent);
 }
 
+/* The Subscriptions KPI is informational only — it toggles no type filter. */
+.stat.static {
+  cursor: default;
+}
+
 .stop {
   display: flex;
   align-items: center;
@@ -547,6 +602,11 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
   font-family: var(--mono);
   font-size: 11.5px;
   color: var(--ink-3);
+}
+
+.subs {
+  font-family: var(--mono);
+  color: var(--ink-2);
 }
 
 .pill {

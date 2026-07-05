@@ -260,6 +260,7 @@ export default {
   'system.node.healthDown': '{count} unhealthy',
   'system.node.healthUnknown': '{count} no status data',
   'system.node.healthNone': 'No status data',
+  'system.node.subscriptions': 'Subscriptions',
   'system.node.createTitle': 'Create node',
   'system.node.headerIdentifier': 'Identifier',
   'system.node.headerName': 'Name',

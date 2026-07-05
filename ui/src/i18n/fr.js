@@ -259,6 +259,7 @@ export default {
   'system.node.healthDown': '{count} en échec',
   'system.node.healthUnknown': '{count} sans statut',
   'system.node.healthNone': 'Aucun statut',
+  'system.node.subscriptions': 'Souscriptions',
   'system.node.createTitle': 'Créer un nœud',
   'system.node.headerIdentifier': 'Identifiant',
   'system.node.headerName': 'Nom',
