@@ -113,7 +113,9 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useErrorStore, useI18nStore, NodeIcon, pluginRegistry, pluginIdFromKey, loadPlugin, LjDialog, LjButton, LjSegmented } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, NodeIcon, LjDialog, LjButton, LjSegmented } from '@ligoj/host'
+import { groupParameters } from '../utils/parameterGroups.js'
+import { typeKind, isTextParam, isPassword, coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout } from '../utils/pluginParams.js'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -163,118 +165,33 @@ const modeHint = computed(() => selected.mode === 'create' ? t('wizard.modeHintC
 const ready = computed(() =>
   !!props.projectId && !!selected.service && !!selected.tool && !!selected.node && !!selected.mode && !showNewNode.value)
 
-/* ---- param helpers (ported) ---- */
-function typeKind(p) { return String(p?.type || '').toLowerCase() }
-function isTextParam(p) { const k = typeKind(p); return !k || ['text', 'password', 'node', 'project'].includes(k) }
-function isPassword(p) { return !!p.secured || typeKind(p) === 'password' }
+/* ---- param helpers ---- */
+/* typeKind/isTextParam/isPassword/coerce/buildParamWire/ensureToolPluginLoaded
+   and the plugin-feature resolution are shared with NodeEditDialog — see
+   utils/pluginParams.js. These wrappers bind the i18n store / reactive
+   selection, which stay dialog-local. */
 function tOrNull(key) { const v = i18n.t(key); return v === key ? null : v }
 function paramLabel(p) { return `${tOrNull(p.id) ?? p.id}${(p.mandatory || p.required) ? ' *' : ''}` }
 function ruleFor(p) { return (p.mandatory || p.required) ? [rules.required] : [] }
 
-/* Lazy-load the tool's sub-plugin bundle (e.g. service:id:ldap → id-ldap) so
-   its i18n labels and custom parameter fields are available. Best effort. */
-async function ensureToolPluginLoaded(nodeId) {
-  if (typeof nodeId !== 'string') return
-  const pluginId = pluginIdFromKey(nodeId.split(':').filter(Boolean).slice(0, 3).join(':'))
-  if (!pluginId || pluginRegistry.has(pluginId)) return
-  try {
-    await loadPlugin(pluginId)
-  } catch {
-    // The browser module-map permanently caches a failed dynamic import by
-    // URL — so if the bundle 404'd once early (e.g. before the session was
-    // ready), the host loader keeps re-importing the same poisoned URL and
-    // keeps failing. Retry with a cache-busting query and register the
-    // freshly-loaded definition ourselves so its custom parameter fields and
-    // i18n resolve. (requires/parents are already loaded at boot.)
-    if (pluginRegistry.has(pluginId)) return
-    try {
-      const url = `${import.meta.env.BASE_URL}main/${pluginId}/vue/index.js?cb=${Date.now()}`
-      const def = (await import(/* @vite-ignore */ url))?.default
-      if (def && typeof def === 'object') {
-        if (!def.id) def.id = pluginId
-        pluginRegistry.register(def.id, def)
-        if (typeof def.install === 'function') await def.install({ pluginId })
-      }
-    } catch { /* give up — default fields render */ }
-  }
-}
-
-/* Ask the owning plugin (sub-plugin first, then parent service plugin) for a
-   custom field component for parameter `p`. Returns null when none — the
-   default type-based field then renders. Mirrors plugin-ui's wizard. */
-function resolveParameterField(p) {
+/* Subscription context (isNode = false): the parameter form drives a new
+   subscription against `selected.node`. */
+function subscriptionCtx(parameter) {
   const nodeId = selected.tool?.id
-  if (!nodeId) return null
-  const ctx = { parameter: p, mode: selected.mode || null, isNode: false, formValues: paramValues, nodeId, instanceNodeId: selected.node?.id || null }
-  const candidates = []
-  const sub = pluginIdFromKey(nodeId)
-  if (sub) candidates.push(sub)
-  const parts = String(nodeId).split(':').filter(Boolean)
-  if (parts.length >= 2 && parts[1] && parts[1] !== sub) candidates.push(parts[1])
-  for (const id of candidates) {
-    const plugin = pluginRegistry.get(id)
-    if (typeof plugin?.feature !== 'function') continue
-    try {
-      const comp = plugin.feature('parameterField', ctx)
-      if (comp) return comp
-    } catch (err) {
-      if (!/no feature ["']parameterField["']/.test(err?.message || '')) console.warn(`[wizard] parameterField from ${id} threw`, err)
-    }
-  }
-  return null
+  return { parameter, mode: selected.mode || null, isNode: false, formValues: paramValues, nodeId, instanceNodeId: selected.node?.id || null }
 }
+function resolveParameterField(p) { return resolveField(selected.tool?.id, subscriptionCtx(p), 'wizard') }
 
 /* Display name of a parameter (translated label, without the mandatory marker),
    used as the default sort key. */
 function paramName(p) { const id = p?.id; const l = id ? tOrNull(id) : null; return l ?? id ?? '' }
 
-/* Ask the owning plugin (sub-plugin first, then parent service plugin) for a
-   parameter layout: an array of { label?, parameters: [id,...] } groups. Returns
-   [] when none is provided — the default name-ascending order then applies.
-   Mirrors resolveParameterField's resolution. */
-function resolveParameterLayout() {
-  const nodeId = selected.tool?.id
-  if (!nodeId) return []
-  const ctx = { mode: selected.mode || null, isNode: false, nodeId, instanceNodeId: selected.node?.id || null }
-  const candidates = []
-  const sub = pluginIdFromKey(nodeId)
-  if (sub) candidates.push(sub)
-  const parts = String(nodeId).split(':').filter(Boolean)
-  if (parts.length >= 2 && parts[1] && parts[1] !== sub) candidates.push(parts[1])
-  for (const id of candidates) {
-    const plugin = pluginRegistry.get(id)
-    if (typeof plugin?.feature !== 'function') continue
-    try {
-      const layout = plugin.feature('parameterLayout', ctx)
-      if (Array.isArray(layout) && layout.length) return layout
-    } catch (err) {
-      if (!/no feature ["']parameterLayout["']/.test(err?.message || '')) console.warn(`[wizard] parameterLayout from ${id} threw`, err)
-    }
-  }
-  return []
-}
-
 /* Parameters arranged for display: plugin-declared groups first (each with its
    parameters in the declared order), then every remaining parameter ordered by
    display name, ascending, in a trailing unlabeled group. A group's `label` is
-   resolved through i18n (falling back to the literal). */
-const parameterGroups = computed(() => {
-  const params = parameters.value
-  const byId = new Map(params.map((p) => [p.id, p]))
-  const used = new Set()
-  const groups = []
-  for (const g of resolveParameterLayout()) {
-    const groupParams = []
-    for (const pid of (g.parameters || [])) {
-      const p = byId.get(pid)
-      if (p && !used.has(pid)) { groupParams.push(p); used.add(pid) }
-    }
-    if (groupParams.length) groups.push({ label: g.label ? (tOrNull(g.label) ?? g.label) : null, params: groupParams })
-  }
-  const rest = params.filter((p) => !used.has(p.id)).sort((a, b) => paramName(a).localeCompare(paramName(b)))
-  if (rest.length) groups.push({ label: null, params: rest })
-  return groups
-})
+   resolved through i18n (falling back to the literal). See groupParameters(). */
+const parameterGroups = computed(() =>
+  groupParameters(parameters.value, resolveLayout(selected.tool?.id, subscriptionCtx(), 'wizard'), { name: paramName, label: (l) => tOrNull(l) ?? l }))
 
 /* ---- loaders ---- */
 async function fetchNodes(url) {
@@ -304,7 +221,6 @@ async function loadParameters(nodeId, mode) {
     }
   } finally { loadingParams.value = false }
 }
-function coerce(p) { const k = typeKind(p); if (k === 'integer') return Number(p.defaultValue); if (k === 'bool') return p.defaultValue === true || p.defaultValue === 'true'; return p.defaultValue }
 
 /* ---- cascading invalidation ---- */
 watch(() => selected.service, async (svc) => {
@@ -349,15 +265,6 @@ async function createNode() {
 }
 
 /* ---- submit ---- */
-function buildParamWire(p) {
-  const value = paramValues[p.id]
-  if ((value === '' || value == null || (Array.isArray(value) && !value.length)) && !p.mandatory && !p.required) return null
-  const base = { parameter: p.id }; const k = typeKind(p)
-  if (k === 'integer') return { ...base, integer: Number(value) }
-  if (k === 'bool') return { ...base, bool: !!value }
-  if (['multiple', 'multiselect', 'tags'].includes(k)) return { ...base, selections: value || [] }
-  return { ...base, text: value }
-}
 async function submit() {
   if (!ready.value) return
   creating.value = true; error.value = null
@@ -366,7 +273,7 @@ async function submit() {
       node: selected.node.id,
       project: Number(props.projectId),
       mode: String(selected.mode).toUpperCase(),
-      parameters: parameters.value.map(buildParamWire).filter(Boolean),
+      parameters: parameters.value.map((p) => buildParamWire(p, paramValues[p.id])).filter(Boolean),
     }
     const id = await api.post('rest/subscription', payload)
     if (id != null) {

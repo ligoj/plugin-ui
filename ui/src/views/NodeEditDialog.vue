@@ -52,15 +52,21 @@
         <section class="step" :class="{ off: !isEdit && (!selected.mode || !selected.tool) }">
           <div class="sh"><span class="n">5</span><v-icon size="18">mdi-tune-variant</v-icon>{{ t('wizard.step.parameters') }}<v-progress-circular v-if="loadingParams" size="13" width="2" indeterminate class="ml-2" /></div>
           <p v-if="!loadingParams && !parameters.length && (isEdit || selected.mode)" class="muted">{{ t('wizard.params.emptyEdit') }}</p>
-          <div v-for="p in parameters" :key="p.id" class="pfield">
-            <component v-if="resolveParameterField(p)" :is="resolveParameterField(p)" v-model="paramValues[p.id]" :parameter="p" :form-values="paramValues" :mode="selected.mode" :is-node="true" :node-id="currentNodeId" :instance-node-id="currentNodeId" />
-            <v-text-field v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
-            <v-text-field v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
-            <v-checkbox v-else-if="typeKind(p) === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" density="comfortable" hide-details />
-            <v-select v-else-if="typeKind(p) === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
-            <v-select v-else-if="['multiple','multiselect','tags'].includes(typeKind(p))" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" chips multiple variant="outlined" density="comfortable" hide-details="auto" />
-            <v-text-field v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
-          </div>
+          <!-- Parameters are ordered by display name (ascending) by default; a
+               plugin may override the order and/or group them via its
+               `parameterLayout` hook (see parameterGroups / resolveParameterLayout). -->
+          <template v-for="(group, gi) in parameterGroups" :key="gi">
+            <div v-if="group.label" class="pgroup">{{ group.label }}</div>
+            <div v-for="p in group.params" :key="p.id" class="pfield">
+              <component v-if="resolveParameterField(p)" :is="resolveParameterField(p)" v-model="paramValues[p.id]" :parameter="p" :form-values="paramValues" :mode="selected.mode" :is-node="true" :node-id="currentNodeId" :instance-node-id="currentNodeId" />
+              <v-text-field v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+              <v-text-field v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+              <v-checkbox v-else-if="typeKind(p) === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" density="comfortable" hide-details />
+              <v-select v-else-if="typeKind(p) === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+              <v-select v-else-if="['multiple','multiselect','tags'].includes(typeKind(p))" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" chips multiple variant="outlined" density="comfortable" hide-details="auto" />
+              <v-text-field v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+            </div>
+          </template>
         </section>
       <template #footer>
         <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
@@ -71,7 +77,9 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, pluginRegistry, pluginIdFromKey, loadPlugin, LjDialog, LjButton, LjSegmented, LjAvailabilityField } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, LjDialog, LjButton, LjSegmented, LjAvailabilityField } from '@ligoj/host'
+import { groupParameters } from '../utils/parameterGroups.js'
+import { typeKind, isTextParam, isPassword, coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout } from '../utils/pluginParams.js'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -120,51 +128,29 @@ const ready = computed(() => isEdit.value
   ? !!form.name
   : !!selected.service && !!selected.tool && !!selected.mode && !!form.id && !!form.name)
 
-/* ---- param helpers (shared with the subscribe wizard) ---- */
-function typeKind(p) { return String(p?.type || '').toLowerCase() }
-function isTextParam(p) { const k = typeKind(p); return !k || ['text', 'password', 'node', 'project'].includes(k) }
-function isPassword(p) { return !!p.secured || typeKind(p) === 'password' }
+/* ---- param helpers ---- */
+/* typeKind/isTextParam/isPassword/coerce/buildParamWire/ensureToolPluginLoaded
+   and the plugin-feature resolution are shared with the subscribe wizard — see
+   utils/pluginParams.js. These wrappers bind the i18n store / reactive
+   selection, which stay dialog-local. */
 function tOrNull(key) { const v = i18n.t(key); return v === key ? null : v }
 function paramLabel(p) { return `${tOrNull(p.id) ?? p.id}${(p.mandatory || p.required) ? ' *' : ''}` }
 function ruleFor(p) { return (p.mandatory || p.required) ? [rules.required] : [] }
-function coerce(p) { const k = typeKind(p); if (k === 'integer') return Number(p.defaultValue); if (k === 'bool') return p.defaultValue === true || p.defaultValue === 'true'; return p.defaultValue }
-function buildParamWire(p) {
-  const value = paramValues[p.id]
-  if ((value === '' || value == null || (Array.isArray(value) && !value.length)) && !p.mandatory && !p.required) return null
-  const base = { parameter: p.id }; const k = typeKind(p)
-  if (k === 'integer') return { ...base, integer: Number(value) }
-  if (k === 'bool') return { ...base, bool: !!value }
-  if (['multiple', 'multiselect', 'tags'].includes(k)) return { ...base, selections: value || [] }
-  return { ...base, text: value }
-}
-async function ensureToolPluginLoaded(nodeId) {
-  if (typeof nodeId !== 'string') return
-  const pluginId = pluginIdFromKey(nodeId.split(':').filter(Boolean).slice(0, 3).join(':'))
-  if (!pluginId || pluginRegistry.has(pluginId)) return
-  try { await loadPlugin(pluginId) } catch {
-    if (pluginRegistry.has(pluginId)) return
-    try {
-      const def = (await import(/* @vite-ignore */ `${import.meta.env.BASE_URL}main/${pluginId}/vue/index.js?cb=${Date.now()}`))?.default
-      if (def && typeof def === 'object') { if (!def.id) def.id = pluginId; pluginRegistry.register(def.id, def); if (typeof def.install === 'function') await def.install({ pluginId }) }
-    } catch { /* default fields */ }
-  }
-}
-function resolveParameterField(p) {
+/* Display name of a parameter (translated label, else its id). */
+function paramName(p) { const id = p?.id; const l = id ? tOrNull(id) : null; return l ?? id ?? '' }
+
+/* Node context (isNode = true): the form edits tool config on the node itself,
+   so both nodeId and instanceNodeId are the node being created/edited. A plugin
+   can group/order these (e.g. id-ldap's connection block, which includes
+   node-only params like `clear-password`). */
+function nodeCtx(parameter) {
   const nodeId = currentNodeId.value
-  if (!nodeId) return null
-  const ctx = { parameter: p, mode: selected.mode || null, isNode: true, formValues: paramValues, nodeId, instanceNodeId: nodeId }
-  const candidates = []
-  const sub = pluginIdFromKey(nodeId)
-  if (sub) candidates.push(sub)
-  const parts = String(nodeId).split(':').filter(Boolean)
-  if (parts.length >= 2 && parts[1] && parts[1] !== sub) candidates.push(parts[1])
-  for (const id of candidates) {
-    const plugin = pluginRegistry.get(id)
-    if (typeof plugin?.feature !== 'function') continue
-    try { const c = plugin.feature('parameterField', ctx); if (c) return c } catch { /* ignore */ }
-  }
-  return null
+  return { parameter, mode: selected.mode || null, isNode: true, formValues: paramValues, nodeId, instanceNodeId: nodeId }
 }
+function resolveParameterField(p) { return resolveField(currentNodeId.value, nodeCtx(p), 'node') }
+
+const parameterGroups = computed(() =>
+  groupParameters(parameters.value, resolveLayout(currentNodeId.value, nodeCtx(), 'node'), { name: paramName, label: (l) => tOrNull(l) ?? l }))
 
 /* ---- loaders ---- */
 async function fetchNodes(url) { const d = await api.get(url); const l = Array.isArray(d) ? d : (Array.isArray(d?.data) ? d.data : []); return l.filter((n) => n.enabled !== false) }
@@ -250,7 +236,7 @@ async function submit() {
   if (idTaken.value) return
   saving.value = true; error.value = null
   try {
-    const parametersWire = parameters.value.map(buildParamWire).filter(Boolean)
+    const parametersWire = parameters.value.map((p) => buildParamWire(p, paramValues[p.id])).filter(Boolean)
     // Use `{ raw: true }` so we branch on the real HTTP status: a successful
     // save returns 204 No Content, which `useApi` otherwise reports as the
     // same `null` it returns on failure — that ambiguity left the dialog
@@ -294,5 +280,7 @@ async function submit() {
 .ro { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); padding: 8px 12px; border-radius: var(--radius-sm); background: var(--hover); }
 .ro :deep(img.tool-icon), .ro :deep(i) { width: 20px; height: 20px; font-size: 18px; }
 .muted { font-size: 13px; color: var(--ink-3); }
+.pgroup { margin: 4px 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.pgroup + .pfield { margin-top: 0; }
 .pfield { margin-bottom: 12px; }
 </style>
