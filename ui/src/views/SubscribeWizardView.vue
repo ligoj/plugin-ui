@@ -83,20 +83,26 @@
         <section class="step" :class="{ off: !selected.mode }">
           <div class="sh"><span class="n">5</span><v-icon size="18">mdi-tune-variant</v-icon>{{ t('wizard.step.parameters') }}<v-progress-circular v-if="loadingParams" size="13" width="2" indeterminate class="ml-2" /></div>
           <p v-if="!loadingParams && selected.mode && selected.node && !parameters.length" class="muted">{{ t('wizard.params.emptySubscribe') }}</p>
-          <div v-for="p in parameters" :key="p.id" class="pfield">
-            <!-- Plugin-supplied field (e.g. id-ldap's live group/OU
-                 autocomplete) takes precedence over the default type-based
-                 rendering — same hook as plugin-ui's wizard. Only resolves
-                 when the owning plugin bundle is loaded. -->
-            <component v-if="resolveParameterField(p)" :is="resolveParameterField(p)" v-model="paramValues[p.id]" :parameter="p" :form-values="paramValues" :mode="selected.mode"
-              :is-node="false" :node-id="selected.tool?.id" :instance-node-id="selected.node?.id" />
-            <v-text-field v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
-            <v-text-field v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
-            <v-checkbox v-else-if="typeKind(p) === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" density="comfortable" hide-details />
-            <v-select v-else-if="typeKind(p) === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
-            <v-select v-else-if="['multiple','multiselect','tags'].includes(typeKind(p))" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" chips multiple variant="outlined" density="comfortable" hide-details="auto" />
-            <v-text-field v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
-          </div>
+          <!-- Parameters are ordered by display name (ascending) by default; a
+               plugin may override the order and/or group them via its
+               `parameterLayout` hook (see parameterGroups / resolveParameterLayout). -->
+          <template v-for="(group, gi) in parameterGroups" :key="gi">
+            <div v-if="group.label" class="pgroup">{{ group.label }}</div>
+            <div v-for="p in group.params" :key="p.id" class="pfield">
+              <!-- Plugin-supplied field (e.g. id-ldap's live group/OU
+                   autocomplete) takes precedence over the default type-based
+                   rendering — same hook as plugin-ui's wizard. Only resolves
+                   when the owning plugin bundle is loaded. -->
+              <component v-if="resolveParameterField(p)" :is="resolveParameterField(p)" v-model="paramValues[p.id]" :parameter="p" :form-values="paramValues" :mode="selected.mode"
+                :is-node="false" :node-id="selected.tool?.id" :instance-node-id="selected.node?.id" />
+              <v-text-field v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+              <v-text-field v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+              <v-checkbox v-else-if="typeKind(p) === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" density="comfortable" hide-details />
+              <v-select v-else-if="typeKind(p) === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+              <v-select v-else-if="['multiple','multiselect','tags'].includes(typeKind(p))" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" chips multiple variant="outlined" density="comfortable" hide-details="auto" />
+              <v-text-field v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+            </div>
+          </template>
         </section>
       <template #footer>
         <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
@@ -217,6 +223,58 @@ function resolveParameterField(p) {
   }
   return null
 }
+
+/* Display name of a parameter (translated label, without the mandatory marker),
+   used as the default sort key. */
+function paramName(p) { const id = p?.id; const l = id ? tOrNull(id) : null; return l ?? id ?? '' }
+
+/* Ask the owning plugin (sub-plugin first, then parent service plugin) for a
+   parameter layout: an array of { label?, parameters: [id,...] } groups. Returns
+   [] when none is provided — the default name-ascending order then applies.
+   Mirrors resolveParameterField's resolution. */
+function resolveParameterLayout() {
+  const nodeId = selected.tool?.id
+  if (!nodeId) return []
+  const ctx = { mode: selected.mode || null, isNode: false, nodeId, instanceNodeId: selected.node?.id || null }
+  const candidates = []
+  const sub = pluginIdFromKey(nodeId)
+  if (sub) candidates.push(sub)
+  const parts = String(nodeId).split(':').filter(Boolean)
+  if (parts.length >= 2 && parts[1] && parts[1] !== sub) candidates.push(parts[1])
+  for (const id of candidates) {
+    const plugin = pluginRegistry.get(id)
+    if (typeof plugin?.feature !== 'function') continue
+    try {
+      const layout = plugin.feature('parameterLayout', ctx)
+      if (Array.isArray(layout) && layout.length) return layout
+    } catch (err) {
+      if (!/no feature ["']parameterLayout["']/.test(err?.message || '')) console.warn(`[wizard] parameterLayout from ${id} threw`, err)
+    }
+  }
+  return []
+}
+
+/* Parameters arranged for display: plugin-declared groups first (each with its
+   parameters in the declared order), then every remaining parameter ordered by
+   display name, ascending, in a trailing unlabeled group. A group's `label` is
+   resolved through i18n (falling back to the literal). */
+const parameterGroups = computed(() => {
+  const params = parameters.value
+  const byId = new Map(params.map((p) => [p.id, p]))
+  const used = new Set()
+  const groups = []
+  for (const g of resolveParameterLayout()) {
+    const groupParams = []
+    for (const pid of (g.parameters || [])) {
+      const p = byId.get(pid)
+      if (p && !used.has(pid)) { groupParams.push(p); used.add(pid) }
+    }
+    if (groupParams.length) groups.push({ label: g.label ? (tOrNull(g.label) ?? g.label) : null, params: groupParams })
+  }
+  const rest = params.filter((p) => !used.has(p.id)).sort((a, b) => paramName(a).localeCompare(paramName(b)))
+  if (rest.length) groups.push({ label: null, params: rest })
+  return groups
+})
 
 /* ---- loaders ---- */
 async function fetchNodes(url) {
@@ -359,5 +417,7 @@ watch(() => props.modelValue, (val) => {
 
 .modehint { font-size: 12.5px; color: var(--ink-3); margin: 8px 0 0; }
 .muted { font-size: 13px; color: var(--ink-3); }
+.pgroup { margin: 4px 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.pgroup + .pfield { margin-top: 0; }
 .pfield { margin-bottom: 12px; }
 </style>
