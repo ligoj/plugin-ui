@@ -14,10 +14,7 @@
 -->
 <template>
   <div class="dash lj-surface">
-    <LjPageHeader title="Tableau de bord">
-      <template #subtitle>
-        Bonjour <b>{{ auth.userName || 'invité' }}</b> — <b>{{ realGroups.length }}</b> outils sur <b>{{ projects.length }}</b> projets.
-      </template>
+    <LjPageHeader :title="t('home.dashboard')">
       <template #actions>
         <div class="kpis">
           <div v-for="k in kpis" :key="k.l" class="kpi" :style="{ '--a': k.c }">
@@ -52,11 +49,10 @@
 
 <script setup>
 import { ref, computed, onMounted, h } from 'vue'
-import { useApi, useAuthStore, useI18nStore, NodeIcon, LjPageHeader } from '@ligoj/host'
+import { useApi, useI18nStore, NodeIcon, LjPageHeader } from '@ligoj/host'
 import SubscriptionsPanel from '../components/SubscriptionsPanel.vue'
 
 const api = useApi()
-const auth = useAuthStore()
 const t = useI18nStore().t
 
 const PALETTE = ['#2563eb', '#d33833', '#15a06a', '#7759c2', '#e6a019', '#0ea5a5', '#db2777', '#7c3aed', '#ff7a18', '#4e9bcd']

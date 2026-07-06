@@ -368,6 +368,7 @@ export default {
   // Manual / Home
   'manual.title': 'User manual',
   'home.title': 'Home',
+  'home.dashboard': 'Dashboard',
   'home.filterPlaceholder': 'Filter projects or tools',
   'home.tilesSmall': 'Small tiles',
   'home.tilesMedium': 'Medium tiles',

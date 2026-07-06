@@ -367,6 +367,7 @@ export default {
   // Manuel / Accueil
   'manual.title': 'Manuel utilisateur',
   'home.title': 'Accueil',
+  'home.dashboard': 'Tableau de bord',
   'home.filterPlaceholder': 'Filtrer les projets ou outils',
   'home.tilesSmall': 'Tuiles petites',
   'home.tilesMedium': 'Tuiles moyennes',
