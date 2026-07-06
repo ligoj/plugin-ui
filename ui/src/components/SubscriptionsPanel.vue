@@ -89,10 +89,11 @@ defineEmits(['rowmenu', 'row-appear', 'refresh-node'])
 const t = useI18nStore().t
 
 // The single source of truth for the toggle (was duplicated in both views).
-const viewOptions = [
-  { value: 'cards', icon: 'mdi-view-grid-outline', label: 'Cartes' },
-  { value: 'list', icon: 'mdi-format-list-bulleted', label: 'Liste' },
-]
+// Computed so the labels re-translate when the locale changes.
+const viewOptions = computed(() => [
+  { value: 'cards', icon: 'mdi-view-grid-outline', label: t('common.cards') },
+  { value: 'list', icon: 'mdi-format-list-bulleted', label: t('common.list') },
+])
 
 // View mode (cards/list) is remembered per context in localStorage when a
 // `storageKey` is given (e.g. 'home', 'project'); without one the panel keeps

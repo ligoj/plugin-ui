@@ -471,6 +471,8 @@ export default {
   'wizard.rule.nodeId': 'Utilisez la forme séparée par des deux-points, ex. service:scm:git:internal',
 
   // 2026 redesign: project/system/api view keys
+  'common.cards': "Cartes",
+  'common.list': "Liste",
   'common.collapseAll': "Tout réduire",
   'common.expandAll': "Tout déplier",
   'api.collapseAll': "Tout replier",
