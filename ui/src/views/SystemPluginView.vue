@@ -103,11 +103,15 @@
 
     <!-- Install dialog (shared chrome) -->
     <LjDialog v-model="installDialog" :title="t('system.plugin.installTitle')" icon="mdi-puzzle-plus-outline" :max-width="640">
-      <LigojAutocomplete v-model="installSelection" v-model:search="installSearch" :items="searchResults" item-value="artifact" :label="t('system.plugin.searchArtifacts')"
+      <LigojAutocomplete v-model="installSelection" v-model:search="installSearch" :items="searchResults" item-title="artifact" item-value="artifact" :label="t('system.plugin.searchArtifacts')"
         :hint="t('system.plugin.searchHint', { repository })" persistent-hint multiple chips closable-chips clearable variant="outlined" :loading="searching" no-filter return-object autofocus
         prepend-inner-icon="mdi-puzzle-plus-outline">
         <template #item="{ props: ip, item }">
-          <v-list-item v-bind="ip" :title="item.raw.artifact" :subtitle="item.raw.version" />
+          <!-- `item` here is the RAW result object ({ artifact, version }) as
+               forwarded by LigojAutocomplete — not Vuetify's InternalItem — so
+               read its fields directly (item.raw is undefined and would throw,
+               emptying the menu). -->
+          <v-list-item v-bind="ip" :title="item?.artifact" :subtitle="item?.version" />
         </template>
         <template #no-data>
           <v-list-item :title="installSearch ? t('system.plugin.searchNoMatch') : t('system.plugin.searchPrompt')" />
@@ -144,6 +148,9 @@
           <v-progress-circular indeterminate size="44" width="4" color="primary" />
           <p class="restart-msg">{{ restartState === 'ready' ? t('system.plugin.restartReady') : t('system.plugin.restartWaiting') }}</p>
           <p class="restart-sub">{{ t('system.plugin.restartSub') }}</p>
+          <!-- Live elapsed counter: the one indicator that keeps moving under
+               reduce-motion (see restartElapsed), so the wait never looks stalled. -->
+          <p v-if="restartState === 'waiting'" class="restart-elapsed">{{ t('system.plugin.restartElapsed', { elapsed: restartElapsedLabel }) }}</p>
         </template>
         <template v-else>
           <span class="restart-warn"><v-icon size="40">mdi-alert-outline</v-icon></span>
@@ -347,7 +354,9 @@ watch(installSearch, (q) => {
     searching.value = true
     try {
       const data = await api.get(`rest/system/plugin/search?repository=${repository.value}&q=${encodeURIComponent(term)}`)
-      searchResults.value = Array.isArray(data) ? data : (data?.data || [])
+      const list = Array.isArray(data) ? data : (data?.data || [])
+      // Suggest plugins in a stable, predictable order (by artifact).
+      searchResults.value = [...list].sort((a, b) => String(a.artifact || '').localeCompare(String(b.artifact || '')))
     } finally { searching.value = false }
   }, 300)
 })
@@ -389,11 +398,22 @@ const RESTART_POLL_MS = 3000
 const RESTART_TIMEOUT_MS = 180000
 const restartDialog = ref(false)
 const restartState = ref('waiting') // waiting | ready | timeout
+// Seconds since polling started. Driven by a JS interval (reactive content, not
+// a CSS animation) so it keeps advancing even when the user enabled reduce-motion
+// — which freezes the indeterminate spinner (.v-progress-circular__overlay) and
+// would otherwise make the dialog look hung during a long restart.
+const restartElapsed = ref(0)
 let restartTimer = null
+let restartClock = null
 let restartActive = false
+const restartElapsedLabel = computed(() => {
+  const s = restartElapsed.value
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`
+})
 function stopRestartPolling() {
   restartActive = false
   if (restartTimer) { clearTimeout(restartTimer); restartTimer = null }
+  if (restartClock) { clearInterval(restartClock); restartClock = null }
 }
 async function pingApi() {
   try {
@@ -405,8 +425,10 @@ function startRestartPolling() {
   stopRestartPolling()
   restartActive = true
   restartState.value = 'waiting'
+  restartElapsed.value = 0
   restartDialog.value = true
   const startedAt = Date.now()
+  restartClock = setInterval(() => { restartElapsed.value = Math.round((Date.now() - startedAt) / 1000) }, 1000)
   let seenDown = false
   // Self-scheduling poll (NOT setInterval): the next tick is armed only AFTER
   // the current request resolves, so polls never overlap — during the restart
@@ -512,6 +534,7 @@ onMounted(() => {
 .restart-body { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding: 14px 8px 6px; }
 .restart-msg { font-family: var(--font); font-weight: 700; font-size: 15px; color: var(--ink); margin: 0; }
 .restart-sub { font-size: 12.5px; color: var(--ink-3); margin: 0; }
+.restart-elapsed { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); margin: 2px 0 0; font-variant-numeric: tabular-nums; }
 .restart-warn { color: rgb(var(--v-theme-warning)); display: grid; place-items: center; }
 
 /* Code-signature / vendor cell. */

@@ -332,6 +332,7 @@ export default {
   'system.plugin.restartTitle': "Redémarrage",
   'system.plugin.restartWaiting': "En attente du retour en ligne de l'API…",
   'system.plugin.restartSub': "Le serveur redémarre pour appliquer les changements de plugins.",
+  'system.plugin.restartElapsed': "Écoulé {elapsed}",
   'system.plugin.restartReady': "L'API est de nouveau en ligne",
   'system.plugin.restartDone': "L'API a redémarré avec succès",
   'system.plugin.restartTimeout': "L'API n'est pas revenue en ligne à temps. Vérifiez le serveur, puis réessayez.",

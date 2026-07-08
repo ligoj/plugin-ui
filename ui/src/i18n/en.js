@@ -333,6 +333,7 @@ export default {
   'system.plugin.restartTitle': "Restarting",
   'system.plugin.restartWaiting': "Waiting for the API to come back online…",
   'system.plugin.restartSub': "The server is restarting to apply the plugin changes.",
+  'system.plugin.restartElapsed': "Elapsed {elapsed}",
   'system.plugin.restartReady': "The API is back online",
   'system.plugin.restartDone': "The API restarted successfully",
   'system.plugin.restartTimeout': "The API did not come back online in time. Check the server, then retry.",
