@@ -11,8 +11,8 @@ function makeGroup(extra = {}) {
     color: '#ff7a18',
     icon: () => null,
     health: 0.5,
-    rows: [{ name: 'p1', status: 'ok', pills: [], sub: { id: 1, node: { id: 'service:prov:aws:enedis' } } }],
-    nodeIds: ['service:prov:aws:enedis'],
+    rows: [{ name: 'p1', status: 'ok', pills: [], sub: { id: 1, node: { id: 'service:prov:aws:sample' } } }],
+    nodeIds: ['service:prov:aws:sample'],
     subIds: [1],
     ...extra,
   }
