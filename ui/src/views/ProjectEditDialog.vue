@@ -18,6 +18,10 @@
           autocomplete="off" @update:search="onLeaderSearch" @update:menu="onLeaderMenu" />
         <v-textarea v-model="form.description" :label="t('project.description')" rows="3" prepend-inner-icon="mdi-text-long" variant="outlined" class="mb-2" />
       </v-form>
+      <!-- Plugin contributions (`editExtension` feature, target 'project'):
+           mounted below the built-in form, before the actions. Extra keys
+           written into `form` ride along in the save payload. -->
+      <component :is="extension" v-for="(extension, i) in extensionComponents" :key="i" :mode="isEdit ? 'edit' : 'create'" :form="form" :context="extensionContext" />
       <template #footer>
         <LjButton variant="ghost" @click="requestClose">{{ t('common.cancel') }}</LjButton>
         <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
@@ -27,7 +31,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useApi, useI18nStore, LjDialog, LjButton, LigojAutocomplete } from '@ligoj/host'
+import { useApi, useEditExtensions, useI18nStore, LjDialog, LjButton, LigojAutocomplete } from '@ligoj/host'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -46,6 +50,11 @@ const saving = ref(false)
 
 const isEdit = computed(() => !!props.project?.id)
 const pkeyLocked = computed(() => isEdit.value && (props.project?.nbSubscriptions || 0) > 0)
+
+// Plugin extension point (`editExtension` feature): contributed body
+// components + optional replacement REST resource for the save call.
+const { components: extensionComponents, apiPath, context: extensionContext } = useEditExtensions(
+  'project', 'rest/project', () => ({ mode: isEdit.value ? 'edit' : 'create', project: props.project }))
 
 const form = ref({ name: '', pkey: '', teamLeader: '', description: '' })
 let lastPkeyAuto = ''
@@ -131,14 +140,13 @@ async function save() {
   if (!valid) return
   saving.value = true
   try {
+    // Spread the whole form: extension components may have written extra keys
+    // into it (see the `editExtension` plugin feature).
     const payload = {
+      ...form.value,
       id: props.project?.id,
-      name: form.value.name,
-      pkey: form.value.pkey,
-      teamLeader: form.value.teamLeader,
-      description: form.value.description,
     }
-    const id = await api[isEdit.value ? 'put' : 'post']('rest/project', payload)
+    const id = await api[isEdit.value ? 'put' : 'post'](apiPath.value, payload)
     emit('saved', { id: isEdit.value ? props.project.id : id, created: !isEdit.value })
     emit('update:modelValue', false)
   } finally {
