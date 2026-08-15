@@ -3,6 +3,16 @@
  * the host's vue-i18n store at install() time.
  */
 export default {
+  // Contenu du mode démo (niveau administrateur, `useDemoMode` de l'hôte)
+  'demo.projectAlertCreate': 'Contenu de démonstration — cette section est un exemple d\'extension de plugin affiché lorsque le mode démo est actif. Rien n\'est enregistré ici.',
+  'demo.projectAlertEdit': 'Contenu de démonstration — cet exemple d\'extension de plugin complète l\'édition d\'un projet existant lorsque le mode démo est actif. Rien n\'est enregistré ici.',
+  'demo.tabOverview': 'Aperçu',
+  'demo.tabOverviewText': 'Un plugin peut contribuer n\'importe quel composant ici : synthèses, graphiques, checklists…',
+  'demo.tabQuota': 'Quota',
+  'demo.tabQuotaText': 'Exemple de second onglet. Les extensions reçoivent le mode d\'édition et le modèle du formulaire.',
+  'demo.tabTags': 'Étiquettes',
+  'demo.tagsLabel': 'Étiquettes démo',
+  'demo.tagsHint': 'Champ d\'exemple : la valeur est écrite dans le modèle du formulaire (et partirait dans la sauvegarde)',
   // Administration système
   'system.title': 'Administration système',
   'system.breadcrumb': 'Système',

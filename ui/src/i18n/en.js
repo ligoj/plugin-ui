@@ -4,6 +4,16 @@
  * host's `messageResolver: (obj, path) => obj?.[path]` lookup works.
  */
 export default {
+  // Demo mode content (admin-level, host `useDemoMode`)
+  'demo.projectAlertCreate': 'Demonstration content — this section is a sample plugin extension shown while the demo mode is enabled. Nothing here is saved.',
+  'demo.projectAlertEdit': 'Demonstration content — this sample plugin extension augments the edition of an existing project while the demo mode is enabled. Nothing here is saved.',
+  'demo.tabOverview': 'Overview',
+  'demo.tabOverviewText': 'A plugin can contribute any component here: summaries, charts, checklists…',
+  'demo.tabQuota': 'Quota',
+  'demo.tabQuotaText': 'Sample second tab. Extensions receive the edition mode and the live form model.',
+  'demo.tabTags': 'Tags',
+  'demo.tagsLabel': 'Demo tags',
+  'demo.tagsHint': 'Sample field: the value is written into the form model (and would ride along in the save payload)',
   // System administration
   'system.title': 'System administration',
   'system.breadcrumb': 'System',

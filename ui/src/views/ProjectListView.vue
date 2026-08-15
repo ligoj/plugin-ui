@@ -66,7 +66,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useApi, useAppStore, useI18nStore } from '@ligoj/host'
+import { useApi, useAppStore, useDemoMode, useI18nStore } from '@ligoj/host'
+import { DEMO_PROJECTS } from '../demo/demoData.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
 import { VibrantDataTable, VibrantConfirmDialog, LjPageHeader, LjButton, LjSearch } from '@ligoj/host'
@@ -82,10 +83,14 @@ const total = ref(0)
 const loading = ref(false)
 const search = ref('')
 
+// Admin-level demo mode: blend the demonstration projects into the list.
+const { enabled: demo } = useDemoMode()
+const allItems = computed(() => (demo.value ? items.value.concat(DEMO_PROJECTS) : items.value))
+
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
-  if (!q) return items.value
-  return items.value.filter((p) => (p.name || '').toLowerCase().includes(q) || (p.pkey || '').toLowerCase().includes(q))
+  if (!q) return allItems.value
+  return allItems.value.filter((p) => (p.name || '').toLowerCase().includes(q) || (p.pkey || '').toLowerCase().includes(q))
 })
 
 const headers = computed(() => [

@@ -44,7 +44,7 @@ if (typeof document !== 'undefined') {
  * Shared host surface is imported from `@ligoj/host` (kept external so the
  * plugin and host share the same pinia / reactive instances).
  */
-import { useI18nStore, useAppStore } from '@ligoj/host'
+import { useDemoMode, useI18nStore, useAppStore } from '@ligoj/host'
 import UiPlugin from './UiPlugin.vue'
 import service from './service.js'
 
@@ -78,12 +78,23 @@ import SystemTaskView from './views/SystemTaskView.vue'
 
 import ApiHomeView from './views/ApiHomeView.vue'
 import ApiTokenView from './views/ApiTokenView.vue'
+import DemoProjectExtension from './components/DemoProjectExtension.vue'
 
 // SubscribeWizardView is imported by `ProjectDetailView` and
 // `SystemNodeView` directly — it's a dialog component now, not a route.
 
 const features = {
   sample: service.sample,
+  // Demo contribution to the entity edit dialogs (host `editExtension` hook):
+  // when the admin-level demo mode is on, the project dialog gains a
+  // demonstration section. Reading the reactive flag inside the feature makes
+  // the consuming dialogs update live when the mode is toggled.
+  editExtension(ctx) {
+    if (ctx.target !== 'project' || !useDemoMode().enabled.value) {
+      return null
+    }
+    return { component: DemoProjectExtension }
+  },
 }
 
 // Canonical 2026 route scheme — matches the host shell's sidebar nav
