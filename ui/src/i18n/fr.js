@@ -3,6 +3,20 @@
  * the host's vue-i18n store at install() time.
  */
 export default {
+  'demo.actionCreate': 'Action démo',
+  'demo.actionEdit': 'Audit démo',
+  'demo.actionTooltip': 'Exemple de bouton contribué par un plugin dans la barre d\'actions (mode démo)',
+  'demo.actionDone': 'Action démo déclenchée pour « {name} » — rien n\'a été modifié.',
+  'demo.showcase': 'Vitrine démo',
+  'demo.navDivider': 'Démo',
+  'demo.showcaseSubtitle': 'Les composants partagés Ligoj et les primitives Vuetify sur une page',
+  'demo.showcaseDisabled': 'Le mode démo est désactivé : activez-le depuis votre profil (administrateurs) pour faire apparaître cette page dans le menu.',
+  'demo.showcaseLigoj': 'Composants Ligoj',
+  'demo.showcaseVuetify': 'Composants Vuetify',
+  'demo.showcaseDialog': 'Dialogue démo',
+  'demo.showcaseDialogText': 'Un LjDialog ouvert depuis la vitrine, enchaîné après le dialogue de confirmation.',
+  'demo.showcaseConfirm': 'Ouvrir le dialogue',
+  'demo.showcaseConfirmText': 'Ce VibrantConfirmDialog enchaîne vers un LjDialog — deux composants partagés Ligoj.',
   // Contenu du mode démo (niveau administrateur, `useDemoMode` de l'hôte)
   'demo.projectAlertCreate': 'Contenu de démonstration — cette section est un exemple d\'extension de plugin affiché lorsque le mode démo est actif. Rien n\'est enregistré ici.',
   'demo.projectAlertEdit': 'Contenu de démonstration — cet exemple d\'extension de plugin complète l\'édition d\'un projet existant lorsque le mode démo est actif. Rien n\'est enregistré ici.',

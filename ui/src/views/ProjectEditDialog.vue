@@ -23,6 +23,8 @@
            written into `form` ride along in the save payload. -->
       <component :is="extension" v-for="(extension, i) in extensionComponents" :key="i" :mode="isEdit ? 'edit' : 'create'" :form="form" :context="extensionContext" />
       <template #footer>
+        <!-- Plugin action-bar contributions (`editExtension.footer`). -->
+        <component :is="f" v-for="(f, fi) in extensionFooters" :key="'xf' + fi" :mode="isEdit ? 'edit' : 'create'" :form="form" :context="extensionContext" />
         <LjButton variant="ghost" @click="requestClose">{{ t('common.cancel') }}</LjButton>
         <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
       </template>
@@ -53,7 +55,7 @@ const pkeyLocked = computed(() => isEdit.value && (props.project?.nbSubscription
 
 // Plugin extension point (`editExtension` feature): contributed body
 // components + optional replacement REST resource for the save call.
-const { components: extensionComponents, apiPath, context: extensionContext } = useEditExtensions(
+const { components: extensionComponents, footers: extensionFooters, apiPath, context: extensionContext } = useEditExtensions(
   'project', 'rest/project', () => ({ mode: isEdit.value ? 'edit' : 'create', project: props.project }))
 
 const form = ref({ name: '', pkey: '', teamLeader: '', description: '' })

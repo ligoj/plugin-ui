@@ -4,6 +4,20 @@
  * host's `messageResolver: (obj, path) => obj?.[path]` lookup works.
  */
 export default {
+  'demo.actionCreate': 'Demo action',
+  'demo.actionEdit': 'Demo audit',
+  'demo.actionTooltip': 'Sample plugin-contributed button in the dialog action bar (demo mode)',
+  'demo.actionDone': 'Demo action triggered for "{name}" — nothing was changed.',
+  'demo.showcase': 'Demo showcase',
+  'demo.navDivider': 'Demo',
+  'demo.showcaseSubtitle': 'Ligoj shared components and Vuetify primitives on one page',
+  'demo.showcaseDisabled': 'Demo mode is disabled: enable it from your profile (administrators) to surface this page in the menu.',
+  'demo.showcaseLigoj': 'Ligoj components',
+  'demo.showcaseVuetify': 'Vuetify components',
+  'demo.showcaseDialog': 'Demo dialog',
+  'demo.showcaseDialogText': 'A LjDialog opened from the showcase, chained after the confirmation dialog.',
+  'demo.showcaseConfirm': 'Open dialog',
+  'demo.showcaseConfirmText': 'This VibrantConfirmDialog chains into a LjDialog — both are Ligoj shared components.',
   // Demo mode content (admin-level, host `useDemoMode`)
   'demo.projectAlertCreate': 'Demonstration content — this section is a sample plugin extension shown while the demo mode is enabled. Nothing here is saved.',
   'demo.projectAlertEdit': 'Demonstration content — this sample plugin extension augments the edition of an existing project while the demo mode is enabled. Nothing here is saved.',

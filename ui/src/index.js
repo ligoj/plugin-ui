@@ -79,6 +79,8 @@ import SystemTaskView from './views/SystemTaskView.vue'
 import ApiHomeView from './views/ApiHomeView.vue'
 import ApiTokenView from './views/ApiTokenView.vue'
 import DemoProjectExtension from './components/DemoProjectExtension.vue'
+import DemoProjectAction from './components/DemoProjectAction.vue'
+import DemoShowcaseView from './views/DemoShowcaseView.vue'
 
 // SubscribeWizardView is imported by `ProjectDetailView` and
 // `SystemNodeView` directly — it's a dialog component now, not a route.
@@ -93,7 +95,22 @@ const features = {
     if (ctx.target !== 'project' || !useDemoMode().enabled.value) {
       return null
     }
-    return { component: DemoProjectExtension }
+    return { component: DemoProjectExtension, footer: DemoProjectAction }
+  },
+  // Demo entry in the Administration menu (host `renderNav` hook, same shape
+  // as plugin-prov's). Reading the reactive demo flag makes the sidebar
+  // add/remove the entry live when the mode is toggled from ProfileView.
+  renderNav() {
+    if (!useDemoMode().enabled.value) {
+      return null
+    }
+    const { t } = useI18nStore()
+    return {
+      menu: 'nav.system',
+      children: [
+        { id: 'demo-showcase', label: t('demo.showcase'), icon: 'mdi-flask-outline', route: '/system/demo', divider: t('demo.navDivider') },
+      ],
+    }
   },
 }
 
@@ -103,6 +120,8 @@ const features = {
 // still resolve to the same component.
 const routes = [
   { path: '/', name: 'ui-home', component: HomeView, alias: ['/home'] },
+  // Demo showcase (Administration menu entry contributed while demo mode is on)
+  { path: '/system/demo', name: 'ui-demo-showcase', component: DemoShowcaseView },
   // About page — moved here from the host shell (#121).
   { path: '/about', name: 'about', component: AboutView },
   { path: '/home/manual', name: 'ui-manual', component: ManualView },
