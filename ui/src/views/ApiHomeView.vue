@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useApi, useAppStore, useI18nStore, APP_BASE, LjPageHeader, LjSearch } from '@ligoj/host'
 
@@ -203,8 +203,8 @@ function toggleOp(k) { openOps.has(k) ? openOps.delete(k) : openOps.add(k) }
 const focusedKey = ref(null)
 function opId(key) { return `op-${encodeURIComponent(key)}` }
 function focusFromQuery() {
-  const key = route.query.op
-  if (!key) return
+  const key = String(route.query.op || '')
+  if (!key) { focusedKey.value = null; return }
   const op = operations.value.find((o) => o.key === key)
   if (!op) return
   openTags.add(op.tag)
@@ -213,6 +213,10 @@ function focusFromQuery() {
   const smooth = typeof document === 'undefined' || document.documentElement.dataset.reduceMotion !== 'true'
   nextTick(() => document.getElementById(opId(op.key))?.scrollIntoView({ block: 'center', behavior: smooth ? 'smooth' : 'auto' }))
 }
+// Vue-router reuses this component when only the ?op= query changes (URL
+// edited in place, in-app navigation) — re-run the focus then too; the
+// mount-time case is handled at the end of load().
+watch(() => route.query.op, () => { if (!loading.value && !error.value) focusFromQuery() })
 
 const stats = computed(() => [
   { key: 'ops', label: t('api.endpoints'), icon: 'mdi-transit-connection-variant', color: 'rgb(var(--v-theme-secondary))', value: operations.value.length },
