@@ -88,9 +88,9 @@
         <v-progress-circular :model-value="slider" color="primary" size="42">{{ Math.round(slider) }}</v-progress-circular>
       </section>
       <section class="sc-card">
-        <h3>v-text-field / v-select / v-textarea</h3>
+        <h3>v-text-field / LigojSelect / v-textarea</h3>
         <v-text-field v-model="text" label="Text" variant="outlined" density="compact" prepend-inner-icon="mdi-form-textbox" class="mb-2" />
-        <v-select v-model="select" :items="['Small', 'Medium', 'Large']" label="Size" variant="outlined" density="compact" class="mb-2" />
+        <LigojSelect v-model="select" :items="['Small', 'Medium', 'Large']" label="Size" variant="outlined" density="compact" class="mb-2" />
         <v-textarea v-model="notes" label="Notes" variant="outlined" density="compact" rows="2" />
       </section>
       <section class="sc-card">
@@ -133,7 +133,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useAppStore, useDemoMode, useI18nStore, LjPageHeader, LjButton, LjSearch, LjSegmented, LjStatus, LjDialog, LigojIcon, LigojAutocomplete, VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog } from '@ligoj/host'
+import { useAppStore, useDemoMode, useI18nStore, LjPageHeader, LjButton, LjSearch, LjSegmented, LjStatus, LjDialog, LigojIcon, LigojAutocomplete, VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LigojSelect } from '@ligoj/host'
 
 const t = useI18nStore().t
 const appStore = useAppStore()

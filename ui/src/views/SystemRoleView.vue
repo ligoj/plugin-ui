@@ -72,7 +72,7 @@
           <div class="ed-label"><v-icon size="16">mdi-api</v-icon><span>{{ t('system.role.fieldApiPatterns') }}</span></div>
           <div v-for="(a, i) in editForm.apiAuths" :key="a._k" class="api-row">
             <v-text-field v-model="a.pattern" :placeholder="t('system.role.patternPlaceholder')" density="compact" variant="outlined" hide-details class="api-pat" />
-            <v-select v-model="a.method" :items="METHODS" :placeholder="t('system.role.methodAny')" density="compact" variant="outlined" hide-details clearable class="api-method" />
+            <LigojSelect v-model="a.method" :items="METHODS" :placeholder="t('system.role.methodAny')" density="compact" variant="outlined" hide-details clearable class="api-method" />
             <button type="button" class="api-del" :aria-label="t('common.delete')" @click="editForm.apiAuths.splice(i, 1)"><v-icon size="18">mdi-close</v-icon></button>
           </div>
           <button type="button" class="api-add" @click="editForm.apiAuths.push({ pattern: '', method: null, _k: ++rowKey })"><v-icon size="16">mdi-plus</v-icon><span>{{ t('system.role.addApi') }}</span></button>
@@ -95,7 +95,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useI18nStore } from '@ligoj/host'
+import { useApi, useAppStore, useI18nStore, LigojSelect } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 

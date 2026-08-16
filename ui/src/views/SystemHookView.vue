@@ -59,7 +59,7 @@
         <LjAvailabilityField v-model="editForm.name" v-model:taken="nameTaken" endpoint="system/hook" field="name" :enabled="!editTarget"
           prepend-inner-icon="mdi-tag-outline" :label="t('system.hook.fieldName')" :disabled="!!editTarget" class="mb-3" autofocus />
         <div class="d-flex ga-3 mb-1 align-start">
-          <v-select v-model="editForm.method" :items="methodOptions" :label="t('system.hook.fieldMethod')" prepend-inner-icon="mdi-swap-horizontal"
+          <LigojSelect v-model="editForm.method" :items="methodOptions" :label="t('system.hook.fieldMethod')" prepend-inner-icon="mdi-swap-horizontal"
             variant="outlined" class="m-field" />
           <v-text-field v-model="editForm.path" :label="t('system.hook.fieldPath')" prepend-inner-icon="mdi-regex" :rules="[rules.required]"
             :hint="t('system.hook.pathHint')" variant="outlined" class="flex-grow-1" />
@@ -91,7 +91,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
+import { useApi, useAppStore, useDataTable, useI18nStore, LigojSelect } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 

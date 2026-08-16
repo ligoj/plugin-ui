@@ -17,20 +17,20 @@
         <section class="step">
           <div class="sh"><span class="n">1</span><v-icon size="18">mdi-room-service-outline</v-icon>{{ t('wizard.step.service') }}</div>
           <div v-if="isEdit" class="ro"><NodeIcon :node="selected.service" /> {{ selected.service?.name || selected.service?.id || '—' }}</div>
-          <v-select v-else v-model="selected.service" :items="services" item-title="name" item-value="id" return-object :placeholder="t('wizard.label.service')" :loading="loadingServices" variant="outlined" density="comfortable" hide-details>
+          <LigojSelect v-else v-model="selected.service" :items="services" item-title="name" item-value="id" return-object :placeholder="t('wizard.label.service')" :loading="loadingServices" variant="outlined" density="comfortable" hide-details>
             <template #selection="{ item }"><span v-if="item" class="opt"><NodeIcon :node="item" /> {{ item.name || item.id }}</span></template>
             <template #item="{ props: ip, item }"><v-list-item v-if="item" v-bind="ip" :title="item.name || item.id" :subtitle="item.id"><template #prepend><NodeIcon :node="item" class="mr-2" /></template></v-list-item></template>
-          </v-select>
+          </LigojSelect>
         </section>
 
         <!-- 2. Tool -->
         <section class="step" :class="{ off: !isEdit && !selected.service }">
           <div class="sh"><span class="n">2</span><v-icon size="18">mdi-wrench-outline</v-icon>{{ t('wizard.step.tool') }}</div>
           <div v-if="isEdit" class="ro"><NodeIcon :node="selected.tool" /> {{ selected.tool?.name || selected.tool?.id || '—' }}</div>
-          <v-select v-else v-model="selected.tool" :items="tools" item-title="name" item-value="id" return-object :placeholder="t('wizard.label.tool')" :loading="loadingTools" :disabled="!selected.service" variant="outlined" density="comfortable" hide-details>
+          <LigojSelect v-else v-model="selected.tool" :items="tools" item-title="name" item-value="id" return-object :placeholder="t('wizard.label.tool')" :loading="loadingTools" :disabled="!selected.service" variant="outlined" density="comfortable" hide-details>
             <template #selection="{ item }"><span v-if="item" class="opt"><NodeIcon :node="item" /> {{ item.name || item.id }}</span></template>
             <template #item="{ props: ip, item }"><v-list-item v-if="item" v-bind="ip" :title="item.name || item.id" :subtitle="item.id"><template #prepend><NodeIcon :node="item" class="mr-2" /></template></v-list-item></template>
-          </v-select>
+          </LigojSelect>
         </section>
 
         <!-- 3. Identity (id + name) -->
@@ -62,8 +62,8 @@
               <v-text-field v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
               <v-text-field v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
               <v-checkbox v-else-if="typeKind(p) === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" density="comfortable" hide-details />
-              <v-select v-else-if="typeKind(p) === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
-              <v-select v-else-if="['multiple','multiselect','tags'].includes(typeKind(p))" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" chips multiple variant="outlined" density="comfortable" hide-details="auto" />
+              <LigojSelect v-else-if="typeKind(p) === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+              <LigojSelect v-else-if="['multiple','multiselect','tags'].includes(typeKind(p))" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" chips multiple variant="outlined" density="comfortable" hide-details="auto" />
               <v-text-field v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
             </div>
           </template>
@@ -77,7 +77,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, LjDialog, LjButton, LjSegmented, LjAvailabilityField } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, LjDialog, LjButton, LjSegmented, LjAvailabilityField, LigojSelect } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
 import { typeKind, isTextParam, isPassword, coerce, buildParamWire, selectValue, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout } from '../utils/pluginParams.js'
 
