@@ -53,11 +53,16 @@
       <template #actions="{ item }">
         <RowActionsCog>
           <button @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+          <button @click="openVerify(item)"><v-icon size="18">mdi-shield-search</v-icon>{{ t('profile.apiVerify') }}</button>
           <div class="sep" />
           <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
         </RowActionsCog>
       </template>
     </VibrantDataTable>
+
+    <!-- API access verification against the selected ROLE's authorizations
+         only (no admin bypass — a role's access is purely pattern-driven). -->
+    <ApiVerifyDialog v-model="verifyDialog" :authorizations="verifyAuths" :subject="verifySubject" />
 
     <!-- Create / edit dialog (shared chrome). -->
     <LjDialog v-model="editDialog" :title="editTarget ? t('system.role.editTitle') : t('system.role.newTitle')" icon="mdi-shield-account-outline" :max-width="640">
@@ -96,7 +101,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useI18nStore, LigojSelect } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField, ApiVerifyDialog } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()
@@ -254,6 +259,16 @@ async function save() {
     editDialog.value = false
     load()
   } finally { saving.value = false }
+}
+
+/* verify (shared host ApiVerifyDialog) — the role's API authorizations only */
+const verifyDialog = ref(false)
+const verifyAuths = ref([])
+const verifySubject = ref('')
+function openVerify(item) {
+  verifySubject.value = item.name
+  verifyAuths.value = item['authorizations-api'] || []
+  verifyDialog.value = true
 }
 
 /* delete */

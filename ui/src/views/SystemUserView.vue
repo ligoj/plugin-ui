@@ -55,11 +55,16 @@
       <template #actions="{ item }">
         <RowActionsCog>
           <button @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+          <button @click="openVerify(item)"><v-icon size="18">mdi-shield-search</v-icon>{{ t('profile.apiVerify') }}</button>
           <div class="sep" />
           <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
         </RowActionsCog>
       </template>
     </VibrantDataTable>
+
+    <!-- API access verification against the UNION of the selected user's
+         roles' API authorizations (no admin bypass — pattern-driven only). -->
+    <ApiVerifyDialog v-model="verifyDialog" :authorizations="verifyAuths" :subject="verifySubject" />
 
     <!-- Create / edit dialog (shared chrome). -->
     <LjDialog v-model="editDialog" :title="editTarget ? t('system.user.editTitle') : t('system.user.newTitle')" icon="mdi-account" :max-width="540">
@@ -95,7 +100,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField, LigojAutocomplete } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField, LigojAutocomplete, ApiVerifyDialog } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()
@@ -180,6 +185,26 @@ async function save() {
     editDialog.value = false
     dt.load(lastOptions)
   } finally { saving.value = false }
+}
+
+/* verify (shared host ApiVerifyDialog) — union of the user's roles' API
+   authorizations, resolved from the roles list (fetched once, cached). */
+const verifyDialog = ref(false)
+const verifyAuths = ref([])
+const verifySubject = ref('')
+let roleAuthCache = null
+async function openVerify(item) {
+  verifySubject.value = item.login
+  verifyAuths.value = []
+  verifyDialog.value = true
+  if (!roleAuthCache) {
+    const data = await api.get('rest/system/security/role/withAuth')
+    roleAuthCache = data?.data || data || []
+  }
+  const ids = new Set((item.roles || []).map((r) => r.id))
+  verifyAuths.value = roleAuthCache
+    .filter((r) => ids.has(r.id))
+    .flatMap((r) => (r.authorizations || []).filter((a) => a.type === 'api'))
 }
 
 /* delete */
