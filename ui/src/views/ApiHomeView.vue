@@ -49,7 +49,7 @@
           <span v-if="g.desc" class="g-desc">{{ g.desc }}</span>
         </button>
         <div v-if="isTagOpen(g.tag)" class="ops">
-          <div v-for="o in g.items" :key="o.key" class="op" :class="o.method">
+          <div v-for="o in g.items" :id="opId(o.key)" :key="o.key" class="op" :class="[o.method, { focused: focusedKey === o.key }]">
             <button class="op-head" @click="toggleOp(o.key)">
               <span class="op-method" :class="o.method">{{ o.method }}</span>
               <code class="op-path" :class="{ dep: o.op.deprecated }">{{ o.path }}</code>
@@ -104,11 +104,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { useApi, useAppStore, useI18nStore, APP_BASE, LjPageHeader, LjSearch } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
+const route = useRoute()
 const i18n = useI18nStore()
 const t = i18n.t
 
@@ -132,7 +134,6 @@ const openTags = reactive(new Set())
 const openOps = reactive(new Set())
 
 const METHOD_ORDER = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']
-const METHOD_COLOR = { get: '#2f6df6', post: '#1d9d63', put: '#d9701a', patch: '#d9701a', delete: '#df4d42', head: '#8b5cf6', options: '#8b5cf6' }
 
 // Flatten the spec's paths into operations, tagged for grouping.
 const operations = computed(() => {
@@ -196,6 +197,23 @@ function toggleAll() {
 function isOpOpen(k) { return openOps.has(k) }
 function toggleOp(k) { openOps.has(k) ? openOps.delete(k) : openOps.add(k) }
 
+/* Deep link: /api?op=<method>|<path> (the operation `key`) opens the owning
+   tag group + the operation body, scrolls it into view and highlights it.
+   Used by the profile's "Verify API access" dialog row-click. */
+const focusedKey = ref(null)
+function opId(key) { return `op-${encodeURIComponent(key)}` }
+function focusFromQuery() {
+  const key = route.query.op
+  if (!key) return
+  const op = operations.value.find((o) => o.key === key)
+  if (!op) return
+  openTags.add(op.tag)
+  openOps.add(op.key)
+  focusedKey.value = op.key
+  const smooth = typeof document === 'undefined' || document.documentElement.dataset.reduceMotion !== 'true'
+  nextTick(() => document.getElementById(opId(op.key))?.scrollIntoView({ block: 'center', behavior: smooth ? 'smooth' : 'auto' }))
+}
+
 const stats = computed(() => [
   { key: 'ops', label: t('api.endpoints'), icon: 'mdi-transit-connection-variant', color: 'rgb(var(--v-theme-secondary))', value: operations.value.length },
   { key: 'tags', label: t('api.groups'), icon: 'mdi-tag-multiple-outline', color: '#2f6df6', value: new Set(operations.value.map((o) => o.tag)).size },
@@ -241,6 +259,7 @@ async function load() {
     // Open the first few tag groups by default so the page isn't a wall of
     // collapsed headers, but keep the rest collapsed (the API is large).
     groups.value.slice(0, 1).forEach((g) => openTags.add(g.tag))
+    focusFromQuery()
   } catch { error.value = t('common.loadError') || 'Unable to load the API description.' }
   loading.value = false
 }
@@ -301,6 +320,8 @@ onMounted(() => {
 .ops { display: flex; flex-direction: column; gap: 8px; padding: 10px 0 4px; }
 .op { border: var(--border-w) var(--lj-border-style, solid) var(--border-c); border-radius: var(--radius); overflow: hidden; background: var(--card); transition: border-color .15s, box-shadow .15s; }
 .op:hover { box-shadow: 0 6px 18px -12px rgba(0, 0, 0, .4); }
+/* Deep-linked operation (?op=…): accent ring so the eye lands on it. */
+.op.focused { outline: 2px solid var(--accent); outline-offset: 1px; box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 22%, transparent); }
 .op.get { background: color-mix(in srgb, #2f6df6 5%, var(--card)); }
 .op.post { background: color-mix(in srgb, #1d9d63 6%, var(--card)); }
 .op.put, .op.patch { background: color-mix(in srgb, #d9701a 6%, var(--card)); }
