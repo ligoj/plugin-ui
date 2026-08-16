@@ -43,7 +43,7 @@
       <template #cell.subs="{ item }">
         <span class="subs-chip">{{ item.subs }}</span>
       </template>
-      <template #cell.actions="{ item }">
+      <template #actions="{ item }">
         <RowActionsCog>
           <button @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
           <div class="sep" />
@@ -99,7 +99,6 @@ const headers = computed(() => [
   { key: 'teamLeader', label: t('project.teamLeader') || 'Team leader', sortable: true, exportValue: (r) => r.teamLeader || '' },
   { key: 'createdDate', label: t('common.createdDate') || 'Created', sortable: true, exportValue: (r) => fmtDate(r.createdDate) },
   { key: 'subs', label: t('project.subsShort'), sortable: true, align: 'center', width: '90px' },
-  { key: 'actions', label: '', sortable: false, align: 'end', width: '120px', exportable: false },
 ])
 
 /* Map a raw Ligoj project (DataTables row) to the card's shape. */
