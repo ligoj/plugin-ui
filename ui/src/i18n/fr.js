@@ -641,4 +641,5 @@ export default {
   'subscription.tip.modeAll': 'Tous',
   'subscription.tip.clickRefresh': 'Cliquer pour actualiser',
   'subscription.tip.refreshing': 'Actualisation…',
+  'subscription.tip.loading': 'Chargement des détails…',
 }

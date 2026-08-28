@@ -103,6 +103,9 @@ function statusDot(raw) {
 
 const project = ref(null)
 const loading = ref(false)
+// Subscriptions whose live details (`rest/subscription/status/refresh`) are
+// still being fetched — their rows show the loading indicator.
+const pendingIds = ref(new Set())
 
 const subscriptions = computed(() => project.value?.subscriptions || [])
 const leaderName = computed(() => {
@@ -132,7 +135,7 @@ const groups = computed(() => {
     const status = statusDot(s.status)
     // No synthetic status / node-name chips — that identity is now carried by
     // the SubscriptionStatus tooltip on the status dot.
-    byTool.get(key).rows.push({ name: node.name || node.id || ('#' + s.id), status, pills: [], sub: s })
+    byTool.get(key).rows.push({ name: node.name || node.id || ('#' + s.id), status, pills: [], sub: s, loading: pendingIds.value.has(s.id) })
   }
   const out = [...byTool.values()]
   for (const g of out) {
@@ -159,6 +162,7 @@ async function load() {
 async function refreshSubscriptions() {
   const subs = project.value?.subscriptions || []
   if (!subs.length) return
+  pendingIds.value = new Set(subs.map((s) => s.id))
   try {
     const q = subs.map((s) => `id=${encodeURIComponent(s.id)}`).join('&')
     const fresh = await api.get(`rest/subscription/status/refresh?${q}`)
@@ -170,7 +174,11 @@ async function refreshSubscriptions() {
         return f ? { ...s, parameters: f.parameters, data: f.data, status: f.status } : s
       }),
     }
-  } catch { /* keep stale */ }
+  } catch {
+    /* keep stale */
+  } finally {
+    pendingIds.value = new Set()
+  }
 }
 
 function setCrumbs(name) {

@@ -8,7 +8,7 @@
 -->
 <template>
   <div class="projects lj-surface">
-    <LjPageHeader :title="t('project.title')">
+    <LjPageHeader :title="t('project.title')" actions-target="project" :actions-context="() => ({ reload: load })">
       <template #subtitle>
         <b>{{ total }}</b> {{ t('project.countLabel') }}
       </template>

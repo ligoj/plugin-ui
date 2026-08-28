@@ -6,7 +6,9 @@
   RENDERING DELEGATION (renderDetailsKey / renderDetailsFeatures / renderFeatures).
 
   Input is the already-grouped `groups` model (one entry per tool):
-    { key, name, kind, color, icon, health, rows: [{ name, status, pills, cost?, sub }] }
+    { key, name, kind, color, icon, health, rows: [{ name, status, pills, cost?, sub, loading? }] }
+  `loading` flags a row whose live details are still being fetched by the host
+  (blinking status dot + details skeleton).
 
   Lazy details: each row emits `row-appear` (once it scrolls into view) so a host
   that only has light subscription data can fetch the full details on demand.
@@ -48,12 +50,16 @@
         </template>
         <template #cell.details="{ item }">
           <span class="lsum">
-            <PluginFeatures v-if="item.sub" :subscription="item.sub" action="renderDetailsKey" />
-            <PluginFeatures v-if="item.sub" :subscription="item.sub" action="renderDetailsFeatures" />
+            <!-- Details still loading: a skeleton bar instead of the plugin summary -->
+            <span v-if="item.loading" class="lsum-skel" :aria-label="t('subscription.tip.loading')" />
+            <template v-else>
+              <PluginFeatures v-if="item.sub" :subscription="item.sub" action="renderDetailsKey" />
+              <PluginFeatures v-if="item.sub" :subscription="item.sub" action="renderDetailsFeatures" />
+            </template>
             <span v-for="(p, k) in item.pills" :key="k" class="pill" :class="{ cost: item.cost }">{{ p }}</span>
           </span>
         </template>
-        <template #cell.status="{ item }"><SubscriptionStatus :subscription="item.sub" :status="item.status" /></template>
+        <template #cell.status="{ item }"><SubscriptionStatus :subscription="item.sub" :status="item.status" :loading="!!item.loading" /></template>
         <template #actions="{ item }">
           <span v-if="item.sub" class="rowact">
             <PluginFeatures :subscription="item.sub" action="renderFeatures" />
@@ -133,7 +139,7 @@ const rowCount = computed(() => filteredGroups.value.reduce((a, g) => a + g.rows
 const subRows = computed(() => filteredGroups.value.flatMap((g) => g.rows.map((r, i) => ({
   id: r.sub?.id ?? `${g.key}:${i}`,
   tool: g.name, kind: g.kind, color: g.color, icon: g.icon,
-  name: r.name, status: r.status, pills: r.pills, cost: r.cost, sub: r.sub,
+  name: r.name, status: r.status, pills: r.pills, cost: r.cost, sub: r.sub, loading: !!r.loading,
 }))))
 
 const listHeaders = computed(() => [
@@ -198,4 +204,17 @@ function toggleAll() {
 .rowact :deep(.v-btn:hover) { color: var(--ink); }
 .rowcog { width: 28px; height: 28px; border: 0; background: transparent; border-radius: 8px; cursor: pointer; display: inline-grid; place-items: center; color: var(--ink-3); transition: background .14s, color .14s; }
 .rowcog:hover { background: rgba(var(--v-theme-on-surface), .08); color: var(--ink); }
+
+/* Details skeleton while the row's live data is loading. */
+.lsum-skel {
+  display: inline-block;
+  width: 140px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(var(--v-theme-on-surface), .08) 25%, rgba(var(--v-theme-on-surface), .18) 50%, rgba(var(--v-theme-on-surface), .08) 75%);
+  background-size: 200% 100%;
+  animation: lsum-shimmer 1.2s linear infinite;
+}
+@keyframes lsum-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .lsum-skel { animation: none; } }
 </style>

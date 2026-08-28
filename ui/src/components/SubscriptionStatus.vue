@@ -15,10 +15,15 @@
 <template>
   <v-tooltip v-if="showStatus" location="top" max-width="420" open-delay="120">
     <template #activator="{ props: a }">
-      <span v-bind="a" class="sst-dot" :class="[dot, { clickable: canRefresh, refreshing }]" :aria-label="statusText"
+      <span v-bind="a" class="sst-dot" :class="[dot, { clickable: canRefresh, refreshing, loading }]" :aria-label="statusText"
         :role="canRefresh ? 'button' : undefined" @click.stop="doRefresh" />
     </template>
     <div class="sst">
+      <!-- The host is still fetching the live details of this subscription. -->
+      <div v-if="loading" class="sst-line sst-loading">
+        <v-icon size="13" class="spin">mdi-loading</v-icon>
+        <span>{{ t('subscription.tip.loading') }}</span>
+      </div>
       <!-- node chain: service → tool → instance -->
       <div v-for="r in nodeRows" :key="r.id" class="sst-node">
         <NodeIcon v-if="r.showIcon" :node="r.node" class="sst-ic" />
@@ -67,6 +72,8 @@ const props = defineProps({
   subscription: { type: Object, default: null },
   node: { type: Object, default: null },
   status: { type: [String, Object, Number], default: null },
+  /** The live details of the subscription are being fetched by the host (blinking dot). */
+  loading: { type: Boolean, default: false },
 })
 
 const t = useI18nStore().t
@@ -244,9 +251,9 @@ const params = computed(() => {
 .sst-dot.disabled { background: #111827; color: #111827; }
 .sst-dot.clickable { cursor: pointer; }
 /* Loading indicator: blink the dot while a refresh is in flight. */
-.sst-dot.refreshing { animation: sst-blink .8s ease-in-out infinite; }
+.sst-dot.refreshing, .sst-dot.loading { animation: sst-blink .8s ease-in-out infinite; }
 @keyframes sst-blink { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
-@media (prefers-reduced-motion: reduce) { .sst-dot.refreshing { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .sst-dot.refreshing, .sst-dot.loading { animation: none; } }
 
 /* Tooltip body (teleported; avoid .lj-surface tokens — they don't cascade
    there. The dim styling rides on the tooltip's own text colour). */
@@ -270,6 +277,8 @@ const params = computed(() => {
 .sst-pv { font-family: ui-monospace, SFMono-Regular, monospace; text-align: right; word-break: break-all; }
 .sst-foot { display: flex; align-items: center; gap: 6px; font-size: 11px; opacity: .8; }
 .sst-foot .spin { animation: sst-spin .8s linear infinite; }
+.sst .sst-loading { gap: 6px; font-style: italic; }
+.sst .sst-loading .spin { animation: sst-spin 1s linear infinite; }
 @keyframes sst-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .sst-foot .spin { animation: none; } }
 </style>

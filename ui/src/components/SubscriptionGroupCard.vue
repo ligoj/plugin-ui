@@ -45,14 +45,18 @@
     <v-expand-transition>
       <div v-show="!collapsed" class="mini">
         <div v-for="(r, j) in shownRows" :key="j" class="mrow" v-appear="() => r.sub && $emit('row-appear', r.sub)">
-          <SubscriptionStatus :subscription="r.sub" :status="r.status" />
+          <SubscriptionStatus :subscription="r.sub" :status="r.status" :loading="!!r.loading" />
           <span class="mlabel">{{ r.name }}</span>
           <span class="m-sum">
+            <!-- Details still loading: a skeleton bar instead of the plugin summary -->
+            <span v-if="r.loading" class="lsum-skel" :aria-label="t('subscription.tip.loading')" />
             <!-- Plugin-rendered summary, split like the legacy renderDetailsKey /
                  renderDetailsFeatures pair; degrade to nothing when the owning
                  plugin bundle isn't loaded — the synthetic pills always show. -->
-            <PluginFeatures v-if="r.sub" :subscription="r.sub" action="renderDetailsKey" />
-            <PluginFeatures v-if="r.sub" :subscription="r.sub" action="renderDetailsFeatures" />
+            <template v-else>
+              <PluginFeatures v-if="r.sub" :subscription="r.sub" action="renderDetailsKey" />
+              <PluginFeatures v-if="r.sub" :subscription="r.sub" action="renderDetailsFeatures" />
+            </template>
             <span v-for="(p, k) in r.pills" :key="k" class="pill" :class="{ cost: r.cost }">{{ p }}</span>
           </span>
           <span v-if="r.sub" class="rowact">
@@ -158,4 +162,17 @@ const hasStats = computed(() => !!(props.group.instanceStatus || props.group.sub
 
 .rowmore { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font); font-size: 12.5px; font-weight: 700; color: var(--ink-3); padding: 6px 10px; margin-top: 4px; border: 0; background: rgba(var(--v-theme-on-surface), .05); border-radius: 8px; cursor: pointer; transition: background .14s, color .14s; }
 .rowmore:hover { background: rgba(var(--v-theme-on-surface), .1); color: var(--ink); }
+
+/* Details skeleton while the row's live data is loading. */
+.lsum-skel {
+  display: inline-block;
+  width: 120px;
+  height: 9px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(var(--v-theme-on-surface), .08) 25%, rgba(var(--v-theme-on-surface), .18) 50%, rgba(var(--v-theme-on-surface), .08) 75%);
+  background-size: 200% 100%;
+  animation: lsum-shimmer 1.2s linear infinite;
+}
+@keyframes lsum-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .lsum-skel { animation: none; } }
 </style>

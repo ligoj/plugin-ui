@@ -642,4 +642,5 @@ export default {
   'subscription.tip.modeAll': 'All',
   'subscription.tip.clickRefresh': 'Click to refresh',
   'subscription.tip.refreshing': 'Refreshing…',
+  'subscription.tip.loading': 'Loading details…',
 }
