@@ -46,7 +46,8 @@
           <v-icon size="18" class="g-caret" :class="{ open: isTagOpen(g.tag) }">mdi-chevron-right</v-icon>
           <span class="g-name">{{ g.tag }}</span>
           <span class="g-count">{{ g.items.length }}</span>
-          <span v-if="g.desc" class="g-desc">{{ g.desc }}</span>
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <span v-if="g.desc" class="g-desc" v-html="mdInline(g.desc)"></span>
         </button>
         <div v-if="isTagOpen(g.tag)" class="ops">
           <div v-for="o in g.items" :id="opId(o.key)" :key="o.key" class="op" :class="[o.method, { focused: focusedKey === o.key }]">
@@ -58,7 +59,9 @@
               <v-icon size="18" class="op-caret" :class="{ open: isOpOpen(o.key) }">mdi-chevron-down</v-icon>
             </button>
             <div v-if="isOpOpen(o.key)" class="op-body">
-              <p v-if="o.op.description" class="op-desc">{{ o.op.description }}</p>
+              <!-- Backend-generated CommonMark (javadoc converter); mdToHtml escapes before markup — v-html safe. -->
+              <!-- eslint-disable-next-line vue/no-v-html -->
+              <div v-if="o.op.description" class="op-desc md" v-html="mdToHtml(o.op.description)"></div>
 
               <div class="sec">
                 <h4>{{ t('api.params') }}</h4>
@@ -68,7 +71,8 @@
                     <code class="p-name">{{ p.name }}</code>
                     <span v-if="p.required" class="p-req">{{ t('api.required') }}</span>
                     <span class="p-type">{{ typeLabel(p.schema) }}</span>
-                    <span v-if="p.description" class="p-desc">{{ p.description }}</span>
+                    <!-- eslint-disable-next-line vue/no-v-html -->
+                    <span v-if="p.description" class="p-desc" v-html="mdInline(p.description)"></span>
                   </div>
                 </div>
                 <p v-else class="muted">{{ t('api.noParams') }}</p>
@@ -90,7 +94,8 @@
                 <div class="params">
                   <div v-for="r in responses(o.op)" :key="r.code" class="param">
                     <span class="code-badge" :class="codeClass(r.code)">{{ r.code }}</span>
-                    <span class="p-desc">{{ r.description }}</span>
+                    <!-- eslint-disable-next-line vue/no-v-html -->
+                    <span class="p-desc" v-html="mdInline(r.description)"></span>
                     <span v-if="r.type" class="p-type">{{ r.type }}</span>
                   </div>
                 </div>
@@ -107,6 +112,7 @@
 import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useApi, useAppStore, useI18nStore, APP_BASE, LjPageHeader, LjSearch } from '@ligoj/host'
+import { mdToHtml, mdInline } from '../markdown.js'
 
 const api = useApi()
 const app = useAppStore()
@@ -319,6 +325,13 @@ onMounted(() => {
 .g-caret.open { transform: rotate(90deg); }
 .g-name { font-family: var(--font); font-weight: var(--bold); font-size: 17px; color: var(--ink); letter-spacing: -.02em; }
 .g-count { font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--ink-3); background: var(--pill); padding: 2px 9px; border-radius: 999px; }
+.op-desc.md :deep(p) { margin: 0 0 8px; }
+.op-desc.md :deep(p:last-child) { margin-bottom: 0; }
+.op-desc.md :deep(ul) { margin: 0 0 8px; padding-left: 22px; }
+.op-desc.md :deep(li) { margin: 2px 0; }
+.op-desc.md :deep(pre) { background: var(--hover); border-radius: 8px; padding: 8px 10px; overflow-x: auto; margin: 0 0 8px; }
+.op-desc.md :deep(code) { font-size: 12px; }
+
 .g-desc { font-size: 12.5px; color: var(--ink-3); font-weight: 500; margin-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .ops { display: flex; flex-direction: column; gap: 8px; padding: 10px 0 4px; }
