@@ -369,6 +369,10 @@ export default {
   'system.plugin.confirmDeleteText': 'Planifier la suppression de {artifact} ? La suppression effective aura lieu au prochain redémarrage du conteneur.',
 
   // API
+  'api.schemasTitle': 'Modèles de données',
+  'api.schemasHint': 'Types référencés par les opérations ci-dessus',
+  'api.schemas': 'Schémas',
+  'api.noProps': 'Aucune propriété',
   'api.title': 'API',
   'system.apiToken.title': 'Tokens',
   'system.apiToken.new': 'Nouveau token',

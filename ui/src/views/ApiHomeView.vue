@@ -70,7 +70,8 @@
                     <span class="p-in" :class="p.in">{{ p.in }}</span>
                     <code class="p-name">{{ p.name }}</code>
                     <span v-if="p.required" class="p-req">{{ t('api.required') }}</span>
-                    <span class="p-type">{{ typeLabel(p.schema) }}</span>
+                    <button v-if="schemaRefOf(p.schema)" class="p-type ref" @click="openSchema(schemaRefOf(p.schema))">{{ typeLabel(p.schema) }}</button>
+                    <span v-else class="p-type">{{ typeLabel(p.schema) }}</span>
                     <!-- eslint-disable-next-line vue/no-v-html -->
                     <span v-if="p.description" class="p-desc" v-html="mdInline(p.description)"></span>
                   </div>
@@ -83,7 +84,8 @@
                 <div class="params">
                   <div v-for="ct in bodyTypes(o.op.requestBody)" :key="ct.type" class="param">
                     <span class="p-in body">{{ ct.type }}</span>
-                    <span class="p-type">{{ ct.schema }}</span>
+                    <button v-if="ct.ref" class="p-type ref" @click="openSchema(ct.ref)">{{ ct.schema }}</button>
+                    <span v-else class="p-type">{{ ct.schema }}</span>
                     <span v-if="o.op.requestBody.required" class="p-req">{{ t('api.required') }}</span>
                   </div>
                 </div>
@@ -96,9 +98,50 @@
                     <span class="code-badge" :class="codeClass(r.code)">{{ r.code }}</span>
                     <!-- eslint-disable-next-line vue/no-v-html -->
                     <span class="p-desc" v-html="mdInline(r.description)"></span>
-                    <span v-if="r.type" class="p-type">{{ r.type }}</span>
+                    <button v-if="r.type && r.ref" class="p-type ref" @click="openSchema(r.ref)">{{ r.type }}</button>
+                    <span v-else-if="r.type" class="p-type">{{ r.type }}</span>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Schema definitions (components.schemas), the target of the clickable
+           type references above. Descriptions carry the backend javadoc. A
+           titled divider visually separates the models from the endpoints. -->
+      <div v-if="filteredSchemaNames.length" class="schemas-divider">
+        <span class="sd-icon"><v-icon size="17">mdi-cube-outline</v-icon></span>
+        <span class="sd-title">{{ t('api.schemasTitle') }}</span>
+        <span class="sd-hint">{{ t('api.schemasHint') }}</span>
+      </div>
+      <section v-if="filteredSchemaNames.length" class="group schemas-group">
+        <button class="group-head" @click="schemasOpen = !schemasOpen">
+          <v-icon size="18" class="g-caret" :class="{ open: schemasOpen }">mdi-chevron-right</v-icon>
+          <span class="g-name">{{ t('api.schemas') }}</span>
+          <span class="g-count">{{ filteredSchemaNames.length }}</span>
+        </button>
+        <div v-if="schemasOpen" class="ops">
+          <div v-for="name in filteredSchemaNames" :id="schemaId(name)" :key="name" class="op schema" :class="{ focused: focusedSchema === name }">
+            <button class="op-head" @click="toggleSchema(name)">
+              <span class="sch-ic"><v-icon size="16">mdi-cube-outline</v-icon></span>
+              <code class="op-path">{{ name }}</code>
+              <v-icon size="18" class="op-caret" :class="{ open: isSchemaOpen(name) }">mdi-chevron-down</v-icon>
+            </button>
+            <div v-if="isSchemaOpen(name)" class="op-body">
+              <!-- eslint-disable-next-line vue/no-v-html -->
+              <div v-if="schemas[name]?.description" class="op-desc md" v-html="mdToHtml(schemas[name].description)"></div>
+              <div class="params">
+                <div v-for="sp in schemaProps(name)" :key="sp.name" class="param">
+                  <code class="p-name">{{ sp.name }}</code>
+                  <span v-if="sp.required" class="p-req">{{ t('api.required') }}</span>
+                  <button v-if="sp.ref" class="p-type ref" @click="openSchema(sp.ref)">{{ sp.type }}</button>
+                  <span v-else class="p-type">{{ sp.type }}</span>
+                  <!-- eslint-disable-next-line vue/no-v-html -->
+                  <span v-if="sp.description" class="p-desc" v-html="mdInline(sp.description)"></span>
+                </div>
+                <p v-if="!schemaProps(name).length" class="muted">{{ t('api.noProps') }}</p>
               </div>
             </div>
           </div>
@@ -240,17 +283,54 @@ function typeLabel(schema) {
   if (schema.format) return `${schema.type} (${schema.format})`
   return schema.type || 'object'
 }
+/** Name of the schema a node (or its array items) references — '' when inline. */
+function schemaRefOf(schema) {
+  if (!schema) return ''
+  if (schema.$ref) return refName(schema.$ref)
+  if (schema.type === 'array') return schemaRefOf(schema.items)
+  return ''
+}
 function bodyTypes(rb) {
   const content = rb?.content || {}
-  return Object.keys(content).map((type) => ({ type, schema: typeLabel(content[type]?.schema) }))
+  return Object.keys(content).map((type) => ({ type, schema: typeLabel(content[type]?.schema), ref: schemaRefOf(content[type]?.schema) }))
 }
 function responses(op) {
   const r = op.responses || {}
   return Object.keys(r).map((code) => {
     const content = r[code]?.content || {}
     const firstCt = Object.keys(content)[0]
-    return { code, description: r[code]?.description || '', type: firstCt ? typeLabel(content[firstCt]?.schema) : '' }
+    const schema = firstCt ? content[firstCt]?.schema : null
+    return { code, description: r[code]?.description || '', type: schema ? typeLabel(schema) : '', ref: schemaRefOf(schema) }
   })
+}
+
+/* --- Schema definitions section --- */
+const schemas = computed(() => spec.value?.components?.schemas || {})
+const filteredSchemaNames = computed(() => {
+  const q = query.value.trim().toLowerCase()
+  return Object.keys(schemas.value).filter((n) => !q || n.toLowerCase().includes(q)).sort()
+})
+const schemasOpen = ref(false)
+const openSchemas = reactive(new Set())
+const focusedSchema = ref('')
+const schemaId = (name) => `schema-${name}`
+const isSchemaOpen = (name) => openSchemas.has(name)
+function toggleSchema(name) { openSchemas.has(name) ? openSchemas.delete(name) : openSchemas.add(name) }
+/** Open the Schemas section on the given definition and scroll it into view. */
+function openSchema(name) {
+  if (!schemas.value[name]) return
+  schemasOpen.value = true
+  openSchemas.add(name)
+  focusedSchema.value = name
+  nextTick(() => document.getElementById(schemaId(name))?.scrollIntoView?.({ behavior: 'smooth', block: 'center' }))
+}
+/** Properties of one schema definition, with their clickable reference if any. */
+function schemaProps(name) {
+  const sch = schemas.value[name] || {}
+  const required = new Set(sch.required || [])
+  return Object.entries(sch.properties || {}).map(([n, ps]) => ({
+    name: n, type: typeLabel(ps), ref: schemaRefOf(ps), required: required.has(n), description: ps.description || '',
+  }))
 }
 function codeClass(code) {
   const n = parseInt(code, 10)
@@ -331,6 +411,16 @@ onMounted(() => {
 .op-desc.md :deep(li) { margin: 2px 0; }
 .op-desc.md :deep(pre) { background: var(--hover); border-radius: 8px; padding: 8px 10px; overflow-x: auto; margin: 0 0 8px; }
 .op-desc.md :deep(code) { font-size: 12px; }
+
+.schemas-divider { display: flex; align-items: baseline; gap: 9px; margin-top: 34px; padding-top: 20px; border-top: 2px dashed var(--border-2); }
+.sd-icon { align-self: center; display: inline-flex; color: var(--accent); }
+.sd-title { font-family: var(--font); font-weight: var(--bold); font-size: 15px; color: var(--ink); letter-spacing: -.01em; }
+.sd-hint { font-size: 12.5px; color: var(--ink-3); }
+.schemas-group .group-head { background: var(--hover); border-radius: 10px 10px 0 0; padding-left: 10px; border-bottom: 1px solid var(--border-2); }
+
+.p-type.ref { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; border: 0; background: none; font: inherit; color: var(--accent, #2563eb); padding: 0; }
+.p-type.ref:hover { text-decoration-style: solid; }
+.sch-ic { display: inline-flex; align-items: center; color: var(--ink-3); }
 
 .g-desc { font-size: 12.5px; color: var(--ink-3); font-weight: 500; margin-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 

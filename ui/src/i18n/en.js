@@ -370,6 +370,10 @@ export default {
   'system.plugin.confirmDeleteText': 'Schedule deletion of {artifact}? The actual removal happens on the next container restart.',
 
   // API
+  'api.schemasTitle': 'Data models',
+  'api.schemasHint': 'Types referenced by the operations above',
+  'api.schemas': 'Schemas',
+  'api.noProps': 'No property',
   'api.title': 'API',
   'system.apiToken.title': 'Tokens',
   'system.apiToken.new': 'New token',
