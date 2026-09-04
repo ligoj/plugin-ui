@@ -68,7 +68,7 @@
           :counter="255" maxlength="255" variant="outlined" class="mb-1" />
         <v-text-field v-model="editForm.workingDirectory" :label="t('system.hook.fieldWorkingDirectory')" prepend-inner-icon="mdi-folder-outline"
           :rules="[rules.required, rules.noSpace]" :hint="t('system.hook.workingDirectoryHint')" :counter="255" maxlength="255" variant="outlined" class="mb-1" />
-        <v-combobox v-model="editForm.inject" :label="t('system.hook.fieldInject')" prepend-inner-icon="mdi-variable" multiple chips closable-chips
+        <LigojCombobox v-model="editForm.inject" :label="t('system.hook.fieldInject')" prepend-inner-icon="mdi-variable" multiple chips closable-chips
           :hint="t('system.hook.injectHint')" persistent-hint variant="outlined" class="mb-3" />
         <div class="d-flex ga-3">
           <v-text-field v-model.number="editForm.timeout" type="number" min="1" :label="t('system.hook.fieldTimeout')" prepend-inner-icon="mdi-timer-outline"
@@ -91,7 +91,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useDataTable, useI18nStore, LigojSelect } from '@ligoj/host'
+import { LigojCombobox, useApi, useAppStore, useDataTable, useI18nStore, LigojSelect } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 

@@ -84,7 +84,7 @@
           <div class="ed-hint">{{ t('system.role.patternsHint') }}</div>
         </div>
 
-        <v-combobox v-model="editForm.uiPatterns" :label="t('system.role.fieldUiPatterns')" prepend-inner-icon="mdi-monitor" :items="[]" chips closable-chips multiple variant="outlined" :hint="t('system.role.patternsHint')" persistent-hint class="mb-2" />
+        <LigojCombobox v-model="editForm.uiPatterns" :label="t('system.role.fieldUiPatterns')" prepend-inner-icon="mdi-monitor" :items="[]" chips closable-chips multiple variant="outlined" :hint="t('system.role.patternsHint')" persistent-hint class="mb-2" />
       </v-form>
       <template #footer>
         <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
@@ -100,7 +100,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useI18nStore, LigojSelect } from '@ligoj/host'
+import { LigojCombobox, useApi, useAppStore, useI18nStore, LigojSelect } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField, ApiVerifyDialog } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 
