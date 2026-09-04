@@ -254,6 +254,7 @@ export default {
   'system.cache.headerAvgGet': 'Avg get (ms)',
   'system.cache.headerAvgGetHelp': 'Average get time (ms)',
   'system.cache.invalidate': 'Invalidate cache',
+  'system.cache.invalidateAllConfirm': "Flush the {n} caches at once? Cached data will be reloaded from the sources on next access.",
   'system.cache.errorLoad': 'Unable to load caches',
 
   // System → Roles

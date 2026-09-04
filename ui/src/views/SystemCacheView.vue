@@ -60,14 +60,26 @@
           <v-tooltip activator="parent" :text="t('system.cache.invalidate')" location="top" />
         </button>
       </template>
+      <template #tools-extra>
+        <!-- Global invalidation (DELETE rest/system/cache): every cache at once, confirmed first. -->
+        <button :disabled="invalidatingAll || !items.length" @click="invalidateAllDialog = true">
+          <v-progress-circular v-if="invalidatingAll" size="18" width="2" indeterminate />
+          <v-icon v-else size="18">mdi-delete-sweep-outline</v-icon>{{ t('system.cache.invalidateAll') }}
+        </button>
+      </template>
     </VibrantDataTable>
+
+    <LigojConfirmDialog v-model="invalidateAllDialog" :title="t('system.cache.invalidateAll')" icon="mdi-delete-sweep-outline" confirm-color="error"
+      :confirm-label="t('system.cache.invalidateAll')" :loading="invalidatingAll" @confirm="invalidateAll">
+      {{ t('system.cache.invalidateAllConfirm', { n: items.length }) }}
+    </LigojConfirmDialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useI18nStore } from '@ligoj/host'
-import { VibrantDataTable, LjPageHeader, LjSearch } from '@ligoj/host'
+import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjSearch } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()
@@ -164,6 +176,15 @@ async function invalidate(item) {
   invalidating.value = item.id
   try { await api.post(`rest/system/cache/${encodeURIComponent(item.id)}`); load() }
   finally { invalidating.value = null }
+}
+
+const invalidateAllDialog = ref(false)
+const invalidatingAll = ref(false)
+/** Flush every cache in one call (DELETE rest/system/cache), then refresh the statistics. */
+async function invalidateAll() {
+  invalidatingAll.value = true
+  try { await api.del('rest/system/cache'); invalidateAllDialog.value = false; load() }
+  finally { invalidatingAll.value = false }
 }
 
 onMounted(() => {

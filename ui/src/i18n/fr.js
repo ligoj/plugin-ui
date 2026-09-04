@@ -253,6 +253,7 @@ export default {
   'system.cache.headerAvgGet': 'Get moyen (ms)',
   'system.cache.headerAvgGetHelp': 'Taux de get moyen (ms)',
   'system.cache.invalidate': 'Vider le cache',
+  'system.cache.invalidateAllConfirm': "Vider les {n} caches d'un coup ? Les données en cache seront rechargées depuis les sources au prochain accès.",
   'system.cache.errorLoad': 'Impossible de charger les caches',
 
   // Système → Rôles
