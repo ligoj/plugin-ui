@@ -64,8 +64,8 @@
 
           <v-expand-transition>
             <div v-if="showNewNode" class="newnode">
-              <v-text-field v-model="newNode.id" :label="t('wizard.label.id')" :hint="`${selected.tool?.id || ''}:my-instance`" persistent-hint variant="outlined" density="comfortable" class="mb-2" />
-              <v-text-field v-model="newNode.name" :label="t('wizard.label.name')" variant="outlined" density="comfortable" class="mb-2" hide-details />
+              <LigojTextField v-model="newNode.id" :label="t('wizard.label.id')" :hint="`${selected.tool?.id || ''}:my-instance`" persistent-hint variant="outlined" density="comfortable" class="mb-2" />
+              <LigojTextField v-model="newNode.name" :label="t('wizard.label.name')" variant="outlined" density="comfortable" class="mb-2" hide-details />
               <p v-if="newNodeError" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ newNodeError }}</p>
               <LjButton icon="mdi-plus" :icon-size="16" :disabled="!newNode.id || !newNode.name" :loading="creatingNode" @click="createNode">{{ t('wizard.createInstance') }}</LjButton>
             </div>
@@ -95,12 +95,12 @@
                    when the owning plugin bundle is loaded. -->
               <component v-if="resolveParameterField(p)" :is="resolveParameterField(p)" v-model="paramValues[p.id]" :parameter="p" :form-values="paramValues" :mode="selected.mode"
                 :is-node="false" :node-id="selected.tool?.id" :instance-node-id="selected.node?.id" />
-              <v-text-field v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
-              <v-text-field v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
-              <v-checkbox v-else-if="typeKind(p) === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" density="comfortable" hide-details />
-              <LigojSelect v-else-if="typeKind(p) === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
-              <LigojSelect v-else-if="['multiple','multiselect','tags'].includes(typeKind(p))" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" chips multiple variant="outlined" density="comfortable" hide-details="auto" />
-              <v-text-field v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" hide-details="auto" />
+              <LigojTextField v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
+              <LigojTextField v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
+              <v-checkbox v-else-if="typeKind(p) === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
+              <LigojSelect v-else-if="typeKind(p) === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
+              <LigojSelect v-else-if="['multiple','multiselect','tags'].includes(typeKind(p))" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" chips multiple variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
+              <LigojTextField v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
             </div>
           </template>
         </section>
@@ -172,6 +172,8 @@ const ready = computed(() =>
    selection, which stay dialog-local. */
 function tOrNull(key) { const v = i18n.t(key); return v === key ? null : v }
 function paramLabel(p) { return `${tOrNull(p.id) ?? p.id}${(p.mandatory || p.required) ? ' *' : ''}` }
+/* Optional helper text below the field: the `<id>-description` i18n key, else the parameter's own description. */
+function paramDescription(p) { return tOrNull(`${p.id}-description`) ?? p.description ?? null }
 function ruleFor(p) { return (p.mandatory || p.required) ? [rules.required] : [] }
 
 /* Subscription context (isNode = false): the parameter form drives a new
