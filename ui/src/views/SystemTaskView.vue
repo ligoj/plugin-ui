@@ -17,14 +17,21 @@
   <div class="tasks lj-surface">
     <LjPageHeader :title="t('system.task.title')" :crumbs="[{ icon: 'mdi-cog-outline', label: t('system.breadcrumb') }, { label: t('system.task.title'), current: true }]">
       <template #subtitle>
-        <b>{{ runners.length }}</b> {{ t('system.task.countLabel') }}
+        <template v-if="activeTab === 'runners'"><b>{{ runners.length }}</b> {{ t('system.task.countLabel') }}</template>
+        <template v-else><b>{{ scheduled.length }}</b> {{ t('system.task.scheduledCountLabel') }}</template>
+      </template>
+      <template #actions>
+        <!-- Two kinds of tasks in tabs: the long-task runners and the scheduled
+             tasks. Deep link: #/system/task?tab=scheduled -->
+        <LjSegmented v-model="activeTab" :options="tabs" />
       </template>
     </LjPageHeader>
 
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
-    <div v-if="loading && !runners.length" class="loading"><v-progress-circular indeterminate size="32" /></div>
+    <div v-if="loading && !runners.length && activeTab === 'runners'" class="loading"><v-progress-circular indeterminate size="32" /></div>
 
+    <template v-if="activeTab === 'runners'">
     <div v-for="group in groups" :key="group.type" class="section">
       <div class="section-head">
         <v-icon size="18">{{ group.icon }}</v-icon>
@@ -53,16 +60,12 @@
     </div>
 
     <p v-if="!loading && !runners.length && !error" class="empty">{{ t('common.noData') }}</p>
+    </template>
 
     <!-- Scheduled tasks (rest/system/schedule): the Spring @Scheduled methods
          and the schedules contributed by plugins (e.g. the plug-in automation),
          with their trigger, next/last execution and state. -->
-    <div class="section sched">
-      <div class="section-head">
-        <v-icon size="18">mdi-calendar-clock</v-icon>
-        <span class="section-title">{{ t('system.task.scheduled') }}</span>
-        <span class="section-count">{{ scheduled.length }}</span>
-      </div>
+    <div v-else class="section sched">
       <VibrantDataTable :headers="scheduledHeaders" :items="scheduled" :items-length="scheduled.length" :loading="scheduledLoading"
         item-value="id" default-sort="bean" :empty-text="t('system.task.noScheduled')" filename="system-schedule.csv">
         <template #cell.bean="{ item }">
@@ -148,6 +151,20 @@ const t = i18n.t
 const runners = ref([])
 const loading = ref(false)
 const error = ref(null)
+
+/* --- tabs: runners / scheduled (initial tab from the hash query, e.g. ?tab=scheduled) --- */
+const TABS = ['runners', 'scheduled']
+function initialTab() {
+  try {
+    const tab = new URLSearchParams(String(window.location.hash).split('?')[1] || '').get('tab')
+    return TABS.includes(tab) ? tab : 'runners'
+  } catch { return 'runners' }
+}
+const activeTab = ref(initialTab())
+const tabs = computed(() => [
+  { value: 'runners', label: `${t('system.task.tabRunners')} (${runners.value.length})` },
+  { value: 'scheduled', label: `${t('system.task.tabScheduled')} (${scheduled.value.length})` },
+])
 
 /* --- scheduled tasks (Spring @Scheduled + plugin providers) --- */
 const scheduled = ref([])

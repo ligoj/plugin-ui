@@ -45,13 +45,26 @@ describe('SystemTaskView', () => {
     await flushPromises()
     const cards = w.findAll('.card')
     expect(cards).toHaveLength(2)
-    // Two non-empty runner sections (node + subscription), besides the scheduled tasks section.
-    expect(w.findAll('.section:not(.sched)')).toHaveLength(2)
-    expect(w.find('.section.sched').exists()).toBe(true)
+    // Two non-empty runner sections (node + subscription) in the default "runners" tab.
+    expect(w.findAll('.section')).toHaveLength(2)
+    expect(w.find('.section.sched').exists()).toBe(false)
     // The node runner shows its total (3) and the succeeded segment is 1/3 wide.
     expect(cards[0].text()).toContain('3')
     const succeeded = cards[0].find('.seg.succeeded')
     expect(succeeded.attributes('style')).toContain('33.3')
+  })
+
+  it('switches to the scheduled tasks tab', async () => {
+    const w = mountView()
+    await flushPromises()
+    w.vm.activeTab = 'scheduled'
+    await nextTick()
+    expect(w.findAll('.card')).toHaveLength(0)
+    expect(w.find('.section.sched').exists()).toBe(true)
+    expect(w.find('.section.sched .vdt').exists()).toBe(true)
+    w.vm.activeTab = 'runners'
+    await nextTick()
+    expect(w.findAll('.card')).toHaveLength(2)
   })
 
   it('opens the dialog and wires useDataTable on the runner endpoint', async () => {

@@ -253,6 +253,9 @@ export default {
   'system.task.unit.m': 'min',
   'system.task.unit.s': 's',
   'system.task.scheduled': "Scheduled tasks",
+  'system.task.tabRunners': "Runners",
+  'system.task.tabScheduled': "Scheduled",
+  'system.task.scheduledCountLabel': "scheduled tasks",
   'system.task.noScheduled': "No scheduled task",
   'system.task.colTask': "Task",
   'system.task.colTrigger': "Trigger",
@@ -718,7 +721,6 @@ export default {
   // Subscription / node status tooltip (SubscriptionStatus component)
   'subscription.tip.status': 'Status',
   'subscription.tip.mode': 'Mode',
-  'subscription.tip.enabled': 'Enabled',
   'subscription.tip.parameters': 'Parameters',
   'subscription.tip.created': 'Created',
   'subscription.tip.modified': 'Modified',

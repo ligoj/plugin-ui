@@ -5,7 +5,7 @@
   subscription, each section shown only when its data is available:
     - the service / tool (icon + id + name) and the instance (id + name),
     - the status icon + translated value,
-    - the subscription mode (link / create), enabled flag, audit (created /
+    - the subscription identifier, mode (link / create), audit (created /
       modified by + date),
     - the parameters (name + value; secrets masked).
 
@@ -19,6 +19,8 @@
         :role="canRefresh ? 'button' : undefined" @click.stop="doRefresh" />
     </template>
     <div class="sst">
+      <!-- Subscription identifier, floating top-right (a node badge has none) -->
+      <code v-if="subscriptionId != null" class="sst-subid">#{{ subscriptionId }}</code>
       <!-- The host is still fetching the live details of this subscription. -->
       <div v-if="loading" class="sst-line sst-loading">
         <v-icon size="13" class="spin">mdi-loading</v-icon>
@@ -30,8 +32,7 @@
         <span v-else class="sst-ic sst-ic-empty" />
         <div class="sst-ntxt">
           <span class="sst-type">{{ r.type }}</span>
-          <span class="sst-name">{{ r.name || r.id }}</span>
-          <code class="sst-id">{{ r.id }}</code>
+          <div class="sst-nrow"><span class="sst-name">{{ r.name || r.id }}</span><code class="sst-id">{{ r.id }}</code></div>
         </div>
       </div>
 
@@ -42,7 +43,6 @@
         <span class="sst-k">{{ t('subscription.tip.status') }}</span><b>{{ statusText }}</b>
       </div>
       <div v-if="modeText" class="sst-line"><span class="sst-k">{{ t('subscription.tip.mode') }}</span><span>{{ modeText }}</span></div>
-      <div v-if="enabledText" class="sst-line"><span class="sst-k">{{ t('subscription.tip.enabled') }}</span><span>{{ enabledText }}</span></div>
       <div v-if="audit.created" class="sst-line sst-audit"><span class="sst-k">{{ t('subscription.tip.created') }}</span><span>{{ audit.created }}</span></div>
       <div v-if="audit.modified" class="sst-line sst-audit"><span class="sst-k">{{ t('subscription.tip.modified') }}</span><span>{{ audit.modified }}</span></div>
 
@@ -200,12 +200,8 @@ const modeText = computed(() => {
   return key ? t(key) : String(m)
 })
 
-const enabledText = computed(() => {
-  // Separate line only for an OPERATIONAL status (not the disabled-black case,
-  // where the Status line already says "Disabled").
-  if (isDisabled.value || !hasOpStatus.value || enabledFlag.value === null) return ''
-  return t(enabledFlag.value ? 'system.node.statusEnabled' : 'system.node.statusDisabled')
-})
+// The subscription identifier, shown next to the status (a node badge has none)
+const subscriptionId = computed(() => props.subscription?.id ?? null)
 
 function userName(u) {
   if (!u) return ''
@@ -257,13 +253,17 @@ const params = computed(() => {
 
 /* Tooltip body (teleported; avoid .lj-surface tokens — they don't cascade
    there. The dim styling rides on the tooltip's own text colour). */
-.sst { display: flex; flex-direction: column; gap: 4px; padding: 2px 0; font-size: 12px; min-width: 210px; }
+.sst { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 2px 0; font-size: 12px; min-width: 210px; }
+/* Floating subscription identifier, top-right; the first line keeps clear of it. */
+.sst-subid { position: absolute; top: -3px; right: -11px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 10.5px; opacity: .75; padding: 1px 6px; border-radius: 999px; background: rgba(255, 255, 255, .12); }
+.sst-subid + * { padding-right: 52px; }
 .sst-node { display: flex; align-items: center; gap: 8px; }
 .sst-ic { width: 20px; height: 20px; flex: none; display: inline-grid; place-items: center; }
 .sst-ic :deep(img.tool-icon) { width: 18px; height: 18px; object-fit: contain; }
 .sst-ic :deep(i) { font-size: 18px; }
 .sst-ic-empty { visibility: hidden; }
 .sst-ntxt { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.sst-nrow { display: flex; align-items: baseline; gap: 7px; min-width: 0; }
 .sst-type { font-size: 9.5px; text-transform: uppercase; letter-spacing: .04em; opacity: .6; }
 .sst-name { font-weight: 700; }
 .sst-id { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 10.5px; opacity: .7; }

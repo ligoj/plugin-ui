@@ -252,6 +252,9 @@ export default {
   'system.task.unit.m': 'min',
   'system.task.unit.s': 's',
   'system.task.scheduled': "Tâches planifiées",
+  'system.task.tabRunners': "Exécuteurs",
+  'system.task.tabScheduled': "Planifiées",
+  'system.task.scheduledCountLabel': "tâches planifiées",
   'system.task.noScheduled': "Aucune tâche planifiée",
   'system.task.colTask': "Tâche",
   'system.task.colTrigger': "Déclencheur",
@@ -717,7 +720,6 @@ export default {
   // Info-bulle de statut d'abonnement / nœud (composant SubscriptionStatus)
   'subscription.tip.status': 'Statut',
   'subscription.tip.mode': 'Mode',
-  'subscription.tip.enabled': 'Activé',
   'subscription.tip.parameters': 'Paramètres',
   'subscription.tip.created': 'Créé',
   'subscription.tip.modified': 'Modifié',
