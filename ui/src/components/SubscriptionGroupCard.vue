@@ -18,9 +18,20 @@
       <div class="ch-row top">
         <span class="glyph"><component :is="group.icon" /></span>
         <div class="name">{{ group.name }}</div>
+        <!-- Per-tool search: a magnify button expanding into a box; filters the
+             rows by name, pills, node chain (names and ids) and every non-secured
+             parameter value (utils/subscriptionSearch.js), case-insensitively. -->
+        <span v-if="group.rows.length" class="csearch" :class="{ open: searchOpen }">
+          <LjSearch v-if="searchOpen" ref="searchRef" v-model="query" :placeholder="t('subscription.searchTool')" class="csearch-box" @keydown.escape="closeSearch" />
+          <button class="chev csearch-btn" type="button" :aria-label="t('common.search')" :aria-expanded="searchOpen" @click.stop="toggleSearch">
+            <v-icon size="18">{{ searchOpen ? 'mdi-close' : 'mdi-magnify' }}</v-icon>
+            <v-tooltip activator="parent" location="top" :text="searchOpen ? t('common.close') : t('subscription.searchToolTip')" />
+          </button>
+        </span>
         <!-- Amount of subscriptions in this group — shown on every card (the
-             demo `.count` badge style), just left of the status dot. -->
-        <span class="count" :aria-label="group.rows.length + ' ' + t('project.detail.subscriptions')">{{ group.rows.length }}</span>
+             demo `.count` badge style), just left of the status dot; the
+             matching count while a search is typed. -->
+        <span class="count" :class="{ filtered: query.trim() }" :aria-label="matchingRows.length + ' ' + t('project.detail.subscriptions')">{{ query.trim() ? matchingRows.length + '/' + group.rows.length : group.rows.length }}</span>
         <!-- One Ligoj status dot summarising BOTH node operational health
              (getNodeStatus) and subscription health; tooltip shows both
              breakdowns. Click → refresh nodes, Shift+click → refresh
@@ -68,10 +79,11 @@
           </span>
         </div>
         <div v-if="!group.rows.length" class="mrow mempty">{{ t('project.detail.noSubscriptions') }}</div>
-        <button v-if="group.rows.length > 4" class="rowmore" @click.stop="expanded = !expanded">
+        <div v-else-if="!matchingRows.length" class="mrow mempty">{{ t('subscription.noMatch') }}</div>
+        <button v-if="matchingRows.length > 4" class="rowmore" @click.stop="expanded = !expanded">
           <v-icon size="14">{{ expanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
           <span v-if="expanded">{{ t('common.reduce') || 'Réduire' }}</span>
-          <span v-else>+{{ group.rows.length - 4 }} {{ t('project.detail.more') }}</span>
+          <span v-else>+{{ matchingRows.length - 4 }} {{ t('project.detail.more') }}</span>
         </button>
       </div>
     </v-expand-transition>
@@ -79,11 +91,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { PluginFeatures, useI18nStore } from '@ligoj/host'
+import { ref, computed, nextTick } from 'vue'
+import { PluginFeatures, useI18nStore, LjSearch } from '@ligoj/host'
 import SubscriptionStatus from './SubscriptionStatus.vue'
 import NodeStatusBadge from './NodeStatusBadge.vue'
 import { vAppear } from '../directives/appear.js'
+import { matchesSubscription } from '../utils/subscriptionSearch.js'
 
 const props = defineProps({
   group: { type: Object, required: true },
@@ -94,7 +107,25 @@ defineEmits(['rowmenu', 'toggle', 'row-appear', 'refresh-node'])
 
 const t = useI18nStore().t
 const expanded = ref(false)
-const shownRows = computed(() => (expanded.value ? props.group.rows : props.group.rows.slice(0, 4)))
+
+/* --- per-tool search --- */
+const query = ref('')
+const searchOpen = ref(false)
+const searchRef = ref(null)
+const matchingRows = computed(() => props.group.rows.filter((r) => matchesSubscription(r, query.value)))
+const shownRows = computed(() => (expanded.value ? matchingRows.value : matchingRows.value.slice(0, 4)))
+function toggleSearch() {
+  if (searchOpen.value) closeSearch()
+  else {
+    searchOpen.value = true
+    nextTick(() => searchRef.value?.$el?.querySelector?.('input')?.focus())
+  }
+}
+function closeSearch() {
+  searchOpen.value = false
+  query.value = ''
+}
+defineExpose({ query, matchingRows })
 
 // Show the status badge when either aggregation is present; otherwise the card
 // falls back to the legacy health bar.
@@ -117,6 +148,11 @@ const hasStats = computed(() => !!(props.group.instanceStatus || props.group.sub
 /* Header: 4px coloured top edge + tinted gradient, two stacked rows. */
 .card-head { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px 12px; border-top: 4px solid var(--c); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 16%, var(--card)), color-mix(in srgb, var(--c) 5%, var(--card))); border-bottom: 1px solid color-mix(in srgb, var(--c) 16%, var(--border)); }
 .ch-row { display: flex; align-items: center; gap: 10px; }
+/* Per-tool search: icon button, expanding into a compact box */
+.csearch { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
+.csearch-box { width: 190px; }
+.csearch-box :deep(input) { font-size: 12.5px; }
+.count.filtered { color: var(--c); }
 .ch-row.bottom { justify-content: space-between; }
 .glyph { width: 44px; height: 44px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: var(--card); box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--c) 50%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, var(--border)); }
 .glyph :deep(img.tool-icon), .glyph :deep(.demo-logo) { width: 26px; height: 26px; object-fit: contain; }

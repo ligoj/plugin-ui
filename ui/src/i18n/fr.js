@@ -727,4 +727,7 @@ export default {
   'subscription.tip.clickRefresh': 'Cliquer pour actualiser',
   'subscription.tip.refreshing': 'Actualisation…',
   'subscription.tip.loading': 'Chargement des détails…',
+  'subscription.searchTool': "Rechercher dans cet outil…",
+  'subscription.searchToolTip': "Rechercher dans les souscriptions de cet outil : nom, nœud, résumé et paramètres non sécurisés",
+  'subscription.noMatch': "Aucune souscription ne correspond",
 }

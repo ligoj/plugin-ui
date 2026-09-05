@@ -728,4 +728,7 @@ export default {
   'subscription.tip.clickRefresh': 'Click to refresh',
   'subscription.tip.refreshing': 'Refreshing…',
   'subscription.tip.loading': 'Loading details…',
+  'subscription.searchTool': "Search in this tool…",
+  'subscription.searchToolTip': "Search the subscriptions of this tool: name, node, summary and non-secured parameters",
+  'subscription.noMatch': "No subscription matches",
 }
