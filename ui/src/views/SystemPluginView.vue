@@ -89,7 +89,9 @@
                   :tooltip="statusLabel(item.status)" />
       </template>
       <template #cell.enabled="{ item }">
-        <span v-if="item.node" class="switch" :class="{ on: item.enabled, busy: togglingKey === item.key }" role="switch" :aria-checked="item.enabled" :title="t('system.plugin.toggleHint')" @click.stop="toggleEnabled(item)" />
+        <span v-if="item.node" class="switch" :class="{ on: item.enabled, busy: togglingKey === item.key, disabled: !canToggle(item) }" role="switch" :aria-checked="item.enabled" :aria-disabled="!canToggle(item)" @click.stop="toggleEnabled(item)">
+          <v-tooltip activator="parent" location="top" max-width="360" :text="toggleTooltip(item)" />
+        </span>
         <span v-else class="muted">—</span>
       </template>
       <template #actions="{ item }">
@@ -174,6 +176,7 @@ import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { LigojTextField, useApi, useAppStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus, LigojAutocomplete } from '@ligoj/host'
 import { statusHeader } from '../useUiHelpers.js'
+import { isAvailable, isSubscriptionOpen, restoreMode, toggleModePayload } from '../pluginToggle.js'
 
 const api = useApi()
 const app = useAppStore()
@@ -214,7 +217,10 @@ function prettyName(artifact, name) {
   return String(artifact || '').replace(/^plugin-/, '').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 const rows = computed(() => items.value.map((it) => {
-  const enabled = it.node ? (it.node.enabled !== false) : true
+  // `available`: the plug-in is loaded (derived, read-only); `enabled`: the
+  // switch, i.e. the node accepts new subscriptions (see pluginToggle.js)
+  const available = isAvailable(it.node)
+  const enabled = isSubscriptionOpen(it.node)
   return {
     id: it.plugin?.artifact || it.plugin?.id,
     artifact: it.plugin?.artifact || it.plugin?.id || '',
@@ -228,8 +234,9 @@ const rows = computed(() => items.value.map((it) => {
     subscriptions: it.subscriptions,
     deleted: it.deleted,
     node: it.node || null,
+    available,
     enabled,
-    status: it.deleted ? 'warn' : (enabled ? 'ok' : 'idle'),
+    status: it.deleted ? 'warn' : (available ? 'ok' : 'idle'),
     vendor: it.vendor || null,
     // The backend serializes the status enum in lowercase ("signed"): normalize
     // to the uppercase enum names used by the i18n keys and the meta lookups.
@@ -268,11 +275,21 @@ function typeIcon(type) {
 function typeLabel(type) { return t('system.plugin.type.' + (type || 'service')) }
 function statusLabel(s) { return t('system.plugin.status.' + s) }
 
-/* Enable/disable the plugin's associated node (real action via PUT rest/node,
-   keeping parameters via untouchedParameters). Disabling asks for confirm. */
+/* Enable/disable = open/close the subscriptions of the plugin's node (its
+   subscription mode, the only persisted switch the backend offers — see
+   pluginToggle.js) via PUT rest/node, parameters untouched. Disabling asks
+   for confirm; an unavailable plug-in cannot be toggled. */
 const togglingKey = ref('')
+// Enabling is impossible while the refined (parent) node is NONE
+function canToggle(item) { return item.available && (item.enabled || restoreMode(item.node) !== null) }
+function toggleTooltip(item) {
+  if (!item.available) return t('system.plugin.toggleUnavailable')
+  if (item.enabled) return t('system.plugin.toggleOn', { mode: String(item.node.mode || 'all').toUpperCase() })
+  const mode = restoreMode(item.node)
+  return mode ? t('system.plugin.toggleOff', { mode: mode.toUpperCase() }) : t('system.plugin.toggleBlocked', { refined: item.node.refined?.name || item.node.refined?.id })
+}
 function toggleEnabled(item) {
-  if (!item.node) return
+  if (!item.node || !canToggle(item)) return
   if (item.enabled) {
     ask({ title: t('system.plugin.confirmDisableTitle'), parts: splitAround('system.plugin.confirmDisableText', item.name, 'name'), label: t('system.plugin.disable'), color: 'warning', icon: 'mdi-power', action: () => doToggle(item, false) })
   } else {
@@ -282,7 +299,7 @@ function toggleEnabled(item) {
 async function doToggle(item, enable) {
   togglingKey.value = item.key
   try {
-    await api.put('rest/node', { id: item.node.id, node: item.node.refined?.id, name: item.node.name, mode: item.node.mode || 'all', enabled: enable, untouchedParameters: true })
+    await api.put('rest/node', toggleModePayload(item.node, enable))
     await load()
   } finally { togglingKey.value = '' }
 }
@@ -551,6 +568,7 @@ onMounted(() => {
 .switch.on { background: #1d9d63; }
 .switch.on::after { left: 22px; }
 .switch.busy { opacity: .5; pointer-events: none; }
+.switch.disabled { opacity: .45; cursor: not-allowed; }
 .pill { display: inline-flex; align-items: center; font-family: var(--font); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; padding: 3px 10px; border-radius: 999px; color: var(--ink-2); background: var(--pill); }
 .pill.service { color: #2f6df6; background: rgba(47, 109, 246, .13); }
 .pill.tool { color: #d9701a; background: rgba(255, 122, 24, .14); }
