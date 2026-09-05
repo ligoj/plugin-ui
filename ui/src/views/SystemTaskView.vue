@@ -54,6 +54,45 @@
 
     <p v-if="!loading && !runners.length && !error" class="empty">{{ t('common.noData') }}</p>
 
+    <!-- Scheduled tasks (rest/system/schedule): the Spring @Scheduled methods
+         and the schedules contributed by plugins (e.g. the plug-in automation),
+         with their trigger, next/last execution and state. -->
+    <div class="section sched">
+      <div class="section-head">
+        <v-icon size="18">mdi-calendar-clock</v-icon>
+        <span class="section-title">{{ t('system.task.scheduled') }}</span>
+        <span class="section-count">{{ scheduled.length }}</span>
+      </div>
+      <VibrantDataTable :headers="scheduledHeaders" :items="scheduled" :items-length="scheduled.length" :loading="scheduledLoading"
+        item-value="id" default-sort="bean" :empty-text="t('system.task.noScheduled')" filename="system-schedule.csv">
+        <template #cell.bean="{ item }">
+          <span class="sbean"><code class="author">{{ item.bean }}</code><span class="smethod">.{{ item.method }}()</span>
+            <v-tooltip activator="parent" location="top" max-width="420" :text="t('system.task.beanTip', { bean: item.beanClass || item.bean, method: item.method, source: item.source || '' })" />
+          </span>
+        </template>
+        <template #cell.expression="{ item }">
+          <code class="nid">{{ item.expression || '—' }}
+            <v-tooltip activator="parent" location="top" max-width="360" :text="t('system.task.trigger.' + (item.trigger || 'unknown'))" />
+          </code>
+        </template>
+        <template #cell.nextExecution="{ item }">
+          <span class="rel">{{ item.nextExecution ? relTime(toMs(item.nextExecution)) : '—' }}
+            <v-tooltip activator="parent" location="top">{{ item.nextExecution ? fullDate(toMs(item.nextExecution)) : t('system.task.never') }}</v-tooltip>
+          </span>
+        </template>
+        <template #cell.lastExecution="{ item }">
+          <span class="lastrun">
+            <span class="rel">{{ item.lastExecution ? relTime(toMs(item.lastExecution)) : '—' }}</span>
+            <span v-if="item.lastStatus" class="schip" :class="`s-${item.lastStatus}`"><v-icon size="13">{{ statusIcon(item.lastStatus) }}</v-icon>{{ t('system.task.status.' + item.lastStatus) }}</span>
+            <v-tooltip activator="parent" location="top" max-width="420">{{ lastTip(item) }}</v-tooltip>
+          </span>
+        </template>
+        <template #cell.status="{ item }">
+          <span class="schip" :class="`sch-${item.status}`"><v-icon size="13">{{ scheduleIcon(item.status) }}</v-icon>{{ t('system.task.schedule.' + (item.status || 'scheduled')) }}</span>
+        </template>
+      </VibrantDataTable>
+    </div>
+
     <!-- Tasks of the selected runner. -->
     <LjDialog v-model="dialog" :title="current ? current.label : ''" icon="mdi-timer-sand" :max-width="920">
       <template v-if="current">
@@ -110,6 +149,36 @@ const runners = ref([])
 const loading = ref(false)
 const error = ref(null)
 
+/* --- scheduled tasks (Spring @Scheduled + plugin providers) --- */
+const scheduled = ref([])
+const scheduledLoading = ref(false)
+const scheduledHeaders = computed(() => [
+  { key: 'bean', label: t('system.task.colTask'), sortable: true, icon: 'mdi-cube-outline' },
+  { key: 'expression', label: t('system.task.colTrigger'), sortable: true, icon: 'mdi-calendar-clock' },
+  { key: 'nextExecution', label: t('system.task.colNext'), sortable: true, icon: 'mdi-clock-fast' },
+  { key: 'lastExecution', label: t('system.task.colLast'), sortable: true, icon: 'mdi-history' },
+  { key: 'status', label: t('system.task.colStatus'), sortable: true, align: 'center', icon: 'mdi-flag-outline' },
+])
+const SCHEDULE_ICON = { scheduled: 'mdi-calendar-check', disabled: 'mdi-calendar-remove', running: 'mdi-progress-clock' }
+function scheduleIcon(status) { return SCHEDULE_ICON[status] || 'mdi-calendar-clock' }
+// Instants come as ISO strings (or epoch milliseconds)
+function toMs(value) { return typeof value === 'number' ? value : new Date(value).getTime() }
+function lastTip(item) {
+  if (!item.lastExecution) return t('system.task.never')
+  const when = fullDate(toMs(item.lastExecution))
+  if (item.lastStatus === 'failed') return `${when} — ${t('system.task.lastFailed', { error: item.lastError || '' })}`
+  return `${when} — ${t('system.task.lastSucceeded')}`
+}
+async function loadScheduled() {
+  scheduledLoading.value = true
+  try {
+    const d = await api.get('rest/system/schedule')
+    scheduled.value = Array.isArray(d) ? d : []
+  } finally {
+    scheduledLoading.value = false
+  }
+}
+
 /* --- runner cards, grouped by type --- */
 const SECTION_ICON = { node: 'mdi-server-network', subscription: 'mdi-connection', other: 'mdi-shape-outline' }
 const groups = computed(() => {
@@ -129,7 +198,7 @@ async function load() {
   loading.value = true
   error.value = null
   try {
-    const d = await api.get('rest/system/task')
+    const [d] = await Promise.all([api.get('rest/system/task'), loadScheduled()])
     runners.value = Array.isArray(d) ? d : (d?.data || [])
   } catch {
     error.value = t('common.loadError') || 'Load error'
@@ -273,6 +342,13 @@ onMounted(() => {
 .schip.s-running { color: #d9701a; background: rgba(217, 112, 26, .13); }
 .schip.s-failed { color: rgb(var(--v-theme-error)); background: rgba(223, 77, 66, .12); }
 .author { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); }
+/* Scheduled tasks */
+.sbean { display: inline-flex; align-items: baseline; gap: 0; cursor: default; }
+.smethod { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+.lastrun { display: inline-flex; align-items: center; gap: 8px; cursor: default; }
+.schip.sch-scheduled { color: #2563eb; background: rgba(37, 99, 235, .13); }
+.schip.sch-disabled { color: var(--ink-3); background: var(--pill); }
+.schip.sch-running { color: #d9701a; background: rgba(217, 112, 26, .13); }
 .rel, .dur { color: var(--ink-2); font-size: 13px; cursor: default; }
 .locked { display: inline-flex; align-items: center; gap: 8px; }
 .nid { font-family: var(--mono); font-size: 12px; color: var(--ink-2); background: var(--pill); padding: 1px 7px; border-radius: var(--radius-sm); }

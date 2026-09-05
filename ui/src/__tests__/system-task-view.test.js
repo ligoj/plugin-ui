@@ -45,8 +45,9 @@ describe('SystemTaskView', () => {
     await flushPromises()
     const cards = w.findAll('.card')
     expect(cards).toHaveLength(2)
-    // Two non-empty sections (node + subscription).
-    expect(w.findAll('.section')).toHaveLength(2)
+    // Two non-empty runner sections (node + subscription), besides the scheduled tasks section.
+    expect(w.findAll('.section:not(.sched)')).toHaveLength(2)
+    expect(w.find('.section.sched').exists()).toBe(true)
     // The node runner shows its total (3) and the succeeded segment is 1/3 wide.
     expect(cards[0].text()).toContain('3')
     const succeeded = cards[0].find('.seg.succeeded')
