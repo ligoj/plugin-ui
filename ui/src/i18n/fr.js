@@ -3,6 +3,15 @@
  * the host's vue-i18n store at install() time.
  */
 export default {
+  'demo.savePreview.title': "Données envoyées à l'enregistrement",
+  'demo.savePreview.hint': "Mode démo : la charge utile du dialogue est interceptée par le hook `beforeSave` du plugin avant l'appel API. Comparez ce que le dialogue a construit avec ce que l'extension démo a complété. Un vrai plugin enverrait la charge utile complétée à sa propre API (`apiPath`) ; cette démo cible l'API standard des projets, qui rejette les propriétés inconnues : les clés propres à la démo sont donc retirées de la requête réellement envoyée.",
+  'demo.savePreview.original': "Charge utile originale",
+  'demo.savePreview.sent': "Envoyée à l'API des projets",
+  'demo.savePreview.completed': "Complétée par l'extension démo",
+  'demo.listAction': "Action démo de barre d'outils",
+  'demo.listActionTooltip': "Exemple de bouton contribué par un plugin dans la barre d'outils de la liste des projets (mode démo)",
+  'demo.listActionText': "Ce bouton est contribué par la démo plugin-ui via le hook `actionExtension` (cible 'project'). Le contexte de barre d'outils reçu :",
+  'demo.listActionReload': "Recharger la liste",
   'demo.actionCreate': 'Action démo',
   'demo.actionEdit': 'Audit démo',
   'demo.actionTooltip': 'Exemple de bouton contribué par un plugin dans la barre d\'actions (mode démo)',

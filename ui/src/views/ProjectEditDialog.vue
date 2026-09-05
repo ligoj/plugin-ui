@@ -10,13 +10,13 @@
 <template>
   <LjDialog :model-value="modelValue" :title="isEdit ? t('project.edit') : t('project.new')" icon="mdi-folder-outline" :max-width="600" @update:model-value="onDialogModel">
       <v-form ref="formRef" @submit.prevent="save">
-        <v-text-field v-model="form.name" :label="t('project.name')" :rules="[rules.required]" prepend-inner-icon="mdi-form-textbox" variant="outlined" class="mb-2" autofocus @update:model-value="onNameChanged" />
-        <v-text-field v-model="form.pkey" :label="t('project.pkey')" :rules="[rules.required, rules.pkey]" :disabled="pkeyLocked" :hint="pkeyLocked ? t('project.pkeyLocked') : t('project.pkeyHint')" persistent-hint
+        <LigojTextField v-model="form.name" :label="t('project.name')" :rules="[rules.required]" prepend-inner-icon="mdi-form-textbox" variant="outlined" class="mb-2" autofocus @update:model-value="onNameChanged" />
+        <LigojTextField v-model="form.pkey" :label="t('project.pkey')" :rules="[rules.required, rules.pkey]" :disabled="pkeyLocked" :hint="pkeyLocked ? t('project.pkeyLocked') : t('project.pkeyHint')" persistent-hint
           prepend-inner-icon="mdi-key" variant="outlined" class="mb-2" />
         <LigojAutocomplete v-model="form.teamLeader" v-model:search="leaderSearch" :label="t('project.teamLeader')" :items="leaderDisplayItems" item-title="label" item-value="id" :loading="leaderLoading"
           :rules="[rules.required]" :hint="t('project.teamLeaderHint')" persistent-hint prepend-inner-icon="mdi-account-star" no-filter clearable auto-select-first variant="outlined" class="mb-2"
           autocomplete="off" @update:search="onLeaderSearch" @update:menu="onLeaderMenu" />
-        <v-textarea v-model="form.description" :label="t('project.description')" rows="3" prepend-inner-icon="mdi-text-long" variant="outlined" class="mb-2" />
+        <LigojTextarea v-model="form.description" :label="t('project.description')" rows="3" prepend-inner-icon="mdi-text-long" variant="outlined" class="mb-2" />
       </v-form>
       <!-- Plugin contributions (`editExtension` feature, target 'project'):
            mounted below the built-in form, before the actions. Extra keys
@@ -33,7 +33,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useApi, useEditExtensions, useI18nStore, LjDialog, LjButton, LigojAutocomplete } from '@ligoj/host'
+import { LigojTextField, LigojTextarea, useApi, useEditExtensions, useI18nStore, LjDialog, LjButton, LigojAutocomplete } from '@ligoj/host'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -55,7 +55,7 @@ const pkeyLocked = computed(() => isEdit.value && (props.project?.nbSubscription
 
 // Plugin extension point (`editExtension` feature): contributed body
 // components + optional replacement REST resource for the save call.
-const { components: extensionComponents, footers: extensionFooters, apiPath, context: extensionContext } = useEditExtensions(
+const { components: extensionComponents, footers: extensionFooters, apiPath, context: extensionContext, prepare: extensionPrepare } = useEditExtensions(
   'project', 'rest/project', () => ({ mode: isEdit.value ? 'edit' : 'create', project: props.project }))
 
 const form = ref({ name: '', pkey: '', teamLeader: '', description: '' })
@@ -148,7 +148,9 @@ async function save() {
       ...form.value,
       id: props.project?.id,
     }
-    const id = await api[isEdit.value ? 'put' : 'post'](apiPath.value, payload)
+    const body = await extensionPrepare(payload)
+    if (body === false) return // a plugin hook aborted the save
+    const id = await api[isEdit.value ? 'put' : 'post'](apiPath.value, body)
     emit('saved', { id: isEdit.value ? props.project.id : id, created: !isEdit.value })
     emit('update:modelValue', false)
   } finally {

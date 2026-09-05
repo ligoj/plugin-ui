@@ -54,6 +54,9 @@ import frMessages from './i18n/fr.js'
 // Dialogs moved from the host (#121): the route-less ones are mounted
 // persistently via registerHeaderItem and self-bind to their store flags.
 import BugReportDialog from './components/BugReportDialog.vue'
+import DemoSavePreviewDialog from './components/DemoSavePreviewDialog.vue'
+import DemoProjectListAction from './components/DemoProjectListAction.vue'
+import { openSavePreview } from './demo/savePreview.js'
 import LoginPromptDialog from './components/LoginPromptDialog.vue'
 
 import HomeView from './views/HomeView.vue'
@@ -95,7 +98,34 @@ const features = {
     if (ctx.target !== 'project' || !useDemoMode().enabled.value) {
       return null
     }
-    return { component: DemoProjectExtension, footer: DemoProjectAction }
+    return {
+      component: DemoProjectExtension,
+      footer: DemoProjectAction,
+      // Showcase of the save interception: the tags typed in the demo section
+      // (comma-separated text, or an array) are normalized (trimmed,
+      // deduplicated) and counted, then the payloads are previewed in a
+      // dialog: as built by the dialog, as completed here, and as actually
+      // sent. This demo has no API of its own: the standard project API
+      // rejects unknown properties (400 "Mapping"), so the demo-only keys are
+      // dropped from the request — a real plugin would rather point `apiPath`
+      // at its own API and send the completed payload. "Cancel" aborts (`false`).
+      beforeSave(payload) {
+        const raw = payload.demoTags
+        const demoTags = [...new Set((Array.isArray(raw) ? raw : String(raw ?? '').split(','))
+          .map((tag) => String(tag).trim()).filter(Boolean))]
+        const { demoTags: _ignored, ...sent } = payload
+        return openSavePreview(payload, { ...sent, demoTags, demoTagsCount: demoTags.length }, sent)
+      },
+    }
+  },
+  // Demo contribution to the project list TOOLBAR (host `actionExtension`
+  // hook, target 'project' — mounted by LjPageHeader after the built-in
+  // actions). Same live gating on the demo flag as the dialog contribution.
+  actionExtension(ctx) {
+    if (ctx.target !== 'project' || !useDemoMode().enabled.value) {
+      return null
+    }
+    return { action: DemoProjectListAction }
   },
   // Demo entry in the Administration menu (host `renderNav` hook, same shape
   // as plugin-prov's). Reading the reactive demo flag makes the sidebar
@@ -181,6 +211,8 @@ export default {
     // (REQUIRED_PLUGINS) keeps them available app-wide.
     const app = useAppStore()
     app.registerHeaderItem(BugReportDialog)
+    // Demo-mode save preview (editExtension.beforeSave showcase); inert outside demo mode
+    app.registerHeaderItem(DemoSavePreviewDialog)
     app.registerHeaderItem(LoginPromptDialog)
   },
   feature(action, ...args) {

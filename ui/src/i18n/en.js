@@ -4,6 +4,15 @@
  * host's `messageResolver: (obj, path) => obj?.[path]` lookup works.
  */
 export default {
+  'demo.savePreview.title': "Data sent on save",
+  'demo.savePreview.hint': "Demo mode: the dialog payload is intercepted by the plugin `beforeSave` hook before the API call. Compare what the dialog built with what the demo extension completed. A real plugin would send the completed payload to its own API (`apiPath`); this demo targets the standard project API, which rejects unknown properties, so the demo-only keys are dropped from the request actually sent.",
+  'demo.savePreview.original': "Original payload",
+  'demo.savePreview.sent': "Sent to the project API",
+  'demo.savePreview.completed': "Completed by the demo extension",
+  'demo.listAction': "Demo toolbar action",
+  'demo.listActionTooltip': "Sample plugin-contributed button in the project list toolbar (demo mode)",
+  'demo.listActionText': "This button is contributed by the plugin-ui demo through the `actionExtension` hook (target 'project'). The toolbar context it received:",
+  'demo.listActionReload': "Reload the list",
   'demo.actionCreate': 'Demo action',
   'demo.actionEdit': 'Demo audit',
   'demo.actionTooltip': 'Sample plugin-contributed button in the dialog action bar (demo mode)',

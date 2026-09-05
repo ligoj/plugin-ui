@@ -26,7 +26,7 @@
         <!-- Writing into `form` is the editExtension contract: extra keys ride
              along in the save payload. -->
         <!-- eslint-disable-next-line vue/no-mutating-props -->
-        <v-text-field v-model="form.demoTags" :label="t('demo.tagsLabel')" :hint="t('demo.tagsHint')" persistent-hint
+        <LigojTextField v-model="form.demoTags" :label="t('demo.tagsLabel')" :hint="t('demo.tagsHint')" persistent-hint
           prepend-inner-icon="mdi-tag-multiple-outline" variant="outlined" density="compact" />
       </v-tabs-window-item>
     </v-tabs-window>
@@ -35,7 +35,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useI18nStore } from '@ligoj/host'
+import { LigojTextField, useI18nStore } from '@ligoj/host'
 
 defineProps({
   // Contract of the `editExtension` body components (see REWRITE_VUEJS.md):
