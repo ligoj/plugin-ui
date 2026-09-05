@@ -57,6 +57,9 @@ import BugReportDialog from './components/BugReportDialog.vue'
 import DemoSavePreviewDialog from './components/DemoSavePreviewDialog.vue'
 import DemoProjectListAction from './components/DemoProjectListAction.vue'
 import { openSavePreview } from './demo/savePreview.js'
+
+/** Demo endpoint of this plugin's backend (`DemoProjectResource`), target of the demo project dialog save — a sink, nothing is persisted. */
+export const DEMO_PROJECT_API = 'rest/system/demo/project'
 import LoginPromptDialog from './components/LoginPromptDialog.vue'
 
 import HomeView from './views/HomeView.vue'
@@ -101,20 +104,24 @@ const features = {
     return {
       component: DemoProjectExtension,
       footer: DemoProjectAction,
-      // Showcase of the save interception: the tags typed in the demo section
-      // (comma-separated text, or an array) are normalized (trimmed,
-      // deduplicated) and counted, then the payloads are previewed in a
-      // dialog: as built by the dialog, as completed here, and as actually
-      // sent. This demo has no API of its own: the standard project API
-      // rejects unknown properties (400 "Mapping"), so the demo-only keys are
-      // dropped from the request — a real plugin would rather point `apiPath`
-      // at its own API and send the completed payload. "Cancel" aborts (`false`).
+      // The dialog's save goes to the plugin's own endpoint instead of the
+      // standard project API: `DemoProjectResource` accepts a MORE complete
+      // payload (the project fields plus `tags`). It is a sink: the payload
+      // is logged and dropped, nothing is persisted (no project is created).
+      apiPath: DEMO_PROJECT_API,
+      // Showcase of the save interception. The payload received is the WHOLE
+      // dialog form, including the keys the demo section wrote into it
+      // (`demoTags`, the ride-along contract): there is no separate
+      // "original" payload, so the preview splits it into the dialog's own
+      // fields and the extension's inputs. The value returned is the request
+      // body: here the typed tags are parsed into `tags`, a field only the
+      // demo endpoint above knows (the standard project API would reject it
+      // as an unknown property, 400 "Mapping"). `false` aborts the save.
       beforeSave(payload) {
-        const raw = payload.demoTags
-        const demoTags = [...new Set((Array.isArray(raw) ? raw : String(raw ?? '').split(','))
-          .map((tag) => String(tag).trim()).filter(Boolean))]
-        const { demoTags: _ignored, ...sent } = payload
-        return openSavePreview(payload, { ...sent, demoTags, demoTagsCount: demoTags.length }, sent)
+        const tags = String(payload.demoTags ?? '').split(',').map((tag) => tag.trim()).filter(Boolean)
+        const dialog = { ...payload }
+        delete dialog.demoTags
+        return openSavePreview({ dialog, extension: 'demoTags' in payload ? { demoTags: payload.demoTags } : {}, sent: { ...dialog, tags } })
       },
     }
   },

@@ -1,61 +1,65 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useDemoMode } from '@ligoj/host'
-import pluginUiDef from '../index.js'
+import pluginUiDef, { DEMO_PROJECT_API } from '../index.js'
 import { savePreview, openSavePreview, closeSavePreview } from '../demo/savePreview.js'
 
 describe('demo save preview (editExtension.beforeSave showcase)', () => {
-  it('opens with both payloads and resolves the completed one on save', async () => {
-    const pending = openSavePreview({ name: 'p' }, { name: 'p', demoTagsCount: 0 })
+  it('opens with the three panes and resolves the sent payload on save', async () => {
+    const pending = openSavePreview({ dialog: { name: 'p' }, extension: { demoTags: 'a' }, sent: { name: 'p', description: 'Tags: a' } })
     expect(savePreview.open).toBe(true)
-    expect(savePreview.original).toEqual({ name: 'p' })
+    expect(savePreview.dialog).toEqual({ name: 'p' })
+    expect(savePreview.extension).toEqual({ demoTags: 'a' })
+    expect(savePreview.sent).toEqual({ name: 'p', description: 'Tags: a' })
     closeSavePreview(true)
-    expect(await pending).toEqual({ name: 'p', demoTagsCount: 0 })
+    expect(await pending).toEqual({ name: 'p', description: 'Tags: a' })
     expect(savePreview.open).toBe(false)
   })
 
   it('resolves false (abort) on cancel', async () => {
-    const pending = openSavePreview({ name: 'p' }, { name: 'p' })
+    const pending = openSavePreview({ dialog: { name: 'p' }, extension: {}, sent: { name: 'p' } })
     closeSavePreview(false)
     expect(await pending).toBe(false)
-  })
-
-  it('sends the explicit `sent` payload when it differs from the completed one', async () => {
-    const pending = openSavePreview({ name: 'p', demoTags: 'a' }, { name: 'p', demoTags: ['a'], demoTagsCount: 1 }, { name: 'p' })
-    expect(savePreview.sent).toEqual({ name: 'p' })
-    closeSavePreview(true)
-    expect(await pending).toEqual({ name: 'p' })
   })
 })
 
 describe('demo project editExtension.beforeSave', () => {
   beforeEach(() => { setActivePinia(createPinia()); useDemoMode().setEnabled(true) })
 
-  const hook = () => pluginUiDef.editExtension({ target: 'project' }).beforeSave
+  const extension = () => pluginUiDef.feature('editExtension', { target: 'project' })
+  const hook = () => extension().beforeSave
 
-  it('normalizes comma-separated tags, previews the completed payload, sends it without the demo-only keys', async () => {
-    const pending = hook()({ name: 'p', pkey: 'p', demoTags: ' b, a ,b,, ' })
-    expect(savePreview.open).toBe(true)
-    expect(savePreview.original).toEqual({ name: 'p', pkey: 'p', demoTags: ' b, a ,b,, ' })
-    expect(savePreview.completed).toEqual({ name: 'p', pkey: 'p', demoTags: ['b', 'a'], demoTagsCount: 2 })
-    // The standard project API rejects unknown properties: nothing demo-only leaves the browser
-    expect(savePreview.sent).toEqual({ name: 'p', pkey: 'p' })
-    closeSavePreview(true)
-    expect(await pending).toEqual({ name: 'p', pkey: 'p' })
+  it('points the dialog save to the demo endpoint of the plugin backend', () => {
+    expect(DEMO_PROJECT_API).toBe('rest/system/demo/project')
+    expect(extension().apiPath).toBe(DEMO_PROJECT_API)
   })
 
-  it('accepts an array, an empty and a missing tags value', async () => {
-    for (const [demoTags, expected] of [[['x', ' x ', 'y'], ['x', 'y']], ['', []], [undefined, []]]) {
-      const pending = hook()({ name: 'p', demoTags })
-      expect(savePreview.completed.demoTags).toEqual(expected)
-      expect(savePreview.completed.demoTagsCount).toBe(expected.length)
-      closeSavePreview(false)
-      expect(await pending).toBe(false)
-    }
+  it('splits the form into the dialog fields and the extension input, and sends a more complete payload (tags) to the demo API', async () => {
+    const pending = hook()({ name: 'p', pkey: 'p', description: 'Desc', demoTags: ' b, a ,, ' })
+    expect(savePreview.open).toBe(true)
+    expect(savePreview.dialog).toEqual({ name: 'p', pkey: 'p', description: 'Desc' })
+    expect(savePreview.extension).toEqual({ demoTags: ' b, a ,, ' }) // as typed, no transformation
+    // `tags` is only known by the demo endpoint; the description is left to the backend
+    expect(savePreview.sent).toEqual({ name: 'p', pkey: 'p', description: 'Desc', tags: ['b', 'a'] })
+    closeSavePreview(true)
+    expect(await pending).toEqual({ name: 'p', pkey: 'p', description: 'Desc', tags: ['b', 'a'] })
+  })
+
+  it('sends an empty tags list without input, in edit mode too', async () => {
+    let pending = hook()({ id: 3, name: 'p', demoTags: '' })
+    expect(savePreview.sent).toEqual({ id: 3, name: 'p', tags: [] })
+    closeSavePreview(false)
+    expect(await pending).toBe(false)
+
+    pending = hook()({ name: 'p' })
+    expect(savePreview.extension).toEqual({})
+    expect(savePreview.sent).toEqual({ name: 'p', tags: [] })
+    closeSavePreview(false)
+    await pending
   })
 
   it('is not contributed outside demo mode', () => {
     useDemoMode().setEnabled(false)
-    expect(pluginUiDef.editExtension({ target: 'project' })).toBeNull()
+    expect(pluginUiDef.feature('editExtension', { target: 'project' })).toBeNull()
   })
 })
