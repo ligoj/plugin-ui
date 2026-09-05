@@ -51,7 +51,7 @@
     <!-- Create dialog. -->
     <LjDialog v-model="createDialog" :title="t('system.apiToken.newTitle')" icon="mdi-key" :max-width="480">
       <v-form ref="createFormRef" @submit.prevent="doCreate">
-        <v-text-field v-model="createName" prepend-inner-icon="mdi-key-outline" :label="t('system.apiToken.fieldName')" :rules="[rules.required]" variant="outlined" autofocus maxlength="250" />
+        <LigojTextField v-model="createName" prepend-inner-icon="mdi-key-outline" :label="t('system.apiToken.fieldName')" :rules="[rules.required]" variant="outlined" autofocus maxlength="250" />
       </v-form>
       <template #footer>
         <LjButton variant="ghost" @click="createDialog = false">{{ t('common.cancel') }}</LjButton>
@@ -89,7 +89,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useAuthStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
+import { LigojTextField, useApi, useAppStore, useAuthStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 

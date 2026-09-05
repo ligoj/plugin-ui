@@ -12,7 +12,7 @@
   <div class="act-configprops">
     <v-alert v-if="!beans.length" type="info" variant="tonal" density="compact">No data.</v-alert>
     <template v-else>
-      <v-text-field v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter…"
+      <LigojTextField v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter…"
         density="compact" variant="outlined" hide-details clearable class="mb-3" style="max-width:340px" />
 
       <v-alert v-if="!filtered.length" type="info" variant="tonal" density="compact">No matching configuration property.</v-alert>
@@ -50,6 +50,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { LigojTextField } from '@ligoj/host'
 
 const props = defineProps({
   data: { type: [Object, Array, String], default: null },

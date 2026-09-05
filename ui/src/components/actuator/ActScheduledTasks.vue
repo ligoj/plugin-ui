@@ -15,7 +15,7 @@
   <div class="act-scheduled">
     <v-alert v-if="!hasAny" type="info" variant="tonal" density="compact">No scheduled tasks.</v-alert>
     <template v-else>
-      <v-text-field v-if="totalCount > 6" v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter tasks"
+      <LigojTextField v-if="totalCount > 6" v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter tasks"
         density="compact" variant="outlined" hide-details clearable class="mb-3" style="max-width:340px" />
 
       <section v-for="cat in sections" :key="cat.key" class="mb-5">
@@ -51,6 +51,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { LigojTextField } from '@ligoj/host'
 
 const props = defineProps({ data: { type: [Object, Array, String], default: null } })
 

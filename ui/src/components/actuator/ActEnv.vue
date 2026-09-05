@@ -17,7 +17,7 @@
         <v-chip v-for="p in profiles" :key="p" color="primary" variant="tonal" size="small" label class="mr-1 mb-1">{{ p }}</v-chip>
       </div>
 
-      <v-text-field v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter keys"
+      <LigojTextField v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter keys"
         density="compact" variant="outlined" hide-details clearable class="mb-3" style="max-width:340px" />
 
       <v-expansion-panels v-if="filteredSources.length" v-model="openModel" multiple variant="accordion">
@@ -54,6 +54,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { LigojTextField } from '@ligoj/host'
 
 const props = defineProps({
   data: { type: [Object, Array, String], default: null },

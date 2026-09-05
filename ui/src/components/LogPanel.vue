@@ -25,7 +25,7 @@
         <span class="log-meta">{{ currentSource.sub }}</span>
         <v-chip size="x-small" variant="tonal" label color="primary">{{ t('system.logs.lines', { n: shownLines.length }) }}</v-chip>
         <span class="sp" />
-        <v-text-field v-model="q" prepend-inner-icon="mdi-magnify" :placeholder="t('system.logs.filter')"
+        <LigojTextField v-model="q" prepend-inner-icon="mdi-magnify" :placeholder="t('system.logs.filter')"
           density="compact" variant="outlined" hide-details clearable style="max-width:260px" />
         <v-btn-toggle v-model="active.full" mandatory density="compact" variant="outlined" divided class="log-seg">
           <v-btn :value="false" size="small">{{ t('system.logs.tail') }}</v-btn>
@@ -49,7 +49,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { useApi, useI18nStore, APP_BASE } from '@ligoj/host'
+import { LigojTextField, useApi, useI18nStore, APP_BASE } from '@ligoj/host'
 
 const api = useApi()
 const i18n = useI18nStore()

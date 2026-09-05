@@ -18,7 +18,7 @@
     <v-alert v-if="!routes.length && !filters.length" type="info" variant="tonal" density="compact">No data.</v-alert>
     <template v-else>
       <template v-if="routes.length">
-        <v-text-field v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter routes"
+        <LigojTextField v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter routes"
           density="compact" variant="outlined" hide-details clearable class="mb-3" style="max-width:340px" />
         <v-table density="compact" class="act-tbl">
           <thead><tr><th>Methods</th><th>Path</th><th>Handler</th></tr></thead>
@@ -56,6 +56,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { LigojTextField } from '@ligoj/host'
 
 const props = defineProps({ data: { type: [Object, Array, String], default: null } })
 

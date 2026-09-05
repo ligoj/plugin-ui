@@ -23,7 +23,7 @@
       </v-chip>
 
       <template v-if="components.length">
-        <v-text-field v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter components"
+        <LigojTextField v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter components"
           density="compact" variant="outlined" hide-details clearable class="mb-3" style="max-width:340px" />
         <v-table density="compact" class="act-tbl">
           <thead><tr><th>Component</th><th>Status</th><th>Details</th></tr></thead>
@@ -43,6 +43,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { LigojTextField } from '@ligoj/host'
 
 const props = defineProps({ data: { type: [Object, Array, String], default: null } })
 

@@ -17,7 +17,7 @@
   <div class="act-conditions">
     <v-alert v-if="!positive.length && !negative.length" type="info" variant="tonal" density="compact">No data.</v-alert>
     <template v-else>
-      <v-text-field v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter conditions"
+      <LigojTextField v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter conditions"
         density="compact" variant="outlined" hide-details clearable class="mb-3" style="max-width:340px" />
 
       <v-tabs v-model="tab" density="compact" class="mb-3">
@@ -66,6 +66,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { LigojTextField } from '@ligoj/host'
 
 const props = defineProps({
   data: { type: [Object, Array, String], default: null },

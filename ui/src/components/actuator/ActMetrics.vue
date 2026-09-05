@@ -31,7 +31,7 @@
         <v-chip color="primary" variant="tonal" size="small" label>
           <v-icon start size="small">mdi-chart-line</v-icon>{{ names.length }} metric{{ names.length === 1 ? '' : 's' }}
         </v-chip>
-        <v-text-field v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter metrics"
+        <LigojTextField v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter metrics"
           density="compact" variant="outlined" hide-details clearable style="max-width:340px" />
       </div>
 
@@ -89,6 +89,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { LigojTextField } from '@ligoj/host'
 
 const props = defineProps({
   data: { type: [Object, Array, String], default: null },

@@ -132,8 +132,8 @@
     <LjDialog v-model="uploadDialog" :title="t('system.plugin.uploadTitle')" icon="mdi-upload" :max-width="560">
       <v-file-input v-model="uploadFile" :label="t('system.plugin.uploadFile')" accept=".jar" prepend-icon="" prepend-inner-icon="mdi-package-variant-closed"
         variant="outlined" density="comfortable" :hint="t('system.plugin.uploadHint')" persistent-hint class="mb-3" />
-      <v-text-field v-model="uploadId" :label="t('system.plugin.uploadId')" prepend-inner-icon="mdi-identifier" variant="outlined" density="comfortable" class="mb-3" />
-      <v-text-field v-model="uploadVersion" :label="t('system.plugin.uploadVersion')" prepend-inner-icon="mdi-tag-outline" variant="outlined" density="comfortable" />
+      <LigojTextField v-model="uploadId" :label="t('system.plugin.uploadId')" prepend-inner-icon="mdi-identifier" variant="outlined" density="comfortable" class="mb-3" />
+      <LigojTextField v-model="uploadVersion" :label="t('system.plugin.uploadVersion')" prepend-inner-icon="mdi-tag-outline" variant="outlined" density="comfortable" />
       <template #footer>
         <LjButton variant="ghost" :disabled="uploading" @click="uploadDialog = false">{{ t('common.cancel') }}</LjButton>
         <LjButton icon="mdi-upload" :disabled="!uploadFile || !uploadId || !uploadVersion" :loading="uploading" @click="doUpload">{{ t('system.plugin.uploadAction') }}</LjButton>
@@ -171,7 +171,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useApi, useAppStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
+import { LigojTextField, useApi, useAppStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus, LigojAutocomplete } from '@ligoj/host'
 import { statusHeader } from '../useUiHelpers.js'
 

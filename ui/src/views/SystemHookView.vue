@@ -61,19 +61,19 @@
         <div class="d-flex ga-3 mb-1 align-start">
           <LigojSelect v-model="editForm.method" :items="methodOptions" :label="t('system.hook.fieldMethod')" prepend-inner-icon="mdi-swap-horizontal"
             variant="outlined" class="m-field" />
-          <v-text-field v-model="editForm.path" :label="t('system.hook.fieldPath')" prepend-inner-icon="mdi-regex" :rules="[rules.required]"
+          <LigojTextField v-model="editForm.path" :label="t('system.hook.fieldPath')" prepend-inner-icon="mdi-regex" :rules="[rules.required]"
             :hint="t('system.hook.pathHint')" variant="outlined" class="flex-grow-1" />
         </div>
-        <v-text-field v-model="editForm.command" :label="t('system.hook.fieldCommand')" prepend-inner-icon="mdi-console-line" :rules="[rules.required]"
+        <LigojTextField v-model="editForm.command" :label="t('system.hook.fieldCommand')" prepend-inner-icon="mdi-console-line" :rules="[rules.required]"
           :counter="255" maxlength="255" variant="outlined" class="mb-1" />
-        <v-text-field v-model="editForm.workingDirectory" :label="t('system.hook.fieldWorkingDirectory')" prepend-inner-icon="mdi-folder-outline"
+        <LigojTextField v-model="editForm.workingDirectory" :label="t('system.hook.fieldWorkingDirectory')" prepend-inner-icon="mdi-folder-outline"
           :rules="[rules.required, rules.noSpace]" :hint="t('system.hook.workingDirectoryHint')" :counter="255" maxlength="255" variant="outlined" class="mb-1" />
         <LigojCombobox v-model="editForm.inject" :label="t('system.hook.fieldInject')" prepend-inner-icon="mdi-variable" multiple chips closable-chips
           :hint="t('system.hook.injectHint')" persistent-hint variant="outlined" class="mb-3" />
         <div class="d-flex ga-3">
-          <v-text-field v-model.number="editForm.timeout" type="number" min="1" :label="t('system.hook.fieldTimeout')" prepend-inner-icon="mdi-timer-outline"
+          <LigojTextField v-model.number="editForm.timeout" type="number" min="1" :label="t('system.hook.fieldTimeout')" prepend-inner-icon="mdi-timer-outline"
             :hint="t('system.hook.timeoutHint')" persistent-hint variant="outlined" class="flex-grow-1" />
-          <v-text-field v-model.number="editForm.delay" type="number" min="0" :label="t('system.hook.fieldDelay')" prepend-inner-icon="mdi-timer-sand"
+          <LigojTextField v-model.number="editForm.delay" type="number" min="0" :label="t('system.hook.fieldDelay')" prepend-inner-icon="mdi-timer-sand"
             :hint="t('system.hook.delayHint')" persistent-hint variant="outlined" class="flex-grow-1" />
         </div>
       </v-form>
@@ -91,7 +91,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { LigojCombobox, useApi, useAppStore, useDataTable, useI18nStore, LigojSelect } from '@ligoj/host'
+import { LigojTextField, LigojCombobox, useApi, useAppStore, useDataTable, useI18nStore, LigojSelect } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 

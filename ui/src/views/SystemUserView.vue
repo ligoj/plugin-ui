@@ -77,10 +77,10 @@
         <fieldset v-if="editDetails" class="iam-frame">
           <legend class="iam-legend"><v-icon size="13">mdi-information-outline</v-icon>{{ t('system.user.iamDetails') }}</legend>
           <div v-if="editDetails.firstName || editDetails.lastName" class="d-flex ga-3" :class="{ 'mb-3': (editDetails.mails || []).length }">
-            <v-text-field :model-value="editDetails.firstName || '—'" prepend-inner-icon="mdi-badge-account-horizontal-outline" :label="t('system.user.fieldFirstName')" readonly hide-details variant="outlined" density="comfortable" class="ro-field" />
-            <v-text-field :model-value="editDetails.lastName || '—'" :label="t('system.user.fieldLastName')" readonly hide-details variant="outlined" density="comfortable" class="ro-field" />
+            <LigojTextField :model-value="editDetails.firstName || '—'" prepend-inner-icon="mdi-badge-account-horizontal-outline" :label="t('system.user.fieldFirstName')" readonly hide-details variant="outlined" density="comfortable" class="ro-field" />
+            <LigojTextField :model-value="editDetails.lastName || '—'" :label="t('system.user.fieldLastName')" readonly hide-details variant="outlined" density="comfortable" class="ro-field" />
           </div>
-          <v-text-field v-if="(editDetails.mails || []).length" :model-value="editDetails.mails.join(' ')" prepend-inner-icon="mdi-email-outline" :label="t('system.user.fieldMail')" readonly hide-details variant="outlined" density="comfortable" class="ro-field" />
+          <LigojTextField v-if="(editDetails.mails || []).length" :model-value="editDetails.mails.join(' ')" prepend-inner-icon="mdi-email-outline" :label="t('system.user.fieldMail')" readonly hide-details variant="outlined" density="comfortable" class="ro-field" />
         </fieldset>
         <LigojAutocomplete v-model="editForm.roles" :label="t('system.user.fieldRoles')" prepend-inner-icon="mdi-shield-account-outline" :items="allRoles" item-value="id" item-title="name"
           multiple chips closable-chips variant="outlined" :rules="[rules.requiredArray]" :hint="t('system.user.rolesHint')" persistent-hint />
@@ -99,7 +99,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
+import { LigojTextField, useApi, useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField, LigojAutocomplete, ApiVerifyDialog } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 

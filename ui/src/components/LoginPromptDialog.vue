@@ -20,8 +20,8 @@
       <v-card-text class="vmodal-body">
         <p class="lp-intro">{{ t('error.401-details') || 'Votre session a expiré. Reconnectez-vous pour continuer.' }}</p>
         <v-form ref="formRef" @submit.prevent="submit">
-          <v-text-field v-model="username" prepend-inner-icon="mdi-account-outline" :label="t('login.username') || 'Identifiant'" :disabled="loading" autocomplete="username" :rules="[rules.required]" variant="outlined" class="mb-2" autofocus />
-          <v-text-field v-model="password" prepend-inner-icon="mdi-lock-outline" :label="t('login.password') || 'Mot de passe'" :type="showPwd ? 'text' : 'password'" :disabled="loading" autocomplete="current-password" :rules="[rules.required]"
+          <LigojTextField v-model="username" prepend-inner-icon="mdi-account-outline" :label="t('login.username') || 'Identifiant'" :disabled="loading" autocomplete="username" :rules="[rules.required]" variant="outlined" class="mb-2" autofocus />
+          <LigojTextField v-model="password" prepend-inner-icon="mdi-lock-outline" :label="t('login.password') || 'Mot de passe'" :type="showPwd ? 'text' : 'password'" :disabled="loading" autocomplete="current-password" :rules="[rules.required]"
             :append-inner-icon="showPwd ? 'mdi-eye-off-outline' : 'mdi-eye-outline'" variant="outlined" @click:append-inner="showPwd = !showPwd" @keyup.enter="submit" />
         </v-form>
       </v-card-text>
@@ -39,7 +39,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore, useErrorStore, useI18nStore, APP_BASE } from '@ligoj/host'
+import { LigojTextField, useAuthStore, useErrorStore, useI18nStore, APP_BASE } from '@ligoj/host'
 
 const auth = useAuthStore()
 const errorStore = useErrorStore()

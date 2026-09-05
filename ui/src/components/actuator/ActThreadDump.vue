@@ -20,7 +20,7 @@
         <v-chip color="grey" variant="flat" size="small" label class="mb-2">Total: {{ threads.length }}</v-chip>
       </div>
 
-      <v-text-field v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter…"
+      <LigojTextField v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter…"
         density="compact" variant="outlined" hide-details clearable class="mb-3" style="max-width:340px" />
 
       <v-table density="compact" class="act-tbl">
@@ -56,6 +56,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { LigojTextField } from '@ligoj/host'
 
 const props = defineProps({ data: { type: [Object, Array, String], default: null } })
 

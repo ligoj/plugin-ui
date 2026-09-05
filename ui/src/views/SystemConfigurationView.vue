@@ -92,7 +92,7 @@
       <v-form ref="formRef" @submit.prevent="save">
         <LjAvailabilityField v-model="editForm.name" v-model:taken="nameTaken" endpoint="system/configuration" :enabled="!editTarget"
           prepend-inner-icon="mdi-key-outline" :label="t('system.config.fieldName')" class="mb-3" autofocus :disabled="!!editTarget" />
-        <v-textarea v-model="editForm.value" prepend-inner-icon="mdi-text-long" :label="t('system.config.fieldValue')" :rules="[rules.required]" :counter="1023" maxlength="1023" rows="3" auto-grow variant="outlined" class="mb-2" />
+        <LigojTextarea v-model="editForm.value" prepend-inner-icon="mdi-text-long" :label="t('system.config.fieldValue')" :rules="[rules.required]" :counter="1023" maxlength="1023" rows="3" auto-grow variant="outlined" class="mb-2" />
         <label class="chk"><input type="checkbox" v-model="editForm.system" /><span class="chk-box" /><span>{{ t('system.config.fieldSystem') }}</span></label>
         <label class="chk"><input type="checkbox" v-model="editForm.secured" /><span class="chk-box" /><span>{{ t('system.config.fieldSecured') }}</span></label>
       </v-form>
@@ -110,7 +110,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
+import { LigojTextarea, useApi, useAppStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 

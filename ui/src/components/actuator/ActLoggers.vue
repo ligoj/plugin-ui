@@ -21,7 +21,7 @@
     <v-alert v-if="!rows.length" type="info" variant="tonal" density="compact">No data.</v-alert>
     <template v-else>
       <div class="lg-head">
-        <v-text-field v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter loggers"
+        <LigojTextField v-model="q" prepend-inner-icon="mdi-magnify" placeholder="Filter loggers"
           density="compact" variant="outlined" hide-details clearable style="max-width:340px" />
         <span v-if="post" class="lg-hint"><v-icon size="14">mdi-pencil-outline</v-icon>Click a configured level to change it live — runtime only, not persisted across restarts</span>
       </div>
@@ -103,6 +103,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
+import { LigojTextField } from '@ligoj/host'
 
 const props = defineProps({
   data: { type: [Object, Array, String], default: null },
