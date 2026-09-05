@@ -61,6 +61,7 @@ import { openSavePreview } from './demo/savePreview.js'
 /** Demo endpoint of this plugin's backend (`DemoProjectResource`), target of the demo project dialog save — a sink, nothing is persisted. */
 export const DEMO_PROJECT_API = 'rest/system/demo/project'
 import LoginPromptDialog from './components/LoginPromptDialog.vue'
+import PluginUpdatesIndicator from './components/PluginUpdatesIndicator.vue'
 
 import HomeView from './views/HomeView.vue'
 import AboutView from './views/AboutView.vue'
@@ -221,6 +222,8 @@ export default {
     // Demo-mode save preview (editExtension.beforeSave showcase); inert outside demo mode
     app.registerHeaderItem(DemoSavePreviewDialog)
     app.registerHeaderItem(LoginPromptDialog)
+    // App-bar picto for administrators when plug-in updates are available (last scheduled/manual check)
+    app.registerNavbarItem?.(PluginUpdatesIndicator)
   },
   feature(action, ...args) {
     const fn = features[action]

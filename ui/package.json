@@ -57,5 +57,8 @@
     "@parcel/watcher@2.6.0": true,
     "fsevents@2.3.2": true,
     "fsevents@2.3.3": true
+  },
+  "dependencies": {
+    "@vue-js-cron/vuetify": "^5.1.1"
   }
 }

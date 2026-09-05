@@ -14,6 +14,11 @@
         <b>{{ rows.length }}</b> {{ t('system.plugin.countLabel') }}
       </template>
       <template #actions>
+        <!-- Plug-in automation: scheduled check, automatic download, maintenance
+             window (PluginAutomationDialog, rest/system/plugin/schedule). -->
+        <LjButton variant="ghost" icon="mdi-calendar-clock" @click="automationOpen = true">{{ t('system.plugin.automation') }}
+          <v-tooltip activator="parent" location="bottom" max-width="420" :text="automationSummary" />
+        </LjButton>
         <!-- Custom repository picker (mirrors the login/profile locale picker). -->
         <div class="vsel" :class="{ open: repoOpen }" ref="repoSel">
           <button type="button" class="vsel-btn" @click="repoOpen = !repoOpen">
@@ -152,6 +157,8 @@
       </template>
     </LjDialog>
 
+    <PluginAutomationDialog v-model="automationOpen" @saved="loadSchedule" />
+
     <!-- Restart progress dialog: after the restart is requested, polls the API
          availability and auto-closes (+ success toast) once it answers again. -->
     <LjDialog v-model="restartDialog" :title="t('system.plugin.restartTitle')" icon="mdi-restart" :max-width="460" persistent>
@@ -183,7 +190,9 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { LigojTextField, useApi, useAppStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
+import { LigojTextField, useApi, useAppStore, useAuthStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
+import PluginAutomationDialog from '../components/PluginAutomationDialog.vue'
+import { formatInstant } from '../pluginUpdates.js'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus, LigojAutocomplete } from '@ligoj/host'
 import { statusHeader } from '../useUiHelpers.js'
 import { pluginState, togglePath } from '../pluginToggle.js'
@@ -192,6 +201,7 @@ import { pluginStats, pct, TYPES, STATES, SIGNATURES } from '../pluginStats.js'
 const api = useApi()
 const app = useAppStore()
 const i18n = useI18nStore()
+const auth = useAuthStore()
 const t = i18n.t
 
 const REPOSITORIES = computed(() => [
@@ -441,6 +451,20 @@ async function runConfirm() { confirm.busy = true; try { await confirm.action() 
    first poll, and an overall timeout surfaces a retry. */
 const RESTART_POLL_MS = 3000
 const RESTART_TIMEOUT_MS = 180000
+/* Plug-in automation state (rest/system/plugin/schedule): summarized in the
+   header button tooltip; edited in PluginAutomationDialog. */
+const automationOpen = ref(false)
+const schedule = ref(null)
+async function loadSchedule() {
+  schedule.value = await api.get('rest/system/plugin/schedule', { silent: true })
+}
+const automationSummary = computed(() => {
+  const sc = schedule.value
+  if (!sc) return t('system.plugin.automationTip')
+  const on = (enabled, next) => enabled ? t('system.plugin.automationOn', { date: formatInstant(next, i18n.locale) }) : t('system.plugin.automationOff')
+  return t('system.plugin.automationSummary', { check: on(sc.checkEnabled, sc.nextCheck), update: sc.updateEnabled ? t('system.plugin.automationOnShort') : t('system.plugin.automationOff'), maintenance: on(sc.maintenanceEnabled, sc.nextMaintenance) })
+})
+
 const restartDialog = ref(false)
 const restartState = ref('waiting') // waiting | ready | timeout
 // Seconds since polling started. Driven by a JS interval (reactive content, not
@@ -516,10 +540,11 @@ function askRestart() {
     },
   })
 }
-function askCheckVersions() { ask({ title: t('system.plugin.confirmCheckTitle'), text: t('system.plugin.confirmCheckText', { repository: repository.value }), label: t('system.plugin.confirmCheckLabel'), color: 'brand', icon: 'mdi-magnify-plus-outline', action: async () => { checking.value = true; try { await api.put(`rest/system/plugin/cache?repository=${repository.value}`); await load() } finally { checking.value = false } } }) }
+function askCheckVersions() { ask({ title: t('system.plugin.confirmCheckTitle'), text: t('system.plugin.confirmCheckText', { repository: repository.value }), label: t('system.plugin.confirmCheckLabel'), color: 'brand', icon: 'mdi-magnify-plus-outline', action: async () => { checking.value = true; try { await api.post('rest/system/plugin/schedule/check'); await Promise.all([load(), loadSchedule(), auth.fetchSession()]) } finally { checking.value = false } } }) }
 function askRemove(artifact) { ask({ title: t('system.plugin.confirmDeleteTitle'), parts: splitAround('system.plugin.confirmDeleteText', artifact, 'artifact'), label: t('common.delete'), color: 'error', icon: 'mdi-delete-outline', action: async () => { await api.del(`rest/system/plugin/${artifact}`); await load() } }) }
 
 onMounted(() => {
+  loadSchedule()
   document.addEventListener('click', onDocClick)
   app.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { title: t('system.breadcrumb') }, { title: t('system.plugin.title') }], { refresh: load })
   load()
@@ -602,6 +627,7 @@ onMounted(() => {
 .switch.on::after { left: 22px; }
 .switch.busy { opacity: .5; pointer-events: none; }
 .switch.disabled { opacity: .45; cursor: not-allowed; }
+
 .pill { display: inline-flex; align-items: center; font-family: var(--font); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; padding: 3px 10px; border-radius: 999px; color: var(--ink-2); background: var(--pill); }
 .pill.service { color: #2f6df6; background: rgba(47, 109, 246, .13); }
 .pill.tool { color: #d9701a; background: rgba(255, 122, 24, .14); }
