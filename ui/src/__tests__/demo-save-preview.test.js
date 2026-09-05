@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useDemoMode } from '@ligoj/host'
+import { useAuthStore, useDemoMode } from '@ligoj/host'
 import pluginUiDef, { DEMO_PROJECT_API } from '../index.js'
 import { savePreview, openSavePreview, closeSavePreview } from '../demo/savePreview.js'
 
@@ -24,7 +24,8 @@ describe('demo save preview (editExtension.beforeSave showcase)', () => {
 })
 
 describe('demo project editExtension.beforeSave', () => {
-  beforeEach(() => { setActivePinia(createPinia()); useDemoMode().setEnabled(true) })
+  // Demo mode is visible to administrators only
+  beforeEach(() => { setActivePinia(createPinia()); useAuthStore().session = { admin: true }; useDemoMode().setEnabled(true) })
 
   const extension = () => pluginUiDef.feature('editExtension', { target: 'project' })
   const hook = () => extension().beforeSave
