@@ -35,17 +35,26 @@
       </template>
     </LjPageHeader>
 
-    <!-- KPI stat cards -->
+    <!-- KPI stat cards: each one carries a stacked bar showing a distribution
+         (by type, by state, by signature); every segment has its own tooltip
+         with the label, count and rate. See pluginStats.js. -->
     <div class="stats">
       <div v-for="(s, i) in stats" :key="s.key" class="stat" :style="{ '--c': s.color, 'animation-delay': (i * 50) + 'ms' }">
         <div class="stop">
           <span class="sicon"><v-icon size="22">{{ s.icon }}</v-icon></span>
           <div class="sbody">
-            <div class="snum">{{ s.value }}<span v-if="s.key !== 'total' && rows.length" class="spct">{{ Math.round(s.pct) }}%</span></div>
-            <div class="slabel">{{ s.label }}</div>
+            <div class="snum">{{ s.value }}<span v-if="s.pct != null" class="spct">{{ s.pct }}%</span></div>
+            <div class="slabel">{{ s.label }}<span v-if="s.sub" class="ssub"> · {{ s.sub }}</span></div>
           </div>
+          <v-tooltip activator="parent" location="top" max-width="360" :text="s.tooltip" />
         </div>
-        <div class="sbar"><i :style="{ width: s.pct + '%' }" /></div>
+        <div class="sbar multi" role="img" :aria-label="s.label">
+          <template v-for="seg in s.segments" :key="seg.key">
+            <i v-if="seg.value" :style="{ width: pct(seg.value, s.total) + '%', background: seg.color }">
+              <v-tooltip activator="parent" location="top" :text="`${seg.tooltip}: ${seg.value} (${pct(seg.value, s.total)}%)`" />
+            </i>
+          </template>
+        </div>
       </div>
     </div>
 
@@ -178,6 +187,7 @@ import { LigojTextField, useApi, useAppStore, useErrorStore, useI18nStore, NodeI
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus, LigojAutocomplete } from '@ligoj/host'
 import { statusHeader } from '../useUiHelpers.js'
 import { pluginState, togglePath } from '../pluginToggle.js'
+import { pluginStats, pct, TYPES, STATES, SIGNATURES } from '../pluginStats.js'
 
 const api = useApi()
 const app = useAppStore()
@@ -258,16 +268,34 @@ function signatureMeta(r) { return SIGNATURE_META[r.signature?.status] || SIGNAT
 function signatureLabel(r) { return t('system.plugin.signature.' + (r.signature?.status || 'UNSIGNED')) }
 function signerCn(dn) { const m = /(?:^|,)CN=([^,]+)/.exec(dn || ''); return m ? m[1] : (dn || '') }
 
+/* Summary cards. Colors of the state and signature segments follow the
+   status dot / signature badge conventions of the table. */
+const STATE_COLOR = { active: '#1d9d63', enabling: '#e0a100', disabling: '#ff9436', disabled: '#8a92a3', pending: '#2f6df6', deleted: '#e5484d' }
+const SIGNATURE_COLOR = { VERIFIED: '#1d9d63', SIGNED: '#2f6df6', UNSIGNED: '#8a92a3', INVALID: '#e5484d' }
 const stats = computed(() => {
-  const by = (ty) => rows.value.filter((r) => r.type === ty).length
-  const total = rows.value.length || 1
-  const pct = (v, k) => k === 'total' ? 100 : Math.round((v / total) * 100)
+  const s = pluginStats(rows.value)
+  const segments = (keys, values, color, tooltip) => keys.map((k) => ({ key: k, value: values[k], color: color[k], tooltip: tooltip(k) }))
   return [
-    { key: 'total', label: t('system.plugin.statTotal'), value: rows.value.length, icon: 'mdi-puzzle', color: 'rgb(var(--v-theme-secondary))' },
-    { key: 'service', label: t('system.plugin.statServices'), value: by('service'), icon: 'mdi-puzzle-outline', color: TYPE_COLOR.service },
-    { key: 'tool', label: t('system.plugin.statTools'), value: by('tool'), icon: 'mdi-hammer-wrench', color: TYPE_COLOR.tool },
-    { key: 'feature', label: t('system.plugin.statFeatures'), value: by('feature'), icon: 'mdi-wrench-outline', color: TYPE_COLOR.feature },
-  ].map((s) => ({ ...s, pct: pct(s.value, s.key) }))
+    {
+      key: 'total', icon: 'mdi-puzzle', color: 'rgb(var(--v-theme-secondary))', total: s.total,
+      value: s.total, pct: null, label: t('system.plugin.statTotal'),
+      tooltip: t('system.plugin.statTotalTooltip', { total: s.total, services: s.types.service, tools: s.types.tool, features: s.types.feature }),
+      segments: segments(TYPES, s.types, TYPE_COLOR, typeLabel),
+    },
+    {
+      key: 'active', icon: 'mdi-power', color: STATE_COLOR.active, total: s.total,
+      value: `${s.loaded}/${s.total}`, pct: pct(s.loaded, s.total), label: t('system.plugin.statActive'),
+      sub: t('system.plugin.statActiveSub', { enabled: s.enabled, enabledPct: pct(s.enabled, s.total) }),
+      tooltip: t('system.plugin.statActiveTooltip', { loaded: s.loaded, loadedPct: pct(s.loaded, s.total), enabled: s.enabled, enabledPct: pct(s.enabled, s.total), total: s.total }),
+      segments: segments(STATES, s.states, STATE_COLOR, statusLabel),
+    },
+    {
+      key: 'signature', icon: 'mdi-shield-check', color: SIGNATURE_COLOR.VERIFIED, total: s.total,
+      value: `${s.signatures.VERIFIED}/${s.total}`, pct: pct(s.signatures.VERIFIED, s.total), label: t('system.plugin.statSignature'),
+      tooltip: t('system.plugin.statSignatureTooltip', { verified: s.signatures.VERIFIED, signed: s.signatures.SIGNED, unsigned: s.signatures.UNSIGNED, invalid: s.signatures.INVALID, total: s.total }),
+      segments: segments(SIGNATURES, s.signatures, SIGNATURE_COLOR, (k) => t('system.plugin.signature.' + k)),
+    },
+  ]
 })
 
 function typeIcon(type) {
@@ -521,7 +549,7 @@ onMounted(() => {
 .vok { margin-left: auto; color: var(--accent); font-weight: 800; }
 
 /* KPI stat cards */
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 18px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 18px; }
 .stat { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; border-radius: var(--radius); border: var(--border-w) var(--lj-border-style, solid) var(--border-c); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, var(--card)), var(--card)); box-shadow: var(--shadow); overflow: hidden; opacity: 0; transform: translateY(10px); animation: rise .5s cubic-bezier(.2, .7, .3, 1) forwards; transition: transform .18s cubic-bezier(.2, .7, .3, 1), box-shadow .18s, border-color .18s; }
 .stat:hover { transform: translateY(-3px); box-shadow: 0 18px 36px -20px color-mix(in srgb, var(--c) 55%, transparent); border-color: color-mix(in srgb, var(--c) 30%, var(--border)); }
 @keyframes rise { to { opacity: 1; transform: none; } }
@@ -530,8 +558,13 @@ onMounted(() => {
 .snum { display: flex; align-items: baseline; gap: 7px; font-family: var(--mono); font-weight: 700; font-size: 26px; line-height: 1; color: var(--ink); }
 .spct { font-size: 12px; font-weight: 700; color: color-mix(in srgb, var(--c) 70%, var(--ink-3)); }
 .slabel { font-size: 12.5px; font-weight: 600; color: var(--ink-3); margin-top: 4px; }
+.ssub { font-weight: 500; }
 .sbar { height: 6px; border-radius: 4px; background: var(--pill); overflow: hidden; }
 .sbar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--c), color-mix(in srgb, var(--c) 55%, white)); transition: width .5s cubic-bezier(.2, .7, .3, 1); }
+/* Stacked distribution bar: one segment per category, tooltip on each. */
+.sbar.multi { display: flex; gap: 2px; height: 8px; }
+.sbar.multi i { border-radius: 3px; min-width: 4px; cursor: help; }
+
 
 .errline { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: rgb(var(--v-theme-error)); margin: 0 0 14px; }
 
