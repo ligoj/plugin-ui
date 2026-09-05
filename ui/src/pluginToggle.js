@@ -1,48 +1,47 @@
 /*
  * Enable/disable switch of the plugin view (SystemPluginView).
  *
- * The backend has NO persisted "enabled" flag: `NodeVo.enabled` is a derived
- * availability (the plug-in is loaded — false when a resource such as the jar
- * is missing) and the node update API rejects an `enabled` property. The only
- * persisted per-node switch is the subscription `mode` (ALL / LINK / CREATE /
- * NONE), and `NONE` makes the backend refuse any new subscription while the
- * existing ones keep working. The switch therefore drives the mode of the
- * plugin's node: ON = subscriptions open (any mode but NONE), OFF = NONE;
- * enabling restores the mode of the refined (parent) node — a node's mode
- * cannot exceed its parent's (the backend answers 400 "invalid-mode") — ALL
- * when there is no parent, and is impossible while the parent is NONE. An
- * unavailable plug-in cannot be toggled.
+ * A disabled plug-in is NOT loaded at all: the backend renames its jar
+ * (`*.jar.disabled`, `PUT rest/system/plugin/{artifact}/disable`) so the
+ * plug-ins class-loader skips it at the next restart, and renames it back on
+ * enable. Like an installation or a removal, the change is applied by a
+ * restart: until then the plug-in keeps its current class-path state. Its
+ * configuration (nodes, subscriptions, parameters) is kept while disabled.
+ * Each plugin row carries both facts: `disabled` (the persisted switch) and
+ * `loaded` (the class-path state), from which the status is derived.
  */
 
-/** @returns {boolean} Whether the node accepts new subscriptions (mode other than NONE). */
-export function isSubscriptionOpen(node) {
-  return String(node?.mode ?? 'all').toLowerCase() !== 'none'
-}
-
-/** @returns {boolean} Whether the plug-in backing the node is loaded (derived `NodeVo.enabled`). */
-export function isAvailable(node) {
-  return !node || node.enabled !== false
+/**
+ * State of a plugin row.
+ *
+ * @param {object} it A plugin entry of `GET rest/system/plugin`.
+ * @returns {{pending: boolean, disabled: boolean, enabled: boolean, loaded: boolean, restartRequired: boolean,
+ *   key: 'active'|'disabled'|'disabling'|'enabling'|'pending'|'deleted', status: 'ok'|'idle'|'warn'}}
+ *   `key` names the status (i18n `system.plugin.status.<key>`), `status` is the LjStatus level.
+ */
+export function pluginState(it) {
+  const disabled = it.disabled === true
+  // Older backend without the class-path state: fall back to the node availability
+  const loaded = typeof it.loaded === 'boolean' ? it.loaded : (it.node ? it.node.enabled !== false : true)
+  // Staged jar never installed (no persisted plugin yet): loaded at the next restart
+  const pending = !it.plugin?.version && !disabled
+  // Disabled but still loaded, or enabled but not loaded yet: waiting for a restart
+  const restartRequired = !pending && !!it.plugin?.version && loaded === disabled
+  let key
+  if (it.deleted) key = 'deleted'
+  else if (pending) key = 'pending'
+  else if (restartRequired) key = disabled ? 'disabling' : 'enabling'
+  else key = disabled ? 'disabled' : 'active'
+  const status = key === 'active' ? 'ok' : key === 'disabled' ? 'idle' : 'warn'
+  return { pending, disabled, enabled: !disabled, loaded, restartRequired, key, status }
 }
 
 /**
- * Mode restored when enabling: the refined node's one (lowercase), ALL without
- * parent, `null` when the parent is NONE (enabling is then impossible).
+ * API path toggling a plug-in.
  *
- * @param {object} node The plugin's node (`NodeVo`, `refined` nested).
- * @returns {string | null}
+ * @param {string} artifact The plug-in artifact, e.g. 'plugin-build-jenkins'.
+ * @param {boolean} enable `true` to enable, `false` to disable.
  */
-export function restoreMode(node) {
-  const parentMode = String(node?.refined?.mode ?? 'all').toLowerCase()
-  return parentMode === 'none' ? null : parentMode
-}
-
-/**
- * Payload of `PUT rest/node` toggling the subscription mode, the parameters
- * being left untouched.
- *
- * @param {object} node The plugin's node (`NodeVo`).
- * @param {boolean} enable `true` to open subscriptions (see {@link restoreMode}), `false` to close them (mode NONE).
- */
-export function toggleModePayload(node, enable) {
-  return { id: node.id, node: node.refined?.id, name: node.name, mode: enable ? restoreMode(node) : 'none', untouchedParameters: true }
+export function togglePath(artifact, enable) {
+  return `rest/system/plugin/${encodeURIComponent(artifact)}/${enable ? 'enable' : 'disable'}`
 }

@@ -85,12 +85,13 @@
         <span v-else class="muted">—</span>
       </template>
       <template #cell.statut="{ item }">
-        <LjStatus :status="item.status === 'ok' ? 'ok' : item.status === 'warn' ? 'warn' : 'idle'"
-                  :tooltip="statusLabel(item.status)" />
+        <LjStatus :status="item.status" :tooltip="statusLabel(item.statusKey)" />
       </template>
+      <!-- Enabled = the plug-in jar is loadable (see pluginToggle.js); a change
+           is applied by a restart, like an installation or a removal. -->
       <template #cell.enabled="{ item }">
-        <span v-if="item.node" class="switch" :class="{ on: item.enabled, busy: togglingKey === item.key, disabled: !canToggle(item) }" role="switch" :aria-checked="item.enabled" :aria-disabled="!canToggle(item)" @click.stop="toggleEnabled(item)">
-          <v-tooltip activator="parent" location="top" max-width="360" :text="toggleTooltip(item)" />
+        <span v-if="!item.pending" class="switch" :class="{ on: item.enabled, busy: togglingKey === item.artifact, disabled: !canToggle(item) }" role="switch" :aria-checked="item.enabled" :aria-disabled="!canToggle(item)" @click.stop="toggleEnabled(item)">
+          <v-tooltip activator="parent" location="top" max-width="380" :text="toggleTooltip(item)" />
         </span>
         <span v-else class="muted">—</span>
       </template>
@@ -176,7 +177,7 @@ import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { LigojTextField, useApi, useAppStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
 import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus, LigojAutocomplete } from '@ligoj/host'
 import { statusHeader } from '../useUiHelpers.js'
-import { isAvailable, isSubscriptionOpen, restoreMode, toggleModePayload } from '../pluginToggle.js'
+import { pluginState, togglePath } from '../pluginToggle.js'
 
 const api = useApi()
 const app = useAppStore()
@@ -204,12 +205,12 @@ const TYPE_COLOR = { service: '#2f6df6', tool: '#d9701a', feature: '#1d9d63' }
 
 const headers = computed(() => [
   // Status first: icon-only heart header + tooltip + fixed width (shared helper).
-  statusHeader({ key: 'statut', tooltip: t('system.plugin.headerStatus'), exportValue: (r) => statusLabel(r.status) }),
+  statusHeader({ key: 'statut', tooltip: t('system.plugin.headerStatus'), exportValue: (r) => statusLabel(r.statusKey) }),
   { key: 'name', label: t('system.plugin.headerName'), sortable: true, icon: 'mdi-puzzle-outline', exportValue: (r) => r.name || '' },
   { key: 'key', label: t('system.plugin.headerKey'), sortable: true, icon: 'mdi-identifier', exportValue: (r) => r.key || '' },
   { key: 'version', label: t('system.plugin.headerVersion'), sortable: false, icon: 'mdi-tag-outline', exportValue: (r) => r.version || '' },
   { key: 'vendor', label: t('system.plugin.headerVendor'), sortable: false, icon: 'mdi-shield-account-outline', exportValue: (r) => (r.signature ? `${signatureLabel(r)}${r.signature.signer ? ' — ' + r.signature.signer : ''}` : (r.vendor || '')) },
-  { key: 'enabled', label: t('system.plugin.headerEnabled'), sortable: false, align: 'center', icon: 'mdi-power', width: '110px', exportValue: (r) => (r.node ? (r.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled')) : '') },
+  { key: 'enabled', label: t('system.plugin.headerEnabled'), sortable: false, align: 'center', icon: 'mdi-power', width: '110px', exportValue: (r) => (!r.pending ? (r.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled')) : '') },
 ])
 
 function prettyName(artifact, name) {
@@ -217,10 +218,9 @@ function prettyName(artifact, name) {
   return String(artifact || '').replace(/^plugin-/, '').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 const rows = computed(() => items.value.map((it) => {
-  // `available`: the plug-in is loaded (derived, read-only); `enabled`: the
-  // switch, i.e. the node accepts new subscriptions (see pluginToggle.js)
-  const available = isAvailable(it.node)
-  const enabled = isSubscriptionOpen(it.node)
+  // `enabled`: the switch (the jar is loadable), `loaded`: the class-path
+  // state, `statusKey`/`status`: derived (see pluginToggle.js)
+  const state = pluginState(it)
   return {
     id: it.plugin?.artifact || it.plugin?.id,
     artifact: it.plugin?.artifact || it.plugin?.id || '',
@@ -234,9 +234,12 @@ const rows = computed(() => items.value.map((it) => {
     subscriptions: it.subscriptions,
     deleted: it.deleted,
     node: it.node || null,
-    available,
-    enabled,
-    status: it.deleted ? 'warn' : (available ? 'ok' : 'idle'),
+    pending: state.pending,
+    enabled: state.enabled,
+    loaded: state.loaded,
+    restartRequired: state.restartRequired,
+    statusKey: state.key,
+    status: state.status,
     vendor: it.vendor || null,
     // The backend serializes the status enum in lowercase ("signed"): normalize
     // to the uppercase enum names used by the i18n keys and the meta lookups.
@@ -275,21 +278,18 @@ function typeIcon(type) {
 function typeLabel(type) { return t('system.plugin.type.' + (type || 'service')) }
 function statusLabel(s) { return t('system.plugin.status.' + s) }
 
-/* Enable/disable = open/close the subscriptions of the plugin's node (its
-   subscription mode, the only persisted switch the backend offers — see
-   pluginToggle.js) via PUT rest/node, parameters untouched. Disabling asks
-   for confirm; an unavailable plug-in cannot be toggled. */
+/* Enable/disable the plug-in itself: the backend renames its jar so the
+   class-loader skips (or loads again) it at the next restart, like an
+   installation or a removal — see pluginToggle.js. Disabling asks for
+   confirm; a plug-in scheduled for removal cannot be toggled. */
 const togglingKey = ref('')
-// Enabling is impossible while the refined (parent) node is NONE
-function canToggle(item) { return item.available && (item.enabled || restoreMode(item.node) !== null) }
+function canToggle(item) { return !item.pending && !item.deleted }
 function toggleTooltip(item) {
-  if (!item.available) return t('system.plugin.toggleUnavailable')
-  if (item.enabled) return t('system.plugin.toggleOn', { mode: String(item.node.mode || 'all').toUpperCase() })
-  const mode = restoreMode(item.node)
-  return mode ? t('system.plugin.toggleOff', { mode: mode.toUpperCase() }) : t('system.plugin.toggleBlocked', { refined: item.node.refined?.name || item.node.refined?.id })
+  if (item.deleted) return t('system.plugin.toggleDeleted')
+  return t('system.plugin.toggle.' + item.statusKey)
 }
 function toggleEnabled(item) {
-  if (!item.node || !canToggle(item)) return
+  if (!canToggle(item)) return
   if (item.enabled) {
     ask({ title: t('system.plugin.confirmDisableTitle'), parts: splitAround('system.plugin.confirmDisableText', item.name, 'name'), label: t('system.plugin.disable'), color: 'warning', icon: 'mdi-power', action: () => doToggle(item, false) })
   } else {
@@ -297,9 +297,9 @@ function toggleEnabled(item) {
   }
 }
 async function doToggle(item, enable) {
-  togglingKey.value = item.key
+  togglingKey.value = item.artifact
   try {
-    await api.put('rest/node', toggleModePayload(item.node, enable))
+    await api.put(togglePath(item.artifact, enable))
     await load()
   } finally { togglingKey.value = '' }
 }

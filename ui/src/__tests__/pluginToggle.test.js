@@ -1,36 +1,31 @@
 import { describe, it, expect } from 'vitest'
-import { isAvailable, isSubscriptionOpen, restoreMode, toggleModePayload } from '../pluginToggle.js'
+import { pluginState, togglePath } from '../pluginToggle.js'
 
-describe('plugin view enable/disable switch (subscription mode of the node)', () => {
-  it('reads the switch state from the subscription mode, ALL by default', () => {
-    expect(isSubscriptionOpen({ mode: 'all' })).toBe(true)
-    expect(isSubscriptionOpen({ mode: 'LINK' })).toBe(true)
-    expect(isSubscriptionOpen({})).toBe(true)
-    expect(isSubscriptionOpen(null)).toBe(true)
-    expect(isSubscriptionOpen({ mode: 'none' })).toBe(false)
-    expect(isSubscriptionOpen({ mode: 'NONE' })).toBe(false)
+const installed = (extra) => ({ plugin: { artifact: 'plugin-x', version: '1.0.0' }, ...extra })
+
+describe('plugin view enable/disable switch (plug-in loaded state, applied by a restart)', () => {
+  it('derives the status from the persisted switch and the class-path state', () => {
+    expect(pluginState(installed({ loaded: true, disabled: false }))).toMatchObject({ key: 'active', status: 'ok', enabled: true, restartRequired: false })
+    expect(pluginState(installed({ loaded: true, disabled: true }))).toMatchObject({ key: 'disabling', status: 'warn', enabled: false, restartRequired: true })
+    expect(pluginState(installed({ loaded: false, disabled: true }))).toMatchObject({ key: 'disabled', status: 'idle', enabled: false, restartRequired: false })
+    expect(pluginState(installed({ loaded: false, disabled: false }))).toMatchObject({ key: 'enabling', status: 'warn', enabled: true, restartRequired: true })
   })
 
-  it('reads the availability from the derived NodeVo.enabled', () => {
-    expect(isAvailable({ enabled: true })).toBe(true)
-    expect(isAvailable({})).toBe(true)
-    expect(isAvailable(null)).toBe(true)
-    expect(isAvailable({ enabled: false })).toBe(false)
+  it('flags a removal and a staged installation as restart-pending states', () => {
+    expect(pluginState(installed({ loaded: true, deleted: true }))).toMatchObject({ key: 'deleted', status: 'warn' })
+    // Staged jar, never installed: no persisted version yet
+    expect(pluginState({ plugin: { artifact: 'plugin-new' }, latestLocalVersion: '2.0.0' })).toMatchObject({ key: 'pending', status: 'warn', pending: true, enabled: true })
+    // ... unless disabled before any restart
+    expect(pluginState({ plugin: { artifact: 'plugin-new' }, latestLocalVersion: '2.0.0', disabled: true })).toMatchObject({ key: 'disabled', status: 'idle', pending: false, enabled: false })
   })
 
-  it('restores the refined node mode when enabling: a node mode cannot exceed its parent one', () => {
-    expect(restoreMode({ refined: { id: 'service:build', mode: 'link' } })).toBe('link')
-    expect(restoreMode({ refined: { id: 'service:build', mode: 'ALL' } })).toBe('all')
-    expect(restoreMode({ refined: { id: 'service:build' } })).toBe('all')
-    expect(restoreMode({ id: 'service:id' })).toBe('all')
-    // A NONE parent blocks enabling
-    expect(restoreMode({ refined: { id: 'service:build', mode: 'none' } })).toBeNull()
+  it('tolerates entries without the state fields (older backend): the node availability tells the loaded state', () => {
+    expect(pluginState({ plugin: { version: '1.0.0' } })).toMatchObject({ key: 'active', enabled: true, loaded: true })
+    expect(pluginState({ plugin: { version: '1.0.0' }, node: { enabled: false } })).toMatchObject({ key: 'enabling', loaded: false })
   })
 
-  it('builds a PUT rest/node payload toggling only the mode, without any `enabled` property', () => {
-    const node = { id: 'service:build:jenkins', name: 'Jenkins', mode: 'all', refined: { id: 'service:build', mode: 'link' }, parameters: { x: 1 } }
-    expect(toggleModePayload(node, false)).toEqual({ id: 'service:build:jenkins', node: 'service:build', name: 'Jenkins', mode: 'none', untouchedParameters: true })
-    expect(toggleModePayload(node, true)).toEqual({ id: 'service:build:jenkins', node: 'service:build', name: 'Jenkins', mode: 'link', untouchedParameters: true })
-    expect(toggleModePayload({ id: 'service:id', name: 'Identity' }, true)).toEqual({ id: 'service:id', node: undefined, name: 'Identity', mode: 'all', untouchedParameters: true })
+  it('targets the plug-in enable/disable endpoints', () => {
+    expect(togglePath('plugin-build-jenkins', false)).toBe('rest/system/plugin/plugin-build-jenkins/disable')
+    expect(togglePath('plugin-build-jenkins', true)).toBe('rest/system/plugin/plugin-build-jenkins/enable')
   })
 })
