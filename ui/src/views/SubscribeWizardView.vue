@@ -1,5 +1,5 @@
 <!--
-  SubscribeWizardDialog — 2026 "Vibrant" subscription wizard (subscribe mode
+  SubscribeWizardDialog — subscription wizard (subscribe mode
   only; edit-node / create-node belong to the Administration views). Same
   `.vmodal` chrome as the other dialogs, but taller and scrollable. Cascading
   pickers: service → tool → instance (with an optional inline "new instance"
@@ -8,7 +8,7 @@
 
   Ported from plugin-ui's SubscribeWizardView. Standalone caveat: plugin
   parameter-field overrides and plugin i18n labels need the plugin bundles
-  loaded (install()), which the 2026 app doesn't do — so parameters render
+  loaded (install()), which the app doesn't do — so parameters render
   with the default type-based fields and raw ids as labels. The core flow
   (service/tool/instance/mode/params → subscribe) works against the live
   backend nodes.

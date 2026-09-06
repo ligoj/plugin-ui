@@ -1,5 +1,5 @@
 <!--
-  NodeEditDialog — 2026 "Vibrant" create/edit dialog for a Ligoj node
+  NodeEditDialog — create/edit dialog for a Ligoj node
   (Administration → Nodes). Ports plugin-ui's SubscribeWizardView create-node
   / edit-node modes onto the .vmodal chrome, reusing the same cascading
   service/tool pickers, segmented mode control and dynamic parameter fields

@@ -1,5 +1,5 @@
 <!--
-  SystemTaskView — 2026 "Vibrant" long-task dashboard (Administration -> Tasks).
+  SystemTaskView — long-task dashboard (Administration -> Tasks).
   Consumes the Lot A backend (org.ligoj.app.resource.task.TaskStatusResource):
     GET rest/system/task            -> the LongTaskRunner beans + per-status stats
     GET rest/system/task/{key}      -> that runner's tasks (server-paginated TableItem)
@@ -66,7 +66,7 @@
          and the schedules contributed by plugins (e.g. the plug-in automation),
          with their trigger, next/last execution and state. -->
     <div v-else class="section sched">
-      <VibrantDataTable :headers="scheduledHeaders" :items="scheduled" :items-length="scheduled.length" :loading="scheduledLoading"
+      <LjDataTable :headers="scheduledHeaders" :items="scheduled" :items-length="scheduled.length" :loading="scheduledLoading"
         item-value="id" default-sort="bean" :empty-text="t('system.task.noScheduled')" filename="system-schedule.csv">
         <template #cell.bean="{ item }">
           <span class="sbean"><code class="author">{{ item.bean }}</code><span class="smethod">.{{ item.method }}()</span>
@@ -93,7 +93,7 @@
         <template #cell.status="{ item }">
           <span class="schip" :class="`sch-${item.status}`"><v-icon size="13">{{ scheduleIcon(item.status) }}</v-icon>{{ t('system.task.schedule.' + (item.status || 'scheduled')) }}</span>
         </template>
-      </VibrantDataTable>
+      </LjDataTable>
     </div>
 
     <!-- Tasks of the selected runner. -->
@@ -103,7 +103,7 @@
           <span class="card-type" :class="`t-${current.type}`">{{ t('system.task.type.' + current.type) }}</span>
           <LjSegmented v-model="statusFilter" :options="filterOptions" @update:model-value="onFilter" />
         </div>
-        <VibrantDataTable v-if="dt" :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value"
+        <LjDataTable v-if="dt" :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value"
           item-value="id" default-sort="start" default-order="desc" :empty-text="t('system.task.noTask')" @update:options="loadData">
           <template #cell.status="{ item }">
             <span class="schip" :class="`s-${item.status}`"><v-icon size="13">{{ statusIcon(item.status) }}</v-icon>{{ t('system.task.status.' + item.status) }}</span>
@@ -130,7 +130,7 @@
               <code v-else class="nid">{{ item.locked.node }}</code>
             </span>
           </template>
-        </VibrantDataTable>
+        </LjDataTable>
       </template>
       <template #footer>
         <LjButton variant="ghost" @click="dialog = false">{{ t('common.close') }}</LjButton>
@@ -141,7 +141,7 @@
 
 <script setup>
 import { ref, shallowRef, computed, onMounted } from 'vue'
-import { useApi, useAppStore, useDataTable, useI18nStore, NodeIcon, LjPageHeader, LjDialog, LjButton, LjSegmented, VibrantDataTable } from '@ligoj/host'
+import { useApi, useAppStore, useDataTable, useI18nStore, NodeIcon, LjPageHeader, LjDialog, LjButton, LjSegmented, LjDataTable } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()

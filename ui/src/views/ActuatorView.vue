@@ -1,5 +1,5 @@
 <!--
-  ActuatorView — 2026 "Vibrant" Spring Boot Actuator browser
+  ActuatorView — Spring Boot Actuator browser
   (Administration → Information → Actuator). Reads the management base path
   index (`<base>/manage`, a HAL document of `_links`), lists every exposed
   endpoint with a friendly label + icon, and renders the selected endpoint's

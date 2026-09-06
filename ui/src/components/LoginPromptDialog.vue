@@ -1,11 +1,11 @@
 <!--
-  LoginPromptDialog — 2026 "Vibrant" in-place re-authentication. The host's
+  LoginPromptDialog — in-place re-authentication. The host's
   error store flips auth.authPromptOpen on a 401 + body {redirect:"local"}
   (session expired mid-use); without this dialog mounted the standalone shell
   just showed a pinned 401 toast and a dead page. This binds to that flag and
   lets the user re-login without losing their place (same POST {base}login flow
-  as the Vibrant LoginView), then clears the error queue and reloads. Cancel
-  drops to the Vibrant /login. persistent: the only exits are success or Cancel.
+  as the LoginView), then clears the error queue and reloads. Cancel
+  drops to the /login. persistent: the only exits are success or Cancel.
 
   Moved from the host to plugin-ui (#121): mounted persistently via
   registerHeaderItem, it self-binds to the shared auth.authPromptOpen flag.
@@ -67,7 +67,7 @@ async function submit() {
   const { valid } = formRef.value ? await formRef.value.validate() : { valid: true }
   if (!valid) return
   loading.value = true
-  // Same wiring as the Vibrant LoginView/core: form-urlencoded + Accept JSON so
+  // Same wiring as the LoginView/core: form-urlencoded + Accept JSON so
   // Spring Security answers {success:true|false} instead of a 302.
   const params = new URLSearchParams()
   params.append('username', username.value.toLowerCase())
@@ -101,7 +101,7 @@ async function submit() {
 }
 
 // Bail-out: session is gone and the user declined to re-auth here → land on the
-// Vibrant login (we don't call auth.logout(), which top-level-navigates out of
+// login (we don't call auth.logout(), which top-level-navigates out of
 // the SPA — mirrors App.vue's in-app logout intent).
 function cancel() {
   auth.closeAuthPrompt()

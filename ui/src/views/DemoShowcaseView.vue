@@ -53,8 +53,8 @@
         <LigojAutocomplete v-model="tool" :items="['Jira', 'Jenkins', 'SonarQube', 'Confluence']" label="Tool" variant="outlined" density="compact" clearable />
       </section>
       <section class="sc-card sc-wide">
-        <h3>VibrantDataTable</h3>
-        <VibrantDataTable :headers="tableHeaders" :items="tableItems" :items-length="tableItems.length" :loading="false" item-value="id" />
+        <h3>LjDataTable</h3>
+        <LjDataTable :headers="tableHeaders" :items="tableItems" :items-length="tableItems.length" :loading="false" item-value="id" />
       </section>
     </div>
 
@@ -133,7 +133,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { LigojTextField, LigojTextarea, useAppStore, useDemoMode, useI18nStore, LjPageHeader, LjButton, LjSearch, LjSegmented, LjStatus, LjDialog, LigojIcon, LigojAutocomplete, VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LigojSelect } from '@ligoj/host'
+import { LigojTextField, LigojTextarea, useAppStore, useDemoMode, useI18nStore, LjPageHeader, LjButton, LjSearch, LjSegmented, LjStatus, LjDialog, LigojIcon, LigojAutocomplete, LjDataTable, LjConfirmDialog as LigojConfirmDialog, LigojSelect } from '@ligoj/host'
 
 const t = useI18nStore().t
 const appStore = useAppStore()

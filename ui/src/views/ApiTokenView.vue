@@ -1,10 +1,10 @@
 <!--
-  ApiTokenView — 2026 "Vibrant" API token manager (API → Tokens). Ports
+  ApiTokenView — API token manager (API → Tokens). Ports
   plugin-ui's ApiTokenView logic (rest/api/token list of names; POST creates and
   returns the secret; GET shows it; PUT regenerates; DELETE revokes) onto the
-  Vibrant chrome: breadcrumb-chip header, a usage explainer card, KPI stat, a
-  VibrantDataTable with a key glyph and show / regenerate / revoke row actions,
-  plus Vibrant modals for create, the freshly-minted value, show/regenerate and
+  shared chrome: breadcrumb-chip header, a usage explainer card, KPI stat, a
+  LjDataTable with a key glyph and show / regenerate / revoke row actions,
+  plus modals for create, the freshly-minted value, show/regenerate and
   a confirm dialog for revocation. The secret is shown in a copyable box.
 -->
 <template>
@@ -30,7 +30,7 @@
 
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
-    <VibrantDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="name" default-sort="name"
+    <LjDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="name" default-sort="name"
       :empty-text="t('system.apiToken.empty')" filename="api-tokens.csv" @row-click="(item) => openShow(item.name, 'load')">
       <template #cell.name="{ item }">
         <div class="avatar-cell">
@@ -46,7 +46,7 @@
           <button class="danger" @click="startDelete(item.name)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('system.apiToken.revoke') }}</button>
         </RowActionsCog>
       </template>
-    </VibrantDataTable>
+    </LjDataTable>
 
     <!-- Create dialog. -->
     <LjDialog v-model="createDialog" :title="t('system.apiToken.newTitle')" icon="mdi-key" :max-width="480">
@@ -90,7 +90,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { LigojTextField, useApi, useAppStore, useAuthStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog } from '@ligoj/host'
+import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()

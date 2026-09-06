@@ -152,7 +152,7 @@ const features = {
   },
 }
 
-// Canonical 2026 route scheme — matches the host shell's sidebar nav
+// Canonical route scheme — matches the host shell's sidebar nav
 // (App.vue): dashboard at `/`, projects at `/project`, system/api as below.
 // Legacy `/home/*` paths are kept as `alias` so existing bookmarks / emails
 // still resolve to the same component.
@@ -166,7 +166,7 @@ const routes = [
   { path: '/project', name: 'ui-project-list', component: ProjectListView, alias: ['/home/project'] },
   { path: '/project/:id', name: 'ui-project-detail', component: ProjectDetailView, alias: ['/home/project/:id'] },
 
-  // `/system` has no landing page in the 2026 nav (children only); keep the
+  // `/system` has no landing page in the nav (children only); keep the
   // legacy SystemView reachable at `/system` so the path isn't a dead end.
   { path: '/system', name: 'ui-system', component: SystemView },
   { path: '/system/information', name: 'ui-system-information', component: SystemInfoView },

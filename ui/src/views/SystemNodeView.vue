@@ -1,9 +1,9 @@
 <!--
-  SystemNodesView — 2026 "Vibrant" node manager (Administration → Nodes).
+  SystemNodesView — node manager (Administration → Nodes).
   Ports plugin-ui's SystemNodeView logic (rest/node list + create/edit via the
-  node dialog + delete of instances) onto the Vibrant chrome: breadcrumb-chip
+  node dialog + delete of instances) onto the shared chrome: breadcrumb-chip
   header, KPI stat cards with a computed status dot + bi-colour health bar, a custom type filter (same
-  picker pattern as the locale selector), VibrantDataTable with NodeIcon
+  picker pattern as the locale selector), LjDataTable with NodeIcon
   branding, a coloured type pill, NodeModeChip, a glowing status dot and
   edit/delete row actions. Mockup ref: viewNodes.
 -->
@@ -51,7 +51,7 @@
 
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
-    <VibrantDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="id" :empty-text="t('common.noData')" filename="system-nodes.csv" @row-click="startEdit">
+    <LjDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="id" :empty-text="t('common.noData')" filename="system-nodes.csv" @row-click="startEdit">
       <template #cell.name="{ item }">
         <div class="avatar-cell">
           <span class="nglyph">
@@ -102,7 +102,7 @@
           <v-icon v-else size="18">mdi-refresh</v-icon>{{ t('system.node.refreshStatuses') }}
         </button>
       </template>
-    </VibrantDataTable>
+    </LjDataTable>
 
     <NodeEditDialog v-model="createDialog" :seed="createSeed" @saved="onSaved" />
     <NodeEditDialog v-model="editDialog" :node="editTarget" @saved="onSaved" />
@@ -116,7 +116,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi, useAppStore, useI18nStore, NodeIcon, NodeModeChip, isInstance, nodeType } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjStatus } from '@ligoj/host'
+import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjStatus } from '@ligoj/host'
 import NodeEditDialog from './NodeEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
 import SubscriptionStatus from '../components/SubscriptionStatus.vue'

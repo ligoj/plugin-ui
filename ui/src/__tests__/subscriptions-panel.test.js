@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mount } from '@vue/test-utils'
-import { LjSegmented, VibrantDataTable } from '@ligoj/host'
+import { LjSegmented, LjDataTable } from '@ligoj/host'
 import SubscriptionsPanel from '../components/SubscriptionsPanel.vue'
 
 // Minimal grouped model: one tool with one subscription row. Enough for the
@@ -16,7 +16,7 @@ function mountPanel(props = {}) {
     props: { groups: GROUPS, ...props },
     global: {
       // Stub the heavy host children; we only drive the LjSegmented v-model.
-      stubs: { LjSearch: true, VibrantDataTable: true, SubscriptionGroupCard: true, PluginFeatures: true },
+      stubs: { LjSearch: true, LjDataTable: true, SubscriptionGroupCard: true, PluginFeatures: true },
     },
   })
 }
@@ -64,6 +64,6 @@ describe('SubscriptionsPanel — view persistence', () => {
     localStorage.setItem('ligoj-subview:test', 'garbage')
     const w = mountPanel({ storageKey: 'test', defaultView: 'list' })
     expect(isCards(w)).toBe(false)
-    expect(w.findComponent(VibrantDataTable).exists()).toBe(true)
+    expect(w.findComponent(LjDataTable).exists()).toBe(true)
   })
 })

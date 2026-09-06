@@ -9,7 +9,7 @@ import SystemConfigurationView from '../views/SystemConfigurationView.vue'
 // fetch and stub the table so it renders the `cell.source` slot per row,
 // plus the tooltip default slot, so we can inspect what's rendered.
 const tableStub = {
-  name: 'VibrantDataTable',
+  name: 'LjDataTable',
   props: ['items'],
   template: '<div class="tbl"><div v-for="(it, i) in items" :key="i" class="srccell"><slot name="cell.source" :item="it" /></div></div>',
 }
@@ -32,7 +32,7 @@ function mountView() {
       stubs: {
         LjPageHeader: true, LjSearch: true, LjButton: true, LjDialog: true,
         LjAvailabilityField: true, LigojConfirmDialog: true, RowActionsCog: true,
-        VibrantDataTable: tableStub,
+        LjDataTable: tableStub,
         'v-tooltip': vtooltipStub, 'v-icon': viconStub, 'v-form': true, 'v-textarea': true,
       },
     },

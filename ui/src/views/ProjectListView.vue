@@ -1,6 +1,6 @@
 <!--
-  ProjectsView — 2026 "Vibrant" Projects cockpit. Faithful to the validated
-  mockup (design/ligoj-2026-prototype.html → viewProjects): a grid of project
+  ProjectsView — Projects cockpit. Faithful to the validated
+  mockup (mockup viewProjects): a grid of project
   cards with a folder glyph, name + key, subscription count, a tool-logo set,
   and a footer "open" link + health bar. Loads real projects from rest/project
   (DataTables shape); falls back to the mockup's sample data when the backend
@@ -21,7 +21,7 @@
       <LjSearch v-model="search" :placeholder="t('project.searchPlaceholder')" />
     </div>
 
-    <VibrantDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="id" :empty-text="t('common.noData') || 'Aucune donnée'"
+    <LjDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="id" :empty-text="t('common.noData') || 'Aucune donnée'"
       filename="projects.csv" @row-click="openProject">
       <template #cell.name="{ item }">
         <div class="name-cell">
@@ -50,14 +50,14 @@
           <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
         </RowActionsCog>
       </template>
-    </VibrantDataTable>
+    </LjDataTable>
 
     <ProjectEditDialog v-model="editDialog" :project="editTarget" @saved="onSaved" />
 
-    <VibrantConfirmDialog v-model="deleteDialog" :title="t('project.deleteTitle') || 'Supprimer le projet'" icon="mdi-folder-remove" confirm-color="error" :confirm-label="t('common.delete')"
+    <LjConfirmDialog v-model="deleteDialog" :title="t('project.deleteTitle') || 'Supprimer le projet'" icon="mdi-folder-remove" confirm-color="error" :confirm-label="t('common.delete')"
       :loading="deleting" @confirm="confirmDelete">
       <span>{{ t('project.deleteConfirm', { name: deleteTarget?.name }) || `Supprimer le projet « ${deleteTarget?.name} » ?` }}</span>
-    </VibrantConfirmDialog>
+    </LjConfirmDialog>
 
     <div class="toast" :class="{ show: toastMsg }">{{ toastMsg }}</div>
   </div>
@@ -70,7 +70,7 @@ import { useApi, useAppStore, useDemoMode, useI18nStore } from '@ligoj/host'
 import { DEMO_PROJECTS } from '../demo/demoData.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
-import { VibrantDataTable, VibrantConfirmDialog, LjPageHeader, LjButton, LjSearch } from '@ligoj/host'
+import { LjDataTable, LjConfirmDialog, LjPageHeader, LjButton, LjSearch } from '@ligoj/host'
 
 const router = useRouter()
 const api = useApi()

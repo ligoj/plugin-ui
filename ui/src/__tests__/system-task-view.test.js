@@ -25,7 +25,7 @@ vi.mock('@ligoj/host', () => ({
   LjDialog: { props: ['modelValue'], template: '<div v-if="modelValue" class="ljdialog"><slot /><slot name="footer" /></div>' },
   LjButton: { template: '<button><slot /></button>' },
   LjSegmented: { name: 'LjSegmented', props: ['modelValue', 'options'], emits: ['update:modelValue'], template: '<div class="seg" />' },
-  VibrantDataTable: { name: 'VibrantDataTable', props: ['headers', 'items', 'itemsLength', 'loading', 'defaultSort', 'defaultOrder'], template: '<div class="vdt" />' },
+  LjDataTable: { name: 'LjDataTable', props: ['headers', 'items', 'itemsLength', 'loading', 'defaultSort', 'defaultOrder'], template: '<div class="vdt" />' },
 }))
 
 import SystemTaskView from '../views/SystemTaskView.vue'

@@ -1,12 +1,12 @@
 <!--
-  SystemConfigurationView — 2026 "Vibrant" configuration manager
+  SystemConfigurationView — configuration manager
   (Administration → Configuration). Ports plugin-ui's SystemConfigurationView
   logic (rest/system/configuration list / save / delete + the crypto encrypt
-  helper) onto the Vibrant chrome: breadcrumb-chip header, a search box, KPI
+  helper) onto the shared chrome: breadcrumb-chip header, a search box, KPI
   stat cards that double as filters (Total / Secured / Overridden / Database),
-  a collapsible encryption tool, VibrantDataTable with a cog-glyph key cell,
+  a collapsible encryption tool, LjDataTable with a cog-glyph key cell,
   masked secured values, a source pill and edit/delete row actions, plus a
-  Vibrant edit modal and confirm dialog. Mockup language reused from the Nodes
+  edit modal and confirm dialog. Mockup language reused from the Nodes
   view. Client-side search / sort / pagination (the key set is small).
 -->
 <template>
@@ -54,7 +54,7 @@
 
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
-    <VibrantDataTable :headers="headers" :items="paged" :items-length="filtered.length" :loading="loading" item-value="name"
+    <LjDataTable :headers="headers" :items="paged" :items-length="filtered.length" :loading="loading" item-value="name"
       :empty-text="query ? t('common.noData') : t('common.noData')" default-sort="name" filename="system-configuration.csv" @update:options="onOptions" @row-click="openEdit">
       <template #cell.name="{ item }">
         <code class="kname">{{ item.name }}</code>
@@ -85,7 +85,7 @@
           <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
         </RowActionsCog>
       </template>
-    </VibrantDataTable>
+    </LjDataTable>
 
     <!-- Create / edit dialog (shared chrome). -->
     <LjDialog v-model="editDialog" :title="editTarget ? t('system.config.editTitle') : t('system.config.newTitle')" icon="mdi-cog" :max-width="560">
@@ -111,7 +111,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { LigojTextarea, useApi, useAppStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
+import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()

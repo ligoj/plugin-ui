@@ -1,5 +1,5 @@
 <!--
-  DashboardView — 2026 "Vibrant" home. Shows the current user's subscriptions
+  DashboardView — home. Shows the current user's subscriptions
   grouped by tool, through the shared <SubscriptionsPanel> (same cards/list,
   filter, view toggle and collapse used by ProjectDetailView).
 

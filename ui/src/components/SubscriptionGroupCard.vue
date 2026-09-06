@@ -1,6 +1,6 @@
 <!--
   SubscriptionGroupCard — one tool (service) group of a project's subscriptions,
-  rendered as a 2026 dashboard card. The CARD CHROME mirrors the HomeView
+  rendered as a dashboard card. The CARD CHROME mirrors the HomeView
   subscription blocks (coloured top edge + tinted gradient header, glyph, name,
   kind, health bar + counter, collapse chevron, mini-table rows).
 

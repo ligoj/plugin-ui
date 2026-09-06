@@ -1,9 +1,9 @@
 <!--
-  SystemBenchView — 2026 "Vibrant" database benchmark tool
+  SystemBenchView — database benchmark tool
   (Administration → Bench). Ports plugin-ui's SystemBenchView logic (runs
   INSERT → SELECT → SELECT * → UPDATE → DELETE against rest/system/bench/* and
   reports each step's duration; the INSERT step needs a multipart FormData
-  body to satisfy the server's @Consumes constraint) onto the Vibrant chrome:
+  body to satisfy the server's @Consumes constraint) onto the shared chrome:
   breadcrumb-chip header, an explainer + control panel (custom number input +
   Run CTA + total badge) and a results panel with per-step proportion bars.
 -->

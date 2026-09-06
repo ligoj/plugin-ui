@@ -1,7 +1,7 @@
 <!--
-  ApiHomeView — 2026 "Vibrant" API explorer (API). Instead of embedding the
-  backend's heavy, dark-themed Swagger UI (which clashes with the 2026 shell),
-  this renders the OpenAPI document (rest/openapi.json) natively in the Vibrant
+  ApiHomeView — API explorer (API). Instead of embedding the
+  backend's heavy, dark-themed Swagger UI (which clashes with the shell),
+  this renders the OpenAPI document (rest/openapi.json) natively in the shared
   style: breadcrumb-chip header, KPI stats, a search box + method filter chips,
   and endpoints grouped by tag into collapsible sections of expandable cards
   (method pill + mono path + summary → parameters / request body / responses).

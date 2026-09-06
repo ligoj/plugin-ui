@@ -1,9 +1,9 @@
 <!--
-  SystemCacheView — 2026 "Vibrant" cache monitor (Administration → Caches).
+  SystemCacheView — cache monitor (Administration → Caches).
   Ports plugin-ui's SystemCacheView logic (rest/system/cache list + per-cache
-  invalidate via POST rest/system/cache/{id}) onto the Vibrant chrome:
+  invalidate via POST rest/system/cache/{id}) onto the shared chrome:
   breadcrumb-chip header with a search box, KPI stat cards (caches / entries /
-  global hit rate / avg get time), VibrantDataTable with a db glyph, hit/miss
+  global hit rate / avg get time), LjDataTable with a db glyph, hit/miss
   rate chips and a per-row flush action. Read-only dashboard otherwise.
 -->
 <template>
@@ -29,7 +29,7 @@
 
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
-    <VibrantDataTable :headers="headers" :items="paged" :items-length="filtered.length" :loading="loading" item-value="id" default-sort="hitCount" default-order="desc"
+    <LjDataTable :headers="headers" :items="paged" :items-length="filtered.length" :loading="loading" item-value="id" default-sort="hitCount" default-order="desc"
       :empty-text="t('common.noData')" filename="system-cache.csv" @update:options="onOptions">
       <template #cell.id="{ item }">
         <code class="cname" :class="{ idle: isIdle(item) }">{{ item.id }}</code>
@@ -67,7 +67,7 @@
           <v-icon v-else size="18">mdi-delete-sweep-outline</v-icon>{{ t('system.cache.invalidateAll') }}
         </button>
       </template>
-    </VibrantDataTable>
+    </LjDataTable>
 
     <LigojConfirmDialog v-model="invalidateAllDialog" :title="t('system.cache.invalidateAll')" icon="mdi-delete-sweep-outline" confirm-color="error"
       :confirm-label="t('system.cache.invalidateAll')" :loading="invalidatingAll" @confirm="invalidateAll">
@@ -79,7 +79,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi, useAppStore, useI18nStore } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjSearch } from '@ligoj/host'
+import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjSearch } from '@ligoj/host'
 
 const api = useApi()
 const app = useAppStore()

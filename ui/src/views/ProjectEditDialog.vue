@@ -1,7 +1,7 @@
 <!--
-  ProjectEditDialog — 2026 "Vibrant" create/edit popup for a project. Same
+  ProjectEditDialog — create/edit popup for a project. Same
   `.vmodal` chrome as UserEditDialog / DelegateEditDialog (gradient icon head,
-  rounded fields, Vibrant footer). Wires to rest/project: POST on create, PUT
+  rounded fields, footer). Wires to rest/project: POST on create, PUT
   on edit. The pkey is auto-derived from the name (lowercase-dash) until the
   user hand-edits it, and is locked once the project has subscriptions —
   mirrors plugin-ui's ProjectListView rules. Team leader is a user

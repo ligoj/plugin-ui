@@ -1,10 +1,10 @@
 <!--
-  SystemHookView — 2026 "Vibrant" hook manager
+  SystemHookView — hook manager
   (Administration → Hooks). Ports the bootstrap HookResource CRUD
   (rest/system/hook — server-paginated DataTables list, POST create, PUT
-  update, DELETE) onto the Vibrant chrome: breadcrumb-chip header with a
-  search box and a row count subtitle (no KPI cards), VibrantDataTable with
-  name / method chip / path / command preview / delay badge cells, a Vibrant
+  update, DELETE) onto the shared chrome: breadcrumb-chip header with a
+  search box and a row count subtitle (no KPI cards), LjDataTable with
+  name / method chip / path / command preview / delay badge cells, a
   create/edit modal and a confirm dialog.
 
   The entity's `match` column is a JSON string `{path, method}` — the dialog
@@ -26,7 +26,7 @@
 
     <p v-if="dt.error.value" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ dt.error.value }}</p>
 
-    <VibrantDataTable :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value" item-value="id"
+    <LjDataTable :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value" item-value="id"
       default-sort="name" :empty-text="t('common.noData')" :fetch-all="dt.loadAll" filename="system-hooks.csv" @update:options="loadData" @row-click="openEdit">
       <template #cell.name="{ item }">
         <code class="hname">{{ item.name }}</code>
@@ -51,7 +51,7 @@
           <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
         </RowActionsCog>
       </template>
-    </VibrantDataTable>
+    </LjDataTable>
 
     <!-- Create / edit dialog (shared chrome). -->
     <LjDialog v-model="editDialog" :title="editTarget ? t('system.hook.editTitle') : t('system.hook.newTitle')" icon="mdi-webhook" :max-width="600">
@@ -92,7 +92,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { LigojTextField, LigojCombobox, useApi, useAppStore, useDataTable, useI18nStore, LigojSelect } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
+import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()

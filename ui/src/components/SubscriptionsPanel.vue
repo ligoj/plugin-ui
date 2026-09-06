@@ -2,7 +2,7 @@
   SubscriptionsPanel — the reusable subscriptions display, shared by
   ProjectDetailView and HomeView. Renders a toolbar (Cartes/Liste toggle +
   optional search + optional "collapse all") over a grid of SubscriptionGroupCard
-  (cards) or a flat VibrantDataTable (list). Both keep the per-subscription plugin
+  (cards) or a flat LjDataTable (list). Both keep the per-subscription plugin
   RENDERING DELEGATION (renderDetailsKey / renderDetailsFeatures / renderFeatures).
 
   Input is the already-grouped `groups` model (one entry per tool):
@@ -41,7 +41,7 @@
       </div>
 
       <!-- List: one row per subscription, same delegation in the cells -->
-      <VibrantDataTable v-else :headers="listHeaders" :items="subRows" :items-length="subRows.length" item-value="id" default-sort="tool" :tools="false">
+      <LjDataTable v-else :headers="listHeaders" :items="subRows" :items-length="subRows.length" item-value="id" default-sort="tool" :tools="false">
         <template #cell.tool="{ item }">
           <div class="avatar-cell" v-appear="() => item.sub && $emit('row-appear', item.sub)">
             <span class="glyph sm" :style="{ '--c': item.color }"><component :is="item.icon" /></span>
@@ -66,7 +66,7 @@
             <button v-if="cog && item.sub.id" class="rowcog" :title="t('common.actions') || 'Actions'" @click.stop="$emit('rowmenu', { event: $event, sub: item.sub })"><v-icon size="16">mdi-dots-vertical</v-icon></button>
           </span>
         </template>
-      </VibrantDataTable>
+      </LjDataTable>
     </template>
 
     <slot v-else name="empty"><div class="sp-empty">{{ t('common.noData') }}</div></slot>
@@ -75,7 +75,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { PluginFeatures, useI18nStore, LjSegmented, LjSearch, VibrantDataTable } from '@ligoj/host'
+import { PluginFeatures, useI18nStore, LjSegmented, LjSearch, LjDataTable } from '@ligoj/host'
 import SubscriptionGroupCard from './SubscriptionGroupCard.vue'
 import SubscriptionStatus from './SubscriptionStatus.vue'
 import { vAppear } from '../directives/appear.js'

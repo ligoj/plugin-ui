@@ -1,6 +1,6 @@
 <!--
-  ProjectDetailView — 2026 "Vibrant" project detail. Faithful to the validated
-  mockup (design/ligoj-2026-prototype.html → viewProject): a header with the
+  ProjectDetailView — project detail. Faithful to the validated
+  mockup (mockup viewProject): a header with the
   project name/key + a "subscribe" CTA, then a grid of tool cards. Each card
   groups the project's subscriptions by their tool (service), shows the tool
   glyph (real plugin logo via the host's NodeIcon), a per-subscription row list
@@ -298,7 +298,7 @@ onMounted(load)
   gap: 18px;
 }
 
-/* List view (VibrantDataTable) cells. */
+/* List view (LjDataTable) cells. */
 .avatar-cell {
   display: flex;
   align-items: center;

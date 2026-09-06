@@ -29,7 +29,7 @@ export default {
   'demo.showcaseDialog': 'Demo dialog',
   'demo.showcaseDialogText': 'A LjDialog opened from the showcase, chained after the confirmation dialog.',
   'demo.showcaseConfirm': 'Open dialog',
-  'demo.showcaseConfirmText': 'This VibrantConfirmDialog chains into a LjDialog — both are Ligoj shared components.',
+  'demo.showcaseConfirmText': 'This LjConfirmDialog chains into a LjDialog — both are Ligoj shared components.',
   // Demo mode content (admin-level, host `useDemoMode`)
   'demo.projectAlertCreate': 'Demonstration content — this section is a sample plugin extension shown while the demo mode is enabled. Saving this dialog sends the whole payload to the demo endpoint of the plugin, which drops it: nothing is saved (see the save preview).',
   'demo.projectAlertEdit': 'Demonstration content — this sample plugin extension augments the edition of an existing project while the demo mode is enabled. Saving this dialog sends the whole payload to the demo endpoint of the plugin, which drops it: nothing is saved (see the save preview).',
@@ -570,7 +570,7 @@ export default {
   'wizard.rule.required': 'Required',
   'wizard.rule.nodeId': 'Use the colon-separated form, e.g. service:scm:git:internal',
 
-  // 2026 redesign: project/system/api view keys
+  // Project/system/api view keys
   'common.cards': "Cards",
   'common.list': "List",
   'common.collapseAll': "Collapse all",
@@ -691,7 +691,7 @@ export default {
   'system.user.statRoles': "Defined roles",
   'system.user.statTotal': "Accounts",
 
-  // 2026 redesign: dynamic project/system/api keys
+  // Dynamic project/system/api keys
   'project.open': "Open project",
   'project.noTool': "No tool",
   'project.createSoon': "Project creation — coming soon",

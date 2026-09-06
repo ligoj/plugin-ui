@@ -1,10 +1,10 @@
 <!--
-  SystemUsersView — 2026 "Vibrant" system-account manager
+  SystemUsersView — system-account manager
   (Administration → System users). Ports plugin-ui's SystemUserView logic
   (useDataTable on 'system/user/roles' for server-side fetch / sort / paging /
   search + POST/PUT save + DELETE, roles loaded from rest/system/security/role)
-  onto the Vibrant chrome: breadcrumb-chip header with a search box, KPI stat
-  cards, VibrantDataTable with a login avatar cell and role chips, a Vibrant
+  onto the shared chrome: breadcrumb-chip header with a search box, KPI stat
+  cards, LjDataTable with a login avatar cell and role chips, an
   edit modal (login + roles autocomplete) and a confirm dialog.
 -->
 <template>
@@ -31,7 +31,7 @@
 
     <p v-if="dt.error.value" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ dt.error.value }}</p>
 
-    <VibrantDataTable :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value" item-value="login"
+    <LjDataTable :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value" item-value="login"
       default-sort="login" :empty-text="t('common.noData')" :fetch-all="dt.loadAll" filename="system-users.csv" @update:options="loadData" @row-click="openEdit">
       <template #cell.login="{ item }">
         <code class="ulogin">{{ item.login }}</code>
@@ -60,7 +60,7 @@
           <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
         </RowActionsCog>
       </template>
-    </VibrantDataTable>
+    </LjDataTable>
 
     <!-- API access verification against the UNION of the selected user's
          roles' API authorizations (no admin bypass — pattern-driven only). -->
@@ -100,7 +100,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { LigojTextField, useApi, useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField, LigojAutocomplete, ApiVerifyDialog } from '@ligoj/host'
+import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField, LigojAutocomplete, ApiVerifyDialog } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()

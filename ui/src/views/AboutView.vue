@@ -1,7 +1,7 @@
 <!--
-  AboutView — 2026 "Vibrant" about page (/about). Ports the core AboutView
+  AboutView — about page (/about). Ports the core AboutView
   content (app build info from auth.appSettings, frontend stack, project links,
-  resources) into the Vibrant card grid. Reached from the sidebar footer.
+  resources) into the card grid. Reached from the sidebar footer.
 
   Moved from the host to plugin-ui (#121): the route is registered by the
   plugin's install(); the "report a bug" row opens the shared, persistently
@@ -194,7 +194,7 @@ onMounted(() => app.setBreadcrumbs(() => [{ title: t('nav.home'), to: '/' }, { t
   width: auto;
   vertical-align: middle;
 }
-/* License dialog — reskinned to match the Vibrant card language */
+/* License dialog — reskinned to match the card language */
 .lic {
   --surface: rgb(var(--v-theme-surface));
   --card: rgb(var(--v-theme-surface));

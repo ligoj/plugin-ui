@@ -1,11 +1,11 @@
 <!--
-  SystemPluginsView — 2026 "Vibrant" plugin manager. Ports plugin-ui's
+  SystemPluginsView — plugin manager. Ports plugin-ui's
   SystemPluginView logic (rest/system/plugin: list / search / install /
-  upgrade / delete / check-versions / restart) onto a richer Vibrant chrome:
+  upgrade / delete / check-versions / restart) onto a richer shared chrome:
   KPI stat cards, a custom repository picker (same language-picker pattern as
-  the login/profile), VibrantDataTable rows with a coloured type pill, a
+  the login/profile), LjDataTable rows with a coloured type pill, a
   two-line name/artifact cell, a glowing status dot and count chips, plus a
-  .vmodal install dialog and VibrantConfirmDialog. Mockup ref: viewPlugins.
+  .vmodal install dialog and LjConfirmDialog. Mockup ref: viewPlugins.
 -->
 <template>
   <div class="plugins lj-surface">
@@ -65,7 +65,7 @@
 
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
-    <VibrantDataTable :headers="headers" :items="rows" :items-length="rows.length" :loading="loading" item-value="id" default-sort="name" :empty-text="t('common.noData')" filename="system-plugins.csv">
+    <LjDataTable :headers="headers" :items="rows" :items-length="rows.length" :loading="loading" item-value="id" default-sort="name" :empty-text="t('common.noData')" filename="system-plugins.csv">
       <template #cell.name="{ item }">
         <div class="avatar-cell">
           <span v-if="item.node" class="logo-tile"><NodeIcon :node="item.node" /></span>
@@ -116,7 +116,7 @@
           <v-tooltip activator="parent" :text="t('system.plugin.delete')" location="top" />
         </button>
       </template>
-    </VibrantDataTable>
+    </LjDataTable>
 
     <!-- Install dialog (shared chrome) -->
     <LjDialog v-model="installDialog" :title="t('system.plugin.installTitle')" icon="mdi-puzzle-plus-outline" :max-width="640">
@@ -193,7 +193,7 @@ import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { LigojTextField, useApi, useAppStore, useAuthStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
 import PluginAutomationDialog from '../components/PluginAutomationDialog.vue'
 import { formatInstant } from '../pluginUpdates.js'
-import { VibrantDataTable, VibrantConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus, LigojAutocomplete } from '@ligoj/host'
+import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus, LigojAutocomplete } from '@ligoj/host'
 import { statusHeader } from '../useUiHelpers.js'
 import { pluginState, togglePath } from '../pluginToggle.js'
 import { pluginStats, pct, TYPES, STATES, SIGNATURES } from '../pluginStats.js'

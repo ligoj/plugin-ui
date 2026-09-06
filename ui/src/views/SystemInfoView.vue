@@ -1,10 +1,10 @@
 <!--
-  SystemInfoView — 2026 "Vibrant" runtime information dashboard
+  SystemInfoView — runtime information dashboard
   (Administration → Information). Ports plugin-ui's SystemInfoView logic
   (rest/system for memory / cpu / date / time zone; appSettings for the build;
   JSESSIONID cookie + auth for the session; PUT rest/system/timezone/{type} to
-  edit a time zone) onto the Vibrant chrome: breadcrumb-chip header and a grid
-  of Vibrant cards — System (segmented memory bar + cpu + dates), Time zone
+  edit a time zone) onto the shared chrome: breadcrumb-chip header and a grid
+  of cards — System (segmented memory bar + cpu + dates), Time zone
   (editable), Session (id + user) and Build. Read-only except the time zones.
 -->
 <template>

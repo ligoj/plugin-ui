@@ -57,7 +57,7 @@ describe('SubscriptionsPanel / SubscriptionGroupCard — loading rows', () => {
   it('list view: passes loading to the status dot and shows a details skeleton', () => {
     const w = mount(SubscriptionsPanel, {
       props: { groups: GROUPS, defaultView: 'list' },
-      global: { stubs: { LjSearch: true, LjSegmented: true, PluginFeatures: true, SubscriptionStatus: StatusStub, VibrantDataTable: TableStub } },
+      global: { stubs: { LjSearch: true, LjSegmented: true, PluginFeatures: true, SubscriptionStatus: StatusStub, LjDataTable: TableStub } },
     })
     const [r1, r2] = w.findAll('.row')
     expect(r1.find('.sst').attributes('data-loading')).toBe('true')

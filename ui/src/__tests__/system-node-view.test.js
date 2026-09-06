@@ -31,7 +31,7 @@ const stubs = {
   SubscriptionStatus: { props: ['node', 'subscription', 'status'], template: '<span class="sst" />' },
   NodeEditDialog: { props: ['modelValue'], template: '<div />' },
   LigojConfirmDialog: { props: ['modelValue'], emits: ['confirm'], template: '<div v-if="modelValue" class="confirm"><slot /></div>' },
-  VibrantDataTable: {
+  LjDataTable: {
     props: ['headers', 'items', 'itemsLength', 'loading'],
     template: '<div class="vdt">'
       + '<div v-for="it in items" :key="it.id" class="row">'

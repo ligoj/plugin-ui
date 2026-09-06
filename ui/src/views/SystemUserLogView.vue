@@ -1,8 +1,8 @@
 <!--
-  SystemUserLogView — 2026 "Vibrant" browser-error log viewer
+  SystemUserLogView — browser-error log viewer
   (Administration → Information → User logs). Read-only port of the
   SystemUserView pattern: useDataTable on 'user-log' for server-side
-  fetch / sort / paging, rendered through VibrantDataTable. No edit /
+  fetch / sort / paging, rendered through LjDataTable. No edit /
   delete dialogs — these rows are produced by the front-end error
   reporter (POST /rest/user-log) and only consulted here. Adds a
   date-range filter (From / To) wired into the GET's from/to query.
@@ -30,7 +30,7 @@
 
     <p v-if="dt.error.value" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ dt.error.value }}</p>
 
-    <VibrantDataTable :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value"
+    <LjDataTable :headers="headers" :items="dt.items.value" :items-length="dt.totalItems.value" :loading="dt.loading.value"
       item-value="id" default-sort="date" default-order="desc" :empty-text="t('common.noData')"
       :fetch-all="dt.loadAll" filename="user-logs.csv" @update:options="loadData">
       <!-- date arrives as epoch milliseconds → localized display. -->
@@ -47,14 +47,14 @@
         <code v-if="item.url" class="ul-url">{{ item.url }}</code>
         <span v-else class="dash">—</span>
       </template>
-    </VibrantDataTable>
+    </LjDataTable>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
-import { VibrantDataTable, LjPageHeader } from '@ligoj/host'
+import { LjDataTable, LjPageHeader } from '@ligoj/host'
 
 const app = useAppStore()
 const i18n = useI18nStore()

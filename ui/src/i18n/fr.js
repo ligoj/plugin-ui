@@ -28,7 +28,7 @@ export default {
   'demo.showcaseDialog': 'Dialogue démo',
   'demo.showcaseDialogText': 'Un LjDialog ouvert depuis la vitrine, enchaîné après le dialogue de confirmation.',
   'demo.showcaseConfirm': 'Ouvrir le dialogue',
-  'demo.showcaseConfirmText': 'Ce VibrantConfirmDialog enchaîne vers un LjDialog — deux composants partagés Ligoj.',
+  'demo.showcaseConfirmText': 'Ce LjConfirmDialog enchaîne vers un LjDialog — deux composants partagés Ligoj.',
   // Contenu du mode démo (niveau administrateur, `useDemoMode` de l'hôte)
   'demo.projectAlertCreate': 'Contenu de démonstration — cette section est un exemple d\'extension de plugin affiché lorsque le mode démo est actif. Enregistrer ce dialogue envoie toute la charge utile au point d\'entrée démo du plugin, qui l\'ignore : rien n\'est enregistré (voir l\'aperçu d\'enregistrement).',
   'demo.projectAlertEdit': 'Contenu de démonstration — cet exemple d\'extension de plugin complète l\'édition d\'un projet existant lorsque le mode démo est actif. Enregistrer ce dialogue envoie toute la charge utile au point d\'entrée démo du plugin, qui l\'ignore : rien n\'est enregistré (voir l\'aperçu d\'enregistrement).',
@@ -569,7 +569,7 @@ export default {
   'wizard.rule.required': 'Requis',
   'wizard.rule.nodeId': 'Utilisez la forme séparée par des deux-points, ex. service:scm:git:internal',
 
-  // 2026 redesign: project/system/api view keys
+  // Project/system/api view keys
   'common.cards': "Cartes",
   'common.list': "Liste",
   'common.collapseAll': "Tout réduire",
@@ -690,7 +690,7 @@ export default {
   'system.user.statRoles': "Rôles définis",
   'system.user.statTotal': "Comptes",
 
-  // 2026 redesign: dynamic project/system/api keys
+  // Dynamic project/system/api keys
   'project.open': "Ouvrir le projet",
   'project.noTool': "Aucun outil",
   'project.createSoon': "Création de projet — bientôt",
