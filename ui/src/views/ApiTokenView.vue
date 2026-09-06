@@ -24,7 +24,7 @@
       <span class="us-ic"><v-icon size="20">mdi-key-chain-variant</v-icon></span>
       <div class="us-body">
         <p class="us-intro">{{ t('system.apiToken.intro') }}</p>
-        <code class="us-ex">GET {{ origin }}{{ base }}rest/project?api-key=&lt;token&gt;&amp;api-user={{ userName }}</code>
+        <code class="us-ex">GET {{ origin }}{{ base }}rest/project?api-key=&lt;key&gt;&amp;api-user={{ userName }}</code>
       </div>
     </div>
 

@@ -22,7 +22,7 @@
 
       <v-list-subheader>API</v-list-subheader>
       <v-list-item to="/api" prepend-icon="mdi-api" title="API reference" />
-      <v-list-item to="/api/token" prepend-icon="mdi-key-variant" title="API tokens" />
+      <v-list-item to="/api/token" prepend-icon="mdi-key-variant" title="API keys" />
 
       <v-list-subheader>Onboarding</v-list-subheader>
       <v-list-item to="/subscribe" prepend-icon="mdi-playlist-plus" title="Subscribe wizard" />

@@ -43,11 +43,11 @@
               catalogue on the
               <router-link to="/api">API reference page</router-link>
               (OpenAPI / Swagger UI), and generate an
-              <router-link to="/api/token">API token</router-link>
+              <router-link to="/api/token">API key</router-link>
               to call it from scripts without exposing your password.
             </p>
             <v-code-block v-if="false" />
-            <pre class="code-sample">curl "{{ origin }}{{ base }}rest/project?api-key=&lt;token&gt;&amp;api-user={{ userName }}"</pre>
+            <pre class="code-sample">curl "{{ origin }}{{ base }}rest/project?api-key=&lt;key&gt;&amp;api-user={{ userName }}"</pre>
           </v-card-text>
         </v-card>
 
