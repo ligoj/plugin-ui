@@ -685,6 +685,8 @@ export default {
   'system.user.new': "Nouveau compte",
   'system.user.newTitle': "Nouvel utilisateur système",
   'system.user.noRoles': "Aucun rôle",
+  'system.user.federatedRole': "Accordé par le groupe {group} du fournisseur d'identité",
+  'system.user.federatedRoles': "Rôles issus des groupes :",
   'system.user.rolesHint': "Choisir au moins un rôle",
   'system.user.searchPlaceholder': "Rechercher identifiant, nom, e-mail…",
   'system.user.statRoles': "Rôles définis",

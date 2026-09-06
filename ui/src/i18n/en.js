@@ -686,6 +686,8 @@ export default {
   'system.user.new': "New account",
   'system.user.newTitle': "New system user",
   'system.user.noRoles': "No role",
+  'system.user.federatedRole': "Granted by the group {group} of the identity provider",
+  'system.user.federatedRoles': "Roles from groups:",
   'system.user.rolesHint': "Pick at least one role",
   'system.user.searchPlaceholder': "Search login, name, mail…",
   'system.user.statRoles': "Defined roles",

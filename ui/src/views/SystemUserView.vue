@@ -49,7 +49,9 @@
       <template #cell.roles="{ item }">
         <span class="chips">
           <span v-for="r in (item.roles || [])" :key="r.id" class="rchip"><v-icon size="12">mdi-shield-account-outline</v-icon>{{ r.name }}</span>
-          <span v-if="!(item.roles || []).length" class="dash">{{ t('system.user.noRoles') }}</span>
+          <!-- Federated roles: obtained at login through the identity provider groups, not editable here -->
+          <span v-for="r in federatedRoles(item)" :key="'f-' + r.name" class="rchip rchip--federated"><v-icon size="12">mdi-account-group-outline</v-icon>{{ r.name }}<v-tooltip activator="parent" location="top" :text="t('system.user.federatedRole', { group: r.id })" /></span>
+          <span v-if="!hasAnyRole(item)" class="dash">{{ t('system.user.noRoles') }}</span>
         </span>
       </template>
       <template #actions="{ item }">
@@ -84,6 +86,10 @@
         </fieldset>
         <LigojAutocomplete v-model="editForm.roles" :label="t('system.user.fieldRoles')" prepend-inner-icon="mdi-shield-account-outline" :items="allRoles" item-value="id" item-title="name"
           multiple chips closable-chips variant="outlined" :rules="[rules.requiredArray]" :hint="t('system.user.rolesHint')" persistent-hint />
+        <p v-if="federatedRoles(editTarget).length" class="federated-hint">
+          <v-icon size="14">mdi-account-group-outline</v-icon>{{ t('system.user.federatedRoles') }}
+          <span v-for="r in federatedRoles(editTarget)" :key="'f-' + r.name" class="rchip rchip--federated">{{ r.name }}<v-tooltip activator="parent" location="top" :text="t('system.user.federatedRole', { group: r.id })" /></span>
+        </p>
       </v-form>
       <template #footer>
         <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
@@ -102,6 +108,7 @@ import { ref, computed, onMounted } from 'vue'
 import { LigojTextField, useApi, useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
 import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField, LigojAutocomplete, ApiVerifyDialog } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
+import { appliesTo, federatedRoles, hasAnyRole, roleNames } from '../systemUserRoles.js'
 
 const api = useApi()
 const app = useAppStore()
@@ -130,7 +137,7 @@ const headers = computed(() => [
   // not sortable (no JPA association server-side).
   { key: 'name', label: t('system.user.headerName'), sortable: false, icon: 'mdi-badge-account-horizontal-outline', exportValue: (r) => fullName(r) },
   { key: 'mails', label: t('system.user.headerMail'), sortable: false, icon: 'mdi-email-outline', exportValue: (r) => (r.mails || []).join(' ') },
-  { key: 'roles', label: t('system.user.headerRoles'), sortable: false, icon: 'mdi-shield-account-outline', exportValue: (r) => (r.roles || []).map((x) => x.name).join(' ') },
+  { key: 'roles', label: t('system.user.headerRoles'), sortable: false, icon: 'mdi-shield-account-outline', exportValue: (r) => roleNames(r).join(' ') },
 ])
 
 const stats = computed(() => [
@@ -201,9 +208,9 @@ async function openVerify(item) {
     const data = await api.get('rest/system/security/role/withAuth')
     roleAuthCache = data?.data || data || []
   }
-  const ids = new Set((item.roles || []).map((r) => r.id))
+  // Assigned roles match by id, federated ones by name
   verifyAuths.value = roleAuthCache
-    .filter((r) => ids.has(r.id))
+    .filter((r) => appliesTo(r, item))
     .flatMap((r) => (r.authorizations || []).filter((a) => a.type === 'api'))
 }
 
@@ -262,4 +269,6 @@ onMounted(() => {
 .chips { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 .rchip { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font); font-weight: 700; font-size: 11.5px; padding: 3px 10px; border-radius: 999px; color: #8b5cf6; background: rgba(139, 92, 246, .13); }
 .dash { color: var(--ink-3); font-size: 13px; }
+.rchip--federated { color: #0d9488; background: rgba(13, 148, 136, .13); }
+.federated-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-3); }
 </style>
