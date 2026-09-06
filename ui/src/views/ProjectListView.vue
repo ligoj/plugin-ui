@@ -13,13 +13,10 @@
         <b>{{ total }}</b> {{ t('project.countLabel') }}
       </template>
       <template #actions>
+        <LjSearch v-model="search" :placeholder="t('project.searchPlaceholder')" />
         <LjButton icon="mdi-plus" @click="openNew">{{ t('project.new') }}</LjButton>
       </template>
     </LjPageHeader>
-
-    <div class="toolbar">
-      <LjSearch v-model="search" :placeholder="t('project.searchPlaceholder')" />
-    </div>
 
     <LjDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="id" :empty-text="t('common.noData') || 'Aucune donnée'"
       filename="projects.csv" @row-click="openProject">
@@ -181,10 +178,6 @@ onMounted(() => {
 .sub b {
   color: var(--ink-2);
   font-family: var(--mono);
-}
-
-.toolbar {
-  margin-bottom: 18px;
 }
 
 /* Table cells (folder glyph + name stack, team leader pill, subs chip). */
