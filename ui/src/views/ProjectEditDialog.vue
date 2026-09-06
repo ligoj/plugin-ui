@@ -8,7 +8,7 @@
   autocomplete hitting rest/service/id/user.
 -->
 <template>
-  <LjDialog :model-value="modelValue" :title="isEdit ? t('project.edit') : t('project.new')" icon="mdi-folder-outline" :max-width="600" @update:model-value="onDialogModel">
+  <LjDialog :model-value="modelValue" :title="isEdit ? t('project.edit') : t('project.new')" :badge="isEdit ? (project?.pkey || project?.name || '') : ''" icon="mdi-folder-outline" :max-width="600" @update:model-value="onDialogModel">
       <v-form ref="formRef" @submit.prevent="save">
         <LigojTextField v-model="form.name" :label="t('project.name')" :rules="[rules.required]" prepend-inner-icon="mdi-form-textbox" variant="outlined" class="mb-2" autofocus @update:model-value="onNameChanged" />
         <LigojTextField v-model="form.pkey" :label="t('project.pkey')" :rules="[rules.required, rules.pkey]" :disabled="pkeyLocked" :hint="pkeyLocked ? t('project.pkeyLocked') : t('project.pkeyHint')" persistent-hint
