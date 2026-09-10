@@ -100,7 +100,8 @@ async function loadLeaders() {
   leaderLoading.value = true
   try {
     const q = (leaderSearch.value || '').trim()
-    const qp = q ? `q=${encodeURIComponent(q)}&` : ''
+    // The user API reads the DataTables criterion `search[value]`
+    const qp = q ? `search[value]=${encodeURIComponent(q)}&` : ''
     const data = await api.get(`rest/service/id/user?${qp}rows=20`)
     const rows = Array.isArray(data) ? data : (data?.data || [])
     leaderItems.value = rows.map((r) => {
