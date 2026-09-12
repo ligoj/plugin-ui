@@ -101,20 +101,21 @@
       <template #cell.statut="{ item }">
         <LjStatus :status="item.status" :tooltip="statusLabel(item.statusKey)" />
       </template>
-      <!-- Enabled = the plug-in jar is loadable (see pluginToggle.js); a change
-           is applied by a restart, like an installation or a removal. -->
-      <template #cell.enabled="{ item }">
-        <span v-if="!item.pending" class="switch" :class="{ on: item.enabled, busy: togglingKey === item.artifact, disabled: !canToggle(item) }" role="switch" :aria-checked="item.enabled" :aria-disabled="!canToggle(item)" @click.stop="toggleEnabled(item)">
-          <v-tooltip activator="parent" location="top" max-width="380" :text="toggleTooltip(item)" />
-        </span>
-        <span v-else class="muted">—</span>
-      </template>
+      <!-- Row actions cog (same pattern as the node view): the enable/disable
+           toggle — the plug-in jar is loadable, see pluginToggle.js; applied by
+           a restart like an installation or a removal — and the deletion. A
+           plug-in scheduled for removal only shows the indicator. -->
       <template #actions="{ item }">
-        <v-icon v-if="item.deleted" size="18" color="warning" :title="t('system.plugin.deletionScheduled')">mdi-cancel</v-icon>
-        <button v-else class="lj-iconbtn danger" @click.stop="askRemove(item.artifact)">
-          <v-icon size="18">mdi-delete-outline</v-icon>
-          <v-tooltip activator="parent" :text="t('system.plugin.delete')" location="top" />
-        </button>
+        <v-icon v-if="item.deleted" class="deleted" size="18" color="warning" :title="t('system.plugin.deletionScheduled')">mdi-cancel</v-icon>
+        <RowActionsCog v-else>
+          <button :disabled="!canToggle(item) || togglingKey === item.artifact" @click="toggleEnabled(item)">
+            <v-progress-circular v-if="togglingKey === item.artifact" size="18" width="2" indeterminate />
+            <v-icon v-else size="18">{{ item.enabled ? 'mdi-power-off' : 'mdi-power' }}</v-icon>{{ item.enabled ? t('system.plugin.disable') : t('system.plugin.enable') }}
+            <v-tooltip activator="parent" location="start" max-width="380" :text="toggleTooltip(item)" />
+          </button>
+          <div class="sep" />
+          <button class="danger" @click="askRemove(item.artifact)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('system.plugin.delete') }}</button>
+        </RowActionsCog>
       </template>
     </LjDataTable>
 
@@ -192,6 +193,7 @@
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { LigojTextField, useApi, useAppStore, useAuthStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
 import PluginAutomationDialog from '../components/PluginAutomationDialog.vue'
+import RowActionsCog from '../components/RowActionsCog.vue'
 import { formatInstant } from '../pluginUpdates.js'
 import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus, LigojAutocomplete } from '@ligoj/host'
 import { statusHeader } from '../useUiHelpers.js'
@@ -230,7 +232,6 @@ const headers = computed(() => [
   { key: 'key', label: t('system.plugin.headerKey'), sortable: true, icon: 'mdi-identifier', exportValue: (r) => r.key || '' },
   { key: 'version', label: t('system.plugin.headerVersion'), sortable: false, icon: 'mdi-tag-outline', exportValue: (r) => r.version || '' },
   { key: 'vendor', label: t('system.plugin.headerVendor'), sortable: false, icon: 'mdi-shield-account-outline', exportValue: (r) => (r.signature ? `${signatureLabel(r)}${r.signature.signer ? ' — ' + r.signature.signer : ''}` : (r.vendor || '')) },
-  { key: 'enabled', label: t('system.plugin.headerEnabled'), sortable: false, align: 'center', icon: 'mdi-power', width: '110px', exportValue: (r) => (!r.pending ? (r.enabled ? t('system.node.statusEnabled') : t('system.node.statusDisabled')) : '') },
 ])
 
 function prettyName(artifact, name) {
@@ -318,8 +319,9 @@ function statusLabel(s) { return t('system.plugin.status.' + s) }
 
 /* Enable/disable the plug-in itself: the backend renames its jar so the
    class-loader skips (or loads again) it at the next restart, like an
-   installation or a removal — see pluginToggle.js. Disabling asks for
-   confirm; a plug-in scheduled for removal cannot be toggled. */
+   installation or a removal — see pluginToggle.js. The action lives in the
+   row cog; disabling asks for confirm; a staged (pending) plug-in or one
+   scheduled for removal cannot be toggled. */
 const togglingKey = ref('')
 function canToggle(item) { return !item.pending && !item.deleted }
 function toggleTooltip(item) {
@@ -620,13 +622,6 @@ onMounted(() => {
 .sig.invalid { color: #df4d42; }
 .sig.unsigned { color: var(--ink-3); }
 
-/* Toggle switch (mockup .switch). */
-.switch { display: inline-block; width: 44px; height: 25px; border-radius: 20px; background: var(--border-2); position: relative; cursor: pointer; transition: background .2s, opacity .2s; vertical-align: middle; }
-.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .35); transition: left .2s; }
-.switch.on { background: #1d9d63; }
-.switch.on::after { left: 22px; }
-.switch.busy { opacity: .5; pointer-events: none; }
-.switch.disabled { opacity: .45; cursor: not-allowed; }
 
 .pill { display: inline-flex; align-items: center; font-family: var(--font); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; padding: 3px 10px; border-radius: 999px; color: var(--ink-2); background: var(--pill); }
 .pill.service { color: #2f6df6; background: rgba(47, 109, 246, .13); }
