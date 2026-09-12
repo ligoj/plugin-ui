@@ -88,7 +88,8 @@
                `parameterLayout` hook (see parameterGroups / resolveParameterLayout). -->
           <template v-for="(group, gi) in parameterGroups" :key="gi">
             <div v-if="group.label" class="pgroup">{{ group.label }}</div>
-            <div v-for="p in group.params" :key="p.id" class="pfield">
+            <div v-for="p in group.params" :key="p.id" class="pfield" :class="{ 'pfield--deprecated': isDeprecated(p) }">
+              <v-chip v-if="isDeprecated(p)" size="x-small" color="warning" variant="tonal" class="pfield-deprecated" prepend-icon="mdi-alert-outline">{{ t('wizard.params.deprecated') }}</v-chip>
               <!-- Plugin-supplied field (e.g. id-ldap's live group/OU
                    autocomplete) takes precedence over the default type-based
                    rendering — same hook as plugin-ui's wizard. Only resolves
@@ -115,7 +116,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useApi, useErrorStore, useI18nStore, NodeIcon, LjDialog, LjButton, LjSegmented, LigojSelect } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
-import { typeKind, isTextParam, isPassword, coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout } from '../utils/pluginParams.js'
+import { typeKind, isTextParam, isPassword, coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, isDeprecated, deprecationNotice } from '../utils/pluginParams.js'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -173,7 +174,7 @@ const ready = computed(() =>
 function tOrNull(key) { const v = i18n.t(key); return v === key ? null : v }
 function paramLabel(p) { return `${tOrNull(p.id) ?? p.id}${(p.mandatory || p.required) ? ' *' : ''}` }
 /* Optional helper text below the field: the `<id>-description` i18n key, else the parameter's own description. */
-function paramDescription(p) { return tOrNull(`${p.id}-description`) ?? p.description ?? null }
+function paramDescription(p) { return deprecationNotice(p, tOrNull, t('wizard.params.deprecatedNotice')) ?? tOrNull(`${p.id}-description`) ?? p.description ?? null }
 function ruleFor(p) { return (p.mandatory || p.required) ? [rules.required] : [] }
 
 /* Subscription context (isNode = false): the parameter form drives a new
@@ -329,4 +330,6 @@ watch(() => props.modelValue, (val) => {
 .pgroup { margin: 4px 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
 .pgroup + .pfield { margin-top: 0; }
 .pfield { margin-bottom: 12px; }
+.pfield--deprecated { border-left: 3px solid rgb(var(--v-theme-warning)); padding-left: 10px; opacity: .88; }
+.pfield-deprecated { margin-bottom: 4px; }
 </style>

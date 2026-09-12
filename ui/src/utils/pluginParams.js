@@ -158,3 +158,16 @@ export async function ensureToolPluginLoaded(nodeId) {
     } catch { /* give up — default fields render */ }
   }
 }
+
+/** True when the definition is flagged deprecated: superseded by another parameter, still editable. */
+export function isDeprecated(p) { return p?.deprecated === true }
+
+/**
+ * Notice shown under a deprecated parameter: the plugin's `<id>-deprecated` i18n
+ * key when it ships one (what replaces it), else the generic text. Null when
+ * the parameter is not deprecated.
+ */
+export function deprecationNotice(p, tOrNull, fallback) {
+  if (!isDeprecated(p)) return null
+  return tOrNull(`${p.id}-deprecated`) ?? fallback
+}

@@ -554,6 +554,8 @@ export default {
   'wizard.params.subscribeFallback': 'the chosen instance',
   'wizard.params.edit': 'Configuration values bound to {id}.',
   'wizard.params.emptyEdit': 'No parameters configured for this node.',
+  'wizard.params.deprecated': 'Deprecated',
+  'wizard.params.deprecatedNotice': 'This parameter is deprecated: use its replacement described in the plugin documentation.',
   'wizard.params.emptyCreateNode': 'This node has no additional parameters.',
   'wizard.params.emptySubscribe': 'This subscription requires no additional parameters.',
   'wizard.action.cancel': 'Cancel',

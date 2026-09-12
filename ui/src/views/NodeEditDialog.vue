@@ -57,7 +57,8 @@
                `parameterLayout` hook (see parameterGroups / resolveParameterLayout). -->
           <template v-for="(group, gi) in parameterGroups" :key="gi">
             <div v-if="group.label" class="pgroup">{{ group.label }}</div>
-            <div v-for="p in group.params" :key="p.id" class="pfield">
+            <div v-for="p in group.params" :key="p.id" class="pfield" :class="{ 'pfield--deprecated': isDeprecated(p) }">
+              <v-chip v-if="isDeprecated(p)" size="x-small" color="warning" variant="tonal" class="pfield-deprecated" prepend-icon="mdi-alert-outline">{{ t('wizard.params.deprecated') }}</v-chip>
               <component v-if="resolveParameterField(p)" :is="resolveParameterField(p)" v-model="paramValues[p.id]" :parameter="p" :form-values="paramValues" :mode="selected.mode" :is-node="true" :node-id="currentNodeId" :instance-node-id="currentNodeId" />
               <LigojTextField v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
               <LigojTextField v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
@@ -79,7 +80,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, LjDialog, LjButton, LjSegmented, LjAvailabilityField, LigojSelect, LigojTextField } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
-import { typeKind, isTextParam, isPassword, coerce, buildParamWire, selectValue, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout } from '../utils/pluginParams.js'
+import { typeKind, isTextParam, isPassword, coerce, buildParamWire, selectValue, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, isDeprecated, deprecationNotice } from '../utils/pluginParams.js'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -143,7 +144,7 @@ const ready = computed(() => isEdit.value
 function tOrNull(key) { const v = i18n.t(key); return v === key ? null : v }
 function paramLabel(p) { return `${tOrNull(p.id) ?? p.id}${(p.mandatory || p.required) ? ' *' : ''}` }
 /* Optional helper text below the field: the `<id>-description` i18n key, else the parameter's own description. */
-function paramDescription(p) { return tOrNull(`${p.id}-description`) ?? p.description ?? null }
+function paramDescription(p) { return deprecationNotice(p, tOrNull, t('wizard.params.deprecatedNotice')) ?? tOrNull(`${p.id}-description`) ?? p.description ?? null }
 function ruleFor(p) { return (p.mandatory || p.required) ? [rules.required] : [] }
 /* Display name of a parameter (translated label, else its id). */
 function paramName(p) { const id = p?.id; const l = id ? tOrNull(id) : null; return l ?? id ?? '' }
@@ -323,4 +324,6 @@ async function submit() {
 .pgroup { margin: 4px 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
 .pgroup + .pfield { margin-top: 0; }
 .pfield { margin-bottom: 12px; }
+.pfield--deprecated { border-left: 3px solid rgb(var(--v-theme-warning)); padding-left: 10px; opacity: .88; }
+.pfield-deprecated { margin-bottom: 4px; }
 </style>

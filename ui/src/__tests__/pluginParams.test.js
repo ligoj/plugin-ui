@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildParamWire, coerce, selectValue } from '../utils/pluginParams.js'
+import { buildParamWire, coerce, selectValue, isDeprecated, deprecationNotice } from '../utils/pluginParams.js'
 
 const selectParam = { id: 'p', type: 'SELECT', values: ['docker', 'maven', 'nuget'] }
 
@@ -31,5 +31,21 @@ describe('pluginParams SELECT handling', () => {
     expect(coerce({ type: 'SELECT', values: ['docker', 'maven'], defaultValue: 'docker' })).toBe('docker')
     expect(coerce({ type: 'INTEGER', defaultValue: '3' })).toBe(3)
     expect(coerce({ type: 'BOOL', defaultValue: 'true' })).toBe(true)
+  })
+})
+
+describe('pluginParams deprecation', () => {
+  it('isDeprecated reads the definition flag only', () => {
+    expect(isDeprecated({ id: 'p', deprecated: true })).toBe(true)
+    expect(isDeprecated({ id: 'p', deprecated: false })).toBe(false)
+    expect(isDeprecated({ id: 'p' })).toBe(false)
+    expect(isDeprecated(null)).toBe(false)
+  })
+
+  it('deprecationNotice prefers the plugin <id>-deprecated key, else the generic text', () => {
+    const t = (key) => (key === 'service:id:ldap:people-custom-attributes-deprecated' ? 'Use the service parameter' : null)
+    expect(deprecationNotice({ id: 'service:id:ldap:people-custom-attributes', deprecated: true }, t, 'Deprecated parameter')).toBe('Use the service parameter')
+    expect(deprecationNotice({ id: 'service:id:ldap:other', deprecated: true }, t, 'Deprecated parameter')).toBe('Deprecated parameter')
+    expect(deprecationNotice({ id: 'service:id:ldap:other' }, t, 'Deprecated parameter')).toBeNull()
   })
 })

@@ -553,6 +553,8 @@ export default {
   'wizard.params.subscribeFallback': 'l\'instance choisie',
   'wizard.params.edit': 'Valeurs de configuration liées à {id}.',
   'wizard.params.emptyEdit': 'Aucun paramètre configuré pour ce nœud.',
+  'wizard.params.deprecated': 'Obsolète',
+  'wizard.params.deprecatedNotice': 'Ce paramètre est obsolète : utilisez son remplaçant décrit dans la documentation du plugin.',
   'wizard.params.emptyCreateNode': 'Ce nœud n\'a pas de paramètre additionnel.',
   'wizard.params.emptySubscribe': 'Cette souscription ne nécessite aucun paramètre additionnel.',
   'wizard.action.cancel': 'Annuler',
