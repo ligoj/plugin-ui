@@ -6,7 +6,7 @@
  */
 
 export const TYPES = ['service', 'tool', 'feature']
-export const STATES = ['active', 'enabling', 'disabling', 'disabled', 'pending', 'deleted']
+export const STATES = ['active', 'enabling', 'disabling', 'disabled', 'pending', 'updating', 'deleted']
 export const SIGNATURES = ['VERIFIED', 'SIGNED', 'UNSIGNED', 'INVALID']
 
 /** Integer percentage of `value` over `total`, 0 when there is no total. */

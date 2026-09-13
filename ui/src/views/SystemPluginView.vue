@@ -79,6 +79,9 @@
       <template #cell.key="{ item }"><code class="mono">{{ item.key || '—' }}</code></template>
       <template #cell.version="{ item }">
         <span class="mono ver">{{ item.version || '—' }}</span>
+        <span v-if="item.embedded" class="vchip embedded"><v-icon size="13">mdi-package-variant-closed</v-icon>{{ t('system.plugin.embedded') }}
+          <v-tooltip activator="parent" location="top" max-width="380" :text="t('system.plugin.embeddedTooltip')" />
+        </span>
         <span v-if="item.latestLocalVersion" class="vchip local" :title="t('system.plugin.cancelLocal')" @click.stop="cancelLocal(item)">{{ item.latestLocalVersion }}<v-icon size="13">mdi-close</v-icon></span>
         <span v-if="item.newVersion && item.newVersion !== item.latestLocalVersion" class="vchip up" :title="t('system.plugin.upgradeAvailable')" @click.stop="installOne(item.artifact)"><v-icon size="13">mdi-arrow-up</v-icon>{{ item.newVersion }}</span>
       </template>
@@ -108,13 +111,15 @@
       <template #actions="{ item }">
         <v-icon v-if="item.deleted" class="deleted" size="18" color="warning" :title="t('system.plugin.deletionScheduled')">mdi-cancel</v-icon>
         <RowActionsCog v-else>
-          <button :disabled="!canToggle(item) || togglingKey === item.artifact" @click="toggleEnabled(item)">
+          <button :disabled="!canToggle(item) || togglingKey === item.artifact" :class="{ embedded: item.embedded }" @click="toggleEnabled(item)">
             <v-progress-circular v-if="togglingKey === item.artifact" size="18" width="2" indeterminate />
             <v-icon v-else size="18">{{ item.enabled ? 'mdi-power-off' : 'mdi-power' }}</v-icon>{{ item.enabled ? t('system.plugin.disable') : t('system.plugin.enable') }}
             <v-tooltip activator="parent" location="start" max-width="380" :text="toggleTooltip(item)" />
           </button>
-          <div class="sep" />
-          <button class="danger" @click="askRemove(item.artifact)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('system.plugin.delete') }}</button>
+          <template v-if="!item.embedded">
+            <div class="sep" />
+            <button class="danger" @click="askRemove(item.artifact)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('system.plugin.delete') }}</button>
+          </template>
         </RowActionsCog>
       </template>
     </LjDataTable>
@@ -260,6 +265,7 @@ const rows = computed(() => items.value.map((it) => {
     loaded: state.loaded,
     restartRequired: state.restartRequired,
     statusKey: state.key,
+    embedded: state.embedded,
     status: state.status,
     vendor: it.vendor || null,
     // The backend serializes the status enum in lowercase ("signed"): normalize
@@ -281,7 +287,7 @@ function signerCn(dn) { const m = /(?:^|,)CN=([^,]+)/.exec(dn || ''); return m ?
 
 /* Summary cards. Colors of the state and signature segments follow the
    status dot / signature badge conventions of the table. */
-const STATE_COLOR = { active: '#1d9d63', enabling: '#e0a100', disabling: '#ff9436', disabled: '#8a92a3', pending: '#2f6df6', deleted: '#e5484d' }
+const STATE_COLOR = { active: '#1d9d63', enabling: '#e0a100', disabling: '#ff9436', disabled: '#8a92a3', pending: '#2f6df6', updating: '#7c3aed', deleted: '#e5484d' }
 const SIGNATURE_COLOR = { VERIFIED: '#1d9d63', SIGNED: '#2f6df6', UNSIGNED: '#8a92a3', INVALID: '#e5484d' }
 const stats = computed(() => {
   const s = pluginStats(rows.value)
@@ -323,8 +329,9 @@ function statusLabel(s) { return t('system.plugin.status.' + s) }
    row cog; disabling asks for confirm; a staged (pending) plug-in or one
    scheduled for removal cannot be toggled. */
 const togglingKey = ref('')
-function canToggle(item) { return !item.pending && !item.deleted }
+function canToggle(item) { return !item.pending && !item.deleted && !item.embedded }
 function toggleTooltip(item) {
+  if (item.embedded) return t('system.plugin.toggleEmbedded')
   if (item.deleted) return t('system.plugin.toggleDeleted')
   return t('system.plugin.toggle.' + item.statusKey)
 }
@@ -637,6 +644,7 @@ onMounted(() => {
 .sdot.warn { background: #d98a16; color: #d98a16; }
 .vchip { display: inline-flex; align-items: center; gap: 2px; font-family: var(--mono); font-size: 10.5px; font-weight: 700; border-radius: var(--radius-sm); padding: 1px 6px; margin-left: 6px; cursor: pointer; }
 .vchip.local { color: var(--accent); background: rgba(var(--v-theme-secondary), .14); }
+.vchip.embedded { background: var(--pill); color: var(--ink-2); cursor: default; }
 .vchip.up { color: #1d9d63; background: rgba(29, 157, 99, .14); }
 /* Danger accent for the inline delete trigger (base `.lj-iconbtn` is global). */
 .lj-iconbtn.danger:hover { background: rgba(var(--v-theme-error), .1); color: rgb(var(--v-theme-error)); }

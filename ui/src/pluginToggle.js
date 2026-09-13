@@ -16,7 +16,7 @@
  *
  * @param {object} it A plugin entry of `GET rest/system/plugin`.
  * @returns {{pending: boolean, disabled: boolean, enabled: boolean, loaded: boolean, restartRequired: boolean,
- *   key: 'active'|'disabled'|'disabling'|'enabling'|'pending'|'deleted', status: 'ok'|'idle'|'warn'}}
+ *   key: 'active'|'disabled'|'disabling'|'enabling'|'updating'|'pending'|'deleted', status: 'ok'|'idle'|'warn', embedded: boolean}}
  *   `key` names the status (i18n `system.plugin.status.<key>`), `status` is the LjStatus level.
  */
 export function pluginState(it) {
@@ -27,13 +27,17 @@ export function pluginState(it) {
   const pending = !it.plugin?.version && !disabled
   // Disabled but still loaded, or enabled but not loaded yet: waiting for a restart
   const restartRequired = !pending && !!it.plugin?.version && loaded === disabled
+  // A newer jar of a running plug-in is staged: loaded at the next restart, whatever
+  // happened to the running jar (replaced in place, or embedded in the application)
+  const updating = !pending && !disabled && !!it.plugin?.version && !!it.latestLocalVersion
   let key
-  if (it.deleted) key = 'deleted'
+  if (updating) key = 'updating'
+  else if (it.deleted) key = 'deleted'
   else if (pending) key = 'pending'
   else if (restartRequired) key = disabled ? 'disabling' : 'enabling'
   else key = disabled ? 'disabled' : 'active'
   const status = key === 'active' ? 'ok' : key === 'disabled' ? 'idle' : 'warn'
-  return { pending, disabled, enabled: !disabled, loaded, restartRequired, key, status }
+  return { pending, disabled, enabled: !disabled, loaded, restartRequired: restartRequired || updating, key, status, embedded: it.embedded === true }
 }
 
 /**

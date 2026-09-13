@@ -11,6 +11,7 @@ const ConfirmStub = { props: ['modelValue'], emits: ['confirm'], template: '<div
 const ACTIVE = { plugin: { artifact: 'plugin-build-jenkins', version: '1.0.0', type: 'TOOL' }, node: { id: 'service:build:jenkins', name: 'Jenkins' }, disabled: false, loaded: true }
 const DISABLED = { plugin: { artifact: 'plugin-id-ldap', version: '1.0.0', type: 'TOOL' }, node: { id: 'service:id:ldap', name: 'LDAP' }, disabled: true, loaded: false }
 const DELETED = { plugin: { artifact: 'plugin-bt', version: '1.0.0', type: 'SERVICE' }, node: { id: 'service:bt', name: 'BT' }, disabled: false, loaded: true, deleted: true }
+const EMBEDDED = { plugin: { artifact: 'plugin-ui', version: '5.0.2', type: 'FEATURE' }, disabled: false, loaded: true, embedded: true }
 
 function jsonResponse(body) {
   return {
@@ -37,6 +38,7 @@ const stubs = {
     template: '<div class="vdt">'
       + '<div v-for="it in items" :key="it.id" class="row">'
       + '<span class="enabled-cell"><slot name="cell.enabled" :item="it" /></span>'
+      + '<span class="version-cell"><slot name="cell.version" :item="it" /></span>'
       + '<slot name="actions" :item="it" /></div></div>',
   },
   'v-tooltip': { template: '<div class="tt"><slot name="activator" :props="{}" /></div>' },
@@ -60,7 +62,7 @@ describe('SystemPluginView row actions', () => {
     useI18nStore().merge(enMessages, 'en')
     globalThis.fetch = vi.fn((url, opts) => {
       const method = opts?.method || 'GET'
-      if (method === 'GET' && String(url).startsWith('rest/system/plugin?')) return Promise.resolve(jsonResponse([ACTIVE, DISABLED, DELETED]))
+      if (method === 'GET' && String(url).startsWith('rest/system/plugin?')) return Promise.resolve(jsonResponse([ACTIVE, DISABLED, DELETED, EMBEDDED]))
       if (method === 'GET' && String(url).startsWith('rest/system/plugin/schedule')) return Promise.resolve(jsonResponse({}))
       return Promise.resolve(jsonResponse({}))
     })
@@ -70,7 +72,7 @@ describe('SystemPluginView row actions', () => {
     const w = mountView()
     await flushPromises()
     const rows = w.findAll('.row')
-    expect(rows).toHaveLength(3)
+    expect(rows).toHaveLength(4)
     // The former switch column is gone (no header, no cell content).
     const table = w.findComponent(LjDataTable)
     expect(table.props('headers').map((h) => h.key)).not.toContain('enabled')
@@ -90,6 +92,17 @@ describe('SystemPluginView row actions', () => {
     // Deletion scheduled: no cog, only the indicator.
     expect(rows[2].find('.cog').exists()).toBe(false)
     expect(rows[2].find('.deleted').exists()).toBe(true)
+  })
+
+  it('an embedded plug-in (shipped in the application) shows a chip, cannot be disabled and has no delete action', async () => {
+    const w = mountView()
+    await flushPromises()
+    const row = w.findAll('.row')[3]
+    expect(row.find('.vchip.embedded').exists()).toBe(true)
+    const buttons = menuButtons(row)
+    expect(buttons).toHaveLength(1)
+    expect(buttons[0].attributes('disabled')).toBeDefined()
+    expect(row.find('.cog button.danger').exists()).toBe(false)
   })
 
   it('enables a disabled plug-in from the cog (PUT …/enable) then reloads', async () => {

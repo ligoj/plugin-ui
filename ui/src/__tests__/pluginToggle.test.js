@@ -19,6 +19,14 @@ describe('plugin view enable/disable switch (plug-in loaded state, applied by a 
     expect(pluginState({ plugin: { artifact: 'plugin-new' }, latestLocalVersion: '2.0.0', disabled: true })).toMatchObject({ key: 'disabled', status: 'idle', pending: false, enabled: false })
   })
 
+  it('flags a staged newer version of a running plug-in as an update (restart required), even when its loaded jar is gone', () => {
+    expect(pluginState(installed({ loaded: true, disabled: false, latestLocalVersion: '1.0.1' }))).toMatchObject({ key: 'updating', status: 'warn', enabled: true, restartRequired: true })
+    // The loaded jar was replaced in place: the plug-in is updated, not removed
+    expect(pluginState(installed({ loaded: true, deleted: true, latestLocalVersion: '1.0.1' }))).toMatchObject({ key: 'updating', status: 'warn' })
+    // Disabled meanwhile: the switch state wins
+    expect(pluginState(installed({ loaded: true, disabled: true, latestLocalVersion: '1.0.1' }))).toMatchObject({ key: 'disabling' })
+  })
+
   it('tolerates entries without the state fields (older backend): the node availability tells the loaded state', () => {
     expect(pluginState({ plugin: { version: '1.0.0' } })).toMatchObject({ key: 'active', enabled: true, loaded: true })
     expect(pluginState({ plugin: { version: '1.0.0' }, node: { enabled: false } })).toMatchObject({ key: 'enabling', loaded: false })

@@ -14,7 +14,7 @@ describe('plugin view summary figures', () => {
     const s = pluginStats(rows)
     expect(s.total).toBe(5)
     expect(s.types).toEqual({ service: 1, tool: 2, feature: 2 })
-    expect(s.states).toEqual({ active: 2, enabling: 1, disabling: 1, disabled: 1, pending: 0, deleted: 0 })
+    expect(s.states).toEqual({ active: 2, enabling: 1, disabling: 1, disabled: 1, pending: 0, updating: 0, deleted: 0 })
     expect(s.enabled).toBe(3)
     expect(s.loaded).toBe(3)
     // Missing signature counts as unsigned
