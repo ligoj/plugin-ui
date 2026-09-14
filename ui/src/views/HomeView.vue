@@ -42,28 +42,20 @@
 
 <script setup>
 import { ref, computed, onMounted, h } from 'vue'
-import { useApi, useDemoMode, useI18nStore, NodeIcon, LjPageHeader } from '@ligoj/host'
+import { useApi, useDemoMode, useI18nStore, NodeIcon, LjPageHeader, KNOWN_TOOL_COLORS, fallbackToolColor } from '@ligoj/host'
+import { toolColor } from '../toolColor.js'
 import { DEMO_TOOLS } from '../demo/demoData.js'
 import SubscriptionsPanel from '../components/SubscriptionsPanel.vue'
 
 const api = useApi()
 const t = useI18nStore().t
 
-const PALETTE = ['#2563eb', '#d33833', '#15a06a', '#7759c2', '#e6a019', '#0ea5a5', '#db2777', '#7c3aed', '#ff7a18', '#4e9bcd']
-const COLORS = { Jira: '#2563eb', Jenkins: '#d33833', LDAP: '#15a06a', SonarQube: '#4e9bcd', Confluence: '#e6a019', 'AWS EC2': '#7cb518', GitLab: '#7759c2', 'Provisioning AWS': '#ff7a18', 'Squash TM': '#e0524a' }
 const LOGOS = { Jira: 'logos:jira', Jenkins: 'logos:jenkins', LDAP: 'mdi:folder-account-outline', SonarQube: 'logos:sonarqube', Confluence: 'logos:confluence', 'AWS EC2': 'logos:aws-ec2', GitLab: 'logos:gitlab', 'Provisioning AWS': 'logos:aws', 'Squash TM': 'mdi:clipboard-check-outline' }
 
-function toolColor(name) {
-  if (COLORS[name]) return COLORS[name]
-  let hash = 0
-  const s = String(name || '')
-  for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0
-  return PALETTE[hash % PALETTE.length]
-}
 function toolLogo(name) {
   const icon = LOGOS[name]
   if (!icon) return ''
-  const tint = icon.startsWith('logos:') ? '' : ('&color=' + encodeURIComponent((COLORS[name] || '#888').replace('#', '%23')))
+  const tint = icon.startsWith('logos:') ? '' : ('&color=' + encodeURIComponent((KNOWN_TOOL_COLORS[name] || '#888').replace('#', '%23')))
   return `https://api.iconify.design/${icon}.svg?height=26${tint}`
 }
 function statusDot(raw) {
@@ -188,7 +180,7 @@ const realGroups = computed(() => {
         key,
         name: tool.name || tool.id || key,
         kind: tool.refined?.name || '',
-        color: toolColor(tool.name || tool.id),
+        color: toolColor(tool, tool.name || tool.id),
         // Pass the FULL resolved node (carries `uiClasses`) so NodeIcon renders
         // the real mdi/font icon like ProjectDetailView, instead of falling back
         // to the now-deleted /main/.../img/<tool>.png path.
@@ -248,7 +240,7 @@ const demoGroups = computed(() => DEMO_TOOLS.map((td) => ({
   key: 'demo:' + td.key,
   name: td.name,
   kind: td.kind,
-  color: toolColor(td.name),
+  color: fallbackToolColor(td.name),
   icon: () => h('img', { src: toolLogo(td.name), class: 'tool-icon', alt: td.name }),
   health: td.health,
   rows: td.rows.map((r) => ({ name: r.n, status: r.s, pills: r.p, cost: r.cost, sub: null })),

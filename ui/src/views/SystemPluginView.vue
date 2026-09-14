@@ -68,7 +68,7 @@
     <LjDataTable :headers="headers" :items="rows" :items-length="rows.length" :loading="loading" item-value="id" default-sort="name" :empty-text="t('common.noData')" filename="system-plugins.csv">
       <template #cell.name="{ item }">
         <div class="avatar-cell">
-          <span v-if="item.node" class="logo-tile"><NodeIcon :node="item.node" /></span>
+          <span v-if="item.node" class="logo-tile" :style="{ '--tool': toolColor(item.node, item.name) }"><NodeIcon :node="item.node" /></span>
           <span v-else class="tglyph" :class="item.type"><v-icon size="18">{{ typeIcon(item.type) }}</v-icon></span>
           <div class="ac-txt">
             <div class="ac-name">{{ item.name || '—' }}</div>
@@ -198,6 +198,7 @@
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { LigojTextField, useApi, useAppStore, useAuthStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
 import PluginAutomationDialog from '../components/PluginAutomationDialog.vue'
+import { toolColor } from '../toolColor.js'
 import RowActionsCog from '../components/RowActionsCog.vue'
 import { formatInstant } from '../pluginUpdates.js'
 import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjDialog, LjStatus, LigojAutocomplete } from '@ligoj/host'
@@ -611,8 +612,9 @@ onMounted(() => {
 .ac-name { font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); line-height: 1.2; }
 .ac-key, .ac-sub { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
 /* Brand logo tile (white, like the cockpit tool logos). */
-.logo-tile { width: 36px; height: 36px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; background: #fff; box-shadow: 0 0 0 var(--border-w) var(--border-c), 0 2px 6px -3px rgba(0, 0, 0, .3); }
-.logo-tile :deep(img.tool-icon) { width: 22px; height: 22px; object-fit: contain; }
+/* Tool tile: the brand colour of the icon (toolColor.js) fills the square, the icon fills the tile. */
+.logo-tile { width: 36px; height: 36px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; overflow: hidden; background: var(--tool, #fff); box-shadow: 0 0 0 var(--border-w) var(--border-c), 0 2px 6px -3px rgba(0, 0, 0, .3); }
+.logo-tile :deep(img.tool-icon) { width: 36px; height: 36px; object-fit: contain; }
 .logo-tile :deep(i) { font-size: 20px; color: #475569; }
 /* Restart progress dialog. */
 .restart-body { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding: 14px 8px 6px; }

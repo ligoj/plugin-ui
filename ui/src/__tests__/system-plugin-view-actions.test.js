@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mount, flushPromises } from '@vue/test-utils'
-import { useI18nStore, LjConfirmDialog, LjDataTable } from '@ligoj/host'
+import { useI18nStore, LjConfirmDialog, LjDataTable, _resetToolColorCache } from '@ligoj/host'
+import { _resetToolColors } from '../toolColor.js'
 import SystemPluginView from '../views/SystemPluginView.vue'
 import enMessages from '../i18n/en.js'
 
@@ -12,6 +13,7 @@ const ACTIVE = { plugin: { artifact: 'plugin-build-jenkins', version: '1.0.0', t
 const DISABLED = { plugin: { artifact: 'plugin-id-ldap', version: '1.0.0', type: 'TOOL' }, node: { id: 'service:id:ldap', name: 'LDAP' }, disabled: true, loaded: false }
 const DELETED = { plugin: { artifact: 'plugin-bt', version: '1.0.0', type: 'SERVICE' }, node: { id: 'service:bt', name: 'BT' }, disabled: false, loaded: true, deleted: true }
 const EMBEDDED = { plugin: { artifact: 'plugin-ui', version: '5.0.2', type: 'FEATURE' }, disabled: false, loaded: true, embedded: true }
+const COGNITO_SVG = '<svg><path fill="url(#a)"/><path fill="#ffffff"/><defs><linearGradient id="a"><stop stop-color="#ff5252"/><stop offset="1" stop-color="#bd0816"/></linearGradient></defs></svg>'
 
 function jsonResponse(body) {
   return {
@@ -39,6 +41,7 @@ const stubs = {
       + '<div v-for="it in items" :key="it.id" class="row">'
       + '<span class="enabled-cell"><slot name="cell.enabled" :item="it" /></span>'
       + '<span class="version-cell"><slot name="cell.version" :item="it" /></span>'
+      + '<span class="name-cell"><slot name="cell.name" :item="it" /></span>'
       + '<slot name="actions" :item="it" /></div></div>',
   },
   'v-tooltip': { template: '<div class="tt"><slot name="activator" :props="{}" /></div>' },
@@ -60,8 +63,10 @@ describe('SystemPluginView row actions', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     useI18nStore().merge(enMessages, 'en')
+    _resetToolColors(); _resetToolColorCache()
     globalThis.fetch = vi.fn((url, opts) => {
       const method = opts?.method || 'GET'
+      if (method === 'GET' && String(url).endsWith('/img/jenkins.svg')) return Promise.resolve({ ok: true, text: async () => COGNITO_SVG })
       if (method === 'GET' && String(url).startsWith('rest/system/plugin?')) return Promise.resolve(jsonResponse([ACTIVE, DISABLED, DELETED, EMBEDDED]))
       if (method === 'GET' && String(url).startsWith('rest/system/plugin/schedule')) return Promise.resolve(jsonResponse({}))
       return Promise.resolve(jsonResponse({}))
@@ -92,6 +97,15 @@ describe('SystemPluginView row actions', () => {
     // Deletion scheduled: no cog, only the indicator.
     expect(rows[2].find('.cog').exists()).toBe(false)
     expect(rows[2].find('.deleted').exists()).toBe(true)
+  })
+
+  it('fills the tool tile with the colour of its SVG icon', async () => {
+    const w = mountView()
+    await flushPromises()
+    await flushPromises()
+    const tile = w.findAll('.row')[0].find('.logo-tile')
+    expect(tile.exists()).toBe(true)
+    expect(tile.attributes('style')).toContain('--tool: #bd0816')
   })
 
   it('an embedded plug-in (shipped in the application) shows a chip, cannot be disabled and has no delete action', async () => {

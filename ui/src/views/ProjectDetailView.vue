@@ -65,6 +65,7 @@
 import { ref, computed, onMounted, watch, h } from 'vue'
 import { useRoute } from 'vue-router'
 import { useApi, useAppStore, useAuthStore, useI18nStore, NodeIcon, VIcon, LjPageHeader, LjButton } from '@ligoj/host'
+import { toolColor } from '../toolColor.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import SubscribeWizardDialog from './SubscribeWizardView.vue'
 import AuditDialog from '../components/AuditDialog.vue'
@@ -77,20 +78,6 @@ const auth = useAuthStore()
 const i18n = useI18nStore()
 const t = i18n.t
 
-/* Tool brand colours (mockup palette) used to tint each tool card. Keyed by
-   tool name; unknown tools fall back to the cockpit blue. */
-const TOOL_COLORS = {
-  Jira: '#2563eb', Jenkins: '#d33833', LDAP: '#15a06a', SonarQube: '#4e9bcd',
-  Confluence: '#e6a019', 'AWS EC2': '#7cb518', GitLab: '#7759c2',
-  'Provisioning AWS': '#ff7a18', 'Squash TM': '#e0524a',
-}
-function toolColor(name) {
-  if (TOOL_COLORS[name]) return TOOL_COLORS[name]
-  // Deterministic hue from the name so real tools still get a stable colour.
-  let hash = 0
-  for (let i = 0; i < (name || '').length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0
-  return `hsl(${Math.abs(hash) % 360} 62% 52%)`
-}
 
 /* Map a backend status (NodeStatus UP/DOWN, or a string) to a mockup dot. */
 function statusDot(raw) {
@@ -127,7 +114,7 @@ const groups = computed(() => {
         key,
         name: tool.name || node.name || key,
         kind: node.refined?.refined?.name || tool.id || '',
-        color: toolColor(tool.name || node.name),
+        color: toolColor(tool, tool.name || node.name),
         icon: () => h(NodeIcon, { node: tool }),
         rows: [],
       })
