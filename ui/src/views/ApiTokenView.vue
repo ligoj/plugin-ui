@@ -30,7 +30,7 @@
 
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
-    <LjDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="name" default-sort="name"
+    <LjDataTable :headers="headers" :items="table.paged.value" :items-length="table.total.value" :loading="loading" item-value="name" default-sort="name" @update:options="table.onOptions"
       :empty-text="t('system.apiToken.empty')" filename="api-tokens.csv" @row-click="(item) => openShow(item.name, 'load')">
       <template #cell.name="{ item }">
         <div class="avatar-cell">
@@ -90,6 +90,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { LigojTextField, useApi, useAppStore, useAuthStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
+import { useClientTable } from '../useClientTable.js'
 import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 
@@ -116,6 +117,7 @@ const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
   return q ? rows.value.filter((r) => r.name.toLowerCase().includes(q)) : rows.value
 })
+const table = useClientTable(filtered, { defaultSort: 'name' })
 
 const rules = { required: (v) => !!v || (t('common.required') || 'Required') }
 

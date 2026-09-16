@@ -51,7 +51,7 @@
 
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
-    <LjDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="id" :empty-text="t('common.noData')" filename="system-nodes.csv" @row-click="startEdit">
+    <LjDataTable :headers="headers" :items="table.paged.value" :items-length="table.total.value" :loading="loading" item-value="id" default-sort="name" :empty-text="t('common.noData')" filename="system-nodes.csv" @update:options="table.onOptions" @row-click="startEdit">
       <template #cell.name="{ item }">
         <div class="avatar-cell">
           <span class="nglyph">
@@ -119,6 +119,7 @@ import { useApi, useAppStore, useI18nStore, NodeIcon, NodeModeChip, isInstance, 
 import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjStatus } from '@ligoj/host'
 import NodeEditDialog from './NodeEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
+import { useClientTable } from '../useClientTable.js'
 import SubscriptionStatus from '../components/SubscriptionStatus.vue'
 import { statusHeader } from '../useUiHelpers.js'
 
@@ -174,6 +175,8 @@ function pickFilter(id) { filter.value = id; filterOpen.value = false }
 function onDocClick(e) { if (filterSel.value && !filterSel.value.contains(e.target)) filterOpen.value = false }
 
 const filtered = computed(() => filter.value === 'all' ? items.value : items.value.filter((n) => nodeType(n) === filter.value))
+// The table pages and sorts this in-memory list (LjDataTable only emits its options).
+const table = useClientTable(filtered, { defaultSort: 'name' })
 
 const headers = computed(() => [
   // Status first; icon-only header (label in a tooltip), cell is the status icon + tooltip.

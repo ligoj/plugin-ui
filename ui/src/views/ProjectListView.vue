@@ -3,8 +3,8 @@
   mockup (mockup viewProjects): a grid of project
   cards with a folder glyph, name + key, subscription count, a tool-logo set,
   and a footer "open" link + health bar. Loads real projects from rest/project
-  (DataTables shape); falls back to the mockup's sample data when the backend
-  has none, so the cockpit is never empty in preview.
+  (DataTables shape) one page at a time — paging, sorting and search are
+  server-side through useDataTable; the demo projects are appended in demo mode.
 -->
 <template>
   <div class="projects lj-surface">
@@ -18,8 +18,8 @@
       </template>
     </LjPageHeader>
 
-    <LjDataTable :headers="headers" :items="filtered" :items-length="filtered.length" :loading="loading" item-value="id" :empty-text="t('common.noData') || 'Aucune donnée'"
-      filename="projects.csv" @row-click="openProject">
+    <LjDataTable :headers="headers" :items="items" :items-length="total" :loading="dt.loading.value" item-value="id" default-sort="name" :empty-text="t('common.noData') || 'Aucune donnée'"
+      filename="projects.csv" :fetch-all="exportAll" @update:options="loadData" @row-click="openProject">
       <template #cell.name="{ item }">
         <div class="name-cell">
           <div class="folder-glyph"><v-icon color="#2f6df6" size="20">mdi-folder</v-icon></div>
@@ -61,9 +61,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useApi, useAppStore, useDemoMode, useI18nStore } from '@ligoj/host'
+import { useApi, useAppStore, useDataTable, useDemoMode, useI18nStore } from '@ligoj/host'
 import { DEMO_PROJECTS } from '../demo/demoData.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
@@ -75,20 +75,31 @@ const appStore = useAppStore()
 const i18n = useI18nStore()
 const t = i18n.t
 
-const items = ref([])
-const total = ref(0)
-const loading = ref(false)
-const search = ref('')
+// Server-side paging, sorting and search (rest/project: rows / page / sidx / sord / search[value]);
+// the table emits its options and the current page only is loaded, so any number of projects works.
+const dt = useDataTable('project', { defaultSort: 'name' })
+const search = dt.search
+// The "subs" column sorts on the backend's subscription count column.
+const SORT_KEYS = { subs: 'nbSubscriptions' }
+let lastOptions = { page: 1, itemsPerPage: 25, sortBy: [{ key: 'name', order: 'asc' }] }
+function loadData(options) {
+  if (options) lastOptions = options
+  const sortBy = (lastOptions.sortBy || []).map((sb) => ({ ...sb, key: SORT_KEYS[sb.key] || sb.key }))
+  return dt.load({ ...lastOptions, sortBy })
+}
+function load() { return loadData() }
+// Typing in the search box restarts from the first page, debounced.
+let searchTimer
+watch(search, () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => loadData({ ...lastOptions, page: 1 }), 300) })
 
 // Admin-level demo mode: blend the demonstration projects into the list.
 const { enabled: demo } = useDemoMode()
-const allItems = computed(() => (demo.value ? items.value.concat(DEMO_PROJECTS) : items.value))
-
-const filtered = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  if (!q) return allItems.value
-  return allItems.value.filter((p) => (p.name || '').toLowerCase().includes(q) || (p.pkey || '').toLowerCase().includes(q))
+const items = computed(() => {
+  const rows = dt.items.value.map(mapProject)
+  return demo.value ? rows.concat(DEMO_PROJECTS) : rows
 })
+const total = computed(() => dt.totalItems.value + (demo.value ? DEMO_PROJECTS.length : 0))
+async function exportAll() { return (await dt.loadAll()).map(mapProject) }
 
 const headers = computed(() => [
   { key: 'name', label: t('common.name'), sortable: true },
@@ -112,19 +123,6 @@ function mapProject(p) {
     tools,
     health: typeof p.health === 'number' ? p.health : null,
   }
-}
-
-async function load() {
-  loading.value = true
-  try {
-    const data = await api.get('rest/project?rows=100&page=1&sidx=name&sord=asc')
-    const rows = Array.isArray(data) ? data : (data?.data || [])
-    items.value = rows.map(mapProject)
-    total.value = data?.recordsTotal ?? rows.length
-  } catch {
-    // noop
-  }
-  loading.value = false
 }
 
 let toastT
