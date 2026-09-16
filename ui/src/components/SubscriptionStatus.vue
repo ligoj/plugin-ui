@@ -66,7 +66,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { NodeIcon, useApi, useI18nStore, nodeType } from '@ligoj/host'
+import { NodeIcon, useApi, useI18nStore, nodeType, userLabel } from '@ligoj/host'
 
 const props = defineProps({
   subscription: { type: Object, default: null },
@@ -203,11 +203,7 @@ const modeText = computed(() => {
 // The subscription identifier, shown next to the status (a node badge has none)
 const subscriptionId = computed(() => props.subscription?.id ?? null)
 
-function userName(u) {
-  if (!u) return ''
-  if (typeof u === 'string') return u
-  return [u.firstName, u.lastName].filter(Boolean).join(' ') || u.id || ''
-}
+function userName(u) { return userLabel(u) }
 function fmtDate(d) {
   if (d == null) return ''
   const dt = new Date(d)

@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-import { useI18nStore, LjDialog, LjButton } from '@ligoj/host'
+import { useI18nStore, LjDialog, LjButton, userLabel } from '@ligoj/host'
 
 defineProps({
   modelValue: { type: Boolean, default: false },
@@ -37,12 +37,7 @@ const { t } = useI18nStore()
 function close() { emit('update:modelValue', false) }
 // createdBy / lastModifiedBy may be a raw login string or a SimpleUser object
 // ({ firstName, lastName, id }) depending on the endpoint — normalize both.
-function who(v) {
-  if (!v) return ''
-  if (typeof v === 'string') return v
-  const name = [v.firstName, v.lastName].filter(Boolean).join(' ')
-  return name || v.id || v.login || ''
-}
+function who(v) { return userLabel(v) }
 function fmt(d) {
   if (!d) return ''
   const date = typeof d === 'number' ? new Date(d) : new Date(String(d))

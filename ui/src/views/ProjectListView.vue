@@ -30,7 +30,9 @@
         </div>
       </template>
       <template #cell.teamLeader="{ item }">
-        <span v-if="item.teamLeader" class="tl-pill"><v-icon size="14">mdi-account-circle</v-icon>{{ item.teamLeader }}</span>
+        <span v-if="item.teamLeader" class="tl-pill"><v-icon size="14">mdi-account-circle</v-icon>{{ item.teamLeader }}
+          <v-tooltip v-if="item.teamLeaderName && item.teamLeaderName !== item.teamLeader" activator="parent" location="top" :text="item.teamLeaderName" />
+        </span>
         <span v-else class="muted">—</span>
       </template>
       <template #cell.createdDate="{ item }">
@@ -63,7 +65,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useApi, useAppStore, useDataTable, useDemoMode, useI18nStore } from '@ligoj/host'
+import { useApi, useAppStore, useDataTable, useDemoMode, useI18nStore, userVisualId, userFullName } from '@ligoj/host'
 import { DEMO_PROJECTS } from '../demo/demoData.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
@@ -117,7 +119,11 @@ function mapProject(p) {
   return {
     id: p.id, name: p.name, pkey: p.pkey,
     description: p.description || '',
-    teamLeader: typeof leader === 'object' ? (leader?.fullName || leader?.id || '') : (leader || ''),
+    // The visual identifier (service:id:visual-id-name) like every user rendering; the full name in a tooltip
+    teamLeader: userVisualId(leader),
+    teamLeaderName: userFullName(leader),
+    // The raw user (login + attributes) for the edit dialog: the API and the form need the login
+    teamLeaderUser: typeof leader === 'object' ? leader : (leader ? { id: leader } : null),
     createdDate: p.createdDate ?? p.creationDate ?? null,
     subs: p.nbSubscriptions ?? subs.length ?? 0,
     tools,

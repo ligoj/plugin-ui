@@ -64,7 +64,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, h } from 'vue'
 import { useRoute } from 'vue-router'
-import { useApi, useAppStore, useAuthStore, useI18nStore, NodeIcon, VIcon, LjPageHeader, LjButton } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useI18nStore, NodeIcon, VIcon, LjPageHeader, LjButton, userLabel } from '@ligoj/host'
 import { toolColor } from '../toolColor.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import SubscribeWizardDialog from './SubscribeWizardView.vue'
@@ -95,11 +95,7 @@ const loading = ref(false)
 const pendingIds = ref(new Set())
 
 const subscriptions = computed(() => project.value?.subscriptions || [])
-const leaderName = computed(() => {
-  const l = project.value?.teamLeader
-  if (!l) return ''
-  return [l.firstName, l.lastName].filter(Boolean).join(' ') || l.id || ''
-})
+const leaderName = computed(() => userLabel(project.value?.teamLeader))
 
 /* Group the project's subscriptions by their tool (node.refined) into cockpit
    cards. Each row is one subscription; health = share of UP rows. */

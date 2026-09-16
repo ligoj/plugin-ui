@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
-import { LjDataTable } from '@ligoj/host'
+import { LjDataTable, useAuthStore } from '@ligoj/host'
 import ProjectListView from '../views/ProjectListView.vue'
 
 function jsonResponse(body) {
@@ -45,6 +45,16 @@ describe('ProjectListView — server-side paging', () => {
     const table = w.findComponent(LjDataTable)
     expect(table.props('itemsLength')).toBe(60)
     expect(table.props('items').map((r) => r.id)).toEqual([1, 2])
+  })
+
+  it('shows the team leader by the visual identifier, keeping the full name aside', async () => {
+    useAuthStore().session = { applicationSettings: { data: { 'service:id:visual-id-name': 'customAttributes.employeeId' } } }
+    globalThis.fetch = vi.fn(() => jsonResponse({ data: [{ id: 1, name: 'P1', pkey: 'p1', teamLeader: { id: 'fdaugan', firstName: 'Fabrice', lastName: 'Daugan', customAttributes: { employeeId: 'E-42' } } }], recordsTotal: 1, recordsFiltered: 1 }))
+    const w = await mountView()
+    const row = w.findComponent(LjDataTable).props('items')[0]
+    expect(row.teamLeader).toBe('E-42')
+    expect(row.teamLeaderName).toBe('Fabrice Daugan')
+    expect(row.teamLeaderUser.id).toBe('fdaugan')
   })
 
   it('requests the page and sort the table asks for, mapping the subscriptions column', async () => {

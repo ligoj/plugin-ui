@@ -33,7 +33,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { LigojTextField, LigojTextarea, useApi, useEditExtensions, useI18nStore, LjDialog, LjButton, LigojAutocomplete } from '@ligoj/host'
+import { LigojTextField, LigojTextarea, useApi, useEditExtensions, useI18nStore, LjDialog, LjButton, LigojAutocomplete, userLabel } from '@ligoj/host'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -84,6 +84,13 @@ function onNameChanged() {
 }
 
 /* ---- Team-leader autocomplete (users) ---- */
+/* The project's leader as a user object: the raw API payload (`teamLeader` object), a list row
+   (`teamLeaderUser`, since the row's `teamLeader` is the displayed visual identifier), or a bare login. */
+function leaderOf(p) {
+  const raw = p?.teamLeaderUser ?? p?.teamLeader
+  if (!raw) return null
+  return typeof raw === 'object' ? raw : { id: raw }
+}
 const leaderItems = ref([])
 const leaderSearch = ref('')
 const leaderLoading = ref(false)
@@ -92,7 +99,11 @@ let leaderTimer = null
 const leaderDisplayItems = computed(() => {
   const cur = form.value.teamLeader
   const items = leaderItems.value
-  if (cur && !items.find((i) => i.id === cur)) return [{ id: cur, label: cur }, ...items]
+  if (cur && !items.find((i) => i.id === cur)) {
+    // The edited project's leader: label it from the project payload (a user object) until the search lists it
+    const known = leaderOf(props.project)
+    return [{ id: cur, label: known?.id === cur ? userLabel(known) : cur }, ...items]
+  }
   return items
 })
 
@@ -104,10 +115,8 @@ async function loadLeaders() {
     const qp = q ? `search[value]=${encodeURIComponent(q)}&` : ''
     const data = await api.get(`rest/service/id/user?${qp}rows=20`)
     const rows = Array.isArray(data) ? data : (data?.data || [])
-    leaderItems.value = rows.map((r) => {
-      const full = [r.firstName, r.lastName].filter(Boolean).join(' ')
-      return { id: r.id, label: full ? `${r.id} — ${full}` : r.id }
-    })
+    // Labelled by the visual identifier (service:id:visual-id-name), the value stays the login the API expects
+    leaderItems.value = rows.map((r) => ({ id: r.id, label: userLabel(r) }))
   } finally { leaderLoading.value = false }
 }
 function onLeaderSearch(q) {
@@ -124,7 +133,7 @@ function resetForm() {
   form.value = {
     name: p?.name || '',
     pkey: p?.pkey || '',
-    teamLeader: p?.teamLeader?.id || p?.teamLeader || '',
+    teamLeader: leaderOf(p)?.id || '',
     description: p?.description || '',
   }
   lastPkeyAuto = p?.pkey || ''
@@ -133,7 +142,8 @@ function resetForm() {
   formRef.value?.resetValidation()
 }
 
-watch(() => props.modelValue, (val) => { if (val) resetForm() })
+// Also initialize a dialog mounted already open
+watch(() => props.modelValue, (val) => { if (val) resetForm() }, { immediate: true })
 
 function onDialogModel(val) { if (!val) requestClose() }
 function requestClose() { emit('update:modelValue', false) }
