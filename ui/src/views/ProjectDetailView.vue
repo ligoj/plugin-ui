@@ -15,10 +15,20 @@
 <template>
   <div class="pdetail lj-surface">
     <LjPageHeader :title="project?.name || '…'">
+      <!-- Team leader: a chip on the title line, the user details in its tooltip -->
+      <template v-if="project?.teamLeader" #title-append>
+        <v-chip class="leader" size="small" variant="tonal" color="primary" prepend-icon="mdi-account-star">
+          {{ leaderName }}
+          <v-tooltip activator="parent" location="bottom">
+            <div class="leader-tip">
+              <div class="lt-head">{{ t('project.teamLeader') }}</div>
+              <div v-for="line in leaderDetails" :key="line.label" class="lt-row"><span class="lt-k">{{ line.label }}</span><span class="lt-v">{{ line.value }}</span></div>
+            </div>
+          </v-tooltip>
+        </v-chip>
+      </template>
       <template #subtitle>
         <span class="pkey">{{ project?.pkey }}</span>
-        <span class="dot">·</span>
-        <b>{{ subscriptions.length }}</b> {{ t('project.detail.subscriptions').toLowerCase() }}
       </template>
       <template #actions>
         <LjButton v-if="project" variant="ghost" icon="mdi-clock-outline" @click="auditDialog = true">{{ t('common.audit') || 'Audit' }}</LjButton>
@@ -27,11 +37,6 @@
       </template>
     </LjPageHeader>
 
-    <!-- Audit strip -->
-    <div v-if="project && (project.teamLeader || project.description)" class="meta">
-      <span v-if="project.teamLeader"><v-icon size="15">mdi-account-star</v-icon>{{ leaderName }}</span>
-      <span v-if="project.description" class="desc">{{ project.description }}</span>
-    </div>
 
     <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length" default-view="list" storage-key="project" @rowmenu="onRowMenu">
       <template #empty>
@@ -64,7 +69,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, h } from 'vue'
 import { useRoute } from 'vue-router'
-import { useApi, useAppStore, useAuthStore, useI18nStore, NodeIcon, VIcon, LjPageHeader, LjButton, userLabel } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useI18nStore, NodeIcon, VIcon, LjPageHeader, LjButton, userFullName, userVisualId } from '@ligoj/host'
 import { toolColor } from '../toolColor.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import SubscribeWizardDialog from './SubscribeWizardView.vue'
@@ -95,7 +100,23 @@ const loading = ref(false)
 const pendingIds = ref(new Set())
 
 const subscriptions = computed(() => project.value?.subscriptions || [])
-const leaderName = computed(() => userLabel(project.value?.teamLeader))
+// Chip label: the full name when known, else the visual identifier (login by default)
+const leaderName = computed(() => userFullName(project.value?.teamLeader) || userVisualId(project.value?.teamLeader))
+// Tooltip rows: only the details the identity provider returned
+const leaderDetails = computed(() => {
+  const u = project.value?.teamLeader
+  if (!u) return []
+  const custom = Object.entries(u.customAttributes || {}).map(([label, value]) => ({ label, value }))
+  return [
+    { label: t('project.leader.name'), value: userFullName(u) },
+    { label: t('project.leader.id'), value: userVisualId(u) },
+    { label: t('project.leader.login'), value: userVisualId(u) !== u.id ? u.id : '' },
+    { label: t('project.leader.mail'), value: (u.mails || []).join(', ') },
+    { label: t('project.leader.company'), value: u.company },
+    { label: t('project.leader.groups'), value: (u.groups || []).join(', ') },
+    ...custom,
+  ].filter((line) => line.value)
+})
 
 /* Group the project's subscriptions by their tool (node.refined) into cockpit
    cards. Each row is one subscription; health = share of UP rows. */
@@ -218,6 +239,14 @@ onMounted(load)
 }
 
 /* Subtitle inline bits (slotted into LjPageHeader's `.sub`). */
+/* Team leader chip on the title line + its details tooltip */
+.leader { font-family: var(--font); font-weight: 700; letter-spacing: 0; }
+.leader-tip { display: grid; gap: 3px; min-width: 200px; }
+.leader-tip .lt-head { font-weight: 700; margin-bottom: 3px; }
+.leader-tip .lt-row { display: flex; gap: 10px; font-size: 12.5px; }
+.leader-tip .lt-k { opacity: .7; min-width: 78px; }
+.leader-tip .lt-v { font-family: var(--mono); overflow-wrap: anywhere; }
+
 .pkey {
   display: inline-flex;
   align-items: center;
@@ -233,39 +262,14 @@ onMounted(load)
   vertical-align: middle;
 }
 
-.dot {
-  opacity: .4;
-}
 
 .sub b {
   color: var(--ink-2);
   font-family: var(--mono);
 }
 
-.meta {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 18px;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
-  background: var(--pill);
-  font-size: 13px;
-  color: var(--ink-2);
-  font-weight: 500;
-}
 
-.meta span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
 
-.meta .desc {
-  color: var(--ink-3);
-}
 
 .toolbar {
   display: flex;
