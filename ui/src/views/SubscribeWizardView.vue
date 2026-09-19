@@ -109,7 +109,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useErrorStore, useI18nStore, NodeIcon, LjDialog, LjButton, LjSegmented, LigojSelect } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, NodeIcon, LjDialog, LjButton, LjSegmented, LigojSelect, LigojTextField } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
 import { typeKind, isTextParam, isPassword, coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, isDeprecated, deprecationNotice } from '../utils/pluginParams.js'
 import { subscriptionModes } from '../utils/subscriptionModes.js'
