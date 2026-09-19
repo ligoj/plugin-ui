@@ -66,8 +66,12 @@
         <!-- 4. Mode -->
         <section class="step" :class="{ off: !selected.node }">
           <div class="sh"><span class="n">4</span><v-icon size="18">mdi-link-variant</v-icon>{{ t('wizard.step.mode') }}</div>
-          <LjSegmented v-if="availableModes.length" v-model="selected.mode" :options="availableModes" />
-          <p v-if="selected.mode" class="modehint">{{ modeHint }}</p>
+          <!-- The mode toggle with its help text on the right (wraps below on a narrow dialog) -->
+          <div class="mode-row">
+            <LjSegmented v-if="availableModes.length" v-model="selected.mode" :options="availableModes" />
+            <p v-if="selected.mode" class="modehint">{{ modeHint }}</p>
+            <p v-else-if="noMode" class="modehint">{{ t('wizard.modeNone') }}</p>
+          </div>
         </section>
 
         <!-- 5. Parameters -->
@@ -108,6 +112,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import { useApi, useErrorStore, useI18nStore, NodeIcon, LjDialog, LjButton, LjSegmented, LigojSelect } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
 import { typeKind, isTextParam, isPassword, coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, isDeprecated, deprecationNotice } from '../utils/pluginParams.js'
+import { subscriptionModes } from '../utils/subscriptionModes.js'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -140,14 +145,11 @@ const rules = {
   required: (v) => (v != null && v !== '' && (!Array.isArray(v) || v.length > 0)) || t('wizard.rule.required'),
 }
 
-/* Modes offered by the picked tool (backend SubscriptionMode: LINK/CREATE/ALL). */
-const availableModes = computed(() => {
-  const m = String(selected.tool?.mode || '').toLowerCase()
-  const out = []
-  if (m === 'all' || m === 'create') out.push({ value: 'create', label: t('wizard.modeCreate') })
-  if (m === 'all' || m === 'link' || !m) out.push({ value: 'link', label: t('wizard.modeLink') })
-  return out
-})
+/* Modes offered by the picked INSTANCE (backend SubscriptionMode: NONE/LINK/CREATE/ALL). The instance decides, not
+   its tool: a tool is often 'none' (nothing subscribes to the tool itself) while its instances accept 'link'. */
+const availableModes = computed(() => subscriptionModes(selected.node?.mode).map((value) => (
+  { value, label: t(value === 'create' ? 'wizard.modeCreate' : 'wizard.modeLink') })))
+const noMode = computed(() => !!selected.node && !availableModes.value.length)
 const modeHint = computed(() => selected.mode === 'create' ? t('wizard.modeHintCreate') : t('wizard.modeHintLink'))
 
 const ready = computed(() =>
@@ -216,16 +218,25 @@ async function loadParameters(nodeId, mode) {
 watch(() => selected.service, async (svc) => {
   selected.tool = null; selected.node = null; selected.mode = null
   tools.value = []; nodes.value = []; parameters.value = []
-  if (svc) await loadTools(svc.id)
+  if (svc) {
+    await loadTools(svc.id)
+    // Pre-select the first tool, unless the service changed while loading
+    if (selected.service === svc && !selected.tool) selected.tool = tools.value[0] || null
+  }
 })
 watch(() => selected.tool, async (tool) => {
   selected.node = null; selected.mode = null
   nodes.value = []; parameters.value = []
   if (tool) {
     await loadNodes(tool.id)
-    const modes = availableModes.value
-    if (modes.length === 1) selected.mode = modes[0].value
+    // Pre-select the first instance, unless the tool changed while loading
+    if (selected.tool === tool && !selected.node) selected.node = nodes.value[0] || null
   }
+})
+// The mode follows the instance: the first offered mode is pre-selected, a mode no longer offered is replaced.
+watch(() => selected.node, () => {
+  const modes = availableModes.value.map((m) => m.value)
+  if (!modes.includes(selected.mode)) selected.mode = modes[0] || null
 })
 watch([() => selected.node, () => selected.mode], async () => {
   parameters.value = []
@@ -264,7 +275,13 @@ function reset() {
 function onDialogModel(v) { if (!v) emit('update:modelValue', false) }
 
 watch(() => props.modelValue, (val) => {
-  if (val) { reset(); if (!services.value.length) loadServices() }
+  if (val) {
+    reset()
+    // Pre-select the first service; the watchers cascade to the first tool, instance and mode
+    Promise.resolve(services.value.length ? null : loadServices()).then(() => {
+      if (props.modelValue && !selected.service) selected.service = services.value[0] || null
+    })
+  }
 })
 </script>
 
@@ -297,7 +314,8 @@ watch(() => props.modelValue, (val) => {
 .opt :deep(img.tool-icon), .opt :deep(i) { width: 20px; height: 20px; font-size: 18px; }
 
 
-.modehint { font-size: 12.5px; color: var(--ink-3); margin: 8px 0 0; }
+.mode-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
+.modehint { font-size: 12.5px; color: var(--ink-3); margin: 0; flex: 1 1 260px; }
 .muted { font-size: 13px; color: var(--ink-3); }
 .pgroup { margin: 4px 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
 .pgroup + .pfield { margin-top: 0; }
