@@ -2,8 +2,8 @@
   SubscribeWizardDialog — subscription wizard (subscribe mode
   only; edit-node / create-node belong to the Administration views). Same
   `.vmodal` chrome as the other dialogs, but taller and scrollable. Cascading
-  pickers: service → tool → instance (with an optional inline "new instance"
-  form), then a segmented mode control, then the node's dynamic parameter
+  pickers: service → tool → existing instance (instances are created from the
+  Administration views only), then a segmented mode control, then the node's dynamic parameter
   fields. POSTs rest/subscription on confirm.
 
   Ported from plugin-ui's SubscribeWizardView. Standalone caveat: plugin
@@ -51,7 +51,7 @@
           <div class="sh"><span class="n">3</span><v-icon size="18">mdi-server-outline</v-icon>{{ t('wizard.step.instance') }}</div>
           <div class="inst-row">
             <LigojSelect v-model="selected.node" :items="nodes" item-title="name" item-value="id" return-object :placeholder="t('wizard.label.instance')" :loading="loadingNodes"
-              :disabled="!selected.tool || showNewNode" variant="outlined" density="comfortable" hide-details class="flex-grow-1">
+              :disabled="!selected.tool" variant="outlined" density="comfortable" hide-details class="flex-grow-1">
               <template #selection="{ item }"><span v-if="item" class="opt"><NodeIcon :node="item" /> {{ item.name || item.id }}</span></template>
               <template #item="{ props: ip, item }">
                 <v-list-item v-if="item" v-bind="ip" :title="item.name || item.id" :subtitle="item.id">
@@ -59,17 +59,7 @@
                 </v-list-item>
               </template>
             </LigojSelect>
-            <LjButton variant="ghost" :icon="showNewNode ? 'mdi-close' : 'mdi-plus'" :disabled="!selected.tool" @click="toggleNewNode">{{ showNewNode ? t('wizard.pickExisting') : t('wizard.newInstance') }}</LjButton>
           </div>
-
-          <v-expand-transition>
-            <div v-if="showNewNode" class="newnode">
-              <LigojTextField v-model="newNode.id" :label="t('wizard.label.id')" :hint="`${selected.tool?.id || ''}:my-instance`" persistent-hint variant="outlined" density="comfortable" class="mb-2" />
-              <LigojTextField v-model="newNode.name" :label="t('wizard.label.name')" variant="outlined" density="comfortable" class="mb-2" hide-details />
-              <p v-if="newNodeError" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ newNodeError }}</p>
-              <LjButton icon="mdi-plus" :icon-size="16" :disabled="!newNode.id || !newNode.name" :loading="creatingNode" @click="createNode">{{ t('wizard.createInstance') }}</LjButton>
-            </div>
-          </v-expand-transition>
         </section>
 
         <!-- 4. Mode -->
@@ -144,10 +134,6 @@ const loadingParams = ref(false)
 const creating = ref(false)
 const error = ref(null)
 
-const showNewNode = ref(false)
-const newNode = reactive({ id: '', name: '' })
-const creatingNode = ref(false)
-const newNodeError = ref(null)
 
 const rules = {
   required: (v) => (v != null && v !== '' && (!Array.isArray(v) || v.length > 0)) || t('wizard.rule.required'),
@@ -164,7 +150,7 @@ const availableModes = computed(() => {
 const modeHint = computed(() => selected.mode === 'create' ? t('wizard.modeHintCreate') : t('wizard.modeHintLink'))
 
 const ready = computed(() =>
-  !!props.projectId && !!selected.service && !!selected.tool && !!selected.node && !!selected.mode && !showNewNode.value)
+  !!props.projectId && !!selected.service && !!selected.tool && !!selected.node && !!selected.mode)
 
 /* ---- param helpers ---- */
 /* typeKind/isTextParam/isPassword/coerce/buildParamWire/ensureToolPluginLoaded
@@ -229,13 +215,11 @@ async function loadParameters(nodeId, mode) {
 watch(() => selected.service, async (svc) => {
   selected.tool = null; selected.node = null; selected.mode = null
   tools.value = []; nodes.value = []; parameters.value = []
-  newNode.id = ''; newNode.name = ''; newNodeError.value = null; showNewNode.value = false
   if (svc) await loadTools(svc.id)
 })
 watch(() => selected.tool, async (tool) => {
   selected.node = null; selected.mode = null
   nodes.value = []; parameters.value = []
-  newNode.id = ''; newNode.name = ''; newNodeError.value = null; showNewNode.value = false
   if (tool) {
     await loadNodes(tool.id)
     const modes = availableModes.value
@@ -247,25 +231,6 @@ watch([() => selected.node, () => selected.mode], async () => {
   if (!selected.mode || !selected.node) return
   await loadParameters(selected.node.id, selected.mode)
 })
-
-/* ---- new instance ---- */
-function toggleNewNode() {
-  showNewNode.value = !showNewNode.value
-  newNodeError.value = null
-  if (showNewNode.value) { selected.node = null; if (!newNode.id && selected.tool?.id) newNode.id = `${selected.tool.id}:` }
-  else { newNode.id = ''; newNode.name = '' }
-}
-async function createNode() {
-  newNodeError.value = null; creatingNode.value = true
-  try {
-    const result = await api.post('rest/node', { id: newNode.id, name: newNode.name, node: selected.tool?.id })
-    if (result === null) { newNodeError.value = t('wizard.error.newNodeRejected'); return }
-    await loadNodes(selected.tool.id)
-    const created = nodes.value.find((n) => n.id === newNode.id)
-    if (created) selected.node = created
-    showNewNode.value = false; newNode.id = ''; newNode.name = ''
-  } finally { creatingNode.value = false }
-}
 
 /* ---- submit ---- */
 async function submit() {
@@ -293,7 +258,7 @@ function reset() {
   selected.service = null; selected.tool = null; selected.node = null; selected.mode = null
   tools.value = []; nodes.value = []; parameters.value = []
   for (const k of Object.keys(paramValues)) delete paramValues[k]
-  showNewNode.value = false; newNode.id = ''; newNode.name = ''; newNodeError.value = null; error.value = null
+  error.value = null
 }
 function onDialogModel(v) { if (!v) emit('update:modelValue', false) }
 
@@ -323,7 +288,6 @@ watch(() => props.modelValue, (val) => {
 .opt :deep(img.tool-icon), .opt :deep(i) { width: 20px; height: 20px; font-size: 18px; }
 
 .inst-row { display: flex; align-items: flex-start; gap: 10px; }
-.newnode { margin-top: 12px; padding: 14px; border-radius: var(--radius-sm); background: var(--hover); border: var(--border-w) dashed var(--border-2); }
 
 .modehint { font-size: 12.5px; color: var(--ink-3); margin: 8px 0 0; }
 .muted { font-size: 13px; color: var(--ink-3); }
