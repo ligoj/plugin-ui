@@ -14,11 +14,13 @@
   backend nodes.
 -->
 <template>
-  <LjDialog :model-value="modelValue" :title="t('wizard.title')" icon="mdi-cloud-plus-outline" :max-width="720" @update:model-value="onDialogModel">
+  <LjDialog :model-value="modelValue" :title="t('wizard.title')" icon="mdi-cloud-plus-outline" :max-width="1040" @update:model-value="onDialogModel">
         <p v-if="projectName" class="ctx">{{ t('wizard.contextBefore') }} <strong>{{ projectName }}</strong>.</p>
         <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
         <!-- 1. Service -->
+        <!-- Steps 1-3 share one row: service, tool, existing instance -->
+        <div class="step-row">
         <section class="step">
           <div class="sh"><span class="n">1</span><v-icon size="18">mdi-room-service-outline</v-icon>{{ t('wizard.step.service') }}</div>
           <LigojSelect v-model="selected.service" :items="services" item-title="name" item-value="id" return-object :placeholder="t('wizard.label.service')" :loading="loadingServices"
@@ -49,7 +51,6 @@
         <!-- 3. Instance -->
         <section class="step" :class="{ off: !selected.tool }">
           <div class="sh"><span class="n">3</span><v-icon size="18">mdi-server-outline</v-icon>{{ t('wizard.step.instance') }}</div>
-          <div class="inst-row">
             <LigojSelect v-model="selected.node" :items="nodes" item-title="name" item-value="id" return-object :placeholder="t('wizard.label.instance')" :loading="loadingNodes"
               :disabled="!selected.tool" variant="outlined" density="comfortable" hide-details class="flex-grow-1">
               <template #selection="{ item }"><span v-if="item" class="opt"><NodeIcon :node="item" /> {{ item.name || item.id }}</span></template>
@@ -59,8 +60,8 @@
                 </v-list-item>
               </template>
             </LigojSelect>
-          </div>
         </section>
+        </div>
 
         <!-- 4. Mode -->
         <section class="step" :class="{ off: !selected.node }">
@@ -282,12 +283,19 @@ watch(() => props.modelValue, (val) => {
 .step { padding: 12px 0; border-top: 1px solid var(--border); transition: opacity .2s; }
 .step:first-of-type { border-top: 0; }
 .step.off { opacity: .45; pointer-events: none; }
+/* Steps 1-3 side by side; they stack again on a narrow dialog */
+.step-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 18px; }
+.step-row .step { border-top: 0; min-width: 0; }
+.step-row + .step { border-top: 0; }
+@media (max-width: 860px) {
+  .step-row { grid-template-columns: 1fr; }
+  .step-row .step + .step { border-top: 1px solid var(--border); }
+}
 .sh { display: flex; align-items: center; gap: 9px; font-family: var(--font); font-weight: var(--bold); font-size: 14.5px; color: var(--ink); margin-bottom: 10px; }
 .sh .n { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); }
 .opt { display: inline-flex; align-items: center; gap: 8px; }
 .opt :deep(img.tool-icon), .opt :deep(i) { width: 20px; height: 20px; font-size: 18px; }
 
-.inst-row { display: flex; align-items: flex-start; gap: 10px; }
 
 .modehint { font-size: 12.5px; color: var(--ink-3); margin: 8px 0 0; }
 .muted { font-size: 13px; color: var(--ink-3); }
