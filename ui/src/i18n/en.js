@@ -161,6 +161,7 @@ export default {
   'bugReport.tplUrl': 'URL',
   'bugReport.tplPlugins': 'Installed plugins',
   'bugReport.tplNoPlugin': '(none)',
+  'bugReport.versionsUnavailable': 'The plugin versions could not be retrieved: the plugins are listed without their version.',
   'agreement.title': 'Security Agreement',
   'agreement.text': 'You are about to perform a sensitive operation. Please read and accept the security agreement before continuing.',
   'agreement.checkbox': 'I have read and accept the security agreement',

@@ -1,8 +1,10 @@
 <!--
   BugReportDialog — front-only "report a bug" helper. Builds a copy/paste
   Markdown template pre-filled with the build version, the current in-app URL
-  (path only, no domain) and the installed plugins (all read from the session
-  via auth.appSettings — no backend call), then links to the GitHub issue form.
+  (path only, no domain) and the installed plugins (read from the session via
+  auth.appSettings), each with its version fetched on open from
+  rest/system/plugin/version; when that call fails a notice says so and the
+  plugins are listed without version. Then links to the GitHub issue form.
 
   Chrome mirrors AboutView's License dialog (.lic look): the root re-declares
   its design tokens locally because v-dialog teleports the card to <body>,
@@ -27,6 +29,8 @@
       </header>
 
       <div class="bug-body">
+        <!-- Versions unavailable: the template falls back to the plugin keys alone -->
+        <p v-if="versionsFailed" class="bug-notice"><v-icon size="16">mdi-alert-circle-outline</v-icon>{{ t('bugReport.versionsUnavailable') }}</p>
         <textarea ref="taRef" class="bug-template" readonly :value="template" @focus="selectAll" />
       </div>
 
@@ -47,7 +51,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useAppStore, useAuthStore, useI18nStore } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useI18nStore } from '@ligoj/host'
 
 const app = useAppStore()
 const auth = useAuthStore()
@@ -76,15 +80,28 @@ function captureUrl() {
 // appSettings.plugins is a list of backend keys (strings like
 // "service:id:ldap"). Stay robust to an object shape too (id/key/name), since
 // the exact form is backend-driven — fall back to JSON for anything exotic.
+// Each line carries the plug-in version when known. The versions are fetched when the dialog opens, from
+// `rest/system/plugin/version` (any authenticated user): bug reports are rare, so nothing is precomputed in the
+// session. An older API without this endpoint simply leaves the bare keys.
+const versions = ref({})
 const pluginLines = computed(() => {
   const list = auth.appSettings?.plugins
   if (!Array.isArray(list) || !list.length) return []
   return list.map((p) => {
-    if (typeof p === 'string') return p
+    if (typeof p === 'string') return versions.value[p] ? `${p} ${versions.value[p]}` : p
     if (p && typeof p === 'object') return p.id || p.key || p.name || p.artifact || JSON.stringify(p)
     return String(p)
   })
 })
+// True when the last lookup failed (endpoint missing on an older API, access denied, network): drives the notice
+const versionsFailed = ref(false)
+async function loadVersions() {
+  versionsFailed.value = false
+  const data = await useApi().get('rest/system/plugin/version', { silent: true })
+  const ok = !!data && typeof data === 'object' && !Array.isArray(data)
+  versions.value = ok ? data : {}
+  versionsFailed.value = !ok
+}
 
 const template = computed(() => {
   const lines = [
@@ -144,6 +161,7 @@ function close() { app.closeBugDialog() }
 watch(open, (isOpen) => {
   if (isOpen) {
     captureUrl()
+    loadVersions()
     copied.value = false
   }
 }, { immediate: true })
@@ -185,6 +203,7 @@ watch(open, (isOpen) => {
 .bug-x:hover { background: var(--hover); color: var(--ink); }
 
 .bug-body { padding: 16px 18px; overflow-y: auto; }
+.bug-notice { display: flex; align-items: center; gap: 7px; margin: 0 0 10px; padding: 8px 12px; font-size: 12.5px; border-radius: 10px; color: #b45309; background: rgba(245, 158, 11, .13); }
 .bug-template {
   width: 100%;
   min-height: 220px;

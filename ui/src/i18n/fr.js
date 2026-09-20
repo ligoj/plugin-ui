@@ -160,6 +160,7 @@ export default {
   'bugReport.tplUrl': 'URL',
   'bugReport.tplPlugins': 'Plugins installés',
   'bugReport.tplNoPlugin': '(aucun)',
+  'bugReport.versionsUnavailable': "Les versions des plugins n'ont pas pu être récupérées : les plugins sont listés sans leur version.",
   'agreement.title': 'Accord de sécurité',
   'agreement.text': 'Vous êtes sur le point d\'effectuer une opération sensible. Veuillez lire et accepter l\'accord de sécurité avant de continuer.',
   'agreement.checkbox': 'J\'ai lu et j\'accepte l\'accord de sécurité',

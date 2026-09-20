@@ -62,6 +62,32 @@ describe('<BugReportDialog>', () => {
     expect(text).toContain('## Context')
   })
 
+  it('shows a notice and lists the plugins without version when the versions lookup fails', async () => {
+    seedSession()
+    globalThis.fetch = vi.fn(async () => ({ ok: false, status: 404, headers: { get: () => 'application/json' }, json: async () => ({}), text: async () => '' }))
+    await openDialog()
+    await new Promise((r) => setTimeout(r, 0)); await nextTick()
+
+    expect(wrapper.find('.bug-notice').exists()).toBe(true)
+    expect(wrapper.find('.bug-notice').text()).toContain('versions')
+    const lines = template().split('\n')
+    expect(lines).toContain('  - service:id:ldap')
+    expect(lines).toContain('  - service:prov:aws')
+  })
+
+  it('appends the version of each plugin fetched on open, and keeps the bare key otherwise', async () => {
+    seedSession()
+    globalThis.fetch = vi.fn(async () => ({ ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => ({ 'service:id:ldap': '5.1.0-SNAPSHOT' }) }))
+    await openDialog()
+    await new Promise((r) => setTimeout(r, 0)); await nextTick()
+
+    expect(globalThis.fetch.mock.calls[0][0]).toMatch(/rest\/system\/plugin\/version$/)
+    const lines = template().split('\n')
+    expect(lines).toContain('  - service:id:ldap 5.1.0-SNAPSHOT')
+    expect(wrapper.find('.bug-notice').exists()).toBe(false)
+    expect(lines).toContain('  - service:prov:aws')
+  })
+
   it('uses the path when there is no hash, and never leaks a domain', async () => {
     seedSession()
     window.location.hash = ''
