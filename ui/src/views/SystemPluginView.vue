@@ -611,10 +611,11 @@ onMounted(() => {
 .tglyph.feature { background: linear-gradient(135deg, #1d9d63, #15784b); }
 .ac-name { font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); line-height: 1.2; }
 .ac-key, .ac-sub { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
-/* Brand logo tile (white, like the cockpit tool logos). */
-/* Tool tile: the brand colour of the icon (toolColor.js) fills the square, the icon fills the tile. */
-.logo-tile { width: 36px; height: 36px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; overflow: hidden; background: var(--tool, #fff); box-shadow: 0 0 0 var(--border-w) var(--border-c), 0 2px 6px -3px rgba(0, 0, 0, .3); }
-.logo-tile :deep(img.tool-icon) { width: 36px; height: 36px; object-fit: contain; }
+/* Brand logo tile, like the cockpit tool logos: the tile stays on the card colour so the icon remains readable
+ * (a single-colour logo such as LDAP's vanished when the tile was filled with that same colour). The brand colour of
+ * the icon (toolColor.js) only tints the ring and the shadow. */
+.logo-tile { width: 36px; height: 36px; border-radius: var(--radius-sm); flex: none; display: grid; place-items: center; overflow: hidden; background: var(--card); box-shadow: 0 6px 14px -7px color-mix(in srgb, var(--tool, #94a3b8) 55%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--tool, #94a3b8) 26%, var(--border-c)); }
+.logo-tile :deep(img.tool-icon) { width: 24px; height: 24px; object-fit: contain; }
 .logo-tile :deep(i) { font-size: 20px; color: #475569; }
 /* Restart progress dialog. */
 .restart-body { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding: 14px 8px 6px; }
