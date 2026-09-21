@@ -171,3 +171,24 @@ export function deprecationNotice(p, tOrNull, fallback) {
   if (!isDeprecated(p)) return null
   return tOrNull(`${p.id}-deprecated`) ?? fallback
 }
+
+/**
+ * Initial value of a parameter without default: `false` for a boolean, an empty list for the multi-valued types,
+ * else an empty string.
+ */
+export function defaultParamValue(p) {
+  const k = typeKind(p)
+  if (k === 'bool') return false
+  return ['multiple', 'multiselect', 'tags'].includes(k) ? [] : ''
+}
+
+/**
+ * Naming options of `groupParameters`, resolved against the i18n store: a parameter is named by the `<id>` key of
+ * its owning plugin (raw id when missing), a group label is an i18n key with literal fallback.
+ *
+ * @param {(key: string) => string} t The store translator, which echoes back a missing key.
+ */
+export function groupNaming(t) {
+  const tOrNull = (key) => { const v = t(key); return v === key ? null : v }
+  return { name: (p) => { const id = p?.id; return (id ? tOrNull(id) : null) ?? id ?? '' }, label: (l) => tOrNull(l) ?? l }
+}

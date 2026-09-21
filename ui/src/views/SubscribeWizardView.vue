@@ -81,24 +81,8 @@
           <!-- Parameters are ordered by display name (ascending) by default; a
                plugin may override the order and/or group them via its
                `parameterLayout` hook (see parameterGroups / resolveParameterLayout). -->
-          <template v-for="(group, gi) in parameterGroups" :key="gi">
-            <div v-if="group.label" class="pgroup">{{ group.label }}</div>
-            <div v-for="p in group.params" :key="p.id" class="pfield" :class="{ 'pfield--deprecated': isDeprecated(p) }">
-              <v-chip v-if="isDeprecated(p)" size="x-small" color="warning" variant="tonal" class="pfield-deprecated" prepend-icon="mdi-alert-outline">{{ t('wizard.params.deprecated') }}</v-chip>
-              <!-- Plugin-supplied field (e.g. id-ldap's live group/OU
-                   autocomplete) takes precedence over the default type-based
-                   rendering — same hook as plugin-ui's wizard. Only resolves
-                   when the owning plugin bundle is loaded. -->
-              <component v-if="resolveParameterField(p)" :is="resolveParameterField(p)" v-model="paramValues[p.id]" :parameter="p" :form-values="paramValues" :mode="selected.mode"
-                :is-node="false" :node-id="selected.tool?.id" :instance-node-id="selected.node?.id" />
-              <LigojTextField v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
-              <LigojTextField v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
-              <v-checkbox v-else-if="typeKind(p) === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
-              <LigojSelect v-else-if="typeKind(p) === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
-              <LigojSelect v-else-if="['multiple','multiselect','tags'].includes(typeKind(p))" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" chips multiple variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
-              <LigojTextField v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
-            </div>
-          </template>
+          <ParameterForm :groups="parameterGroups" :values="paramValues" :resolve-field="resolveParameterField"
+            :field-context="{ mode: selected.mode, isNode: false, nodeId: selected.tool?.id, instanceNodeId: selected.node?.id }" @update="(id, v) => (paramValues[id] = v)" />
         </section>
       <template #footer>
         <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
@@ -109,9 +93,10 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useErrorStore, useI18nStore, NodeIcon, LjDialog, LjButton, LjSegmented, LigojSelect, LigojTextField } from '@ligoj/host'
+import { useApi, useErrorStore, useI18nStore, NodeIcon, LjDialog, LjButton, LjSegmented, LigojSelect } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
-import { typeKind, isTextParam, isPassword, coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, isDeprecated, deprecationNotice } from '../utils/pluginParams.js'
+import { coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming } from '../utils/pluginParams.js'
+import ParameterForm from '../components/ParameterForm.vue'
 import { subscriptionModes } from '../utils/subscriptionModes.js'
 
 const props = defineProps({
@@ -141,9 +126,6 @@ const creating = ref(false)
 const error = ref(null)
 
 
-const rules = {
-  required: (v) => (v != null && v !== '' && (!Array.isArray(v) || v.length > 0)) || t('wizard.rule.required'),
-}
 
 /* Modes offered by the picked INSTANCE (backend SubscriptionMode: NONE/LINK/CREATE/ALL). The instance decides, not
    its tool: a tool is often 'none' (nothing subscribes to the tool itself) while its instances accept 'link'. */
@@ -160,11 +142,6 @@ const ready = computed(() =>
    and the plugin-feature resolution are shared with NodeEditDialog — see
    utils/pluginParams.js. These wrappers bind the i18n store / reactive
    selection, which stay dialog-local. */
-function tOrNull(key) { const v = i18n.t(key); return v === key ? null : v }
-function paramLabel(p) { return `${tOrNull(p.id) ?? p.id}${(p.mandatory || p.required) ? ' *' : ''}` }
-/* Optional helper text below the field: the `<id>-description` i18n key, else the parameter's own description. */
-function paramDescription(p) { return deprecationNotice(p, tOrNull, t('wizard.params.deprecatedNotice')) ?? tOrNull(`${p.id}-description`) ?? p.description ?? null }
-function ruleFor(p) { return (p.mandatory || p.required) ? [rules.required] : [] }
 
 /* Subscription context (isNode = false): the parameter form drives a new
    subscription against `selected.node`. */
@@ -176,14 +153,13 @@ function resolveParameterField(p) { return resolveField(selected.tool?.id, subsc
 
 /* Display name of a parameter (translated label, without the mandatory marker),
    used as the default sort key. */
-function paramName(p) { const id = p?.id; const l = id ? tOrNull(id) : null; return l ?? id ?? '' }
 
 /* Parameters arranged for display: plugin-declared groups first (each with its
    parameters in the declared order), then every remaining parameter ordered by
    display name, ascending, in a trailing unlabeled group. A group's `label` is
    resolved through i18n (falling back to the literal). See groupParameters(). */
 const parameterGroups = computed(() =>
-  groupParameters(parameters.value, resolveLayout(selected.tool?.id, subscriptionCtx(), 'wizard'), { name: paramName, label: (l) => tOrNull(l) ?? l }))
+  groupParameters(parameters.value, resolveLayout(selected.tool?.id, subscriptionCtx(), 'wizard'), groupNaming(i18n.t)))
 
 /* ---- loaders ---- */
 async function fetchNodes(url) {
@@ -209,7 +185,7 @@ async function loadParameters(nodeId, mode) {
     for (const k of Object.keys(paramValues)) delete paramValues[k]
     for (const p of parameters.value) {
       if (p.defaultValue != null) paramValues[p.id] = coerce(p)
-      else { const k = typeKind(p); paramValues[p.id] = k === 'bool' ? false : (['multiple', 'multiselect', 'tags'].includes(k) ? [] : '') }
+      else paramValues[p.id] = defaultParamValue(p)
     }
   } finally { loadingParams.value = false }
 }
@@ -317,9 +293,4 @@ watch(() => props.modelValue, (val) => {
 .mode-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
 .modehint { font-size: 12.5px; color: var(--ink-3); margin: 0; flex: 1 1 260px; }
 .muted { font-size: 13px; color: var(--ink-3); }
-.pgroup { margin: 4px 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
-.pgroup + .pfield { margin-top: 0; }
-.pfield { margin-bottom: 12px; }
-.pfield--deprecated { border-left: 3px solid rgb(var(--v-theme-warning)); padding-left: 10px; opacity: .88; }
-.pfield-deprecated { margin-bottom: 4px; }
 </style>

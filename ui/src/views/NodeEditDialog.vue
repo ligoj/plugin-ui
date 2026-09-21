@@ -10,9 +10,11 @@
   - edit-node:   edit the given node's name + parameters → PUT rest/node.
 -->
 <template>
-  <LjDialog :model-value="modelValue" :title="dialogTitle" icon="mdi-server-network" :max-width="720" @update:model-value="onDialogModel">
+  <LjDialog :model-value="modelValue" :title="dialogTitle" icon="mdi-server-network" :max-width="1040" @update:model-value="onDialogModel">
         <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
+        <!-- Steps 1-3 share one row, like the subscription wizard: service, tool, instance identity -->
+        <div class="step-row">
         <!-- 1. Service -->
         <section class="step">
           <div class="sh"><span class="n">1</span><v-icon size="18">mdi-room-service-outline</v-icon>{{ t('wizard.step.service') }}</div>
@@ -40,6 +42,7 @@
             :label="t('wizard.label.id')" :hint="`${selected.tool?.id || ''}:my-instance`" persistent-hint density="comfortable" class="mb-2" :rules="[rules.required, rules.nodeId]" />
           <LigojTextField v-model="form.name" :label="t('wizard.label.name')" variant="outlined" density="comfortable" hide-details="auto" :rules="[rules.required]" />
         </section>
+        </div>
 
         <!-- 4. Mode -->
         <section class="step" :class="{ off: !isEdit && !selected.tool }">
@@ -55,19 +58,8 @@
           <!-- Parameters are ordered by display name (ascending) by default; a
                plugin may override the order and/or group them via its
                `parameterLayout` hook (see parameterGroups / resolveParameterLayout). -->
-          <template v-for="(group, gi) in parameterGroups" :key="gi">
-            <div v-if="group.label" class="pgroup">{{ group.label }}</div>
-            <div v-for="p in group.params" :key="p.id" class="pfield" :class="{ 'pfield--deprecated': isDeprecated(p) }">
-              <v-chip v-if="isDeprecated(p)" size="x-small" color="warning" variant="tonal" class="pfield-deprecated" prepend-icon="mdi-alert-outline">{{ t('wizard.params.deprecated') }}</v-chip>
-              <component v-if="resolveParameterField(p)" :is="resolveParameterField(p)" v-model="paramValues[p.id]" :parameter="p" :form-values="paramValues" :mode="selected.mode" :is-node="true" :node-id="currentNodeId" :instance-node-id="currentNodeId" />
-              <LigojTextField v-else-if="isTextParam(p)" v-model="paramValues[p.id]" :type="isPassword(p) ? 'password' : 'text'" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
-              <LigojTextField v-else-if="typeKind(p) === 'integer'" v-model.number="paramValues[p.id]" type="number" :min="p.min" :max="p.max" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
-              <v-checkbox v-else-if="typeKind(p) === 'bool'" v-model="paramValues[p.id]" :label="paramLabel(p)" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
-              <LigojSelect v-else-if="typeKind(p) === 'select'" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
-              <LigojSelect v-else-if="['multiple','multiselect','tags'].includes(typeKind(p))" v-model="paramValues[p.id]" :items="p.values || []" :label="paramLabel(p)" :rules="ruleFor(p)" chips multiple variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
-              <LigojTextField v-else v-model="paramValues[p.id]" :label="paramLabel(p)" :rules="ruleFor(p)" variant="outlined" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" />
-            </div>
-          </template>
+          <ParameterForm :groups="parameterGroups" :values="paramValues" :resolve-field="resolveParameterField"
+            :field-context="{ mode: selected.mode, isNode: true, nodeId: currentNodeId, instanceNodeId: currentNodeId }" @update="(id, v) => (paramValues[id] = v)" />
         </section>
       <template #footer>
         <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
@@ -80,7 +72,8 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, LjDialog, LjButton, LjSegmented, LjAvailabilityField, LigojSelect, LigojTextField } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
-import { typeKind, isTextParam, isPassword, coerce, buildParamWire, selectValue, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, isDeprecated, deprecationNotice } from '../utils/pluginParams.js'
+import { typeKind, coerce, buildParamWire, selectValue, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming } from '../utils/pluginParams.js'
+import ParameterForm from '../components/ParameterForm.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -141,13 +134,7 @@ const ready = computed(() => isEdit.value
    and the plugin-feature resolution are shared with the subscribe wizard — see
    utils/pluginParams.js. These wrappers bind the i18n store / reactive
    selection, which stay dialog-local. */
-function tOrNull(key) { const v = i18n.t(key); return v === key ? null : v }
-function paramLabel(p) { return `${tOrNull(p.id) ?? p.id}${(p.mandatory || p.required) ? ' *' : ''}` }
-/* Optional helper text below the field: the `<id>-description` i18n key, else the parameter's own description. */
-function paramDescription(p) { return deprecationNotice(p, tOrNull, t('wizard.params.deprecatedNotice')) ?? tOrNull(`${p.id}-description`) ?? p.description ?? null }
-function ruleFor(p) { return (p.mandatory || p.required) ? [rules.required] : [] }
 /* Display name of a parameter (translated label, else its id). */
-function paramName(p) { const id = p?.id; const l = id ? tOrNull(id) : null; return l ?? id ?? '' }
 
 /* Node context (isNode = true): the form edits tool config on the node itself,
    so both nodeId and instanceNodeId are the node being created/edited. A plugin
@@ -160,7 +147,7 @@ function nodeCtx(parameter) {
 function resolveParameterField(p) { return resolveField(currentNodeId.value, nodeCtx(p), 'node') }
 
 const parameterGroups = computed(() =>
-  groupParameters(parameters.value, resolveLayout(currentNodeId.value, nodeCtx(), 'node'), { name: paramName, label: (l) => tOrNull(l) ?? l }))
+  groupParameters(parameters.value, resolveLayout(currentNodeId.value, nodeCtx(), 'node'), groupNaming(i18n.t)))
 
 /* ---- loaders ---- */
 async function fetchNodes(url) { const d = await api.get(url); const l = Array.isArray(d) ? d : (Array.isArray(d?.data) ? d.data : []); return l.filter((n) => n.enabled !== false) }
@@ -177,7 +164,7 @@ async function loadParameters(nodeId, mode) {
     for (const k of Object.keys(paramValues)) delete paramValues[k]
     for (const p of parameters.value) {
       if (p.defaultValue != null) paramValues[p.id] = coerce(p)
-      else { const k = typeKind(p); paramValues[p.id] = k === 'bool' ? false : (['multiple', 'multiselect', 'tags'].includes(k) ? [] : '') }
+      else paramValues[p.id] = defaultParamValue(p)
     }
   } finally { loadingParams.value = false }
 }
@@ -186,14 +173,17 @@ async function loadParameters(nodeId, mode) {
 watch(() => selected.service, async (svc) => {
   if (isEdit.value || seeding.value) return
   selected.tool = null; tools.value = []; form.id = ''
-  if (svc) await loadTools(svc.id)
+  if (svc) {
+    await loadTools(svc.id)
+    // Pre-select the first tool, unless the service changed while loading (same behaviour as the subscription wizard)
+    if (selected.service === svc && !selected.tool) selected.tool = tools.value[0] || null
+  }
 })
 watch(() => selected.tool, (tool) => {
   if (isEdit.value || seeding.value) return
   form.id = tool ? `${tool.id}:` : ''
-  // Auto-pick the mode only when there is exactly one; else force a re-choice.
-  const modes = availableModes.value
-  selected.mode = (tool && modes.length === 1) ? modes[0].value : null
+  // Pre-select the first mode the tool offers
+  selected.mode = tool ? (availableModes.value[0]?.value ?? null) : null
 })
 // Load parameters from BOTH the tool and the mode. Watching the mode alone
 // misses a tool switch that leaves the mode value unchanged (e.g. harbor→nexus,
@@ -267,7 +257,12 @@ watch(() => props.modelValue, (val) => {
   reset()
   if (isEdit.value) bootstrapEdit(props.node)
   else if (props.seed) seedCreate(props.seed)
-  else if (!services.value.length) loadServices()
+  else {
+    // Pre-select the first service; the watchers cascade to the first tool and mode
+    Promise.resolve(services.value.length ? null : loadServices()).then(() => {
+      if (props.modelValue && !isEdit.value && !selected.service) selected.service = services.value[0] || null
+    })
+  }
 })
 
 /* ---- submit ---- */
@@ -314,6 +309,14 @@ async function submit() {
 .step { padding: 12px 0; border-top: 1px solid var(--border); transition: opacity .2s; }
 .step:first-of-type { border-top: 0; }
 .step.off { opacity: .45; pointer-events: none; }
+/* Steps 1-3 side by side; they stack again on a narrow dialog (same rule as SubscribeWizardView) */
+.step-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 18px; }
+.step-row .step { border-top: 0; min-width: 0; }
+.step-row + .step { border-top: 0; }
+@media (max-width: 860px) {
+  .step-row { grid-template-columns: 1fr; }
+  .step-row .step + .step { border-top: 1px solid var(--border); }
+}
 .sh { display: flex; align-items: center; gap: 9px; font-family: var(--font); font-weight: var(--bold); font-size: 14.5px; color: var(--ink); margin-bottom: 10px; }
 .sh .n { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #ff9436, #ff5a52); }
 .opt { display: inline-flex; align-items: center; gap: 8px; }
@@ -321,9 +324,4 @@ async function submit() {
 .ro { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); padding: 8px 12px; border-radius: var(--radius-sm); background: var(--hover); }
 .ro :deep(img.tool-icon), .ro :deep(i) { width: 20px; height: 20px; font-size: 18px; }
 .muted { font-size: 13px; color: var(--ink-3); }
-.pgroup { margin: 4px 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
-.pgroup + .pfield { margin-top: 0; }
-.pfield { margin-bottom: 12px; }
-.pfield--deprecated { border-left: 3px solid rgb(var(--v-theme-warning)); padding-left: 10px; opacity: .88; }
-.pfield-deprecated { margin-bottom: 4px; }
 </style>
