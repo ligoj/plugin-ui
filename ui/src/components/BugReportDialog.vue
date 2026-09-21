@@ -97,7 +97,8 @@ const pluginLines = computed(() => {
 const versionsFailed = ref(false)
 async function loadVersions() {
   versionsFailed.value = false
-  const data = await useApi().get('rest/system/plugin/version', { silent: true })
+  // A rejected call (network down, broken response) is a failed lookup like any other
+  const data = await useApi().get('rest/system/plugin/version', { silent: true }).catch(() => null)
   const ok = !!data && typeof data === 'object' && !Array.isArray(data)
   versions.value = ok ? data : {}
   versionsFailed.value = !ok
