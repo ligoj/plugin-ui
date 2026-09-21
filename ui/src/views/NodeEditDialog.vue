@@ -48,7 +48,11 @@
         <section class="step" :class="{ off: !isEdit && !selected.tool }">
           <div class="sh"><span class="n">4</span><v-icon size="18">mdi-link-variant</v-icon>{{ t('wizard.step.mode') }}</div>
           <NodeModeChip v-if="isEdit" :mode="selected.mode || 'all'" />
-          <LjSegmented v-else v-model="selected.mode" :options="availableModes" />
+          <div v-else class="mode-row">
+            <LjSegmented v-model="selected.mode" :options="availableModes" />
+            <p v-if="modeHint" class="modehint">{{ modeHint }}</p>
+            <p v-if="modeConflict" class="modehint warn"><v-icon size="15">mdi-alert-outline</v-icon>{{ t('wizard.nodeModeConflict', { mode: selected.tool?.mode }) }}</p>
+          </div>
         </section>
 
         <!-- 5. Parameters -->
@@ -74,6 +78,7 @@ import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, 
 import { groupParameters } from '../utils/parameterGroups.js'
 import { typeKind, coerce, buildParamWire, selectValue, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming } from '../utils/pluginParams.js'
 import ParameterForm from '../components/ParameterForm.vue'
+import { modesFromParameters, nodeModes } from '../utils/subscriptionModes.js'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -117,13 +122,19 @@ const rules = {
   nodeId: (v) => /^[\w-]+(:[\w-]+)+$/.test(v || '') || t('wizard.rule.nodeId'),
 }
 
-const availableModes = computed(() => {
-  const m = String(selected.tool?.mode || '').toLowerCase()
-  const out = []
-  if (m === 'all' || m === 'create') out.push({ value: 'create', label: t('wizard.modeCreate') })
-  if (m === 'all' || m === 'link' || !m) out.push({ value: 'link', label: t('wizard.modeLink') })
-  return out
-})
+// Modes offered for the new instance: what the tool's PARAMETERS support (modesFromParameters), not the tool node's
+// own `mode`. A parameter without explicit mode is ALL, so most tools offer every mode.
+const toolModes = ref([])
+const availableModes = computed(() => toolModes.value.map((value) => ({ value, label: t('wizard.nodeMode.' + value) })))
+// The server still checks the mode against the tool node's mode (NodeResource#checkMode). When that stored mode
+// would refuse the choice, say so up front instead of letting the save fail without explanation.
+const modeConflict = computed(() => !!selected.mode && !!selected.tool && !nodeModes(selected.tool.mode).includes(selected.mode))
+async function loadToolModes(toolId) {
+  const lists = await Promise.all(['NONE', 'LINK', 'CREATE'].map((m) => api.get(`rest/node/${encodeURIComponent(toolId)}/parameter/${m}`, { silent: true }).catch(() => null)))
+  const [none, link, create] = lists.map((d) => (Array.isArray(d) ? d : (d?.data || [])))
+  return modesFromParameters({ none, link, create })
+}
+const modeHint = computed(() => (selected.mode ? t('wizard.nodeModeHint.' + selected.mode) : ''))
 const currentNodeId = computed(() => isEdit.value ? props.node?.id : selected.tool?.id)
 const ready = computed(() => isEdit.value
   ? !!form.name
@@ -179,11 +190,16 @@ watch(() => selected.service, async (svc) => {
     if (selected.service === svc && !selected.tool) selected.tool = tools.value[0] || null
   }
 })
-watch(() => selected.tool, (tool) => {
+watch(() => selected.tool, async (tool) => {
   if (isEdit.value || seeding.value) return
   form.id = tool ? `${tool.id}:` : ''
-  // Pre-select the first mode the tool offers
-  selected.mode = tool ? (availableModes.value[0]?.value ?? null) : null
+  selected.mode = null; toolModes.value = []
+  if (!tool) return
+  const modes = await loadToolModes(tool.id)
+  if (selected.tool !== tool) return // the tool changed while loading
+  toolModes.value = modes
+  // Pre-select the first, most permissive, mode
+  selected.mode = modes[0] ?? null
 })
 // Load parameters from BOTH the tool and the mode. Watching the mode alone
 // misses a tool switch that leaves the mode value unchanged (e.g. harbor→nexus,
@@ -309,6 +325,9 @@ async function submit() {
 .step { padding: 12px 0; border-top: 1px solid var(--border); transition: opacity .2s; }
 .step:first-of-type { border-top: 0; }
 .step.off { opacity: .45; pointer-events: none; }
+.mode-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
+.modehint { font-size: 12.5px; color: var(--ink-3); margin: 0; flex: 1 1 260px; }
+.modehint.warn { flex-basis: 100%; display: flex; align-items: center; gap: 6px; color: #b45309; }
 /* Steps 1-3 side by side; they stack again on a narrow dialog (same rule as SubscribeWizardView) */
 .step-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 18px; }
 .step-row .step { border-top: 0; min-width: 0; }
