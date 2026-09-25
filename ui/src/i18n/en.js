@@ -523,6 +523,9 @@ export default {
   'project.detail.unsubscribe': 'Unsubscribe',
   'project.detail.unsubscribeConfirm': 'Remove subscription to {name}?',
   'project.detail.unsubscribeData': 'Also delete remote data on the target service',
+  'project.detail.unsubscribeDataHint': 'The job or folder tree, credentials and other resources created on the tool by this subscription are destroyed there too. This cannot be undone. Leave it unchecked to keep them and only detach the project.',
+  'project.detail.unsubscribed': 'Subscription to {name} removed',
+  'project.detail.unsubscribedData': 'Subscription to {name} removed and its remote data deleted on the target service',
   'project.detail.remove': 'Remove',
 
   // Subscribe / node wizard
@@ -574,6 +577,7 @@ export default {
   'wizard.action.save': 'Save',
   'wizard.action.createNode': 'Create node',
   'wizard.action.createSubscription': 'Create subscription',
+  'wizard.error.missingParameters': 'Missing required parameters: {names}',
   'wizard.error.subscriptionFailed': 'Subscription creation failed — please review the highlighted parameters.',
   'wizard.error.nodeCreationFailed': 'Node creation failed — please review the highlighted fields.',
   'wizard.error.saveFailed': 'Save failed — please review the highlighted parameters.',

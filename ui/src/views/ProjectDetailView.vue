@@ -62,6 +62,19 @@
       </div>
     </div>
 
+    <!-- Unsubscribe: an important confirmation like the other deletions. A subscription
+         created by Ligoj (CREATE mode) may also destroy what it created on the tool
+         (job / folder tree on Jenkins, ...): opt-in, explained, off by default. A
+         linked subscription only detaches the project, the API ignores the flag. -->
+    <LigojConfirmDialog v-model="unsubscribe.open" :title="t('project.detail.unsubscribe')" icon="mdi-delete-outline" icon-color="error"
+      :confirm-label="t('project.detail.unsubscribe')" confirm-color="error" :loading="unsubscribe.busy" @confirm="confirmUnsubscribe">
+      <p class="unsub-text">{{ t('project.detail.unsubscribeConfirm', { name: unsubscribe.name }) }}</p>
+      <template v-if="unsubscribe.created">
+        <v-checkbox v-model="unsubscribe.remote" class="unsub-remote" color="error" density="compact" hide-details :label="t('project.detail.unsubscribeData')" />
+        <p class="unsub-hint">{{ t('project.detail.unsubscribeDataHint') }}</p>
+      </template>
+    </LigojConfirmDialog>
+
     <div class="toast" :class="{ show: toastMsg }">{{ toastMsg }}</div>
   </div>
 </template>
@@ -69,7 +82,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, h } from 'vue'
 import { useRoute } from 'vue-router'
-import { useApi, useAppStore, useAuthStore, useI18nStore, NodeIcon, VIcon, LjPageHeader, LjButton, userFullName, userVisualId } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useErrorStore, useI18nStore, NodeIcon, VIcon, LjPageHeader, LjButton, LjConfirmDialog as LigojConfirmDialog, userFullName, userVisualId } from '@ligoj/host'
 import { toolColor } from '../toolColor.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import SubscribeWizardDialog from './SubscribeWizardView.vue'
@@ -80,6 +93,7 @@ const route = useRoute()
 const api = useApi()
 const appStore = useAppStore()
 const auth = useAuthStore()
+const errorStore = useErrorStore()
 const i18n = useI18nStore()
 const t = i18n.t
 
@@ -207,12 +221,37 @@ function openRowMenu(ev, sub) {
   rowMenu.value = { open: true, x: r.right, y: r.bottom + 4, sub }
 }
 function closeRowMenu() { rowMenu.value.open = false }
-async function deleteSub() {
+/* Unsubscribe confirmation: the subscription, whether Ligoj created it (CREATE mode:
+   the remote-data option is offered), and the user's choice. */
+const unsubscribe = ref({ open: false, busy: false, sub: null, name: '', created: false, remote: false })
+function deleteSub() {
   const s = rowMenu.value.sub
   closeRowMenu()
   if (!s?.id) return
-  if (!confirm(t('subscription.deleteConfirm') || 'Supprimer cet abonnement ?')) return
-  try { await api.del(`rest/subscription/${s.id}`) } finally { load() }
+  const node = s.node || {}
+  unsubscribe.value = {
+    open: true, busy: false, sub: s,
+    name: node.name || node.id || ('#' + s.id),
+    created: String(s.mode || '').toUpperCase() === 'CREATE',
+    remote: false,
+  }
+}
+async function confirmUnsubscribe() {
+  const u = unsubscribe.value
+  if (!u.sub?.id) return
+  u.busy = true
+  const remote = u.created && u.remote
+  try {
+    const res = await api.del(`rest/subscription/${u.sub.id}${remote ? '?deleteRemoteData=true' : ''}`, { raw: true })
+    if (res?.ok) {
+      unsubscribe.value.open = false
+      // Confirm what happened: the plain detachment, or the deletion of the remote data too
+      errorStore.success(t(remote ? 'project.detail.unsubscribedData' : 'project.detail.unsubscribed', { name: u.name }), { node: u.sub.node })
+    }
+  } finally {
+    u.busy = false
+    load()
+  }
 }
 
 let toastT
@@ -724,4 +763,7 @@ onMounted(load)
 .rowmenu button.danger:hover {
   background: rgba(var(--v-theme-error), .08);
 }
+.unsub-text { margin: 0 0 12px; color: var(--ink-2); }
+.unsub-remote { margin-top: 4px; }
+.unsub-hint { margin: 2px 0 0 40px; font-size: 12.5px; color: var(--ink-3); }
 </style>

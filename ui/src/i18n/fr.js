@@ -522,6 +522,9 @@ export default {
   'project.detail.unsubscribe': 'Désabonner',
   'project.detail.unsubscribeConfirm': 'Supprimer la souscription à {name} ?',
   'project.detail.unsubscribeData': 'Supprimer également les données distantes sur le service cible',
+  'project.detail.unsubscribeDataHint': 'Le job ou l\'arborescence de dossiers, les identifiants et autres ressources créés sur l\'outil par cette souscription y sont aussi détruits. Cette action est irréversible. Laisser décoché pour les conserver et seulement détacher le projet.',
+  'project.detail.unsubscribed': 'Souscription à {name} supprimée',
+  'project.detail.unsubscribedData': 'Souscription à {name} supprimée et ses données distantes supprimées sur le service cible',
   'project.detail.remove': 'Supprimer',
 
   // Assistant de souscription / nœud
@@ -573,6 +576,7 @@ export default {
   'wizard.action.save': 'Enregistrer',
   'wizard.action.createNode': 'Créer le nœud',
   'wizard.action.createSubscription': 'Créer la souscription',
+  'wizard.error.missingParameters': 'Paramètres obligatoires manquants : {names}',
   'wizard.error.subscriptionFailed': 'Échec de la création de la souscription — veuillez vérifier les paramètres mis en évidence.',
   'wizard.error.nodeCreationFailed': 'Échec de la création du nœud — veuillez vérifier les champs mis en évidence.',
   'wizard.error.saveFailed': 'Échec de l\'enregistrement — veuillez vérifier les paramètres mis en évidence.',
