@@ -76,7 +76,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, LjDialog, LjButton, LjSegmented, LjAvailabilityField, LigojSelect, LigojTextField } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
-import { typeKind, coerce, buildParamWire, selectValue, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming } from '../utils/pluginParams.js'
+import { typeKind, coerce, buildParamWire, selectValue, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming, missingMandatory } from '../utils/pluginParams.js'
 import ParameterForm from '../components/ParameterForm.vue'
 import { modesFromParameters, nodeModes } from '../utils/subscriptionModes.js'
 
@@ -286,6 +286,11 @@ function wireMode(m) { return m ? String(m).toUpperCase() : m }
 async function submit() {
   if (!ready.value) return
   if (idTaken.value) return
+  const missing = missingMandatory(parameters.value, paramValues)
+  if (missing.length) {
+    error.value = t('wizard.error.missingParameters', { names: missing.map((p) => t(p.id)).join(', ') })
+    return
+  }
   saving.value = true; error.value = null
   try {
     const parametersWire = parameters.value.map((p) => buildParamWire(p, paramValues[p.id])).filter(Boolean)

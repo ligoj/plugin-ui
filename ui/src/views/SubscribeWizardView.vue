@@ -95,7 +95,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useApi, useErrorStore, useI18nStore, NodeIcon, LjDialog, LjButton, LjSegmented, LigojSelect } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
-import { coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming } from '../utils/pluginParams.js'
+import { coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming, missingMandatory } from '../utils/pluginParams.js'
 import ParameterForm from '../components/ParameterForm.vue'
 import { subscriptionModes } from '../utils/subscriptionModes.js'
 
@@ -223,6 +223,11 @@ watch([() => selected.node, () => selected.mode], async () => {
 /* ---- submit ---- */
 async function submit() {
   if (!ready.value) return
+  const missing = missingMandatory(parameters.value, paramValues)
+  if (missing.length) {
+    error.value = t('wizard.error.missingParameters', { names: missing.map((p) => t(p.id)).join(', ') })
+    return
+  }
   creating.value = true; error.value = null
   try {
     const payload = {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildParamWire, coerce, selectValue, isDeprecated, deprecationNotice } from '../utils/pluginParams.js'
+import { buildParamWire, coerce, selectValue, isDeprecated, deprecationNotice, missingMandatory } from '../utils/pluginParams.js'
 
 const selectParam = { id: 'p', type: 'SELECT', values: ['docker', 'maven', 'nuget'] }
 
@@ -47,5 +47,25 @@ describe('pluginParams deprecation', () => {
     expect(deprecationNotice({ id: 'service:id:ldap:people-custom-attributes', deprecated: true }, t, 'Deprecated parameter')).toBe('Use the service parameter')
     expect(deprecationNotice({ id: 'service:id:ldap:other', deprecated: true }, t, 'Deprecated parameter')).toBe('Deprecated parameter')
     expect(deprecationNotice({ id: 'service:id:ldap:other' }, t, 'Deprecated parameter')).toBeNull()
+  })
+})
+
+describe('missingMandatory — mandatory parameters without an effective value', () => {
+  const job = { id: 'service:build:jenkins:job', type: 'TEXT', mandatory: true }
+  const folder = { id: 'service:build:jenkins:template-folder', type: 'TEXT', mandatory: false }
+  const count = { id: 'p:count', type: 'INTEGER', required: true }
+  const tags = { id: 'p:tags', type: 'TAGS', mandatory: true }
+
+  it('reports a mandatory parameter left blank, whatever the input rendering it', () => {
+    expect(missingMandatory([job, folder], { [job.id]: '', [folder.id]: '{}' })).toEqual([job])
+    expect(missingMandatory([job, folder], { [job.id]: '   ' })).toEqual([job])
+    expect(missingMandatory([job, folder], {})).toEqual([job])
+    expect(missingMandatory([job, count, tags], { [job.id]: 'Admin', [count.id]: 0, [tags.id]: [] })).toEqual([tags])
+  })
+
+  it('is empty when every mandatory parameter carries a value', () => {
+    expect(missingMandatory([job, folder], { [job.id]: 'Admin' })).toEqual([])
+    expect(missingMandatory([count, tags], { [count.id]: 3, [tags.id]: ['a'] })).toEqual([])
+    expect(missingMandatory([], {})).toEqual([])
   })
 })

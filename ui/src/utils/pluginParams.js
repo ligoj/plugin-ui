@@ -46,8 +46,25 @@ export function selectValue(p, raw) {
  * @param {object} p     Parameter definition.
  * @param {*}      value Current form value for `p`.
  */
+/** `true` when a form value carries nothing: empty / blank text, null, or an empty list. */
+export function isEmptyValue(value) {
+  return value == null || (typeof value === 'string' && value.trim() === '') || (Array.isArray(value) && !value.length)
+}
+
+/**
+ * The mandatory parameters left without an effective value. Checked at submit time whatever the input rendering
+ * each parameter (default field or plugin custom field): the backend refuses a blank mandatory value ("NotBlank"),
+ * and a blank text is never persisted.
+ * @param {object[]} parameters Parameter definitions.
+ * @param {object}   values     Form values keyed by parameter id.
+ * @returns {object[]} The missing parameter definitions, in form order.
+ */
+export function missingMandatory(parameters, values) {
+  return (parameters || []).filter((p) => (p.mandatory || p.required) && isEmptyValue(values?.[p.id]))
+}
+
 export function buildParamWire(p, value) {
-  if ((value === '' || value == null || (Array.isArray(value) && !value.length)) && !p.mandatory && !p.required) return null
+  if (isEmptyValue(value) && !p.mandatory && !p.required) return null
   const base = { parameter: p.id }
   const k = typeKind(p)
   if (k === 'integer') return { ...base, integer: Number(value) }
