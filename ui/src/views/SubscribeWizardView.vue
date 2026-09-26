@@ -82,7 +82,7 @@
                plugin may override the order and/or group them via its
                `parameterLayout` hook (see parameterGroups / resolveParameterLayout). -->
           <ParameterForm :groups="parameterGroups" :values="paramValues" :resolve-field="resolveParameterField"
-            :field-context="{ mode: selected.mode, isNode: false, nodeId: selected.tool?.id, instanceNodeId: selected.node?.id }" @update="(id, v) => (paramValues[id] = v)" />
+            :field-context="{ mode: selected.mode, isNode: false, nodeId: selected.tool?.id, instanceNodeId: selected.node?.id, project: project }" @update="(id, v) => (paramValues[id] = v)" />
         </section>
       <template #footer>
         <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
@@ -103,6 +103,8 @@ const props = defineProps({
   modelValue: { type: Boolean, default: false },
   projectId: { type: [String, Number], default: null },
   projectName: { type: String, default: '' },
+  /** The project itself (id, name, pkey, ...): plugin fields derive defaults and rules from it, e.g. the LDAP organization from the pkey. */
+  project: { type: Object, default: null },
 })
 const emit = defineEmits(['update:modelValue', 'saved'])
 

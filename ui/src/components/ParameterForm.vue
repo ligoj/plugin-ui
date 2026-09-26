@@ -15,7 +15,7 @@
     <div v-for="p in group.params" :key="p.id" class="pfield" :class="{ 'pfield--deprecated': isDeprecated(p) }">
       <v-chip v-if="isDeprecated(p)" size="x-small" color="warning" variant="tonal" class="pfield-deprecated" prepend-icon="mdi-alert-outline">{{ t('wizard.params.deprecated') }}</v-chip>
       <component :is="resolveField(p)" v-if="resolveField(p)" :model-value="values[p.id]" :parameter="p" :form-values="values" :mode="fieldContext.mode"
-        :is-node="!!fieldContext.isNode" :node-id="fieldContext.nodeId" :instance-node-id="fieldContext.instanceNodeId" @update:model-value="set(p, $event)" />
+        :is-node="!!fieldContext.isNode" :node-id="fieldContext.nodeId" :instance-node-id="fieldContext.instanceNodeId" :project="fieldContext.project ?? null" @update:model-value="set(p, $event)" />
       <LigojTextField v-else-if="isTextParam(p)" :model-value="values[p.id]" :type="isPassword(p) ? 'password' : 'text'" v-bind="common(p)" @update:model-value="set(p, $event)" />
       <LigojTextField v-else-if="typeKind(p) === 'integer'" :model-value="values[p.id]" type="number" :min="p.min" :max="p.max" v-bind="common(p)" @update:model-value="set(p, $event === '' || $event == null ? $event : Number($event))" />
       <v-checkbox v-else-if="typeKind(p) === 'bool'" :model-value="values[p.id]" :label="paramLabel(p)" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" @update:model-value="set(p, $event)" />

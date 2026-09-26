@@ -49,7 +49,7 @@
     </SubscriptionsPanel>
 
     <ProjectEditDialog v-model="editDialog" :project="project" @saved="load" />
-    <SubscribeWizardDialog v-model="subscribeDialog" :project-id="project?.id" :project-name="project?.name" @saved="load" />
+    <SubscribeWizardDialog v-model="subscribeDialog" :project-id="project?.id" :project-name="project?.name" :project="project" @saved="load" />
     <AuditDialog v-model="auditDialog" :target="project" />
 
     <div v-if="rowMenu.open" class="rowmenu-bg" @click="closeRowMenu">
