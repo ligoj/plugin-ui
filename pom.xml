@@ -4,13 +4,13 @@
     <parent>
         <groupId>org.ligoj.api</groupId>
         <artifactId>plugin-parent</artifactId>
-        <version>5.0.2</version>
+        <version>5.0.3</version>
         <relativePath />
     </parent>
 
     <groupId>org.ligoj.plugin</groupId>
     <artifactId>plugin-ui</artifactId>
-    <version>5.0.5-SNAPSHOT</version>
+    <version>5.0.5</version>
     <packaging>jar</packaging>
     <name>Ligoj - Plugin UI</name>
     <url>https://github.com/ligoj/plugin-ui</url>
