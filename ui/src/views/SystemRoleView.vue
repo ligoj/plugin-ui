@@ -15,7 +15,7 @@
       </template>
       <template #actions>
         <LjSearch v-model="query" :placeholder="t('system.role.searchPlaceholder')" @input="page = 1" />
-        <LjButton icon="mdi-plus" @click="openNew">{{ t('system.role.new') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi(ROLE_API, 'POST')" icon="mdi-plus" @click="openNew">{{ t('system.role.new') }}</LjButton>
       </template>
     </LjPageHeader>
 
@@ -52,10 +52,10 @@
       </template>
       <template #actions="{ item }">
         <RowActionsCog>
-          <button @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+          <button v-if="auth.isAllowedApi(ROLE_API, 'PUT')" @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
           <button @click="openVerify(item)"><v-icon size="18">mdi-shield-search</v-icon>{{ t('profile.apiVerify') }}</button>
           <div class="sep" />
-          <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+          <button v-if="auth.isAllowedApi(ROLE_API, 'DELETE')" class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
         </RowActionsCog>
       </template>
     </LjDataTable>
@@ -88,7 +88,7 @@
       </v-form>
       <template #footer>
         <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
-        <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi(ROLE_API, editTarget ? 'PUT' : 'POST')" icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
       </template>
     </LjDialog>
 
@@ -100,12 +100,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { LigojTextField, LigojCombobox, useApi, useAppStore, useI18nStore, LigojSelect } from '@ligoj/host'
+import { LigojTextField, LigojCombobox, useApi, useAppStore, useAuthStore, useI18nStore, LigojSelect } from '@ligoj/host'
 import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField, ApiVerifyDialog } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()
 const app = useAppStore()
+const auth = useAuthStore()
+// API-permission gates (v-if auth.isAllowedApi) of the actions
+const ROLE_API = 'rest/system/security/role'
 const i18n = useI18nStore()
 const t = i18n.t
 

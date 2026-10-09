@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mount, flushPromises } from '@vue/test-utils'
-import { useI18nStore, LjConfirmDialog, LjDataTable, _resetToolColorCache } from '@ligoj/host'
+import { useAuthStore, useI18nStore, LjConfirmDialog, LjDataTable, _resetToolColorCache } from '@ligoj/host'
 import { _resetToolColors } from '../toolColor.js'
 import SystemPluginView from '../views/SystemPluginView.vue'
 import enMessages from '../i18n/en.js'
@@ -63,6 +63,8 @@ describe('SystemPluginView row actions', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     useI18nStore().merge(enMessages, 'en')
+    // The actions are gated by the API permissions: act as an administrator
+    useAuthStore().session = { admin: true }
     _resetToolColors(); _resetToolColorCache()
     globalThis.fetch = vi.fn((url, opts) => {
       const method = opts?.method || 'GET'

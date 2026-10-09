@@ -67,14 +67,14 @@
         </section>
       <template #footer>
         <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
-        <LjButton icon="mdi-content-save" :disabled="!ready" :loading="saving" @click="submit">{{ isEdit ? t('common.save') : t('wizard.action.createNode') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi('rest/node', isEdit ? 'PUT' : 'POST')" icon="mdi-content-save" :disabled="!ready" :loading="saving" @click="submit">{{ isEdit ? t('common.save') : t('wizard.action.createNode') }}</LjButton>
       </template>
   </LjDialog>
 </template>
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { useApi, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, LjDialog, LjButton, LjSegmented, LjAvailabilityField, LigojSelect, LigojTextField } from '@ligoj/host'
+import { useApi, useAuthStore, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, LjDialog, LjButton, LjSegmented, LjAvailabilityField, LigojSelect, LigojTextField } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
 import { typeKind, coerce, buildParamWire, selectValue, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming, missingMandatory } from '../utils/pluginParams.js'
 import ParameterForm from '../components/ParameterForm.vue'
@@ -91,6 +91,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const api = useApi()
+const auth = useAuthStore()
 const errorStore = useErrorStore()
 const i18n = useI18nStore()
 const t = (k, p) => i18n.t(k, p)

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mount, flushPromises } from '@vue/test-utils'
-import { LjDataTable, LjConfirmDialog, useI18nStore } from '@ligoj/host'
+import { LjDataTable, LjConfirmDialog, useAuthStore, useI18nStore } from '@ligoj/host'
 import SystemHookView from '../views/SystemHookView.vue'
 import enMessages from '../i18n/en.js'
 
@@ -49,6 +49,8 @@ describe('SystemHookView', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     useI18nStore().merge(enMessages, 'en')
+    // The actions are gated by the API permissions: act as an administrator
+    useAuthStore().session = { admin: true }
     globalThis.fetch = vi.fn().mockResolvedValue(
       jsonResponse({ recordsTotal: 1, recordsFiltered: 1, data: [HOOK] }),
     )

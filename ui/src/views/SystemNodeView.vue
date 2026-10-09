@@ -24,7 +24,7 @@
             </button>
           </div>
         </div>
-        <LjButton icon="mdi-plus" @click="startCreate">{{ t('system.node.new') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi(NODE_API, 'POST')" icon="mdi-plus" @click="startCreate">{{ t('system.node.new') }}</LjButton>
       </template>
     </LjPageHeader>
 
@@ -77,27 +77,27 @@
       <template #actions="{ item }">
         <!-- Every row gets a status-refresh action in the cog menu; instances
              additionally expose edit / delete. -->
-        <RowActionsCog>
-          <button :disabled="isRefreshing(item.id)" @click="refreshNode(item)">
+        <RowActionsCog v-if="auth.isAllowedApi(REFRESH_API, 'POST') || auth.isAllowedApi(NODE_API, 'POST') || auth.isAllowedApi(NODE_API, 'PUT') || auth.isAllowedApi(NODE_API, 'DELETE')">
+          <button v-if="auth.isAllowedApi(REFRESH_API, 'POST')" :disabled="isRefreshing(item.id)" @click="refreshNode(item)">
             <v-progress-circular v-if="isRefreshing(item.id)" size="18" width="2" indeterminate />
             <v-icon v-else size="18">mdi-refresh</v-icon>{{ t('system.node.refreshStatus') }}
           </button>
           <template v-if="isTool(item)">
             <div class="sep" />
-            <button @click="startCreateInstance(item)"><v-icon size="18">mdi-plus</v-icon>{{ t('system.node.createInstance') }}</button>
+            <button v-if="auth.isAllowedApi(NODE_API, 'POST')" @click="startCreateInstance(item)"><v-icon size="18">mdi-plus</v-icon>{{ t('system.node.createInstance') }}</button>
           </template>
           <template v-if="isInstance(item)">
             <div class="sep" />
-            <button @click="startEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+            <button v-if="auth.isAllowedApi(NODE_API, 'PUT')" @click="startEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
             <div class="sep" />
-            <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+            <button v-if="auth.isAllowedApi(NODE_API, 'DELETE')" class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
           </template>
         </RowActionsCog>
       </template>
       <!-- Table-wide status refresh, appended to the tools cog after a divider
            (separated from the built-in Export / Copy). -->
       <template #tools-extra>
-        <button :disabled="refreshingAll" @click="refreshAllStatuses">
+        <button v-if="auth.isAllowedApi(REFRESH_API, 'POST')" :disabled="refreshingAll" @click="refreshAllStatuses">
           <v-progress-circular v-if="refreshingAll" size="18" width="2" indeterminate />
           <v-icon v-else size="18">mdi-refresh</v-icon>{{ t('system.node.refreshStatuses') }}
         </button>
@@ -115,7 +115,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useApi, useAppStore, useI18nStore, NodeIcon, NodeModeChip, isInstance, nodeType } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useI18nStore, NodeIcon, NodeModeChip, isInstance, nodeType } from '@ligoj/host'
 import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjStatus } from '@ligoj/host'
 import NodeEditDialog from './NodeEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
@@ -125,6 +125,10 @@ import { statusHeader } from '../useUiHelpers.js'
 
 const api = useApi()
 const app = useAppStore()
+const auth = useAuthStore()
+// API-permission gates (v-if auth.isAllowedApi) of the actions
+const NODE_API = 'rest/node'
+const REFRESH_API = 'rest/node/status/refresh'
 const i18n = useI18nStore()
 const t = i18n.t
 

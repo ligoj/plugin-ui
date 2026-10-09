@@ -15,7 +15,7 @@
       </template>
       <template #actions>
         <LjSearch v-model="dt.search.value" :placeholder="t('system.user.searchPlaceholder')" @input="onSearch" />
-        <LjButton icon="mdi-plus" @click="openNew">{{ t('system.user.new') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi(USER_API, 'POST')" icon="mdi-plus" @click="openNew">{{ t('system.user.new') }}</LjButton>
       </template>
     </LjPageHeader>
 
@@ -55,11 +55,11 @@
         </span>
       </template>
       <template #actions="{ item }">
-        <RowActionsCog>
-          <button @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
-          <button @click="openVerify(item)"><v-icon size="18">mdi-shield-search</v-icon>{{ t('profile.apiVerify') }}</button>
+        <RowActionsCog v-if="auth.isAllowedApi(USER_API, 'PUT') || auth.isAllowedApi(ROLES_API, 'GET') || auth.isAllowedApi(USER_API, 'DELETE')">
+          <button v-if="auth.isAllowedApi(USER_API, 'PUT')" @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+          <button v-if="auth.isAllowedApi(ROLES_API, 'GET')" @click="openVerify(item)"><v-icon size="18">mdi-shield-search</v-icon>{{ t('profile.apiVerify') }}</button>
           <div class="sep" />
-          <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+          <button v-if="auth.isAllowedApi(USER_API, 'DELETE')" class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
         </RowActionsCog>
       </template>
     </LjDataTable>
@@ -93,7 +93,7 @@
       </v-form>
       <template #footer>
         <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
-        <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi(USER_API, editTarget ? 'PUT' : 'POST')" icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
       </template>
     </LjDialog>
 
@@ -105,13 +105,17 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { LigojTextField, useApi, useAppStore, useDataTable, useI18nStore } from '@ligoj/host'
+import { LigojTextField, useApi, useAppStore, useAuthStore, useDataTable, useI18nStore } from '@ligoj/host'
 import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField, LigojAutocomplete, ApiVerifyDialog } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 import { appliesTo, federatedRoles, hasAnyRole, roleNames } from '../systemUserRoles.js'
 
 const api = useApi()
 const app = useAppStore()
+const auth = useAuthStore()
+// API-permission gates (v-if auth.isAllowedApi) of the actions
+const USER_API = 'rest/system/user'
+const ROLES_API = 'rest/system/security/role/withAuth'
 const i18n = useI18nStore()
 const t = i18n.t
 

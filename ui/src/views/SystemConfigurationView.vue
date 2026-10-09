@@ -17,7 +17,7 @@
       </template>
       <template #actions>
         <LjSearch v-model="query" :placeholder="t('system.config.searchPlaceholder')" @input="page = 1" />
-        <LjButton icon="mdi-plus" @click="openNew">{{ t('system.config.new') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi(CONFIG_API, 'POST')" icon="mdi-plus" @click="openNew">{{ t('system.config.new') }}</LjButton>
       </template>
     </LjPageHeader>
 
@@ -32,7 +32,7 @@
     </div>
 
     <!-- Collapsible encryption tool. -->
-    <div class="crypto" :class="{ open: cryptoOpen }">
+    <div v-if="auth.isAllowedApi('rest/system/security/crypto', 'POST')" class="crypto" :class="{ open: cryptoOpen }">
       <button type="button" class="crypto-head" @click="cryptoOpen = !cryptoOpen">
         <span class="ck-ic"><v-icon size="18">mdi-shield-key</v-icon></span>
         <span class="ck-txt"><span class="ck-title">{{ t('system.config.encryptToggle') }}</span><span class="ck-hint">{{ t('system.config.encryptHint') }}</span></span>
@@ -79,10 +79,10 @@
         </span>
       </template>
       <template #actions="{ item }">
-        <RowActionsCog>
-          <button @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+        <RowActionsCog v-if="auth.isAllowedApi(CONFIG_API, 'POST') || auth.isAllowedApi(CONFIG_API, 'DELETE')">
+          <button v-if="auth.isAllowedApi(CONFIG_API, 'POST')" @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
           <div class="sep" />
-          <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+          <button v-if="auth.isAllowedApi(CONFIG_API, 'DELETE')" class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
         </RowActionsCog>
       </template>
     </LjDataTable>
@@ -98,7 +98,7 @@
       </v-form>
       <template #footer>
         <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
-        <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi(CONFIG_API, 'POST')" icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
       </template>
     </LjDialog>
 
@@ -110,12 +110,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { LigojTextarea, useApi, useAppStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
+import { LigojTextarea, useApi, useAppStore, useAuthStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
 import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()
 const app = useAppStore()
+const auth = useAuthStore()
+// API-permission gates (v-if auth.isAllowedApi) of the actions
+const CONFIG_API = 'rest/system/configuration'
 const i18n = useI18nStore()
 const t = i18n.t
 const { copy } = useClipboard()

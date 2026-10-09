@@ -16,7 +16,7 @@
       <template #actions>
         <!-- Plug-in automation: scheduled check, automatic download, maintenance
              window (PluginAutomationDialog, rest/system/plugin/schedule). -->
-        <LjButton variant="ghost" icon="mdi-calendar-clock" @click="automationOpen = true">{{ t('system.plugin.automation') }}
+        <LjButton v-if="auth.isAllowedApi('rest/system/plugin/schedule', 'PUT')" variant="ghost" icon="mdi-calendar-clock" @click="automationOpen = true">{{ t('system.plugin.automation') }}
           <v-tooltip activator="parent" location="bottom" max-width="420" :text="automationSummary" />
         </LjButton>
         <!-- Custom repository picker (mirrors the login/profile locale picker). -->
@@ -33,10 +33,10 @@
             </button>
           </div>
         </div>
-        <LjButton variant="ghost" icon="mdi-magnify-plus-outline" :disabled="checking" @click="askCheckVersions">{{ t('system.plugin.checkVersions') }}</LjButton>
-        <LjButton variant="danger" icon="mdi-restart" :disabled="restarting" @click="askRestart">{{ t('system.plugin.restart') }}</LjButton>
-        <LjButton variant="ghost" icon="mdi-upload" @click="openUpload">{{ t('system.plugin.upload') }}</LjButton>
-        <LjButton icon="mdi-plus" @click="openInstall">{{ t('system.plugin.install') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi('rest/system/plugin/schedule/check', 'POST')" variant="ghost" icon="mdi-magnify-plus-outline" :disabled="checking" @click="askCheckVersions">{{ t('system.plugin.checkVersions') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi('rest/system/plugin/restart', 'PUT')" variant="danger" icon="mdi-restart" :disabled="restarting" @click="askRestart">{{ t('system.plugin.restart') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi('rest/system/plugin/upload', 'PUT')" variant="ghost" icon="mdi-upload" @click="openUpload">{{ t('system.plugin.upload') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi(PLUGIN_API, 'POST')" icon="mdi-plus" @click="openInstall">{{ t('system.plugin.install') }}</LjButton>
       </template>
     </LjPageHeader>
 
@@ -82,8 +82,13 @@
         <span v-if="item.embedded" class="vchip embedded"><v-icon size="13">mdi-package-variant-closed</v-icon>{{ t('system.plugin.embedded') }}
           <v-tooltip activator="parent" location="top" max-width="380" :text="t('system.plugin.embeddedTooltip')" />
         </span>
-        <span v-if="item.latestLocalVersion" class="vchip local" :title="t('system.plugin.cancelLocal')" @click.stop="cancelLocal(item)">{{ item.latestLocalVersion }}<v-icon size="13">mdi-close</v-icon></span>
-        <span v-if="item.newVersion && item.newVersion !== item.latestLocalVersion" class="vchip up" :title="t('system.plugin.upgradeAvailable')" @click.stop="installOne(item.artifact)"><v-icon size="13">mdi-arrow-up</v-icon>{{ item.newVersion }}</span>
+        <!-- Version chips: actionable (cancel the staged version / install the new one) only with the API permission -->
+        <span v-if="item.latestLocalVersion && auth.isAllowedApi(PLUGIN_API, 'DELETE')" class="vchip local" :title="t('system.plugin.cancelLocal')" @click.stop="cancelLocal(item)">{{ item.latestLocalVersion }}<v-icon size="13">mdi-close</v-icon></span>
+        <span v-else-if="item.latestLocalVersion" class="vchip local static">{{ item.latestLocalVersion }}</span>
+        <template v-if="item.newVersion && item.newVersion !== item.latestLocalVersion">
+          <span v-if="auth.isAllowedApi(PLUGIN_API, 'POST')" class="vchip up" :title="t('system.plugin.upgradeAvailable')" @click.stop="installOne(item.artifact)"><v-icon size="13">mdi-arrow-up</v-icon>{{ item.newVersion }}</span>
+          <span v-else class="vchip up static"><v-icon size="13">mdi-arrow-up</v-icon>{{ item.newVersion }}</span>
+        </template>
       </template>
       <!-- Verified vendor: the code-signature state of the installed JAR, computed
            at startup by the API. The signer identity is only trustworthy with the
@@ -110,13 +115,13 @@
            plug-in scheduled for removal only shows the indicator. -->
       <template #actions="{ item }">
         <v-icon v-if="item.deleted" class="deleted" size="18" color="warning" :title="t('system.plugin.deletionScheduled')">mdi-cancel</v-icon>
-        <RowActionsCog v-else>
-          <button :disabled="!canToggle(item) || togglingKey === item.artifact" :class="{ embedded: item.embedded }" @click="toggleEnabled(item)">
+        <RowActionsCog v-else-if="auth.isAllowedApi(PLUGIN_API, 'PUT') || (!item.embedded && auth.isAllowedApi(PLUGIN_API, 'DELETE'))">
+          <button v-if="auth.isAllowedApi(PLUGIN_API, 'PUT')" :disabled="!canToggle(item) || togglingKey === item.artifact" :class="{ embedded: item.embedded }" @click="toggleEnabled(item)">
             <v-progress-circular v-if="togglingKey === item.artifact" size="18" width="2" indeterminate />
             <v-icon v-else size="18">{{ item.enabled ? 'mdi-power-off' : 'mdi-power' }}</v-icon>{{ item.enabled ? t('system.plugin.disable') : t('system.plugin.enable') }}
             <v-tooltip activator="parent" location="start" max-width="380" :text="toggleTooltip(item)" />
           </button>
-          <template v-if="!item.embedded">
+          <template v-if="!item.embedded && auth.isAllowedApi(PLUGIN_API, 'DELETE')">
             <div class="sep" />
             <button class="danger" @click="askRemove(item.artifact)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('system.plugin.delete') }}</button>
           </template>
@@ -210,6 +215,8 @@ const api = useApi()
 const app = useAppStore()
 const i18n = useI18nStore()
 const auth = useAuthStore()
+// API-permission gates (v-if auth.isAllowedApi) of the actions
+const PLUGIN_API = 'rest/system/plugin'
 const t = i18n.t
 
 const REPOSITORIES = computed(() => [
@@ -648,6 +655,7 @@ onMounted(() => {
 .vchip { display: inline-flex; align-items: center; gap: 2px; font-family: var(--mono); font-size: 10.5px; font-weight: 700; border-radius: var(--radius-sm); padding: 1px 6px; margin-left: 6px; cursor: pointer; }
 .vchip.local { color: var(--accent); background: rgba(var(--v-theme-secondary), .14); }
 .vchip.embedded { background: var(--pill); color: var(--ink-2); cursor: default; }
+.vchip.static { cursor: default; }
 .vchip.up { color: #1d9d63; background: rgba(29, 157, 99, .14); }
 /* Danger accent for the inline delete trigger (base `.lj-iconbtn` is global). */
 .lj-iconbtn.danger:hover { background: rgba(var(--v-theme-error), .1); color: rgb(var(--v-theme-error)); }

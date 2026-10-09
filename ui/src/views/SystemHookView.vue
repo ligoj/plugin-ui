@@ -20,7 +20,7 @@
       </template>
       <template #actions>
         <LjSearch v-model="dt.search.value" :placeholder="t('system.hook.searchPlaceholder')" @input="onSearch" />
-        <LjButton icon="mdi-plus" @click="openNew">{{ t('system.hook.new') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi(HOOK_API, 'POST')" icon="mdi-plus" @click="openNew">{{ t('system.hook.new') }}</LjButton>
       </template>
     </LjPageHeader>
 
@@ -45,10 +45,10 @@
         <span v-else class="dbadge async"><v-icon size="13">mdi-timer-sand</v-icon>{{ t('system.hook.async') }}</span>
       </template>
       <template #actions="{ item }">
-        <RowActionsCog>
-          <button @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+        <RowActionsCog v-if="auth.isAllowedApi(HOOK_API, 'PUT') || auth.isAllowedApi(HOOK_API, 'DELETE')">
+          <button v-if="auth.isAllowedApi(HOOK_API, 'PUT')" @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
           <div class="sep" />
-          <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+          <button v-if="auth.isAllowedApi(HOOK_API, 'DELETE')" class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
         </RowActionsCog>
       </template>
     </LjDataTable>
@@ -79,7 +79,7 @@
       </v-form>
       <template #footer>
         <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
-        <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi(HOOK_API, editTarget ? 'PUT' : 'POST')" icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
       </template>
     </LjDialog>
 
@@ -91,12 +91,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { LigojTextField, LigojCombobox, useApi, useAppStore, useDataTable, useI18nStore, LigojSelect } from '@ligoj/host'
+import { LigojTextField, LigojCombobox, useApi, useAppStore, useAuthStore, useDataTable, useI18nStore, LigojSelect } from '@ligoj/host'
 import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
 
 const api = useApi()
 const app = useAppStore()
+const auth = useAuthStore()
+// API-permission gates (v-if auth.isAllowedApi) of the actions
+const HOOK_API = 'rest/system/hook'
 const i18n = useI18nStore()
 const t = i18n.t
 

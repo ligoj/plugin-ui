@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mount, flushPromises } from '@vue/test-utils'
-import { useI18nStore } from '@ligoj/host'
+import { useAuthStore, useI18nStore } from '@ligoj/host'
 import SystemNodeView from '../views/SystemNodeView.vue'
 import enMessages from '../i18n/en.js'
 
@@ -56,6 +56,8 @@ describe('SystemNodeView status refresh', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     useI18nStore().merge(enMessages, 'en')
+    // The actions are gated by the API permissions: act as an administrator
+    useAuthStore().session = { admin: true }
     // GET returns the node list; POST (a status refresh) just resolves ok.
     globalThis.fetch = vi.fn((url, opts) =>
       Promise.resolve((opts?.method || 'GET') === 'GET' ? jsonResponse([TOOL, INSTANCE]) : jsonResponse('UP')),

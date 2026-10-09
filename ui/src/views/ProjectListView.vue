@@ -14,7 +14,7 @@
       </template>
       <template #actions>
         <LjSearch v-model="search" :placeholder="t('project.searchPlaceholder')" />
-        <LjButton icon="mdi-plus" @click="openNew">{{ t('project.new') }}</LjButton>
+        <LjButton v-if="auth.isAllowedApi(PROJECT_API, 'POST')" icon="mdi-plus" @click="openNew">{{ t('project.new') }}</LjButton>
       </template>
     </LjPageHeader>
 
@@ -43,10 +43,10 @@
         <span class="subs-chip">{{ item.subs }}</span>
       </template>
       <template #actions="{ item }">
-        <RowActionsCog>
-          <button @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
+        <RowActionsCog v-if="auth.isAllowedApi(PROJECT_API, 'PUT') || auth.isAllowedApi(PROJECT_API, 'DELETE')">
+          <button v-if="auth.isAllowedApi(PROJECT_API, 'PUT')" @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
           <div class="sep" />
-          <button class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
+          <button v-if="auth.isAllowedApi(PROJECT_API, 'DELETE')" class="danger" @click="startDelete(item)"><v-icon size="18">mdi-delete-outline</v-icon>{{ t('common.delete') }}</button>
         </RowActionsCog>
       </template>
     </LjDataTable>
@@ -65,7 +65,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useApi, useAppStore, useDataTable, useDemoMode, useI18nStore, userVisualId, userFullName } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useDataTable, useDemoMode, useI18nStore, userVisualId, userFullName } from '@ligoj/host'
 import { DEMO_PROJECTS } from '../demo/demoData.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
@@ -74,8 +74,11 @@ import { LjDataTable, LjConfirmDialog, LjPageHeader, LjButton, LjSearch } from '
 const router = useRouter()
 const api = useApi()
 const appStore = useAppStore()
+const auth = useAuthStore()
 const i18n = useI18nStore()
 const t = i18n.t
+// API-permission gates (v-if auth.isAllowedApi) of the actions
+const PROJECT_API = 'rest/project'
 
 // Server-side paging, sorting and search (rest/project: rows / page / sidx / sord / search[value]);
 // the table emits its options and the current page only is loaded, so any number of projects works.
