@@ -7,7 +7,8 @@
 
   Each of `nodeStats` / `subStats` is { total, up, down, unknown }. The v-tooltip
   shows BOTH breakdowns — one section each, one row per state (icon · name ·
-  value · percentage), HIDING any state at 0% or 100%.
+  value · percentage), HIDING any state at 0% or 100%. An optional
+  `projectStats` (same shape, projects by health) adds a first section.
 
   Overall dot colour combines both: green (ok) when everything is up, red (error)
   when everything is down, orange (warn) for any mix, grey (idle) when nothing is
@@ -53,6 +54,8 @@ import { useI18nStore } from '@ligoj/host'
 const props = defineProps({
   // Node operational health and subscription health; each { total, up, down, unknown }.
   nodeStats: { type: Object, default: null },
+  // Optional health of projects, same shape, shown first (project list)
+  projectStats: { type: Object, default: null },
   subStats: { type: Object, default: null },
   refreshing: { type: Boolean, default: false },
   // Tooltip hint of the click actions, replacing the default one (instances · Shift+click: subscriptions)
@@ -70,11 +73,11 @@ function onClick(e) { if (!props.readonly) emit('refresh', !!e.shiftKey) }
 // Combined overall colour over BOTH node + subscription items: all up → ok,
 // all down → error, nothing known → idle, anything else → warn.
 const overall = computed(() => {
-  const a = props.nodeStats || {}
-  const b = props.subStats || {}
-  const total = (a.total || 0) + (b.total || 0)
-  const up = (a.up || 0) + (b.up || 0)
-  const down = (a.down || 0) + (b.down || 0)
+  const all = [props.projectStats, props.nodeStats, props.subStats].filter(Boolean)
+  const sum = (key) => all.reduce((n, s) => n + (s[key] || 0), 0)
+  const total = sum('total')
+  const up = sum('up')
+  const down = sum('down')
   if (!total) return 'idle'
   if (up === total) return 'ok'
   if (down === total) return 'error'
@@ -112,6 +115,7 @@ function buildBar(s) {
 // match the original subscription / instance progress bars.
 const sections = computed(() => {
   const out = []
+  if (props.projectStats) out.push({ key: 'project', label: t('home.projectStatus.label'), icon: 'mdi-folder-outline', total: props.projectStats.total || 0, bar: buildBar(props.projectStats), rows: buildRows(props.projectStats) })
   if (props.subStats) out.push({ key: 'sub', label: t('home.subStatus.label'), icon: 'mdi-connection', total: props.subStats.total || 0, bar: buildBar(props.subStats), rows: buildRows(props.subStats) })
   if (props.nodeStats) out.push({ key: 'node', label: t('home.nodeStatus.label'), icon: 'mdi-server-outline', total: props.nodeStats.total || 0, bar: buildBar(props.nodeStats), rows: buildRows(props.nodeStats) })
   return out

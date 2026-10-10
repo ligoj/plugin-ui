@@ -20,12 +20,15 @@
 
     <LjDataTable :headers="headers" :items="items" :items-length="total" :loading="dt.loading.value" item-value="id" default-sort="name" :empty-text="t('common.noData') || 'Aucune donnée'"
       filename="projects.csv" :fetch-all="exportAll" @update:options="loadData" @row-click="openProject">
-      <!-- Status badge of the project's subscriptions, loaded when the row appears (demo projects have none) -->
+      <!-- Status badge of the whole page in the column header, of each project's subscriptions in its cell
+           (loaded with the page; demo projects have none) -->
+      <template v-if="pageStatus" #header.status>
+        <NodeStatusBadge :project-stats="pageProjectStatus" :sub-stats="pageStatus" :node-stats="null" :refreshing="refreshingIds.size > 0"
+          :hint="t('project.status.refreshHint')" :readonly="!canRefreshStatus" @refresh="refreshPage" />
+      </template>
       <template #cell.status="{ item }">
-        <span v-if="item.subs && item.id > 0" v-appear="() => loadStatus(item)">
-          <NodeStatusBadge v-if="statuses.get(item.id)" :sub-stats="statuses.get(item.id)" :node-stats="null" :refreshing="refreshingIds.has(item.id)"
-            :hint="t('project.status.refreshHint')" :readonly="!canRefreshStatus" @refresh="refreshStatus(item)" />
-        </span>
+        <NodeStatusBadge v-if="statuses.get(item.id)" :sub-stats="statuses.get(item.id)" :node-stats="null" :refreshing="refreshingIds.has(item.id)"
+          :hint="t('project.status.refreshHint')" :readonly="!canRefreshStatus" @refresh="refreshStatus(item)" />
       </template>
       <template #cell.name="{ item }">
         <div class="name-cell">
@@ -77,7 +80,6 @@ import { DEMO_PROJECTS } from '../demo/demoData.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
 import NodeStatusBadge from '../components/NodeStatusBadge.vue'
-import { vAppear } from '../directives/appear.js'
 import { statusHeader } from '../useUiHelpers.js'
 import { statusCounts } from '../utils/projectStatus.js'
 import { LjDataTable, LjConfirmDialog, LjPageHeader, LjButton, LjSearch } from '@ligoj/host'
@@ -127,7 +129,8 @@ const headers = computed(() => [
 ])
 
 /* Status badge of each project: the last known statuses of its subscriptions (GET rest/subscription/status/{id},
-   no tool call), loaded once when its row appears. A click refreshes its subscriptions, then reloads them. */
+   no tool call), loaded with its page. A click refreshes its subscriptions, then reloads them. The column header
+   shows the badge of the whole page, a click refreshes every project of the page. */
 const statuses = ref(new Map())
 const refreshingIds = ref(new Set())
 const canRefreshStatus = computed(() => auth.isAllowedApi('rest/subscription/status/refresh', 'GET'))
@@ -149,6 +152,37 @@ async function refreshStatus(item) {
     ids.delete(item.id)
     refreshingIds.value = ids
   }
+}
+const hasStatus = (item) => item.subs > 0 && item.id > 0
+watch(() => dt.items.value, (rows) => rows.map(mapProject).filter(hasStatus).forEach((item) => loadStatus(item)))
+const pageProjects = computed(() => items.value.filter(hasStatus))
+const pageStatus = computed(() => {
+  if (!pageProjects.value.length) return null
+  let total = 0
+  let up = 0
+  let down = 0
+  for (const item of pageProjects.value) {
+    total += item.subs
+    const s = statuses.value.get(item.id)
+    if (s) { up += s.up; down += s.down }
+  }
+  return { total, up, down, unknown: Math.max(0, total - up - down) }
+})
+// The projects of the page by health: UP when all their subscriptions are, DOWN with any DOWN one, else unknown
+const pageProjectStatus = computed(() => {
+  if (!pageProjects.value.length) return null
+  let up = 0
+  let down = 0
+  for (const item of pageProjects.value) {
+    const s = statuses.value.get(item.id)
+    if (s?.down) down++
+    else if (s && s.up === s.total) up++
+  }
+  const total = pageProjects.value.length
+  return { total, up, down, unknown: total - up - down }
+})
+async function refreshPage() {
+  await Promise.allSettled(pageProjects.value.map((item) => refreshStatus(item)))
 }
 function exportStatus(item) {
   const s = statuses.value.get(item.id)

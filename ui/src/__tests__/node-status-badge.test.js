@@ -58,6 +58,13 @@ describe('NodeStatusBadge', () => {
     expect(w.emitted('refresh')[1]).toEqual([true])
   })
 
+  it('shows the projects section first, counted in the overall status', () => {
+    const w = mountBadge({ projectStats: { total: 2, up: 1, down: 1, unknown: 0 }, subStats: { total: 3, up: 3, down: 0, unknown: 0 } })
+    expect(w.findAll('.nsb-title').map((e) => e.text())).toEqual(['home.projectStatus.label · 2', 'home.subStatus.label · 3'])
+    expect(w.find('.nsb-dot').classes()).toContain('warn')
+    expect(mountBadge({ projectStats: { total: 1, up: 0, down: 1, unknown: 0 } }).find('.nsb-dot').classes()).toContain('error')
+  })
+
   it('tells the default click actions, or the given ones', () => {
     const SUBS = { total: 1, up: 1, down: 0, unknown: 0 }
     expect(mountBadge({ subStats: SUBS }).find('.nsb-foot').text()).toBe('home.status.refreshHint')
