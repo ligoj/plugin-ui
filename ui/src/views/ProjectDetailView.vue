@@ -38,7 +38,8 @@
     </LjPageHeader>
 
 
-    <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length" default-view="list" storage-key="project" @rowmenu="onRowMenu">
+    <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length" default-view="list" storage-key="project" :status="statusBadge"
+      @rowmenu="onRowMenu" @refresh-status="onRefreshStatus">
       <template #empty>
         <div class="empty">
           <v-icon size="44" color="rgba(var(--v-theme-on-surface),.25)">mdi-cloud-off-outline</v-icon>
@@ -88,6 +89,7 @@ import ProjectEditDialog from './ProjectEditDialog.vue'
 import SubscribeWizardDialog from './SubscribeWizardView.vue'
 import AuditDialog from '../components/AuditDialog.vue'
 import SubscriptionsPanel from '../components/SubscriptionsPanel.vue'
+import { statusCounts, nodeStatusValues } from '../utils/projectStatus.js'
 
 const route = useRoute()
 const api = useApi()
@@ -114,6 +116,44 @@ const loading = ref(false)
 const pendingIds = ref(new Set())
 
 const subscriptions = computed(() => project.value?.subscriptions || [])
+
+/* Status badge of the subscriptions list, like the badge of a home page tool card: the statuses of the
+   subscriptions and of the instances they use (own status of each node, GET rest/node/status). A click refreshes
+   the instances, Shift+click the subscriptions; a user who may not refresh the instances refreshes the
+   subscriptions on any click. */
+const nodeStatuses = ref(new Map())
+const refreshingNodes = ref(false)
+const canRefreshNodes = computed(() => auth.isAllowedApi('rest/node/status/refresh', 'POST'))
+const canRefreshSubscriptions = computed(() => auth.isAllowedApi('rest/subscription/status/refresh', 'GET'))
+const instanceIds = computed(() => [...new Set(subscriptions.value.map((s) => s.node?.id).filter(Boolean))])
+const statusBadge = computed(() => {
+  if (!subscriptions.value.length) return null
+  return {
+    subStats: statusCounts(subscriptions.value.map((s) => s.status)),
+    nodeStats: statusCounts(instanceIds.value.map((id) => nodeStatuses.value.get(id)), instanceIds.value.length),
+    refreshing: pendingIds.value.size > 0 || refreshingNodes.value,
+    hint: canRefreshNodes.value ? null : t('project.status.refreshHint'),
+    readonly: !canRefreshNodes.value && !canRefreshSubscriptions.value,
+  }
+})
+async function loadNodeStatuses() {
+  try {
+    nodeStatuses.value = nodeStatusValues(await api.get('rest/node/status', { silent: true }))
+  } catch { /* keep the previous statuses on a transient failure */ }
+}
+async function onRefreshStatus(shift) {
+  if (shift || !canRefreshNodes.value) {
+    if (canRefreshSubscriptions.value) await refreshSubscriptions()
+    return
+  }
+  refreshingNodes.value = true
+  try {
+    await Promise.allSettled(instanceIds.value.map((id) => api.post(`rest/node/status/refresh/${encodeURIComponent(id)}`, null, { silent: true })))
+    await loadNodeStatuses()
+  } finally {
+    refreshingNodes.value = false
+  }
+}
 // Chip label: the full name when known, else the visual identifier (login by default)
 const leaderName = computed(() => userFullName(project.value?.teamLeader) || userVisualId(project.value?.teamLeader))
 // Tooltip rows: only the details the identity provider returned
@@ -170,6 +210,7 @@ async function load() {
   if (data && data.id != null) {
     project.value = data
     setCrumbs(data.name)
+    loadNodeStatuses()
     refreshSubscriptions()
   }
   loading.value = false

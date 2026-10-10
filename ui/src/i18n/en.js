@@ -480,6 +480,7 @@ export default {
   'home.subStatus.label': 'Subscriptions',
   'home.status.refresh': 'Refresh status',
   'home.status.refreshHint': 'Click: instances · Shift+click: subscriptions',
+  'project.status.refreshHint': 'Click: subscriptions',
 
   // Projects
   'project.title': 'Projects',

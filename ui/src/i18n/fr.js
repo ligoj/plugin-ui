@@ -479,6 +479,7 @@ export default {
   'home.subStatus.label': 'Souscriptions',
   'home.status.refresh': 'Rafraîchir le statut',
   'home.status.refreshHint': 'Clic : instances · Maj+clic : souscriptions',
+  'project.status.refreshHint': 'Clic : souscriptions',
 
   // Projets
   'project.title': 'Projets',

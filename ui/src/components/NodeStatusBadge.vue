@@ -13,13 +13,15 @@
   when everything is down, orange (warn) for any mix, grey (idle) when nothing is
   known. Clicking the dot emits `refresh` (refresh node statuses); SHIFT+click
   emits `refresh` with `true` (refresh subscription statuses). `refreshing` blinks
-  the dot.
+  the dot. `hint` replaces the default click hint of the tooltip when the
+  caller maps the clicks differently; `readonly` shows the status only (no
+  click, no hint), for a viewer who may not refresh.
 -->
 <template>
   <v-tooltip location="top" max-width="320" open-delay="120">
     <template #activator="{ props: a }">
-      <span v-bind="a" class="nsb-dot" :class="[overall, { refreshing }]" role="button"
-        :aria-label="t('home.status.refresh')" @click.stop="onClick" />
+      <span v-bind="a" class="nsb-dot" :class="[overall, { refreshing, readonly }]" :role="readonly ? undefined : 'button'"
+        :aria-label="readonly ? undefined : t('home.status.refresh')" @click.stop="onClick" />
     </template>
     <div class="nsb">
       <template v-for="sec in sections" :key="sec.key">
@@ -36,9 +38,9 @@
           <span class="nsb-pct">{{ r.pct }}%</span>
         </div>
       </template>
-      <div class="nsb-foot">
+      <div v-if="!readonly" class="nsb-foot">
         <v-icon size="12" :class="{ spin: refreshing }">mdi-refresh</v-icon>
-        <span>{{ refreshing ? t('subscription.tip.refreshing') : t('home.status.refreshHint') }}</span>
+        <span>{{ refreshing ? t('subscription.tip.refreshing') : (hint || t('home.status.refreshHint')) }}</span>
       </div>
     </div>
   </v-tooltip>
@@ -53,13 +55,17 @@ const props = defineProps({
   nodeStats: { type: Object, default: null },
   subStats: { type: Object, default: null },
   refreshing: { type: Boolean, default: false },
+  // Tooltip hint of the click actions, replacing the default one (instances · Shift+click: subscriptions)
+  hint: { type: String, default: null },
+  // Status only: no click, no hint
+  readonly: { type: Boolean, default: false },
 })
 const emit = defineEmits(['refresh'])
 
 const t = useI18nStore().t
 
 // Click → refresh node statuses; SHIFT+click → refresh subscription statuses.
-function onClick(e) { emit('refresh', !!e.shiftKey) }
+function onClick(e) { if (!props.readonly) emit('refresh', !!e.shiftKey) }
 
 // Combined overall colour over BOTH node + subscription items: all up → ok,
 // all down → error, nothing known → idle, anything else → warn.
@@ -120,6 +126,7 @@ const sections = computed(() => {
 .nsb-dot.warn { background: #df8a42; box-shadow: 0 0 0 3px rgba(223, 138, 66, .18), 0 0 10px 1px rgba(223, 138, 66, .6); }
 .nsb-dot.error { background: #df4d42; box-shadow: 0 0 0 3px rgba(223, 77, 66, .18), 0 0 10px 1px rgba(223, 77, 66, .6); }
 .nsb-dot.idle { background: rgba(var(--v-theme-on-surface), .2); }
+.nsb-dot.readonly { cursor: default; }
 .nsb-dot.refreshing { animation: nsb-blink .8s ease-in-out infinite; }
 @keyframes nsb-blink { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
 @media (prefers-reduced-motion: reduce) { .nsb-dot.refreshing { animation: none; } }

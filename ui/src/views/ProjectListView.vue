@@ -20,6 +20,13 @@
 
     <LjDataTable :headers="headers" :items="items" :items-length="total" :loading="dt.loading.value" item-value="id" default-sort="name" :empty-text="t('common.noData') || 'Aucune donnée'"
       filename="projects.csv" :fetch-all="exportAll" @update:options="loadData" @row-click="openProject">
+      <!-- Status badge of the project's subscriptions, loaded when the row appears (demo projects have none) -->
+      <template #cell.status="{ item }">
+        <span v-if="item.subs && item.id > 0" v-appear="() => loadStatus(item)">
+          <NodeStatusBadge v-if="statuses.get(item.id)" :sub-stats="statuses.get(item.id)" :node-stats="null" :refreshing="refreshingIds.has(item.id)"
+            :hint="t('project.status.refreshHint')" :readonly="!canRefreshStatus" @refresh="refreshStatus(item)" />
+        </span>
+      </template>
       <template #cell.name="{ item }">
         <div class="name-cell">
           <div class="folder-glyph"><v-icon color="#2f6df6" size="20">mdi-folder</v-icon></div>
@@ -69,6 +76,10 @@ import { useApi, useAppStore, useAuthStore, useDataTable, useDemoMode, useI18nSt
 import { DEMO_PROJECTS } from '../demo/demoData.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
+import NodeStatusBadge from '../components/NodeStatusBadge.vue'
+import { vAppear } from '../directives/appear.js'
+import { statusHeader } from '../useUiHelpers.js'
+import { statusCounts } from '../utils/projectStatus.js'
 import { LjDataTable, LjConfirmDialog, LjPageHeader, LjButton, LjSearch } from '@ligoj/host'
 
 const router = useRouter()
@@ -107,12 +118,42 @@ const total = computed(() => dt.totalItems.value + (demo.value ? DEMO_PROJECTS.l
 async function exportAll() { return (await dt.loadAll()).map(mapProject) }
 
 const headers = computed(() => [
+  statusHeader({ tooltip: t('common.status'), sortable: false, exportValue: (r) => exportStatus(r) }),
   { key: 'name', label: t('common.name'), sortable: true },
   { key: 'description', label: t('common.description'), sortable: false },
   { key: 'teamLeader', label: t('project.teamLeader') || 'Team leader', sortable: true, exportValue: (r) => r.teamLeader || '' },
   { key: 'createdDate', label: t('common.createdDate') || 'Created', sortable: true, exportValue: (r) => fmtDate(r.createdDate) },
   { key: 'subs', label: t('project.subsShort'), sortable: true, align: 'center', width: '90px' },
 ])
+
+/* Status badge of each project: the last known statuses of its subscriptions (GET rest/subscription/status/{id},
+   no tool call), loaded once when its row appears. A click refreshes its subscriptions, then reloads them. */
+const statuses = ref(new Map())
+const refreshingIds = ref(new Set())
+const canRefreshStatus = computed(() => auth.isAllowedApi('rest/subscription/status/refresh', 'GET'))
+async function loadStatus(item, force = false) {
+  if (!force && statuses.value.has(item.id)) return
+  const events = await api.get(`rest/subscription/status/${item.id}`, { silent: true })
+  statuses.value = new Map(statuses.value).set(item.id, statusCounts(Object.values(events || {}), item.subs))
+}
+async function refreshStatus(item) {
+  if (!canRefreshStatus.value) return
+  refreshingIds.value = new Set(refreshingIds.value).add(item.id)
+  try {
+    const project = await api.get(`rest/project/${item.id}`, { silent: true })
+    const ids = (project?.subscriptions || []).map((s) => `id=${encodeURIComponent(s.id)}`).join('&')
+    if (ids) await api.get(`rest/subscription/status/refresh?${ids}`, { silent: true })
+    await loadStatus(item, true)
+  } finally {
+    const ids = new Set(refreshingIds.value)
+    ids.delete(item.id)
+    refreshingIds.value = ids
+  }
+}
+function exportStatus(item) {
+  const s = statuses.value.get(item.id)
+  return s ? `${s.up}/${s.total}` : ''
+}
 
 /* Map a raw Ligoj project (DataTables row) to the card's shape. */
 function mapProject(p) {

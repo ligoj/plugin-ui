@@ -57,4 +57,21 @@ describe('NodeStatusBadge', () => {
     expect(w.emitted('refresh')[0]).toEqual([false])
     expect(w.emitted('refresh')[1]).toEqual([true])
   })
+
+  it('tells the default click actions, or the given ones', () => {
+    const SUBS = { total: 1, up: 1, down: 0, unknown: 0 }
+    expect(mountBadge({ subStats: SUBS }).find('.nsb-foot').text()).toBe('home.status.refreshHint')
+    expect(mountBadge({ subStats: SUBS, hint: 'Click: subscriptions' }).find('.nsb-foot').text()).toBe('Click: subscriptions')
+  })
+
+  it('is a plain status without refresh when read-only', async () => {
+    const w = mountBadge({ subStats: { total: 1, up: 1, down: 0, unknown: 0 }, readonly: true })
+    const dot = w.find('.nsb-dot')
+    expect(dot.attributes('role')).toBeUndefined()
+    expect(dot.attributes('tabindex')).toBeUndefined()
+    await dot.trigger('click')
+    expect(w.emitted('refresh')).toBeUndefined()
+    expect(w.find('.nsb-foot').exists()).toBe(false)
+    expect(w.find('.nsb-title').exists()).toBe(true)
+  })
 })

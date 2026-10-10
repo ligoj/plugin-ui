@@ -13,6 +13,11 @@
   Lazy details: each row emits `row-appear` (once it scrolls into view) so a host
   that only has light subscription data can fetch the full details on demand.
   The host cog click is surfaced as `rowmenu` ({ event, sub }).
+
+  `status` ({ subStats, nodeStats, refreshing, hint?, readonly? }) shows the
+  NodeStatusBadge of the whole list in the header of the list's status column,
+  like the badge of a tool card; its refresh is surfaced as `refresh-status`
+  (true on Shift+click).
 -->
 <template>
   <div class="subs-panel">
@@ -59,6 +64,10 @@
             <span v-for="(p, k) in item.pills" :key="k" class="pill" :class="{ cost: item.cost }">{{ p }}</span>
           </span>
         </template>
+        <template v-if="status" #header.status>
+          <NodeStatusBadge :sub-stats="status.subStats" :node-stats="status.nodeStats" :refreshing="!!status.refreshing" :hint="status.hint || null"
+            :readonly="!!status.readonly" @refresh="(shift) => $emit('refresh-status', shift)" />
+        </template>
         <template #cell.status="{ item }"><SubscriptionStatus :subscription="item.sub" :status="item.status" :loading="!!item.loading" /></template>
         <template #actions="{ item }">
           <span v-if="item.sub" class="rowact">
@@ -78,6 +87,7 @@ import { ref, computed, watch } from 'vue'
 import { PluginFeatures, useI18nStore, LjSegmented, LjSearch, LjDataTable } from '@ligoj/host'
 import SubscriptionGroupCard from './SubscriptionGroupCard.vue'
 import SubscriptionStatus from './SubscriptionStatus.vue'
+import NodeStatusBadge from './NodeStatusBadge.vue'
 import { vAppear } from '../directives/appear.js'
 import { statusHeader } from '../useUiHelpers.js'
 
@@ -89,8 +99,10 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   cog: { type: Boolean, default: true }, // show the host overflow (unsubscribe) cog
   storageKey: { type: String, default: '' }, // localStorage scope for the cards/list choice; '' disables persistence
+  // Status badge of the whole list in its status column header: { subStats, nodeStats, refreshing, hint?, readonly? }
+  status: { type: Object, default: null },
 })
-defineEmits(['rowmenu', 'row-appear', 'refresh-node'])
+defineEmits(['rowmenu', 'row-appear', 'refresh-node', 'refresh-status'])
 
 const t = useI18nStore().t
 

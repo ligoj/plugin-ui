@@ -67,3 +67,28 @@ describe('SubscriptionsPanel — view persistence', () => {
     expect(w.findComponent(LjDataTable).exists()).toBe(true)
   })
 })
+
+describe('SubscriptionsPanel — status header of the list', () => {
+  beforeEach(() => { setActivePinia(createPinia()) })
+
+  // The table stub renders the status header slot the panel provides, the badge stub exposes its bindings
+  const stubs = {
+    LjSearch: true, SubscriptionGroupCard: true, PluginFeatures: true,
+    LjDataTable: { props: ['headers'], template: '<div class="tbl"><slot name="header.status" :header="headers[0]" /></div>' },
+    NodeStatusBadge: { name: 'NodeStatusBadge', props: ['subStats', 'nodeStats', 'refreshing', 'hint', 'readonly'], emits: ['refresh'], template: '<i class="badge" />' },
+  }
+  const STATUS = { subStats: { total: 2, up: 1, down: 1, unknown: 0 }, nodeStats: { total: 1, up: 1, down: 0, unknown: 0 }, refreshing: true, hint: 'Click: subscriptions', readonly: false }
+
+  it('shows the status badge of the whole list in the status column header, and forwards its refresh', async () => {
+    const w = mount(SubscriptionsPanel, { props: { groups: GROUPS, defaultView: 'list', status: STATUS }, global: { stubs } })
+    const badge = w.findComponent({ name: 'NodeStatusBadge' })
+    expect(badge.props()).toEqual(STATUS)
+    badge.vm.$emit('refresh', true)
+    expect(w.emitted('refresh-status')).toEqual([[true]])
+  })
+
+  it('keeps the plain status header without a status', () => {
+    const w = mount(SubscriptionsPanel, { props: { groups: GROUPS, defaultView: 'list' }, global: { stubs } })
+    expect(w.findComponent({ name: 'NodeStatusBadge' }).exists()).toBe(false)
+  })
+})
