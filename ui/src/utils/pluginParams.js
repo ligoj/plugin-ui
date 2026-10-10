@@ -21,6 +21,14 @@ export function isTextParam(p) { const k = typeKind(p); return !k || ['text', 'p
 /** Whether a parameter's value must be masked. */
 export function isPassword(p) { return !!p?.secured || typeKind(p) === 'password' }
 
+/* ---- stored secured values ---- */
+
+/** Form value of a stored secured value left untouched: the API keeps it, its clear value is never read. */
+export const UNTOUCHED = Symbol('untouched')
+
+/** Whether a parameter value read from the API is a stored secured value, redacted by the API. */
+export function isRedacted(p, text) { return !!p?.secured && text === '-secured-' }
+
 /** Coerce a parameter's raw default value to the type its field expects. A
  *  SELECT is edited in the form as its option VALUE (see buildParamWire); if the
  *  default is stored as an option index, resolve it back to the value. */
@@ -64,6 +72,8 @@ export function missingMandatory(parameters, values) {
 }
 
 export function buildParamWire(p, value) {
+  // The stored value is kept: the redacted value is never sent back, it would be stored as the new value
+  if (value === UNTOUCHED) return { parameter: p.id, untouched: true }
   if (isEmptyValue(value) && !p.mandatory && !p.required) return null
   const base = { parameter: p.id }
   const k = typeKind(p)

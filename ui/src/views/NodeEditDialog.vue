@@ -62,7 +62,7 @@
           <!-- Parameters are ordered by display name (ascending) by default; a
                plugin may override the order and/or group them via its
                `parameterLayout` hook (see parameterGroups / resolveParameterLayout). -->
-          <ParameterForm :groups="parameterGroups" :values="paramValues" :resolve-field="resolveParameterField"
+          <ParameterForm :groups="parameterGroups" :values="paramValues" :stored="storedSecrets" :resolve-field="resolveParameterField"
             :field-context="{ mode: selected.mode, isNode: true, nodeId: currentNodeId, instanceNodeId: currentNodeId }" @update="(id, v) => (paramValues[id] = v)" />
         </section>
       <template #footer>
@@ -76,7 +76,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useApi, useAuthStore, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, LjDialog, LjButton, LjSegmented, LjAvailabilityField, LigojSelect, LigojTextField } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
-import { typeKind, coerce, buildParamWire, selectValue, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming, missingMandatory } from '../utils/pluginParams.js'
+import { typeKind, coerce, buildParamWire, selectValue, isRedacted, UNTOUCHED, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming, missingMandatory } from '../utils/pluginParams.js'
 import ParameterForm from '../components/ParameterForm.vue'
 import { modesFromParameters, nodeModes } from '../utils/subscriptionModes.js'
 
@@ -109,6 +109,8 @@ const services = ref([])
 const tools = ref([])
 const parameters = ref([])
 const paramValues = reactive({})
+// The parameters having a stored secured value: redacted by the API, kept untouched unless replaced
+const storedSecrets = ref([])
 const loadingServices = ref(false)
 const loadingTools = ref(false)
 const loadingParams = ref(false)
@@ -229,9 +231,11 @@ async function bootstrapEdit(node) {
     const visible = list.filter((it) => it?.parameter && it.parameter.availableForNode !== false)
     parameters.value = visible.map((it) => it.parameter)
     for (const k of Object.keys(paramValues)) delete paramValues[k]
+    storedSecrets.value = visible.filter((it) => isRedacted(it.parameter, it.text)).map((it) => it.parameter.id)
     for (const it of visible) {
       const p = it.parameter; const k = typeKind(p)
-      if (k === 'integer') paramValues[p.id] = it.integer ?? ''
+      if (storedSecrets.value.includes(p.id)) paramValues[p.id] = UNTOUCHED
+      else if (k === 'integer') paramValues[p.id] = it.integer ?? ''
       else if (k === 'bool') paramValues[p.id] = !!it.bool
       else if (['multiple', 'multiselect', 'tags'].includes(k)) paramValues[p.id] = it.selections || []
       else if (k === 'select') paramValues[p.id] = it.index != null ? selectValue(p, it.index) : (it.text ?? '')
@@ -243,6 +247,7 @@ async function bootstrapEdit(node) {
 function reset() {
   selected.service = null; selected.tool = null; selected.node = null; selected.mode = null
   tools.value = []; parameters.value = []; form.id = ''; form.name = ''; error.value = null
+  storedSecrets.value = []
   for (const k of Object.keys(paramValues)) delete paramValues[k]
 }
 
