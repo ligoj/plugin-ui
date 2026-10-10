@@ -64,6 +64,11 @@
                `parameterLayout` hook (see parameterGroups / resolveParameterLayout). -->
           <ParameterForm :groups="parameterGroups" :values="paramValues" :stored="storedSecrets" :resolve-field="resolveParameterField"
             :field-context="{ mode: selected.mode, isNode: true, nodeId: currentNodeId, instanceNodeId: currentNodeId }" @update="(id, v) => (paramValues[id] = v)" />
+          <!-- Credential expiry: detected by the tool plug-in during the status check, else entered here. Only with an
+               API storing it -->
+          <p v-if="expiryAvailable && expiryDetected" class="cred-detected"><v-icon size="15">mdi-key-check-outline</v-icon>{{ detectedExpiryText }}</p>
+          <LigojTextField v-else-if="expiryAvailable" v-model="form.credentialExpiry" type="date" :label="t('system.node.credentialExpiry')" :hint="t('system.node.credentialExpiryHint')"
+            persistent-hint clearable variant="outlined" density="comfortable" hide-details="auto" class="cred-expiry-field" />
         </section>
       <template #footer>
         <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
@@ -103,7 +108,7 @@ const dialogTitle = computed(() => isEdit.value
   : t('system.node.createTitle'))
 
 const selected = reactive({ service: null, tool: null, node: null, mode: null })
-const form = reactive({ id: '', name: '' })
+const form = reactive({ id: '', name: '', credentialExpiry: '' })
 const idTaken = ref(false)
 const services = ref([])
 const tools = ref([])
@@ -142,6 +147,17 @@ const currentNodeId = computed(() => isEdit.value ? props.node?.id : selected.to
 const ready = computed(() => isEdit.value
   ? !!form.name
   : !!selected.service && !!selected.tool && !!selected.mode && !!form.id && !!form.name)
+
+/* ---- credential expiry ---- */
+// The API stores the credential expiry (session data): an older one would refuse the unknown field
+const expiryAvailable = computed(() => !!auth.appSettings?.data?.['credential-expiry'])
+// The tool plug-in detected it: read-only, the next status check updates it
+const expiryDetected = computed(() => isEdit.value && props.node?.credentialExpirySource === 'detected')
+const detectedExpiryText = computed(() => (props.node?.credentialExpiry
+  ? t('system.node.credentialExpiryDetected', { date: new Date(props.node.credentialExpiry).toLocaleDateString(i18n.locale, { timeZone: 'UTC' }) })
+  : t('system.node.credentialNeverExpires')))
+// A day of the date input is sent as its 00:00 UTC instant, or null to remove the expiry; nothing without the feature
+function expiryWire() { return expiryAvailable.value ? { credentialExpiry: form.credentialExpiry ? Date.parse(`${form.credentialExpiry}T00:00:00Z`) : null } : {} }
 
 /* ---- param helpers ---- */
 /* typeKind/isTextParam/isPassword/coerce/buildParamWire/ensureToolPluginLoaded
@@ -223,6 +239,8 @@ async function bootstrapEdit(node) {
   else { selected.service = node; selected.tool = null; selected.node = null }
   selected.mode = node.mode || 'all'
   form.id = node.id; form.name = node.name || ''
+  // A manual expiry is edited as a day: the UTC day of its 00:00 UTC instant
+  form.credentialExpiry = node.credentialExpiry && node.credentialExpirySource === 'manual' ? new Date(node.credentialExpiry).toISOString().slice(0, 10) : ''
   await ensureToolPluginLoaded(node.id)
   loadingParams.value = true
   try {
@@ -246,7 +264,7 @@ async function bootstrapEdit(node) {
 
 function reset() {
   selected.service = null; selected.tool = null; selected.node = null; selected.mode = null
-  tools.value = []; parameters.value = []; form.id = ''; form.name = ''; error.value = null
+  tools.value = []; parameters.value = []; form.id = ''; form.name = ''; form.credentialExpiry = ''; error.value = null
   storedSecrets.value = []
   for (const k of Object.keys(paramValues)) delete paramValues[k]
 }
@@ -306,8 +324,8 @@ async function submit() {
     // open with no feedback. `handleResponse` (still invoked) toasts any
     // error (incl. the data-integrity case), so here we only act on success.
     const res = isEdit.value
-      ? await api.put('rest/node', { id: props.node.id, node: props.node.refined?.id, name: form.name, mode: wireMode(selected.mode), untouchedParameters: false, parameters: parametersWire }, { raw: true })
-      : await api.post('rest/node', { id: form.id, name: form.name, node: selected.tool?.id, mode: wireMode(selected.mode), untouchedParameters: false, parameters: parametersWire }, { raw: true })
+      ? await api.put('rest/node', { id: props.node.id, node: props.node.refined?.id, name: form.name, mode: wireMode(selected.mode), untouchedParameters: false, parameters: parametersWire, ...expiryWire() }, { raw: true })
+      : await api.post('rest/node', { id: form.id, name: form.name, node: selected.tool?.id, mode: wireMode(selected.mode), untouchedParameters: false, parameters: parametersWire, ...expiryWire() }, { raw: true })
     if (!res || !res.ok) {
       error.value = t(isEdit.value ? 'wizard.error.saveFailed' : 'wizard.error.nodeCreationFailed')
       return
@@ -354,4 +372,6 @@ async function submit() {
 .ro { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); padding: 8px 12px; border-radius: var(--radius-sm); background: var(--hover); }
 .ro :deep(img.tool-icon), .ro :deep(i) { width: 20px; height: 20px; font-size: 18px; }
 .muted { font-size: 13px; color: var(--ink-3); }
+.cred-detected { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
+.cred-expiry-field { max-width: 320px; margin-top: 4px; }
 </style>

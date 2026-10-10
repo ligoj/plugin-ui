@@ -64,7 +64,7 @@
             <NodeIcon :node="item" />
           </span>
           <div class="ac-txt">
-            <div class="ac-name">{{ item.name || '—' }}</div><code class="ac-key">{{ item.id }}</code>
+            <div class="ac-name">{{ item.name || '—' }}<CredentialExpiryChip :node="item" /></div><code class="ac-key">{{ item.id }}</code>
           </div>
         </div>
       </template>
@@ -128,6 +128,7 @@ import RowActionsCog from '../components/RowActionsCog.vue'
 import { useClientTable } from '../useClientTable.js'
 import SubscriptionStatus from '../components/SubscriptionStatus.vue'
 import NodeStatusBadge from '../components/NodeStatusBadge.vue'
+import CredentialExpiryChip from '../components/CredentialExpiryChip.vue'
 import { statusCounts } from '../utils/projectStatus.js'
 import { statusHeader } from '../useUiHelpers.js'
 
