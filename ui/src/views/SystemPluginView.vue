@@ -82,6 +82,9 @@
         <span v-if="item.embedded" class="vchip embedded"><v-icon size="13">mdi-package-variant-closed</v-icon>{{ t('system.plugin.embedded') }}
           <v-tooltip activator="parent" location="top" max-width="380" :text="t('system.plugin.embeddedTooltip')" />
         </span>
+        <span v-if="item.incompatible" class="vchip incompatible"><v-icon size="13">mdi-puzzle-remove-outline</v-icon>{{ t('system.plugin.incompatible') }}
+          <v-tooltip activator="parent" location="top" max-width="420" :text="t('system.plugin.incompatibleTooltip', { version: hostVersion, missing: describeMissing(item.incompatible.missing) })" />
+        </span>
         <!-- Version chips: actionable (cancel the staged version / install the new one) only with the API permission -->
         <span v-if="item.latestLocalVersion && auth.isAllowedApi(PLUGIN_API, 'DELETE')" class="vchip local" :title="t('system.plugin.cancelLocal')" @click.stop="cancelLocal(item)">{{ item.latestLocalVersion }}<v-icon size="13">mdi-close</v-icon></span>
         <span v-else-if="item.latestLocalVersion" class="vchip local static">{{ item.latestLocalVersion }}</span>
@@ -201,7 +204,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { LigojTextField, useApi, useAppStore, useAuthStore, useErrorStore, useI18nStore, NodeIcon } from '@ligoj/host'
+import { LigojTextField, useApi, useAppStore, useAuthStore, useErrorStore, useI18nStore, NodeIcon, pluginIncompatibility, describeMissing } from '@ligoj/host'
 import PluginAutomationDialog from '../components/PluginAutomationDialog.vue'
 import { toolColor } from '../toolColor.js'
 import RowActionsCog from '../components/RowActionsCog.vue'
@@ -218,6 +221,8 @@ const auth = useAuthStore()
 // API-permission gates (v-if auth.isAllowedApi) of the actions
 const PLUGIN_API = 'rest/system/plugin'
 const t = i18n.t
+// The version of this host, in the incompatibility tooltip
+const hostVersion = computed(() => auth.appSettings?.buildVersion || '?')
 
 const REPOSITORIES = computed(() => [
   { id: 'central', label: t('system.plugin.repoCentral'), icon: 'mdi-apache-kafka' },
@@ -274,6 +279,8 @@ const rows = computed(() => items.value.map((it) => {
     restartRequired: state.restartRequired,
     statusKey: state.key,
     embedded: state.embedded,
+    // Refused by the host loader: the bundle imports exports this host lacks (loader id = artifact without `plugin-`)
+    incompatible: pluginIncompatibility(String(it.plugin?.artifact || '').replace(/^plugin-/, '')),
     status: state.status,
     vendor: it.vendor || null,
     // The backend serializes the status enum in lowercase ("signed"): normalize
@@ -657,6 +664,7 @@ onMounted(() => {
 .vchip.embedded { background: var(--pill); color: var(--ink-2); cursor: default; }
 .vchip.static { cursor: default; }
 .vchip.up { color: #1d9d63; background: rgba(29, 157, 99, .14); }
+.vchip.incompatible { color: #c62828; background: rgba(229, 72, 77, .14); cursor: default; }
 /* Danger accent for the inline delete trigger (base `.lj-iconbtn` is global). */
 .lj-iconbtn.danger:hover { background: rgba(var(--v-theme-error), .1); color: rgb(var(--v-theme-error)); }
 

@@ -78,6 +78,15 @@
           <v-tooltip activator="parent" location="top" :text="t('system.config.tipOverridden')" />
         </span>
       </template>
+      <template #cell.lastModifiedDate="{ item }">
+        <span v-if="hasAudit(item)" class="audit">
+          <span class="audit-when">{{ relativeAuditTime(item.lastModifiedDate ?? item.createdDate, i18n.locale) }}</span>
+          <v-tooltip activator="parent" location="top" max-width="460">
+            <AuditRows :target="item" dense />
+          </v-tooltip>
+        </span>
+        <span v-else class="audit-none">—<v-tooltip activator="parent" location="top" :text="t('system.config.auditNone')" /></span>
+      </template>
       <template #actions="{ item }">
         <RowActionsCog v-if="auth.isAllowedApi(CONFIG_API, 'POST') || auth.isAllowedApi(CONFIG_API, 'DELETE')">
           <button v-if="auth.isAllowedApi(CONFIG_API, 'POST')" @click="openEdit(item)"><v-icon size="18">mdi-pencil-outline</v-icon>{{ t('common.edit') }}</button>
@@ -96,6 +105,10 @@
         <label class="chk"><input type="checkbox" v-model="editForm.system" /><span class="chk-box" /><span>{{ t('system.config.fieldSystem') }}</span></label>
         <label class="chk"><input type="checkbox" v-model="editForm.secured" /><span class="chk-box" /><span>{{ t('system.config.fieldSecured') }}</span></label>
       </v-form>
+      <div v-if="editTarget && hasAudit(editTarget)" class="cfg-audit">
+        <div class="cfg-audit-title">{{ t('common.auditTitle') }}</div>
+        <AuditRows :target="editTarget" />
+      </div>
       <template #footer>
         <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
         <LjButton v-if="auth.isAllowedApi(CONFIG_API, 'POST')" icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
@@ -113,6 +126,8 @@ import { ref, computed, onMounted } from 'vue'
 import { LigojTextarea, useApi, useAppStore, useAuthStore, useI18nStore, useClipboard, APP_BASE } from '@ligoj/host'
 import { LjDataTable, LjConfirmDialog as LigojConfirmDialog, LjPageHeader, LjButton, LjSearch, LjDialog, LjAvailabilityField } from '@ligoj/host'
 import RowActionsCog from '../components/RowActionsCog.vue'
+import AuditRows from '../components/AuditRows.vue'
+import { auditTime, relativeAuditTime, auditLines, hasAudit } from '../utils/auditFormat.js'
 
 const api = useApi()
 const app = useAppStore()
@@ -161,13 +176,22 @@ const filtered = computed(() => {
   })
 })
 
+// The sort value of an entry: the time of its last modification for the audit column (null without audit data),
+// its lower-cased text otherwise
+function sortValue(item, key) {
+  if (key === 'lastModifiedDate') return auditTime(item.lastModifiedDate ?? item.createdDate)?.getTime() ?? null
+  return String(item[key] ?? '').toLowerCase()
+}
 const sorted = computed(() => {
   const arr = [...filtered.value]
   const k = sortKey.value
+  const sign = sortOrder.value === 'desc' ? -1 : 1
   arr.sort((a, b) => {
-    const va = String(a[k] ?? '').toLowerCase()
-    const vb = String(b[k] ?? '').toLowerCase()
-    return sortOrder.value === 'desc' ? vb.localeCompare(va) : va.localeCompare(vb)
+    const va = sortValue(a, k)
+    const vb = sortValue(b, k)
+    // The entries without audit data stay last in both orders: most of them come from the environment
+    if (va === null || vb === null) return (va === null) - (vb === null)
+    return sign * (typeof va === 'number' ? va - vb : va.localeCompare(vb))
   })
   return arr
 })
@@ -181,6 +205,8 @@ const headers = computed(() => [
   { key: 'name', label: t('system.config.headerName'), sortable: true, icon: 'mdi-key-outline' },
   { key: 'value', label: t('system.config.headerValue'), sortable: false, icon: 'mdi-text-short', exportValue: (r) => (r.secured ? '•••••••••' : (r.value ?? '')) },
   { key: 'source', label: t('system.config.headerSource'), sortable: true, align: 'center', icon: 'mdi-source-branch', exportValue: (r) => sourceLabel(r.source) },
+  { key: 'lastModifiedDate', label: t('system.config.headerModified'), sortable: true, icon: 'mdi-clock-outline', width: '170px',
+    exportValue: (r) => auditLines(r, t, i18n.locale).modified },
 ])
 
 /* --- KPI cards (clickable filters) --- */
@@ -373,6 +399,9 @@ onMounted(() => {
 .src-tip-name { font-weight: 700; }
 .src-tip-exp { font-size: 12px; opacity: .85; }
 .ovr { color: #d9701a; margin-left: 5px; vertical-align: middle; }
+.audit-none { color: var(--ink-3); }
+.cfg-audit { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
+.cfg-audit-title { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
 
 /* Custom checkboxes inside the edit dialog (slotted content keeps this
    component's scope id; --accent/--border-2 come from the LjDialog card's
