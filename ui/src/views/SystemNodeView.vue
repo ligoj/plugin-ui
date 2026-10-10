@@ -29,7 +29,7 @@
     </LjPageHeader>
 
     <div class="stats">
-      <div v-for="(s, i) in stats" :key="s.key" class="stat" :class="{ active: s.fkey && filter === s.fkey, static: !s.fkey }" :style="{ '--c': s.color, 'animation-delay': (i * 50) + 'ms' }" @click="s.fkey && pickFilter(s.fkey)">
+      <div v-for="(s, i) in stats" :key="s.key" class="stat" :class="{ active: filter === s.fkey }" :style="{ '--c': s.color, 'animation-delay': (i * 50) + 'ms' }" @click="pickFilter(s.fkey)">
         <div class="stop">
           <span class="sicon"><v-icon size="22">{{ s.icon }}</v-icon></span>
           <div class="sbody">
@@ -52,6 +52,12 @@
     <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
     <LjDataTable :headers="headers" :items="table.paged.value" :items-length="table.total.value" :loading="loading" item-value="id" default-sort="name" :empty-text="t('common.noData')" filename="system-nodes.csv" @update:options="table.onOptions" @row-click="startEdit">
+      <!-- The status of the listed instances and of their subscriptions, like a home page tool card; the icon stays
+           while the table lists no instance -->
+      <template v-if="tableStatus" #header.status>
+        <NodeStatusBadge :node-stats="tableStatus.nodeStats" :sub-stats="tableStatus.subStats" :refreshing="refreshingAll"
+          :hint="t('system.node.status.refreshHint')" :readonly="!auth.isAllowedApi(REFRESH_API, 'POST')" @refresh="refreshAllStatuses" />
+      </template>
       <template #cell.name="{ item }">
         <div class="avatar-cell">
           <span class="nglyph">
@@ -121,6 +127,8 @@ import NodeEditDialog from './NodeEditDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
 import { useClientTable } from '../useClientTable.js'
 import SubscriptionStatus from '../components/SubscriptionStatus.vue'
+import NodeStatusBadge from '../components/NodeStatusBadge.vue'
+import { statusCounts } from '../utils/projectStatus.js'
 import { statusHeader } from '../useUiHelpers.js'
 
 const api = useApi()
@@ -170,6 +178,7 @@ const FILTERS = computed(() => [
   { id: 'service', label: t('system.node.typeService'), icon: 'mdi-cube-outline' },
   { id: 'tool', label: t('system.node.typeTool'), icon: 'mdi-hammer-wrench' },
   { id: 'instance', label: t('system.node.typeInstance'), icon: 'mdi-server-outline' },
+  { id: 'subscribed', label: t('system.node.filterSubscribed'), icon: 'mdi-link-variant' },
 ])
 const filter = ref('all')
 const currentFilter = computed(() => FILTERS.value.find((f) => f.id === filter.value) || FILTERS.value[0])
@@ -178,7 +187,12 @@ const filterSel = ref(null)
 function pickFilter(id) { filter.value = id; filterOpen.value = false }
 function onDocClick(e) { if (filterSel.value && !filterSel.value.contains(e.target)) filterOpen.value = false }
 
-const filtered = computed(() => filter.value === 'all' ? items.value : items.value.filter((n) => nodeType(n) === filter.value))
+// A node type, or the nodes having subscriptions (the Subscriptions card)
+const filtered = computed(() => {
+  if (filter.value === 'all') return items.value
+  if (filter.value === 'subscribed') return items.value.filter((n) => subsTotal(n.id) > 0)
+  return items.value.filter((n) => nodeType(n) === filter.value)
+})
 // The table pages and sorts this in-memory list (LjDataTable only emits its options).
 const table = useClientTable(filtered, { defaultSort: 'name' })
 
@@ -236,8 +250,8 @@ function derivedHealth(node, idx) {
 }
 
 // Build a stat card's dot + bi-colour bar + tooltip from up/down counts over
-// `value` items (nodes or subscriptions). `fkey` is the type filter the card
-// toggles, or null for a non-filtering card (subscriptions). "No status data"
+// `value` items (nodes or subscriptions). `fkey` is the filter the card
+// toggles: a node type, or `subscribed` for the subscriptions. "No status data"
 // (value − up − down) never makes it unhealthy: idle = nothing determinate ·
 // ok = no failures · error = all-known failing · warn = mixed.
 function healthCard({ key, fkey, label, icon, color, value, up, down }) {
@@ -284,8 +298,21 @@ const stats = computed(() => {
     typeCard('service', 'service', t('system.node.typeService'), 'mdi-cube-outline', TYPE_COLOR.service),
     typeCard('tool', 'tool', t('system.node.typeTool'), 'mdi-hammer-wrench', TYPE_COLOR.tool),
     typeCard('instance', 'instance', t('system.node.typeInstance'), 'mdi-server-outline', TYPE_COLOR.instance),
-    healthCard({ key: 'subs', fkey: null, label: t('system.node.subscriptions'), icon: 'mdi-link-variant', color: '#0ea5a4', value: sub.value, up: sub.up, down: sub.down }),
+    healthCard({ key: 'subs', fkey: 'subscribed', label: t('system.node.subscriptions'), icon: 'mdi-link-variant', color: '#0ea5a4', value: sub.value, up: sub.up, down: sub.down }),
   ]
+})
+
+// The status column header: the instances the table lists (every page) by their health, as on the KPI cards, and their
+// subscriptions. Null when the table lists no instance.
+const tableStatus = computed(() => {
+  const instances = filtered.value.filter((n) => nodeType(n) === 'instance')
+  if (!instances.length) return null
+  const sub = { total: 0, up: 0, down: 0 }
+  for (const n of instances) {
+    const s = subStats.value[n.id]
+    if (s) { sub.total += s.total; sub.up += s.up; sub.down += s.down }
+  }
+  return { nodeStats: statusCounts(instances.map(instanceHealth)), subStats: { ...sub, unknown: Math.max(0, sub.total - sub.up - sub.down) } }
 })
 
 async function load() {
@@ -501,11 +528,6 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
 .stat.active {
   border-color: color-mix(in srgb, var(--c) 55%, var(--border));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 45%, transparent);
-}
-
-/* The Subscriptions KPI is informational only — it toggles no type filter. */
-.stat.static {
-  cursor: default;
 }
 
 .stop {

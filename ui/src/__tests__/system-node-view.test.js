@@ -182,11 +182,11 @@ describe('SystemNodeView status refresh', () => {
     const rows = w.findAll('.row')
     expect(rows[0].find('.subs-cell').text()).toBe('1')
     expect(rows[1].find('.subs-cell').text()).toBe('3')
-    // A fifth, non-clickable KPI card totals the attached subscriptions (3 + 1).
+    // A fifth KPI card totals the attached subscriptions (3 + 1); like the others it filters the table
+    // (system-node-filter.test.js)
     const cards = w.findAll('.stat')
     expect(cards).toHaveLength(5)
     expect(cards[4].find('.snum').text()).toBe('4')
-    expect(cards[4].classes()).toContain('static')
     // The async fetch hit the statistics endpoint.
     expect(globalThis.fetch.mock.calls.some((c) => String(c[0]).includes('rest/node/status/subscription'))).toBe(true)
   })
