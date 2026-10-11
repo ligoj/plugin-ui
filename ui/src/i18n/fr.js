@@ -347,6 +347,11 @@ export default {
   'system.node.statusEnabled': 'Activé',
   'system.node.statusDisabled': 'Désactivé',
   'system.node.editTitle': 'Modifier le nœud',
+  'system.node.test.action': 'Tester la connexion',
+  'system.node.test.up': 'Connexion réussie avec ces valeurs',
+  'system.node.test.down': 'Échec de la connexion avec ces valeurs',
+  'system.node.test.unsupported': "Cet outil ne sait pas tester une connexion avant l'enregistrement : enregistrez le nœud, puis rafraîchissez son statut.",
+  'error.node-check-failed': "L'outil est injoignable avec ces valeurs",
   'system.node.deleteTitle': 'Supprimer le nœud',
   'system.node.deleteConfirm': 'Supprimer {name} ({id}) ?',
 

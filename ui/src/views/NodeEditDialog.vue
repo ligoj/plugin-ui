@@ -69,9 +69,15 @@
           <p v-if="expiryAvailable && expiryDetected" class="cred-detected"><v-icon size="15">mdi-key-check-outline</v-icon>{{ detectedExpiryText }}</p>
           <LigojTextField v-else-if="expiryAvailable" v-model="form.credentialExpiry" type="date" :label="t('system.node.credentialExpiry')" :hint="t('system.node.credentialExpiryHint')"
             persistent-hint clearable variant="outlined" density="comfortable" hide-details="auto" class="cred-expiry-field" />
+          <!-- The connection test result: the tool checked the values of the form, nothing is saved -->
+          <div v-if="testResult" class="testline" :class="testResult.state" role="status">
+            <v-icon size="16">{{ TEST_ICONS[testResult.state] }}</v-icon>
+            <div><p v-for="(line, i) in testResult.lines" :key="i">{{ line }}</p></div>
+          </div>
         </section>
       <template #footer>
         <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
+        <LjButton v-if="testable && auth.isAllowedApi(CHECK_API, 'POST')" variant="ghost" icon="mdi-lan-connect" :disabled="!testReady" :loading="testing" @click="testConnection">{{ t('system.node.test.action') }}</LjButton>
         <LjButton v-if="auth.isAllowedApi('rest/node', isEdit ? 'PUT' : 'POST')" icon="mdi-content-save" :disabled="!ready" :loading="saving" @click="submit">{{ isEdit ? t('common.save') : t('wizard.action.createNode') }}</LjButton>
       </template>
   </LjDialog>
@@ -83,6 +89,9 @@ import { useApi, useAuthStore, useErrorStore, useI18nStore, NodeIcon, NodeModeCh
 import { groupParameters } from '../utils/parameterGroups.js'
 import { typeKind, coerce, buildParamWire, selectValue, isRedacted, UNTOUCHED, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming, missingMandatory } from '../utils/pluginParams.js'
 import ParameterForm from '../components/ParameterForm.vue'
+
+// Connection check of the form values before they are saved
+const CHECK_API = 'rest/node/status/check'
 import { modesFromParameters, nodeModes } from '../utils/subscriptionModes.js'
 
 const props = defineProps({
@@ -116,6 +125,13 @@ const parameters = ref([])
 const paramValues = reactive({})
 // The parameters having a stored secured value: redacted by the API, kept untouched unless replaced
 const storedSecrets = ref([])
+// Connection test: only an instance has a connection; `testResult` is `{ state, lines }`, cleared by any change of the
+// form. `neutral`: the tool cannot test a connection before it is saved.
+const testing = ref(false)
+const testResult = ref(null)
+const TEST_ICONS = { ok: 'mdi-check-circle-outline', ko: 'mdi-alert-circle-outline', neutral: 'mdi-information-outline' }
+// Incremented by any change of the form: an answer about former values is dropped
+let testRun = 0
 const loadingServices = ref(false)
 const loadingTools = ref(false)
 const loadingParams = ref(false)
@@ -266,6 +282,7 @@ function reset() {
   selected.service = null; selected.tool = null; selected.node = null; selected.mode = null
   tools.value = []; parameters.value = []; form.id = ''; form.name = ''; form.credentialExpiry = ''; error.value = null
   storedSecrets.value = []
+  testResult.value = null
   for (const k of Object.keys(paramValues)) delete paramValues[k]
 }
 
@@ -305,8 +322,49 @@ watch(() => props.modelValue, (val) => {
   }
 })
 
+/* ---- connection test ---- */
+// Offered for an instance, by an API having the check (session data): an older one would answer a 404
+const testable = computed(() => !!auth.appSettings?.data?.['node-connection-check'] && (isEdit.value ? nodeType(props.node) === 'instance' : !!selected.tool))
+// A new identifier of its own: the tool's prefix and a name after it
+const idComplete = computed(() => isEdit.value || (!!selected.tool && form.id.startsWith(`${selected.tool.id}:`) && form.id.length > selected.tool.id.length + 1))
+// The form a save would accept: anything else would be refused, never a connection verdict
+const testReady = computed(() => testable.value && ready.value && idComplete.value && !idTaken.value && !missingMandatory(parameters.value, paramValues).length)
+watch([paramValues, () => form.id], () => { testRun += 1; testResult.value = null; testing.value = false }, { deep: true })
+/* Label of a parameter named by an error: its i18n label, else the raw identifier */
+function fieldLabel(field) { const v = t(field); return v === field ? field : v }
+/* The lines of a check result. The helpers are optional: an older host shows the raw rule or code */
+function toTestResult(res) {
+  if (res?.up) return { state: 'ok', lines: [t('system.node.test.up')] }
+  if (res?.message === 'node-check-unsupported') return { state: 'neutral', lines: [t('system.node.test.unsupported')] }
+  const lines = Object.entries(res?.errors || {}).flatMap(([field, list]) => (Array.isArray(list) ? list : [list])
+    .map((e) => `${fieldLabel(field)}: ${errorStore.ruleMessage?.(e?.rule, e?.parameters) ?? e?.rule}`))
+  if (res?.message) lines.push(errorStore.codeMessage?.(res.message) ?? res.message)
+  return { state: 'ko', lines: lines.length ? lines : [t('system.node.test.down')] }
+}
+async function testConnection() {
+  if (!testReady.value) return
+  const run = ++testRun
+  testing.value = true
+  testResult.value = null
+  try {
+    // A verdict only on a 200: any other answer (a refused form, a server error) is reported as for a save
+    const res = await api.post(CHECK_API, nodePayload(), { raw: true })
+    const body = res?.ok ? await res.json() : null
+    if (run === testRun && body) testResult.value = toTestResult(body)
+  } finally {
+    if (run === testRun) testing.value = false
+  }
+}
+
 /* ---- submit ---- */
 function wireMode(m) { return m ? String(m).toUpperCase() : m }
+/* The node payload of the save and of the connection test: a kept stored secret is sent untouched */
+function nodePayload() {
+  const wire = parameters.value.map((p) => buildParamWire(p, paramValues[p.id])).filter(Boolean)
+  return isEdit.value
+    ? { id: props.node.id, node: props.node.refined?.id, name: form.name, mode: wireMode(selected.mode), untouchedParameters: false, parameters: wire, ...expiryWire() }
+    : { id: form.id, name: form.name, node: selected.tool?.id, mode: wireMode(selected.mode), untouchedParameters: false, parameters: wire, ...expiryWire() }
+}
 async function submit() {
   if (!ready.value) return
   if (idTaken.value) return
@@ -317,15 +375,14 @@ async function submit() {
   }
   saving.value = true; error.value = null
   try {
-    const parametersWire = parameters.value.map((p) => buildParamWire(p, paramValues[p.id])).filter(Boolean)
     // Use `{ raw: true }` so we branch on the real HTTP status: a successful
     // save returns 204 No Content, which `useApi` otherwise reports as the
     // same `null` it returns on failure — that ambiguity left the dialog
     // open with no feedback. `handleResponse` (still invoked) toasts any
     // error (incl. the data-integrity case), so here we only act on success.
     const res = isEdit.value
-      ? await api.put('rest/node', { id: props.node.id, node: props.node.refined?.id, name: form.name, mode: wireMode(selected.mode), untouchedParameters: false, parameters: parametersWire, ...expiryWire() }, { raw: true })
-      : await api.post('rest/node', { id: form.id, name: form.name, node: selected.tool?.id, mode: wireMode(selected.mode), untouchedParameters: false, parameters: parametersWire, ...expiryWire() }, { raw: true })
+      ? await api.put('rest/node', nodePayload(), { raw: true })
+      : await api.post('rest/node', nodePayload(), { raw: true })
     if (!res || !res.ok) {
       error.value = t(isEdit.value ? 'wizard.error.saveFailed' : 'wizard.error.nodeCreationFailed')
       return
@@ -372,6 +429,11 @@ async function submit() {
 .ro { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); padding: 8px 12px; border-radius: var(--radius-sm); background: var(--hover); }
 .ro :deep(img.tool-icon), .ro :deep(i) { width: 20px; height: 20px; font-size: 18px; }
 .muted { font-size: 13px; color: var(--ink-3); }
+.testline { display: flex; align-items: flex-start; gap: 8px; margin-top: 4px; font-size: 13px; font-weight: 600; }
+.testline p { margin: 0; }
+.testline.ok { color: rgb(var(--v-theme-success)); }
+.testline.ko { color: rgb(var(--v-theme-error)); }
+.testline.neutral { color: var(--ink-3); }
 .cred-detected { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
 .cred-expiry-field { max-width: 320px; margin-top: 4px; }
 </style>

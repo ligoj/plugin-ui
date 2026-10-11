@@ -348,6 +348,11 @@ export default {
   'system.node.statusEnabled': 'Enabled',
   'system.node.statusDisabled': 'Disabled',
   'system.node.editTitle': 'Edit node',
+  'system.node.test.action': 'Test connection',
+  'system.node.test.up': 'Connection succeeded with these values',
+  'system.node.test.down': 'Connection failed with these values',
+  'system.node.test.unsupported': 'This tool cannot test a connection before saving: save the node, then refresh its status.',
+  'error.node-check-failed': 'The tool could not be reached with these values',
   'system.node.deleteTitle': 'Delete node',
   'system.node.deleteConfirm': 'Delete {name} ({id})?',
 
