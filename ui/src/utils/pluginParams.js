@@ -18,8 +18,22 @@ export function typeKind(p) { return String(p?.type || '').toLowerCase() }
 /** Whether a parameter renders as a single-line text/password/node field. */
 export function isTextParam(p) { const k = typeKind(p); return !k || ['text', 'password', 'node', 'project'].includes(k) }
 
-/** Whether a parameter's value must be masked. */
-export function isPassword(p) { return !!p?.secured || typeKind(p) === 'password' }
+/* Last segment of a parameter identifier naming an address or an account: `url`, `user`, `user-dn`, `jdbc-url`... */
+const IDENTIFIER = /(?:^|-)(?:url|user|dn)$/
+
+/** Whether a secured parameter names an address or an account: stored encrypted, but no secret to the person typing it. */
+export function isSecuredIdentifier(p) { return !!p?.secured && IDENTIFIER.test(String(p.id ?? '').split(':').pop()) }
+
+/**
+ * Whether a parameter's value must be masked. A creation form shows the text of a secured address or account, which
+ * can then be copied.
+ * @param {object}  p        Parameter definition.
+ * @param {boolean} creation Whether the form creates a node or a subscription.
+ */
+export function isPassword(p, creation = false) {
+  if (typeKind(p) === 'password') return true
+  return !!p?.secured && !(creation && isSecuredIdentifier(p))
+}
 
 /* ---- stored secured values ---- */
 

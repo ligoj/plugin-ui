@@ -62,7 +62,7 @@
           <!-- Parameters are ordered by display name (ascending) by default; a
                plugin may override the order and/or group them via its
                `parameterLayout` hook (see parameterGroups / resolveParameterLayout). -->
-          <ParameterForm :groups="parameterGroups" :values="paramValues" :stored="storedSecrets" :resolve-field="resolveParameterField"
+          <ParameterForm :groups="parameterGroups" :values="paramValues" :stored="storedSecrets" :creation="!isEdit" :resolve-field="resolveParameterField"
             :field-context="{ mode: selected.mode, isNode: true, nodeId: currentNodeId, instanceNodeId: currentNodeId }" @update="(id, v) => (paramValues[id] = v)" />
           <!-- Credential expiry: detected by the tool plug-in during the status check, else entered here. Only with an
                API storing it -->

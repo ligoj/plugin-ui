@@ -2,6 +2,9 @@
  * Secured parameter values: the API redacts a stored secured value as "-secured-". Editing a node keeps such a value
  * untouched, unless the user explicitly replaces it: the save sends `{ parameter, untouched: true }`, never the
  * redaction marker, which would be stored as the new secret.
+ *
+ * A secured address or account, such as an URL, a user or a DN, is no secret to the person typing it: a creation form
+ * shows its text, which can be copied. Its stored value stays hidden.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
@@ -9,7 +12,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { useAuthStore, useI18nStore, pluginRegistry } from '@ligoj/host'
 import NodeEditDialog from '../views/NodeEditDialog.vue'
 import ParameterForm from '../components/ParameterForm.vue'
-import { UNTOUCHED, buildParamWire, missingMandatory } from '../utils/pluginParams.js'
+import { UNTOUCHED, buildParamWire, missingMandatory, isPassword } from '../utils/pluginParams.js'
 import enMessages from '../i18n/en.js'
 
 const OWNER = { id: 'service:qa:sonarqube', refined: { id: 'service:qa' }, mode: 'link' }
@@ -150,5 +153,44 @@ describe('the replacement state of a stored secured value', () => {
     w = mountForm('x')
     await w.find('.pkeep').trigger('click')
     expect(w.emitted('update')).toEqual([[OPTIONAL.id, UNTOUCHED]])
+  })
+})
+
+describe('a secured address or account at creation', () => {
+  const LDAP = { id: 'service:id:ldap', refined: { id: 'service:id' }, mode: 'link' }
+  const ldap = (id) => ({ id, type: 'text', owner: LDAP, mandatory: true, secured: true, availableForNode: true })
+  const LDAP_URL = ldap('service:id:ldap:url')
+  const DN = ldap('service:id:ldap:user-dn')
+  const LDAP_PASSWORD = ldap('service:id:ldap:password')
+  function mountForm(creation) {
+    return mount(ParameterForm, { props: { groups: [{ params: [LDAP_URL, DN, LDAP_PASSWORD] }], values: {}, creation }, global: { stubs } })
+  }
+  const typeOf = (w, p) => w.findAllComponents({ name: 'LigojTextField' }).find((c) => c.props('label') === `${p.id} *`).props('type')
+
+  it('shows the text of an address or an account, a secret stays masked', () => {
+    const w = mountForm(true)
+    expect([LDAP_URL, DN, LDAP_PASSWORD].map((p) => typeOf(w, p))).toEqual(['text', 'text', 'password'])
+  })
+
+  it('masks every secured value of an existing node', () => {
+    const w = mountForm(false)
+    expect([LDAP_URL, DN, LDAP_PASSWORD].map((p) => typeOf(w, p))).toEqual(['password', 'password', 'password'])
+  })
+
+  it('names an address or an account by the last segment of its identifier', () => {
+    const secured = (name) => ({ id: `service:x:y:${name}`, type: 'text', secured: true })
+    for (const name of ['url', 'user', 'user-dn', 'jdbc-url', 'jdbc-user']) expect(isPassword(secured(name), true), name).toBe(false)
+    for (const name of ['password', 'jdbc-password', 'api-token', 'auth-key', 'key', 'secret-access-key', 'app-secret', 'configuration', 'username-password'])
+      expect(isPassword(secured(name), true), name).toBe(true)
+    // A password type stays masked, a parameter not secured is never masked
+    expect(isPassword({ id: 'service:x:y:url', type: 'password' }, true)).toBe(true)
+    expect(isPassword({ id: 'service:x:y:password', type: 'text' }, false)).toBe(false)
+  })
+
+  it('the node dialog is a creation form for a new node only', async () => {
+    const create = mount(NodeEditDialog, { props: { modelValue: true, node: null }, global: { stubs } })
+    await flushPromises()
+    expect(create.findComponent(ParameterForm).props('creation')).toBe(true)
+    expect((await openEdit()).findComponent(ParameterForm).props('creation')).toBe(false)
   })
 })

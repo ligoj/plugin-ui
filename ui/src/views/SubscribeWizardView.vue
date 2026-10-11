@@ -81,7 +81,7 @@
           <!-- Parameters are ordered by display name (ascending) by default; a
                plugin may override the order and/or group them via its
                `parameterLayout` hook (see parameterGroups / resolveParameterLayout). -->
-          <ParameterForm :groups="parameterGroups" :values="paramValues" :resolve-field="resolveParameterField"
+          <ParameterForm :groups="parameterGroups" :values="paramValues" creation :resolve-field="resolveParameterField"
             :field-context="{ mode: selected.mode, isNode: false, nodeId: selected.tool?.id, instanceNodeId: selected.node?.id, project: project }" @update="(id, v) => (paramValues[id] = v)" />
         </section>
       <template #footer>

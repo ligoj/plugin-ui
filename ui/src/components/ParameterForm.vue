@@ -9,6 +9,8 @@
   A stored secured value (`stored`, redacted by the API) is shown hidden and kept, its form value being `UNTOUCHED`:
   the pencil replaces it with a new value, the undo keeps it again. An optional one left empty is removed.
 
+  A secured value is masked, except an address or an account, such as an URL, a user or a DN, in a `creation` form.
+
     <ParameterForm :groups="parameterGroups" :values="paramValues" :resolve-field="resolveParameterField"
       :field-context="{ mode, isNode, nodeId, instanceNodeId }" @update="(id, v) => (paramValues[id] = v)" />
 -->
@@ -29,7 +31,7 @@
       </LigojTextField>
       <component :is="resolveField(p)" v-else-if="resolveField(p)" :model-value="values[p.id]" :parameter="p" :form-values="values" :mode="fieldContext.mode"
         :is-node="!!fieldContext.isNode" :node-id="fieldContext.nodeId" :instance-node-id="fieldContext.instanceNodeId" :project="fieldContext.project ?? null" @update:model-value="set(p, $event)" />
-      <LigojTextField v-else-if="isTextParam(p)" :model-value="values[p.id]" :type="isPassword(p) ? 'password' : 'text'" :autofocus="focused === p.id" v-bind="common(p)" @update:model-value="set(p, $event)" />
+      <LigojTextField v-else-if="isTextParam(p)" :model-value="values[p.id]" :type="isPassword(p, creation) ? 'password' : 'text'" :autofocus="focused === p.id" v-bind="common(p)" @update:model-value="set(p, $event)" />
       <LigojTextField v-else-if="typeKind(p) === 'integer'" :model-value="values[p.id]" type="number" :min="p.min" :max="p.max" v-bind="common(p)" @update:model-value="set(p, $event === '' || $event == null ? $event : Number($event))" />
       <v-checkbox v-else-if="typeKind(p) === 'bool'" :model-value="values[p.id]" :label="paramLabel(p)" density="comfortable" :hint="paramDescription(p)" persistent-hint hide-details="auto" @update:model-value="set(p, $event)" />
       <LigojSelect v-else-if="typeKind(p) === 'select'" :model-value="values[p.id]" :items="p.values || []" v-bind="common(p)" @update:model-value="set(p, $event)" />
@@ -59,6 +61,8 @@ defineProps({
   fieldContext: { type: Object, default: () => ({}) },
   // Identifiers of the parameters having a stored secured value, redacted by the API
   stored: { type: Array, default: () => [] },
+  // Whether the form creates a node or a subscription: the secured addresses and accounts are shown
+  creation: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update'])
 const i18n = useI18nStore()
