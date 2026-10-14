@@ -53,10 +53,12 @@
           <div class="sh"><span class="n">3</span><v-icon size="18">mdi-server-outline</v-icon>{{ t('wizard.step.instance') }}</div>
             <LigojSelect v-model="selected.node" :items="nodes" item-title="name" item-value="id" return-object :placeholder="t('wizard.label.instance')" :loading="loadingNodes"
               :disabled="!selected.tool" variant="outlined" density="comfortable" hide-details class="flex-grow-1">
-              <template #selection="{ item }"><span v-if="item" class="opt"><NodeIcon :node="item" /> {{ item.name || item.id }}</span></template>
+              <!-- The last known status of each instance, as in the nodes view; display only, so a click picks or opens -->
+              <template #selection="{ item }"><span v-if="item" class="opt"><NodeIcon :node="item" /> {{ item.name || item.id }}<SubscriptionStatus :node="item" readonly /></span></template>
               <template #item="{ props: ip, item }">
                 <v-list-item v-if="item" v-bind="ip" :title="item.name || item.id" :subtitle="item.id">
                   <template #prepend><NodeIcon :node="item" class="mr-2" /></template>
+                  <template #append><SubscriptionStatus :node="item" readonly /></template>
                 </v-list-item>
               </template>
             </LigojSelect>
@@ -97,6 +99,7 @@ import { useApi, useErrorStore, useI18nStore, NodeIcon, LjDialog, LjButton, LjSe
 import { groupParameters } from '../utils/parameterGroups.js'
 import { coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming, missingMandatory } from '../utils/pluginParams.js'
 import ParameterForm from '../components/ParameterForm.vue'
+import SubscriptionStatus from '../components/SubscriptionStatus.vue'
 import { subscriptionModes } from '../utils/subscriptionModes.js'
 
 const props = defineProps({
@@ -171,7 +174,8 @@ async function fetchNodes(url) {
 }
 async function loadServices() { loadingServices.value = true; try { services.value = await fetchNodes('rest/node?refined=service&rows=1000') } finally { loadingServices.value = false } }
 async function loadTools(id) { loadingTools.value = true; try { tools.value = await fetchNodes(`rest/node?refined=${encodeURIComponent(id)}&rows=1000`) } finally { loadingTools.value = false } }
-async function loadNodes(id) { loadingNodes.value = true; try { nodes.value = await fetchNodes(`rest/node?refined=${encodeURIComponent(id)}&rows=1000`) } finally { loadingNodes.value = false } }
+// status=true → each instance comes with its last known status
+async function loadNodes(id) { loadingNodes.value = true; try { nodes.value = await fetchNodes(`rest/node?refined=${encodeURIComponent(id)}&status=true&rows=1000`) } finally { loadingNodes.value = false } }
 
 async function loadParameters(nodeId, mode) {
   loadingParams.value = true

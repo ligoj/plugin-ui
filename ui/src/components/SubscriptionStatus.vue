@@ -11,12 +11,14 @@
 
   Accepts a full `subscription` (its `.node` chain + status/mode/parameters/audit),
   or a bare `node` (+ `status`) for node-only contexts (e.g. node tables).
+  `readonly` shows the status only, for a dot inside another control (the
+  subscribe wizard's instance select): no refresh, and the click goes on to it.
 -->
 <template>
   <v-tooltip v-if="showStatus" location="top" max-width="420" open-delay="120">
     <template #activator="{ props: a }">
       <span v-bind="a" class="sst-dot" :class="[dot, { clickable: canRefresh, refreshing, loading }]" :aria-label="statusText"
-        :role="canRefresh ? 'button' : undefined" @click.stop="doRefresh" />
+        :role="canRefresh ? 'button' : undefined" @click="onDotClick" />
     </template>
     <div class="sst">
       <!-- Subscription identifier, floating top-right (a node badge has none) -->
@@ -74,6 +76,8 @@ const props = defineProps({
   status: { type: [String, Object, Number], default: null },
   /** The live details of the subscription are being fetched by the host (blinking dot). */
   loading: { type: Boolean, default: false },
+  /** Status only: no click-to-refresh, no refresh hint, the click is not stopped. */
+  readonly: { type: Boolean, default: false },
 })
 
 const t = useI18nStore().t
@@ -143,8 +147,14 @@ const statusText = computed(() => {
 // Click-to-refresh: actively re-check the status. Node → checkNodeStatus (a live
 // probe, POST), subscription → refreshStatus (GET). Only instances are
 // node-refreshable (service/tool nodes have no runtime status).
-const canRefresh = computed(() => isSub.value || (!!rootNode.value && nodeType(rootNode.value) === 'instance'))
+const canRefresh = computed(() => !props.readonly && (isSub.value || (!!rootNode.value && nodeType(rootNode.value) === 'instance')))
 const refreshing = ref(false)
+// A readonly dot lets the click through to the control holding it
+function onDotClick(e) {
+  if (props.readonly) return
+  e.stopPropagation()
+  doRefresh()
+}
 async function doRefresh() {
   const target = base.value
   if (!canRefresh.value || refreshing.value || target?.id == null) return
