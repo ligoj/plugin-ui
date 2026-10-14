@@ -68,7 +68,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { NodeIcon, useApi, useI18nStore, nodeType, userLabel } from '@ligoj/host'
+import { NodeIcon, useApi, useI18nStore, nodeType, userLabel, pluginRegistry } from '@ligoj/host'
+import { resolveParameterSummary } from '../utils/pluginParams.js'
 
 const props = defineProps({
   subscription: { type: Object, default: null },
@@ -228,14 +229,27 @@ const audit = computed(() => {
 })
 
 const SENSITIVE = /secret|key|password|token/i
+// A longer value is cut: about a line of the tooltip
+const MAX_VALUE = 60
+function shortValue(value) {
+  const text = String(value ?? '').replace(/\s+/g, ' ').trim()
+  return text.length > MAX_VALUE ? `${text.slice(0, MAX_VALUE - 1)}…` : text
+}
+// Each value as the tool plugin summarizes it (`parameterSummary` feature, e.g. a JSON role mapping), else cut
 const params = computed(() => {
   const p = data.value.parameters
   if (!p || typeof p !== 'object') return []
+  // Recomputed once the tool bundle registers
+  void pluginRegistry.version.value
+  const nodeId = rootNode.value?.id
   return Object.keys(p).sort().map((id) => {
     const label = (() => { const v = t(id); return v === id ? id : v })()
     let value = p[id]
     if (SENSITIVE.test(id)) value = '••••••'
-    else if (value && typeof value === 'object') value = JSON.stringify(value)
+    else {
+      if (value && typeof value === 'object') value = JSON.stringify(value)
+      value = resolveParameterSummary(nodeId, { parameter: id, value }, 'status') ?? shortValue(value)
+    }
     return { id, label, value: String(value ?? '') }
   })
 })

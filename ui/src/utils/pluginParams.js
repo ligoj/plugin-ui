@@ -167,6 +167,25 @@ export function resolveParameterLayout(nodeId, ctx, tag = 'params') {
   return []
 }
 
+/**
+ * Plugin-supplied short text of a parameter value (`ctx`: `{ parameter, value }`), e.g. a JSON role mapping shown as
+ * "3 roles: admin, dev, test", or `null` — the caller then shows the value itself. Tries the tool plugin, then the
+ * parent service plugin; an instance id resolves to its tool.
+ */
+export function resolveParameterSummary(nodeId, ctx, tag = 'params') {
+  if (!nodeId) return null
+  const toolId = String(nodeId).split(':').filter(Boolean).slice(0, 3).join(':')
+  for (const [id, plugin] of owningPlugins(toolId)) {
+    try {
+      const summary = plugin.feature('parameterSummary', ctx)
+      if (summary != null && summary !== '') return String(summary)
+    } catch (err) {
+      if (!isMissingFeature(err, 'parameterSummary')) console.warn(`[${tag}] parameterSummary from ${id} threw`, err)
+    }
+  }
+  return null
+}
+
 /* ---- lazy tool-bundle loading ---- */
 
 /**
