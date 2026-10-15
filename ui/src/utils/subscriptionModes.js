@@ -26,8 +26,35 @@ export function nodeModes(parentMode) {
 }
 
 /**
+ * Modes an EXISTING node may switch to, mirroring the backend rule (`NodeResource#checkModeTransition`): its own mode,
+ * and `all` for a `link` or `create` node whose parent allows it. Any other change would break the subscriptions
+ * created on the node.
+ *
+ * @param {string|null|undefined} mode Mode of the node, any case.
+ * @param {string|null|undefined} parentMode Mode of its parent, any case. A missing parent mode means `ALL`.
+ * @returns {string[]} The current mode then `all`, or an empty list when the mode cannot change.
+ */
+export function modeTransitions(mode, parentMode) {
+  const m = String(mode || 'all').toLowerCase()
+  return (m === 'link' || m === 'create') && nodeModes(parentMode).includes('all') ? [m, 'all'] : []
+}
+
+/**
+ * Parameters of a node form. A node in mode `all` serves both modes and lists the parameters of every mode: one of a
+ * single mode is optional there, a subscription of that mode still asks it when the node leaves it empty.
+ *
+ * @param {Array} parameters The parameters listed for the node, each with its `mode` (an older API omits it).
+ * @param {string|null|undefined} nodeMode Mode of the node, any case.
+ * @returns {Array} The same parameters, the ones of a single mode made optional on a node in mode `all`.
+ */
+export function nodeModeParameters(parameters, nodeMode) {
+  if (String(nodeMode || '').toLowerCase() !== 'all') return parameters
+  return parameters.map((p) => (p?.mode && String(p.mode).toLowerCase() !== 'all' ? { ...p, mandatory: false, required: false } : p))
+}
+
+/**
  * Modes a tool supports, derived from the modes of its PARAMETERS. A parameter without an explicit mode is `ALL`
- * (the entity default), so a tool is rarely limited. The API does not expose a parameter's mode, but its per-mode
+ * (the entity default), so a tool is rarely limited. An older API does not expose a parameter's mode, but its per-mode
  * lists do: the list asked for `NONE` holds exactly the `ALL`-mode parameters, and a parameter present only in
  * the `LINK` (or only in the `CREATE`) list is specific to that mode.
  *

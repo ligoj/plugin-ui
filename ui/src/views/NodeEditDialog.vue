@@ -47,9 +47,10 @@
         <!-- 4. Mode -->
         <section class="step" :class="{ off: !isEdit && !selected.tool }">
           <div class="sh"><span class="n">4</span><v-icon size="18">mdi-link-variant</v-icon>{{ t('wizard.step.mode') }}</div>
-          <NodeModeChip v-if="isEdit" :mode="selected.mode || 'all'" />
+          <!-- An existing node keeps its mode, or widens from link or create to all -->
+          <NodeModeChip v-if="isEdit && !editModes.length" :mode="selected.mode || 'all'" />
           <div v-else class="mode-row">
-            <LjSegmented v-model="selected.mode" :options="availableModes" />
+            <LjSegmented v-model="selected.mode" :options="isEdit ? editModes : availableModes" />
             <p v-if="modeHint" class="modehint">{{ modeHint }}</p>
             <p v-if="modeConflict" class="modehint warn"><v-icon size="15">mdi-alert-outline</v-icon>{{ t('wizard.nodeModeConflict', { mode: selected.tool?.mode }) }}</p>
           </div>
@@ -92,7 +93,7 @@ import ParameterForm from '../components/ParameterForm.vue'
 
 // Connection check of the form values before they are saved
 const CHECK_API = 'rest/node/status/check'
-import { modesFromParameters, nodeModes } from '../utils/subscriptionModes.js'
+import { modesFromParameters, modeTransitions, nodeModeParameters, nodeModes } from '../utils/subscriptionModes.js'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -152,7 +153,10 @@ const toolModes = ref([])
 const availableModes = computed(() => toolModes.value.map((value) => ({ value, label: t('wizard.nodeMode.' + value) })))
 // The server still checks the mode against the tool node's mode (NodeResource#checkMode). When that stored mode
 // would refuse the choice, say so up front instead of letting the save fail without explanation.
-const modeConflict = computed(() => !!selected.mode && !!selected.tool && !nodeModes(selected.tool.mode).includes(selected.mode))
+const modeConflict = computed(() => !isEdit.value && !!selected.mode && !!selected.tool && !nodeModes(selected.tool.mode).includes(selected.mode))
+// Modes of an edited node: its own, and all for a link or create node whose parent allows it (NodeResource#checkModeTransition)
+const editModes = computed(() => (isEdit.value ? modeTransitions(props.node?.mode, props.node?.refined?.mode) : [])
+  .map((value) => ({ value, label: t('wizard.nodeMode.' + value) })))
 async function loadToolModes(toolId) {
   const lists = await Promise.all(['NONE', 'LINK', 'CREATE'].map((m) => api.get(`rest/node/${encodeURIComponent(toolId)}/parameter/${m}`, { silent: true }).catch(() => null)))
   const [none, link, create] = lists.map((d) => (Array.isArray(d) ? d : (d?.data || [])))
@@ -206,7 +210,7 @@ async function loadParameters(nodeId, mode) {
   try {
     const data = await api.get(`rest/node/${encodeURIComponent(nodeId)}/parameter/${mode.toUpperCase()}`)
     const raw = Array.isArray(data) ? data : (data?.data || [])
-    parameters.value = raw.filter((p) => p && p.availableForNode !== false)
+    parameters.value = nodeModeParameters(raw.filter((p) => p && p.availableForNode !== false), mode)
     for (const k of Object.keys(paramValues)) delete paramValues[k]
     for (const p of parameters.value) {
       if (p.defaultValue != null) paramValues[p.id] = coerce(p)
@@ -257,18 +261,36 @@ async function bootstrapEdit(node) {
   form.id = node.id; form.name = node.name || ''
   // A manual expiry is edited as a day: the UTC day of its 00:00 UTC instant
   form.credentialExpiry = node.credentialExpiry && node.credentialExpirySource === 'manual' ? new Date(node.credentialExpiry).toISOString().slice(0, 10) : ''
+  editParamsMode = selected.mode
   await ensureToolPluginLoaded(node.id)
+  await loadEditParameters(node.id, selected.mode)
+}
+
+// The mode whose parameters the edited node shows: a mode change reloads them
+let editParamsMode = null
+watch(() => selected.mode, (mode) => {
+  if (!isEdit.value || !mode || mode === editParamsMode) return
+  loadEditParameters(props.node.id, mode, true)
+})
+
+/* The parameters of the edited node for a mode, with their stored values. `keep`: the values already in the form win,
+   for a mode change. A node in mode all lists the parameters of every mode. */
+async function loadEditParameters(nodeId, mode, keep = false) {
+  editParamsMode = mode
   loadingParams.value = true
   try {
-    const data = await api.get(`rest/node/${encodeURIComponent(node.id)}/parameter-value/${(selected.mode || 'all').toUpperCase()}`)
+    const data = await api.get(`rest/node/${encodeURIComponent(nodeId)}/parameter-value/${(mode || 'all').toUpperCase()}`)
+    if (mode !== editParamsMode) return // the mode changed while loading
     const list = Array.isArray(data) ? data : (data?.data || [])
     const visible = list.filter((it) => it?.parameter && it.parameter.availableForNode !== false)
-    parameters.value = visible.map((it) => it.parameter)
+    const kept = keep ? { ...paramValues } : {}
+    parameters.value = nodeModeParameters(visible.map((it) => it.parameter), mode)
     for (const k of Object.keys(paramValues)) delete paramValues[k]
     storedSecrets.value = visible.filter((it) => isRedacted(it.parameter, it.text)).map((it) => it.parameter.id)
     for (const it of visible) {
       const p = it.parameter; const k = typeKind(p)
-      if (storedSecrets.value.includes(p.id)) paramValues[p.id] = UNTOUCHED
+      if (p.id in kept) paramValues[p.id] = kept[p.id]
+      else if (storedSecrets.value.includes(p.id)) paramValues[p.id] = UNTOUCHED
       else if (k === 'integer') paramValues[p.id] = it.integer ?? ''
       else if (k === 'bool') paramValues[p.id] = !!it.bool
       else if (['multiple', 'multiselect', 'tags'].includes(k)) paramValues[p.id] = it.selections || []
@@ -279,6 +301,7 @@ async function bootstrapEdit(node) {
 }
 
 function reset() {
+  editParamsMode = null
   selected.service = null; selected.tool = null; selected.node = null; selected.mode = null
   tools.value = []; parameters.value = []; form.id = ''; form.name = ''; form.credentialExpiry = ''; error.value = null
   storedSecrets.value = []
