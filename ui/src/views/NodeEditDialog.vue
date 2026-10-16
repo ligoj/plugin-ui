@@ -70,11 +70,6 @@
           <p v-if="expiryAvailable && expiryDetected" class="cred-detected"><v-icon size="15">mdi-key-check-outline</v-icon>{{ detectedExpiryText }}</p>
           <LigojTextField v-else-if="expiryAvailable" v-model="form.credentialExpiry" type="date" :label="t('system.node.credentialExpiry')" :hint="t('system.node.credentialExpiryHint')"
             persistent-hint clearable variant="outlined" density="comfortable" hide-details="auto" class="cred-expiry-field" />
-          <!-- The connection test result: the tool checked the values of the form, nothing is saved -->
-          <div v-if="testResult" class="testline" :class="testResult.state" role="status">
-            <v-icon size="16">{{ TEST_ICONS[testResult.state] }}</v-icon>
-            <div><p v-for="(line, i) in testResult.lines" :key="i">{{ line }}</p></div>
-          </div>
         </section>
       <template #footer>
         <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
@@ -126,11 +121,9 @@ const parameters = ref([])
 const paramValues = reactive({})
 // The parameters having a stored secured value: redacted by the API, kept untouched unless replaced
 const storedSecrets = ref([])
-// Connection test: only an instance has a connection; `testResult` is `{ state, lines }`, cleared by any change of the
-// form. `neutral`: the tool cannot test a connection before it is saved.
+// Connection test: only an instance has a connection; the tool checks the values of the form, nothing is saved, and the
+// verdict is a toast of the node
 const testing = ref(false)
-const testResult = ref(null)
-const TEST_ICONS = { ok: 'mdi-check-circle-outline', ko: 'mdi-alert-circle-outline', neutral: 'mdi-information-outline' }
 // Incremented by any change of the form: an answer about former values is dropped
 let testRun = 0
 const loadingServices = ref(false)
@@ -305,7 +298,6 @@ function reset() {
   selected.service = null; selected.tool = null; selected.node = null; selected.mode = null
   tools.value = []; parameters.value = []; form.id = ''; form.name = ''; form.credentialExpiry = ''; error.value = null
   storedSecrets.value = []
-  testResult.value = null
   for (const k of Object.keys(paramValues)) delete paramValues[k]
 }
 
@@ -352,34 +344,42 @@ const testable = computed(() => !!auth.appSettings?.data?.['node-connection-chec
 const idComplete = computed(() => isEdit.value || (!!selected.tool && form.id.startsWith(`${selected.tool.id}:`) && form.id.length > selected.tool.id.length + 1))
 // The form a save would accept: anything else would be refused, never a connection verdict
 const testReady = computed(() => testable.value && ready.value && idComplete.value && !idTaken.value && !missingMandatory(parameters.value, paramValues).length)
-watch([paramValues, () => form.id], () => { testRun += 1; testResult.value = null; testing.value = false }, { deep: true })
+watch([paramValues, () => form.id], () => { testRun += 1; testing.value = false }, { deep: true })
 /* Label of a parameter named by an error: its i18n label, else the raw identifier */
 function fieldLabel(field) { const v = t(field); return v === field ? field : v }
-/* The lines of a check result. The helpers are optional: an older host shows the raw rule or code */
-function toTestResult(res) {
-  if (res?.up) return { state: 'ok', lines: [t('system.node.test.up')] }
-  if (res?.message === 'node-check-unsupported') return { state: 'neutral', lines: [t('system.node.test.unsupported')] }
+/* The verdict of a check as a toast of the node. A toast keeps no line break: the reasons of a failure are joined under
+   the verdict as title. The helpers are optional: an older host shows the raw rule or code */
+function toastTestResult(res) {
+  const node = toastNode()
+  if (res?.up) return errorStore.success(t('system.node.test.up'), { node })
+  if (res?.message === 'node-check-unsupported') return errorStore.info(t('system.node.test.unsupported'), { node })
   const lines = Object.entries(res?.errors || {}).flatMap(([field, list]) => (Array.isArray(list) ? list : [list])
     .map((e) => `${fieldLabel(field)}: ${errorStore.ruleMessage?.(e?.rule, e?.parameters) ?? e?.rule}`))
   if (res?.message) lines.push(errorStore.codeMessage?.(res.message) ?? res.message)
-  return { state: 'ko', lines: lines.length ? lines : [t('system.node.test.down')] }
+  return errorStore.push(lines.length
+    ? { severity: 'error', node, title: t('system.node.test.down'), message: lines.join(' · ') }
+    : { severity: 'error', node, message: t('system.node.test.down') })
 }
 async function testConnection() {
   if (!testReady.value) return
   const run = ++testRun
   testing.value = true
-  testResult.value = null
   try {
     // A verdict only on a 200: any other answer (a refused form, a server error) is reported as for a save
     const res = await api.post(CHECK_API, nodePayload(), { raw: true })
     const body = res?.ok ? await res.json() : null
-    if (run === testRun && body) testResult.value = toTestResult(body)
+    if (run === testRun && body) toastTestResult(body)
   } finally {
     if (run === testRun) testing.value = false
   }
 }
 
 /* ---- submit ---- */
+/* The node of a toast, branded with its icon. A new node does not exist yet: a node-like object from its id and the
+   icon classes of the chosen tool */
+function toastNode() {
+  return isEdit.value ? props.node : { id: form.id, name: form.name, uiClasses: selected.tool?.uiClasses }
+}
 function wireMode(m) { return m ? String(m).toUpperCase() : m }
 /* The node payload of the save and of the connection test: a kept stored secret is sent untouched */
 function nodePayload() {
@@ -410,13 +410,7 @@ async function submit() {
       error.value = t(isEdit.value ? 'wizard.error.saveFailed' : 'wizard.error.nodeCreationFailed')
       return
     }
-    // Confirmation toast branded with the saved node's icon. For a new node
-    // the instance doesn't exist yet, so synthesise a node-like object from
-    // its id + the chosen tool's icon classes.
-    const savedNode = isEdit.value
-      ? props.node
-      : { id: form.id, name: form.name, uiClasses: selected.tool?.uiClasses }
-    errorStore.success(t(isEdit.value ? 'wizard.success.nodeUpdated' : 'wizard.success.nodeCreated', { name: form.name }), { node: savedNode })
+    errorStore.success(t(isEdit.value ? 'wizard.success.nodeUpdated' : 'wizard.success.nodeCreated', { name: form.name }), { node: toastNode() })
     emit('saved'); emit('update:modelValue', false)
   } finally { saving.value = false }
 }
@@ -452,11 +446,6 @@ async function submit() {
 .ro { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font); font-weight: 700; font-size: 14px; color: var(--ink); padding: 8px 12px; border-radius: var(--radius-sm); background: var(--hover); }
 .ro :deep(img.tool-icon), .ro :deep(i) { width: 20px; height: 20px; font-size: 18px; }
 .muted { font-size: 13px; color: var(--ink-3); }
-.testline { display: flex; align-items: flex-start; gap: 8px; margin-top: 4px; font-size: 13px; font-weight: 600; }
-.testline p { margin: 0; }
-.testline.ok { color: rgb(var(--v-theme-success)); }
-.testline.ko { color: rgb(var(--v-theme-error)); }
-.testline.neutral { color: var(--ink-3); }
 .cred-detected { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
 .cred-expiry-field { max-width: 320px; margin-top: 4px; }
 </style>

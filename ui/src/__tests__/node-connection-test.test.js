@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mount, flushPromises } from '@vue/test-utils'
-import { useAuthStore, useI18nStore, pluginRegistry } from '@ligoj/host'
+import { useAuthStore, useErrorStore, useI18nStore, pluginRegistry } from '@ligoj/host'
 import NodeEditDialog from '../views/NodeEditDialog.vue'
 import enMessages from '../i18n/en.js'
 
@@ -23,7 +23,7 @@ const INSTANCE = { id: 'service:qa:sonarqube:local', name: 'SonarQube Local', mo
 const TOOL = { id: 'service:qa:sonarqube', name: 'SonarQube', mode: 'link', refined: { id: 'service:qa' } }
 
 function response(body, status = 200) {
-  return { ok: status < 300, status, headers: { get: () => 'application/json' }, clone() { return response(body, status) }, json: async () => body, text: async () => JSON.stringify(body) }
+  return { ok: status < 300, status, headers: { get: (name) => (String(name).toLowerCase() === 'content-type' ? 'application/json' : null) }, clone() { return response(body, status) }, json: async () => body, text: async () => JSON.stringify(body) }
 }
 
 const stubs = {
@@ -71,6 +71,9 @@ async function runTest(w) {
   await flushPromises()
 }
 const field = (w, p) => w.find(`.tf[data-label="${p.id} *"]`)
+// The result is a toast: the snackbar stack of the host
+const toasts = () => useErrorStore().errors
+const ofNode = expect.objectContaining({ id: INSTANCE.id })
 
 describe('the connection test of a node', () => {
   it('sends the save payload with the stored secrets untouched, and saves nothing', async () => {
@@ -90,32 +93,34 @@ describe('the connection test of a node', () => {
     expect(fetch.mock.calls.some(([, o]) => o?.method === 'PUT')).toBe(false)
   })
 
-  it('shows a successful connection', async () => {
+  it('shows a successful connection as a toast of the node, nothing in the form', async () => {
     const w = await openEdit()
     await runTest(w)
-    expect(w.find('.testline.ok').text()).toContain(t('system.node.test.up'))
+    expect(toasts()).toEqual([expect.objectContaining({ severity: 'success', message: t('system.node.test.up'), node: ofNode })])
+    expect(w.find('.testline').exists()).toBe(false)
   })
 
   it('names the faulty parameter with the translated rule', async () => {
     check = { up: false, errors: { [USER.id]: [{ rule: 'sonar-login' }] } }
     const w = await openEdit()
     await runTest(w)
-    expect(w.find('.testline.ko').text()).toContain('User: SonarQube refused these credentials')
+    expect(toasts()).toEqual([expect.objectContaining({
+      severity: 'error', title: t('system.node.test.down'), message: 'User: SonarQube refused these credentials', node: ofNode,
+    })])
   })
 
-  it('shows a failure without a known reason', async () => {
+  it('shows a failure with its reason', async () => {
     check = { up: false, message: 'node-check-failed' }
     const w = await openEdit()
     await runTest(w)
-    expect(w.find('.testline.ko').text()).toContain(t('error.node-check-failed'))
+    expect(toasts()).toEqual([expect.objectContaining({ severity: 'error', title: t('system.node.test.down'), message: t('error.node-check-failed') })])
   })
 
-  it('a change of a value clears the previous result', async () => {
+  it('shows a failure without any reason', async () => {
+    check = { up: false }
     const w = await openEdit()
     await runTest(w)
-    expect(w.find('.testline').exists()).toBe(true)
-    await field(w, URL_).find('input').setValue('http://other')
-    expect(w.find('.testline').exists()).toBe(false)
+    expect(toasts()).toEqual([expect.objectContaining({ severity: 'error', title: null, message: t('system.node.test.down') })])
   })
 
   it('is disabled while a mandatory parameter is missing', async () => {
@@ -142,8 +147,7 @@ describe('the connection test of a node', () => {
     check = { up: false, message: 'node-check-unsupported' }
     const w = await openEdit()
     await runTest(w)
-    expect(w.find('.testline.neutral').text()).toContain(t('system.node.test.unsupported'))
-    expect(w.find('.testline.ok').exists()).toBe(false)
+    expect(toasts()).toEqual([expect.objectContaining({ severity: 'info', message: t('system.node.test.unsupported'), node: ofNode })])
   })
 
   it('gives no verdict on a refused request: the error is reported as for a save', async () => {
@@ -154,7 +158,8 @@ describe('the connection test of a node', () => {
     })
     const w = await openEdit()
     await runTest(w)
-    expect(w.find('.testline').exists()).toBe(false)
+    // Only the refusal, toasted as for a save
+    expect(toasts().filter((e) => e.severity !== 'error' || e.title === t('system.node.test.down'))).toEqual([])
   })
 
   it('drops a result arriving after a change of the form', async () => {
@@ -170,7 +175,7 @@ describe('the connection test of a node', () => {
     release()
     await flushPromises()
     // The answer was about the former URL
-    expect(w.find('.testline').exists()).toBe(false)
+    expect(toasts()).toEqual([])
   })
 
   it('a new node: tested once it has a name and an identifier of its own', async () => {
