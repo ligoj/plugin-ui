@@ -146,7 +146,7 @@ const statusText = computed(() => {
 })
 
 // Click-to-refresh: actively re-check the status. Node → checkNodeStatus (a live
-// probe, POST), subscription → refreshStatus (GET). Only instances are
+// probe, POST), subscription → refreshStatusPost (POST). Only instances are
 // node-refreshable (service/tool nodes have no runtime status).
 const canRefresh = computed(() => !props.readonly && (isSub.value || (!!rootNode.value && nodeType(rootNode.value) === 'instance')))
 const refreshing = ref(false)
@@ -162,7 +162,7 @@ async function doRefresh() {
   refreshing.value = true
   try {
     if (isSub.value) {
-      const resp = await api.get(`rest/subscription/status/${encodeURIComponent(target.id)}/refresh`, { silent: true, raw: true })
+      const resp = await api.post(`rest/subscription/status/${encodeURIComponent(target.id)}/refresh`, null, { silent: true, raw: true })
       if (resp.ok) {
         const d = await resp.json()
         if (d && typeof d === 'object') extra.value = { ...(extra.value || {}), status: d.status, parameters: d.parameters, data: d.data }

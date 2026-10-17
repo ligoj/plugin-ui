@@ -39,6 +39,7 @@ async function mountList() {
 const badgeOf = (w, id) => w.find(`.row[data-id="${id}"]`).findComponent({ name: 'NodeStatusBadge' })
 const headerBadge = (w) => w.find('.head').findComponent({ name: 'NodeStatusBadge' })
 const gets = () => globalThis.fetch.mock.calls.map(([u]) => String(u))
+const calls = (method) => globalThis.fetch.mock.calls.filter(([, o]) => (o?.method || 'GET') === method).map(([u]) => String(u))
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -85,6 +86,8 @@ describe('ProjectListView status column', () => {
     await flushPromises()
     const after = gets().slice(before)
     expect(after.filter((u) => u.includes('status/refresh')).sort()).toEqual(['rest/subscription/status/refresh?id=10&id=11&id=12', 'rest/subscription/status/refresh?id=30'])
+    // The refresh calls the tools and stores the statuses: POST, the GET twin is deprecated
+    expect(calls('POST').sort()).toEqual(['rest/subscription/status/refresh?id=10&id=11&id=12', 'rest/subscription/status/refresh?id=30'])
     expect(after.filter((u) => /status\/\d+$/.test(u)).sort()).toEqual(['rest/subscription/status/1', 'rest/subscription/status/3'])
   })
 
@@ -95,6 +98,7 @@ describe('ProjectListView status column', () => {
     await flushPromises()
     const after = gets().slice(-3)
     expect(after).toEqual(['rest/project/1', 'rest/subscription/status/refresh?id=10&id=11&id=12', 'rest/subscription/status/1'])
+    expect(calls('POST')).toEqual(['rest/subscription/status/refresh?id=10&id=11&id=12'])
   })
 
   it('shows the statuses only to a user who may not refresh them', async () => {
@@ -102,5 +106,15 @@ describe('ProjectListView status column', () => {
     const w = await mountList()
     expect(badgeOf(w, 1).props('readonly')).toBe(true)
     expect(headerBadge(w).props('readonly')).toBe(true)
+  })
+
+  it('lets refresh a user with the POST permission of the refresh only, not with GET', async () => {
+    const read = [{ method: 'GET', pattern: '^rest/project.*' }, { method: 'GET', pattern: '^rest/subscription.*' }]
+    useAuthStore().session = { roles: ['USER'], apiAuthorizations: read }
+    expect(badgeOf(await mountList(), 1).props('readonly')).toBe(true)
+    useAuthStore().session = { roles: ['USER'], apiAuthorizations: [...read, { method: 'POST', pattern: '^rest/subscription/status/([0-9]+/)?refresh$' }] }
+    const w = await mountList()
+    expect(badgeOf(w, 1).props('readonly')).toBe(false)
+    expect(headerBadge(w).props('readonly')).toBe(false)
   })
 })

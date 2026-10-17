@@ -27,8 +27,8 @@ function mockApi() {
   const refreshed = new Promise((resolve) => { release = resolve })
   globalThis.fetch = vi.fn((url, opts) => {
     const u = String(url)
+    if (u.includes('subscription/status/refresh')) return refreshed.then(() => json({ 3: { id: 3, status: 'UP' } }))
     if ((opts?.method || 'GET') === 'POST') return Promise.resolve({ ok: true, status: 204, headers: { get: () => null }, json: () => Promise.resolve(null), text: () => Promise.resolve('') })
-    if (u.includes('status/refresh')) return refreshed.then(() => json({ 3: { id: 3, status: 'UP' } }))
     if (u.includes('rest/node/status')) return Promise.resolve(json(NODE_STATUS))
     return Promise.resolve(json(PROJECT))
   })
@@ -41,6 +41,10 @@ async function mountPage() {
   return w
 }
 const calls = (method) => globalThis.fetch.mock.calls.filter(([, o]) => (o?.method || 'GET') === method).map(([u]) => String(u))
+// The subscription refresh calls the tools and stores the statuses: POST, the GET twin is deprecated
+const subRefreshes = () => calls('POST').filter((u) => u.includes('subscription/status/refresh')).length
+const nodeRefreshes = () => calls('POST').filter((u) => u.includes('node/status/refresh'))
+const REFRESH = { method: 'POST', pattern: '^rest/subscription/status/([0-9]+/)?refresh$' }
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -69,38 +73,42 @@ describe('ProjectDetailView status badge', () => {
     release()
     await flushPromises()
     const panel = w.findComponent(SubscriptionsPanel)
-    const refreshes = () => calls('GET').filter((u) => u.includes('subscription/status/refresh')).length
     const nodeLoads = () => calls('GET').filter((u) => u.endsWith('rest/node/status')).length
     const loadsBefore = nodeLoads()
 
     panel.vm.$emit('refresh-status', false)
     await flushPromises()
-    expect(calls('POST')).toEqual([`rest/node/status/refresh/${encodeURIComponent(SONAR.id)}`, `rest/node/status/refresh/${encodeURIComponent(JENKINS.id)}`])
+    expect(nodeRefreshes()).toEqual([`rest/node/status/refresh/${encodeURIComponent(SONAR.id)}`, `rest/node/status/refresh/${encodeURIComponent(JENKINS.id)}`])
     expect(nodeLoads()).toBe(loadsBefore + 1)
 
-    const before = refreshes()
+    const before = subRefreshes()
     panel.vm.$emit('refresh-status', true)
     await flushPromises()
-    expect(refreshes()).toBe(before + 1)
+    expect(subRefreshes()).toBe(before + 1)
+    expect(calls('GET').filter((u) => u.includes('status/refresh'))).toEqual([])
   })
 
   it('refreshes the subscriptions on any click for a user who may not refresh the instances', async () => {
-    useAuthStore().session = { roles: ['USER'], apiAuthorizations: [{ method: 'GET', pattern: '^rest/.*' }] }
+    useAuthStore().session = { roles: ['USER'], apiAuthorizations: [{ method: 'GET', pattern: '^rest/.*' }, REFRESH] }
     const w = await mountPage()
     release()
     await flushPromises()
     const panel = w.findComponent(SubscriptionsPanel)
     expect(panel.props('status')).toMatchObject({ hint: 'Click: subscriptions', readonly: false })
-    const before = calls('GET').filter((u) => u.includes('subscription/status/refresh')).length
+    const before = subRefreshes()
     panel.vm.$emit('refresh-status', false)
     await flushPromises()
-    expect(calls('POST')).toEqual([])
-    expect(calls('GET').filter((u) => u.includes('subscription/status/refresh')).length).toBe(before + 1)
+    expect(nodeRefreshes()).toEqual([])
+    expect(subRefreshes()).toBe(before + 1)
   })
 
   it('shows the statuses only to a user who may refresh nothing', async () => {
     useAuthStore().session = { roles: ['USER'], apiAuthorizations: [{ method: 'GET', pattern: '^rest/(project|node).*' }] }
     const w = await mountPage()
     expect(w.findComponent(SubscriptionsPanel).props('status')).toMatchObject({ readonly: true })
+    // Reading the subscriptions does not allow refreshing them
+    useAuthStore().session = { roles: ['USER'], apiAuthorizations: [{ method: 'GET', pattern: '^rest/.*' }] }
+    const read = await mountPage()
+    expect(read.findComponent(SubscriptionsPanel).props('status')).toMatchObject({ readonly: true })
   })
 })

@@ -124,7 +124,7 @@ const subscriptions = computed(() => project.value?.subscriptions || [])
 const nodeStatuses = ref(new Map())
 const refreshingNodes = ref(false)
 const canRefreshNodes = computed(() => auth.isAllowedApi('rest/node/status/refresh', 'POST'))
-const canRefreshSubscriptions = computed(() => auth.isAllowedApi('rest/subscription/status/refresh', 'GET'))
+const canRefreshSubscriptions = computed(() => auth.isAllowedApi('rest/subscription/status/refresh', 'POST'))
 const instanceIds = computed(() => [...new Set(subscriptions.value.map((s) => s.node?.id).filter(Boolean))])
 const statusBadge = computed(() => {
   if (!subscriptions.value.length) return null
@@ -224,7 +224,7 @@ async function refreshSubscriptions() {
   pendingIds.value = new Set(subs.map((s) => s.id))
   try {
     const q = subs.map((s) => `id=${encodeURIComponent(s.id)}`).join('&')
-    const fresh = await api.get(`rest/subscription/status/refresh?${q}`)
+    const fresh = await api.post(`rest/subscription/status/refresh?${q}`, null)
     if (!fresh || typeof fresh !== 'object') return
     project.value = {
       ...project.value,

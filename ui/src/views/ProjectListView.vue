@@ -133,7 +133,7 @@ const headers = computed(() => [
    shows the badge of the whole page, a click refreshes every project of the page. */
 const statuses = ref(new Map())
 const refreshingIds = ref(new Set())
-const canRefreshStatus = computed(() => auth.isAllowedApi('rest/subscription/status/refresh', 'GET'))
+const canRefreshStatus = computed(() => auth.isAllowedApi('rest/subscription/status/refresh', 'POST'))
 async function loadStatus(item, force = false) {
   if (!force && statuses.value.has(item.id)) return
   const events = await api.get(`rest/subscription/status/${item.id}`, { silent: true })
@@ -145,7 +145,7 @@ async function refreshStatus(item) {
   try {
     const project = await api.get(`rest/project/${item.id}`, { silent: true })
     const ids = (project?.subscriptions || []).map((s) => `id=${encodeURIComponent(s.id)}`).join('&')
-    if (ids) await api.get(`rest/subscription/status/refresh?${ids}`, { silent: true })
+    if (ids) await api.post(`rest/subscription/status/refresh?${ids}`, null, { silent: true })
     await loadStatus(item, true)
   } finally {
     const ids = new Set(refreshingIds.value)

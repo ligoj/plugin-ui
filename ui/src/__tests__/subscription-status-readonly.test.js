@@ -44,6 +44,13 @@ describe('SubscriptionStatus — readonly', () => {
     expect(w.vm.hits).toBe(0)
   })
 
+  it('refreshes a subscription on click with POST, the GET twin being deprecated', async () => {
+    const w = mount(SubscriptionStatus, { props: { subscription: { id: 7, status: 'UP', node: NODE } }, global: { stubs } })
+    await w.find('.sst-dot').trigger('click')
+    await flushPromises()
+    expect(posts()).toEqual(['rest/subscription/status/7/refresh'])
+  })
+
   it('readonly: shows the status only, and the click goes on to the host', async () => {
     const w = mountInHost(true)
     expect(w.find('.sst-dot').classes()).toEqual(expect.arrayContaining(['sst-dot', 'ok']))

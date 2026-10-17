@@ -282,7 +282,7 @@ async function flushDetails() {
   for (let i = 0; i < ids.length; i += STATUS_CHUNK) {
     const q = ids.slice(i, i + STATUS_CHUNK).map((id) => `id=${encodeURIComponent(id)}`).join('&')
     try {
-      const fresh = await api.get(`rest/subscription/status/refresh?${q}`)
+      const fresh = await api.post(`rest/subscription/status/refresh?${q}`, null)
       if (fresh && typeof fresh === 'object') {
         for (const k of Object.keys(fresh)) {
           const v = fresh[k]
@@ -298,7 +298,7 @@ async function flushDetails() {
 // group's TOOL node (POST rest/node/status/refresh/{toolId}, i.e. the tool — not
 // each instance — which the backend probes and cascades to its subscriptions
 // when the status changes). SHIFT+click (kind 'subscription') re-checks the
-// group's subscriptions (GET rest/subscription/status/{id}/refresh). Either way
+// group's subscriptions (POST rest/subscription/status/{id}/refresh). Either way
 // the global node stats are reloaded afterwards.
 async function onRefreshNode(payload) {
   const key = payload?.key
@@ -309,7 +309,7 @@ async function onRefreshNode(payload) {
   try {
     if (kind === 'subscription') {
       const subIds = payload?.subIds || []
-      await Promise.allSettled(subIds.map((id) => api.get(`rest/subscription/status/${encodeURIComponent(id)}/refresh`, { silent: true })))
+      await Promise.allSettled(subIds.map((id) => api.post(`rest/subscription/status/${encodeURIComponent(id)}/refresh`, null, { silent: true })))
       await loadSubStats()
     } else {
       // The node refresh targets the tool node (the group key), not its instances.
