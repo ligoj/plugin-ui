@@ -236,6 +236,25 @@ export function deprecationNotice(p, tOrNull, fallback) {
  * Initial value of a parameter without default: `false` for a boolean, an empty list for the multi-valued types,
  * else an empty string.
  */
+/**
+ * A copy of the parameter values once a load wrote them, see changedValues. A list is copied, being edited in place.
+ * @param {object} values The values by parameter identifier.
+ */
+export function copyValues(values) {
+  return Object.fromEntries(Object.entries(values).map(([k, v]) => [k, Array.isArray(v) ? [...v] : v]))
+}
+
+/**
+ * The parameter values the user changed since a load: a value the load wrote, a default or a stored one, is no change.
+ * @param {object} values The values of the form by parameter identifier.
+ * @param {object} loaded Their copy once loaded, see copyValues.
+ * @returns {object} The changed values by parameter identifier.
+ */
+export function changedValues(values, loaded) {
+  const same = (a, b) => a === b || (Array.isArray(a) && Array.isArray(b) && JSON.stringify(a) === JSON.stringify(b))
+  return Object.fromEntries(Object.entries(values).filter(([k, v]) => !(k in loaded) || !same(v, loaded[k])))
+}
+
 export function defaultParamValue(p) {
   const k = typeKind(p)
   if (k === 'bool') return false

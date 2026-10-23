@@ -11,7 +11,7 @@
   Nothing is persisted before "Save"; the backend reschedules on save.
 -->
 <template>
-  <LjDialog v-model="open" :title="t('system.plugin.automationTitle')" icon="mdi-calendar-clock" :max-width="780">
+  <LjDialog v-model="open" :guard="form" :guard-ready="!loading" :title="t('system.plugin.automationTitle')" icon="mdi-calendar-clock" :max-width="780">
     <p class="au-intro">{{ t('system.plugin.automationIntro', { repository: state.repository || '' }) }}</p>
 
     <!-- 1. Scheduled check -->
@@ -65,8 +65,8 @@
       </p>
     </section>
 
-    <template #footer>
-      <LjButton variant="ghost" @click="open = false">{{ t('common.cancel') }}</LjButton>
+    <template #footer="{ close }">
+      <LjButton variant="ghost" @click="close">{{ t('common.cancel') }}</LjButton>
       <LjButton icon="mdi-content-save" :disabled="saving || loading" @click="save">{{ t('common.save') }}</LjButton>
     </template>
   </LjDialog>

@@ -49,12 +49,12 @@
     </LjDataTable>
 
     <!-- Create dialog. -->
-    <LjDialog v-model="createDialog" :title="t('system.apiToken.newTitle')" icon="mdi-key" :max-width="480">
+    <LjDialog v-model="createDialog" :guard="createName" :title="t('system.apiToken.newTitle')" icon="mdi-key" :max-width="480">
       <v-form ref="createFormRef" @submit.prevent="doCreate">
         <LigojTextField v-model="createName" prepend-inner-icon="mdi-key-outline" :label="t('system.apiToken.fieldName')" :rules="[rules.required]" variant="outlined" autofocus maxlength="250" />
       </v-form>
-      <template #footer>
-        <LjButton variant="ghost" @click="createDialog = false">{{ t('common.cancel') }}</LjButton>
+      <template #footer="{ close }">
+        <LjButton variant="ghost" @click="close">{{ t('common.cancel') }}</LjButton>
         <LjButton icon="mdi-plus" :loading="creating" @click="doCreate">{{ t('system.apiToken.create') }}</LjButton>
       </template>
     </LjDialog>

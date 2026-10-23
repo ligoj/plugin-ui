@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildParamWire, coerce, selectValue, isDeprecated, deprecationNotice, missingMandatory } from '../utils/pluginParams.js'
+import { buildParamWire, coerce, selectValue, isDeprecated, deprecationNotice, missingMandatory, copyValues, changedValues, UNTOUCHED } from '../utils/pluginParams.js'
 
 const selectParam = { id: 'p', type: 'SELECT', values: ['docker', 'maven', 'nuget'] }
 
@@ -67,5 +67,28 @@ describe('missingMandatory — mandatory parameters without an effective value',
     expect(missingMandatory([job, folder], { [job.id]: 'Admin' })).toEqual([])
     expect(missingMandatory([count, tags], { [count.id]: 3, [tags.id]: ['a'] })).toEqual([])
     expect(missingMandatory([], {})).toEqual([])
+  })
+})
+
+describe('pluginParams changed values', () => {
+  it('keeps the values the user changed since the load, not the ones the load wrote', () => {
+    const values = { url: 'http://a', tags: ['x'], secret: UNTOUCHED, port: 80 }
+    const loaded = copyValues(values)
+    expect(changedValues(values, loaded)).toEqual({})
+
+    values.url = 'http://b'
+    values.tags.push('y')
+    values.secret = 'typed'
+    expect(changedValues(values, loaded)).toEqual({ url: 'http://b', tags: ['x', 'y'], secret: 'typed' })
+
+    // Back to the loaded values: no change
+    values.url = 'http://a'
+    values.tags = ['x']
+    values.secret = UNTOUCHED
+    expect(changedValues(values, loaded)).toEqual({})
+  })
+
+  it('counts a value missing from the load as changed', () => {
+    expect(changedValues({ added: '' }, {})).toEqual({ added: '' })
   })
 })

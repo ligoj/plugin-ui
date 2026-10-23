@@ -69,7 +69,7 @@
     <ApiVerifyDialog v-model="verifyDialog" :authorizations="verifyAuths" :subject="verifySubject" />
 
     <!-- Create / edit dialog (shared chrome). -->
-    <LjDialog v-model="editDialog" :title="editTarget ? t('system.user.editTitle') : t('system.user.newTitle')" icon="mdi-account" :max-width="540">
+    <LjDialog v-model="editDialog" :guard="editForm" :title="editTarget ? t('system.user.editTitle') : t('system.user.newTitle')" icon="mdi-account" :max-width="540">
       <v-form ref="formRef" @submit.prevent="save">
         <LjAvailabilityField v-model="editForm.login" v-model:taken="loginTaken" endpoint="system/user/roles" field="login" :enabled="!editTarget"
           prepend-inner-icon="mdi-account" :label="t('system.user.fieldLogin')" :disabled="!!editTarget" class="mb-3" autofocus />
@@ -91,8 +91,8 @@
           <span v-for="r in federatedRoles(editTarget)" :key="'f-' + r.name" class="rchip rchip--federated">{{ r.name }}<v-tooltip activator="parent" location="top" :text="t('system.user.federatedRole', { group: r.id })" /></span>
         </p>
       </v-form>
-      <template #footer>
-        <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
+      <template #footer="{ close }">
+        <LjButton variant="ghost" @click="close">{{ t('common.cancel') }}</LjButton>
         <LjButton v-if="auth.isAllowedApi(USER_API, editTarget ? 'PUT' : 'POST')" icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
       </template>
     </LjDialog>

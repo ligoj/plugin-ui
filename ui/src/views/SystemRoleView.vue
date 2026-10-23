@@ -65,7 +65,7 @@
     <ApiVerifyDialog v-model="verifyDialog" :authorizations="verifyAuths" :subject="verifySubject" />
 
     <!-- Create / edit dialog (shared chrome). -->
-    <LjDialog v-model="editDialog" :title="editTarget ? t('system.role.editTitle') : t('system.role.newTitle')" icon="mdi-shield-account-outline" :max-width="640">
+    <LjDialog v-model="editDialog" :guard="editForm" :title="editTarget ? t('system.role.editTitle') : t('system.role.newTitle')" icon="mdi-shield-account-outline" :max-width="640">
       <v-form ref="formRef" @submit.prevent="save">
         <LjAvailabilityField v-model="editForm.name" v-model:taken="nameTaken" endpoint="system/security/role/withAuth" :enabled="!editTarget"
           prepend-inner-icon="mdi-shield-outline" :label="t('system.role.fieldName')" class="mb-4" autofocus />
@@ -86,8 +86,8 @@
 
         <LigojCombobox v-model="editForm.uiPatterns" :label="t('system.role.fieldUiPatterns')" prepend-inner-icon="mdi-monitor" :items="[]" chips closable-chips multiple variant="outlined" :hint="t('system.role.patternsHint')" persistent-hint class="mb-2" />
       </v-form>
-      <template #footer>
-        <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
+      <template #footer="{ close }">
+        <LjButton variant="ghost" @click="close">{{ t('common.cancel') }}</LjButton>
         <LjButton v-if="auth.isAllowedApi(ROLE_API, editTarget ? 'PUT' : 'POST')" icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
       </template>
     </LjDialog>

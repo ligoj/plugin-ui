@@ -54,7 +54,7 @@
     </LjDataTable>
 
     <!-- Create / edit dialog (shared chrome). -->
-    <LjDialog v-model="editDialog" :title="editTarget ? t('system.hook.editTitle') : t('system.hook.newTitle')" icon="mdi-webhook" :max-width="600">
+    <LjDialog v-model="editDialog" :guard="editForm" :title="editTarget ? t('system.hook.editTitle') : t('system.hook.newTitle')" icon="mdi-webhook" :max-width="600">
       <v-form ref="formRef" @submit.prevent="save">
         <LjAvailabilityField v-model="editForm.name" v-model:taken="nameTaken" endpoint="system/hook" field="name" :enabled="!editTarget"
           prepend-inner-icon="mdi-tag-outline" :label="t('system.hook.fieldName')" :disabled="!!editTarget" class="mb-3" autofocus />
@@ -77,8 +77,8 @@
             :hint="t('system.hook.delayHint')" persistent-hint variant="outlined" class="flex-grow-1" />
         </div>
       </v-form>
-      <template #footer>
-        <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
+      <template #footer="{ close }">
+        <LjButton variant="ghost" @click="close">{{ t('common.cancel') }}</LjButton>
         <LjButton v-if="auth.isAllowedApi(HOOK_API, editTarget ? 'PUT' : 'POST')" icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
       </template>
     </LjDialog>

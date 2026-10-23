@@ -14,7 +14,7 @@
   backend nodes.
 -->
 <template>
-  <LjDialog :model-value="modelValue" :title="t('wizard.title')" icon="mdi-cloud-plus-outline" :max-width="1040" @update:model-value="onDialogModel">
+  <LjDialog :model-value="modelValue" :guard="changes" :title="t('wizard.title')" icon="mdi-cloud-plus-outline" :max-width="1040" @update:model-value="onDialogModel">
         <p v-if="projectName" class="ctx">{{ t('wizard.contextBefore') }} <strong>{{ projectName }}</strong>.</p>
         <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
@@ -86,18 +86,18 @@
           <ParameterForm :groups="parameterGroups" :values="paramValues" creation :resolve-field="resolveParameterField"
             :field-context="{ mode: selected.mode, isNode: false, nodeId: selected.tool?.id, instanceNodeId: selected.node?.id, project: project }" @update="(id, v) => (paramValues[id] = v)" />
         </section>
-      <template #footer>
-        <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
+      <template #footer="{ close }">
+        <LjButton variant="ghost" @click="close">{{ t('common.cancel') }}</LjButton>
         <LjButton icon="mdi-check" :disabled="!ready" :loading="creating" @click="submit">{{ t('wizard.action.createSubscription') }}</LjButton>
       </template>
   </LjDialog>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, nextTick } from 'vue'
 import { useApi, useErrorStore, useI18nStore, NodeIcon, LjDialog, LjButton, LjSegmented, LigojSelect } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
-import { coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming, missingMandatory } from '../utils/pluginParams.js'
+import { coerce, buildParamWire, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming, missingMandatory, copyValues, changedValues } from '../utils/pluginParams.js'
 import ParameterForm from '../components/ParameterForm.vue'
 import SubscriptionStatus from '../components/SubscriptionStatus.vue'
 import { subscriptionModes } from '../utils/subscriptionModes.js'
@@ -193,7 +193,18 @@ async function loadParameters(nodeId, mode) {
       if (p.defaultValue != null) paramValues[p.id] = coerce(p)
       else paramValues[p.id] = defaultParamValue(p)
     }
+    markLoaded()
   } finally { loadingParams.value = false }
+}
+
+/* What the user changed, for the unsaved-changes guard: the values they typed. The cascade of the selections and the
+   values a load writes are no change. */
+const loadedValues = ref({})
+const changes = computed(() => changedValues(paramValues, loadedValues.value))
+// The values a load wrote, once their fields are shown: a field normalizing its value on mount is no change
+async function markLoaded() {
+  await nextTick()
+  loadedValues.value = copyValues(paramValues)
 }
 
 /* ---- cascading invalidation ---- */
@@ -257,6 +268,7 @@ function reset() {
   selected.service = null; selected.tool = null; selected.node = null; selected.mode = null
   tools.value = []; nodes.value = []; parameters.value = []
   for (const k of Object.keys(paramValues)) delete paramValues[k]
+  loadedValues.value = {}
   error.value = null
 }
 function onDialogModel(v) { if (!v) emit('update:modelValue', false) }

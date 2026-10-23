@@ -10,7 +10,7 @@
   - edit-node:   edit the given node's name + parameters → PUT rest/node.
 -->
 <template>
-  <LjDialog :model-value="modelValue" :title="dialogTitle" icon="mdi-server-network" :max-width="1040" @update:model-value="onDialogModel">
+  <LjDialog :model-value="modelValue" :guard="changes" :title="dialogTitle" icon="mdi-server-network" :max-width="1040" @update:model-value="onDialogModel">
         <p v-if="error" class="errline"><v-icon size="16">mdi-alert-outline</v-icon>{{ error }}</p>
 
         <!-- Steps 1-3 share one row, like the subscription wizard: service, tool, instance identity -->
@@ -71,8 +71,8 @@
           <LigojTextField v-else-if="expiryAvailable" v-model="form.credentialExpiry" type="date" :label="t('system.node.credentialExpiry')" :hint="t('system.node.credentialExpiryHint')"
             persistent-hint clearable variant="outlined" density="comfortable" hide-details="auto" class="cred-expiry-field" />
         </section>
-      <template #footer>
-        <LjButton variant="ghost" @click="$emit('update:modelValue', false)">{{ t('common.cancel') }}</LjButton>
+      <template #footer="{ close }">
+        <LjButton variant="ghost" @click="close">{{ t('common.cancel') }}</LjButton>
         <LjButton v-if="testable && auth.isAllowedApi(CHECK_API, 'POST')" variant="ghost" icon="mdi-lan-connect" :disabled="!testReady" :loading="testing" @click="testConnection">{{ t('system.node.test.action') }}</LjButton>
         <LjButton v-if="auth.isAllowedApi('rest/node', isEdit ? 'PUT' : 'POST')" icon="mdi-content-save" :disabled="!ready" :loading="saving" @click="submit">{{ isEdit ? t('common.save') : t('wizard.action.createNode') }}</LjButton>
       </template>
@@ -80,10 +80,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, nextTick } from 'vue'
 import { useApi, useAuthStore, useErrorStore, useI18nStore, NodeIcon, NodeModeChip, nodeType, LjDialog, LjButton, LjSegmented, LjAvailabilityField, LigojSelect, LigojTextField } from '@ligoj/host'
 import { groupParameters } from '../utils/parameterGroups.js'
-import { typeKind, coerce, buildParamWire, selectValue, isRedacted, UNTOUCHED, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming, missingMandatory } from '../utils/pluginParams.js'
+import { typeKind, coerce, buildParamWire, selectValue, isRedacted, UNTOUCHED, ensureToolPluginLoaded, resolveParameterField as resolveField, resolveParameterLayout as resolveLayout, defaultParamValue, groupNaming, missingMandatory, copyValues, changedValues } from '../utils/pluginParams.js'
 import ParameterForm from '../components/ParameterForm.vue'
 
 // Connection check of the form values before they are saved
@@ -193,6 +193,23 @@ const parameterGroups = computed(() =>
   groupParameters(parameters.value, resolveLayout(currentNodeId.value, nodeCtx(), 'node'), groupNaming(i18n.t)))
 
 /* ---- loaders ---- */
+/* What the user changed, for the unsaved-changes guard: the cascade of the selections, the identifier it prefixes and the
+   values a load writes are none, the mode of an edited node is one. */
+const loadedValues = ref({})
+const autoId = computed(() => (!isEdit.value && selected.tool ? `${selected.tool.id}:` : ''))
+const changes = computed(() => ({
+  id: !isEdit.value && form.id === autoId.value ? '' : form.id,
+  name: form.name,
+  credentialExpiry: form.credentialExpiry,
+  mode: isEdit.value ? selected.mode : null,
+  values: changedValues(paramValues, loadedValues.value),
+}))
+// The values a load wrote, once their fields are shown: a field normalizing its value on mount is no change
+async function markLoaded() {
+  await nextTick()
+  loadedValues.value = copyValues(paramValues)
+}
+
 async function fetchNodes(url) { const d = await api.get(url); const l = Array.isArray(d) ? d : (Array.isArray(d?.data) ? d.data : []); return l.filter((n) => n.enabled !== false) }
 async function loadServices() { loadingServices.value = true; try { services.value = await fetchNodes('rest/node?refined=service&rows=1000') } finally { loadingServices.value = false } }
 async function loadTools(id) { loadingTools.value = true; try { tools.value = await fetchNodes(`rest/node?refined=${encodeURIComponent(id)}&rows=1000`) } finally { loadingTools.value = false } }
@@ -209,6 +226,7 @@ async function loadParameters(nodeId, mode) {
       if (p.defaultValue != null) paramValues[p.id] = coerce(p)
       else paramValues[p.id] = defaultParamValue(p)
     }
+    markLoaded()
   } finally { loadingParams.value = false }
 }
 
@@ -290,6 +308,7 @@ async function loadEditParameters(nodeId, mode, keep = false) {
       else if (k === 'select') paramValues[p.id] = it.index != null ? selectValue(p, it.index) : (it.text ?? '')
       else paramValues[p.id] = it.text ?? ''
     }
+    markLoaded()
   } finally { loadingParams.value = false }
 }
 
@@ -299,6 +318,7 @@ function reset() {
   tools.value = []; parameters.value = []; form.id = ''; form.name = ''; form.credentialExpiry = ''; error.value = null
   storedSecrets.value = []
   for (const k of Object.keys(paramValues)) delete paramValues[k]
+  loadedValues.value = {}
 }
 
 /* Create-node with a pre-filled service + tool (e.g. "create an instance" from

@@ -8,7 +8,7 @@
   autocomplete hitting rest/service/id/user.
 -->
 <template>
-  <LjDialog :model-value="modelValue" :title="isEdit ? t('project.edit') : t('project.new')" :badge="isEdit ? (project?.pkey || project?.name || '') : ''" icon="mdi-folder-outline" :max-width="600" @update:model-value="onDialogModel">
+  <LjDialog :model-value="modelValue" :guard="form" :title="isEdit ? t('project.edit') : t('project.new')" :badge="isEdit ? (project?.pkey || project?.name || '') : ''" icon="mdi-folder-outline" :max-width="600" @update:model-value="onDialogModel">
       <v-form ref="formRef" @submit.prevent="save">
         <LigojTextField v-model="form.name" :label="t('project.name')" :rules="[rules.required]" prepend-inner-icon="mdi-form-textbox" variant="outlined" class="mb-2" autofocus @update:model-value="onNameChanged" />
         <LigojTextField v-model="form.pkey" :label="t('project.pkey')" :rules="[rules.required, rules.pkey]" :disabled="pkeyLocked" :hint="pkeyLocked ? t('project.pkeyLocked') : t('project.pkeyHint')" persistent-hint
@@ -22,10 +22,10 @@
            mounted below the built-in form, before the actions. Extra keys
            written into `form` ride along in the save payload. -->
       <component :is="extension" v-for="(extension, i) in extensionComponents" :key="i" :mode="isEdit ? 'edit' : 'create'" :form="form" :context="extensionContext" />
-      <template #footer>
+      <template #footer="{ close }">
         <!-- Plugin action-bar contributions (`editExtension.footer`). -->
         <component :is="f" v-for="(f, fi) in extensionFooters" :key="'xf' + fi" :mode="isEdit ? 'edit' : 'create'" :form="form" :context="extensionContext" />
-        <LjButton variant="ghost" @click="requestClose">{{ t('common.cancel') }}</LjButton>
+        <LjButton variant="ghost" @click="close">{{ t('common.cancel') }}</LjButton>
         <LjButton icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
       </template>
   </LjDialog>
@@ -145,8 +145,7 @@ function resetForm() {
 // Also initialize a dialog mounted already open
 watch(() => props.modelValue, (val) => { if (val) resetForm() }, { immediate: true })
 
-function onDialogModel(val) { if (!val) requestClose() }
-function requestClose() { emit('update:modelValue', false) }
+function onDialogModel(val) { if (!val) emit('update:modelValue', false) }
 
 async function save() {
   const { valid } = await formRef.value.validate()

@@ -97,7 +97,7 @@
     </LjDataTable>
 
     <!-- Create / edit dialog (shared chrome). -->
-    <LjDialog v-model="editDialog" :title="editTarget ? t('system.config.editTitle') : t('system.config.newTitle')" icon="mdi-cog" :max-width="560">
+    <LjDialog v-model="editDialog" :guard="editForm" :title="editTarget ? t('system.config.editTitle') : t('system.config.newTitle')" icon="mdi-cog" :max-width="560">
       <v-form ref="formRef" @submit.prevent="save">
         <LjAvailabilityField v-model="editForm.name" v-model:taken="nameTaken" endpoint="system/configuration" :enabled="!editTarget"
           prepend-inner-icon="mdi-key-outline" :label="t('system.config.fieldName')" class="mb-3" autofocus :disabled="!!editTarget" />
@@ -109,8 +109,8 @@
         <div class="cfg-audit-title">{{ t('common.auditTitle') }}</div>
         <AuditRows :target="editTarget" />
       </div>
-      <template #footer>
-        <LjButton variant="ghost" @click="editDialog = false">{{ t('common.cancel') }}</LjButton>
+      <template #footer="{ close }">
+        <LjButton variant="ghost" @click="close">{{ t('common.cancel') }}</LjButton>
         <LjButton v-if="auth.isAllowedApi(CONFIG_API, 'POST')" icon="mdi-content-save" :loading="saving" @click="save">{{ t('common.save') }}</LjButton>
       </template>
     </LjDialog>
