@@ -341,6 +341,8 @@ export default {
   'system.node.headerMode': 'Mode',
   'system.node.headerStatus': 'Status',
   'system.node.headerType': 'Type',
+  'system.node.headerVersion': 'Version',
+  'system.node.headerVersionHint': 'Version of the tool, detected by the last status check',
   'system.node.typeService': 'Service',
   'system.node.typeFeature': 'Feature',
   'system.node.typeTool': 'Tool',

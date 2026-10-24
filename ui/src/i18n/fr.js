@@ -340,6 +340,8 @@ export default {
   'system.node.headerMode': 'Mode',
   'system.node.headerStatus': 'Statut',
   'system.node.headerType': 'Type',
+  'system.node.headerVersion': 'Version',
+  'system.node.headerVersionHint': 'Version de l’outil, détectée par la dernière vérification du statut',
   'system.node.typeService': 'Service',
   'system.node.typeFeature': 'Fonctionnalité',
   'system.node.typeTool': 'Outil',

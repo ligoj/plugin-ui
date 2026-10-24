@@ -72,6 +72,10 @@
       <template #cell.mode="{ item }">
         <NodeModeChip :mode="item.mode || 'all'" size="small" />
       </template>
+      <!-- Version of the tool an instance calls, detected by the last status check of an UP instance -->
+      <template #cell.version="{ item }">
+        <span class="mono ver">{{ isInstance(item) && item.version || '—' }}</span>
+      </template>
       <!-- Attached subscriptions count (rest/node/status/subscription, loaded
            asynchronously); a dash while unknown / when the node has none. -->
       <template #cell.subscriptions="{ item }">
@@ -203,6 +207,7 @@ const headers = computed(() => [
   { key: 'name', label: t('system.node.headerName'), sortable: true, icon: 'mdi-server-outline' },
   { key: 'type', label: t('system.node.headerType'), sortable: true, align: 'center', icon: 'mdi-shape-outline', exportValue: (r) => typeLabel(r) },
   { key: 'mode', label: t('system.node.headerMode'), sortable: false, align: 'center', icon: 'mdi-cog-outline', exportValue: (r) => r.mode || 'all' },
+  { key: 'version', label: t('system.node.headerVersion'), tooltip: t('system.node.headerVersionHint'), sortable: true, icon: 'mdi-tag-outline', exportValue: (r) => (isInstance(r) && r.version) || '' },
   // Last data column → renders just before the gear/actions column.
   { key: 'subscriptions', label: t('system.node.subscriptions'), sortable: false, align: 'center', icon: 'mdi-link-variant', exportValue: (r) => subsTotal(r.id) },
 ])
@@ -643,7 +648,8 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
   color: var(--ink-3);
 }
 
-.subs {
+.subs,
+.ver {
   font-family: var(--mono);
   color: var(--ink-2);
 }

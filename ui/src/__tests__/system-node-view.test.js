@@ -36,6 +36,7 @@ const stubs = {
     template: '<div class="vdt">'
       + '<div v-for="it in items" :key="it.id" class="row">'
       + '<span class="subs-cell"><slot name="cell.subscriptions" :item="it" /></span>'
+      + '<span class="ver-cell"><slot name="cell.version" :item="it" /></span>'
       + '<slot name="actions" :item="it" /></div>'
       + '<div class="tools"><slot name="tools-extra" /></div></div>',
   },
@@ -189,5 +190,32 @@ describe('SystemNodeView status refresh', () => {
     expect(cards[4].find('.snum').text()).toBe('4')
     // The async fetch hit the statistics endpoint.
     expect(globalThis.fetch.mock.calls.some((c) => String(c[0]).includes('rest/node/status/subscription'))).toBe(true)
+  })
+})
+
+describe('SystemNodeView version', () => {
+  // The detected version of the tool an instance calls. A tool row carrying one, such as after a direct status
+  // refresh, does not show it.
+  const VERSIONED = { ...INSTANCE, version: '2.479.1' }
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    useI18nStore().merge(enMessages, 'en')
+    useAuthStore().session = { admin: true }
+    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse([{ ...TOOL, version: '1' }, VERSIONED, { ...INSTANCE, id: 'service:build:jenkins:2' }])))
+  })
+
+  it('shows the version of an instance, a dash for a tool or an unknown version', async () => {
+    const w = mountView()
+    await flushPromises()
+    expect(w.findAll('.ver-cell').map((c) => c.text())).toEqual(['—', '2.479.1', '—'])
+  })
+
+  it('has a sortable version column, exported as is', async () => {
+    const w = mountView()
+    await flushPromises()
+    const header = w.findComponent(stubs.LjDataTable).props('headers').find((h) => h.key === 'version')
+    expect(header).toMatchObject({ label: 'Version', sortable: true, tooltip: 'Version of the tool, detected by the last status check' })
+    expect(header.exportValue(VERSIONED)).toBe('2.479.1')
+    expect(header.exportValue(TOOL)).toBe('')
   })
 })
