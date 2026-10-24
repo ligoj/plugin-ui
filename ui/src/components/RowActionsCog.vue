@@ -1,7 +1,7 @@
 <!--
   RowActionsCog — shared row-action menu used by every plugin-ui table.
 
-  A cog icon button (`.lj-iconbtn`) that opens a popmenu (`.lj-popmenu`); the
+  A vertical dots icon button (`.lj-iconbtn`) that opens a popmenu (`.lj-popmenu`); the
   caller supplies the action items through the default slot as plain <button>
   elements (with `class="danger"` for destructive ones and `<div class="sep" />`
   separators), exactly like the host's global popmenu pattern. Both classes are
@@ -28,7 +28,7 @@
 import { useI18nStore } from '@ligoj/host'
 
 defineProps({
-  icon: { type: String, default: 'mdi-cog' },
+  icon: { type: String, default: 'mdi-dots-vertical' },
   label: { type: String, default: '' },
 })
 

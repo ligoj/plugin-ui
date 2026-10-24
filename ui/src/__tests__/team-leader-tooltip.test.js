@@ -23,7 +23,12 @@ function json(body) {
 }
 // The tooltip content inline: its slot
 const VTooltip = { name: 'VTooltip', props: ['location'], template: '<div class="tt" :data-location="location"><slot /></div>' }
-const rows = (w) => w.findAll('.lt-row').map((r) => [r.find('.lt-k').text(), r.find('.lt-v').text()])
+const VChip = { name: 'VChip', template: '<span class="vchip"><slot /></span>' }
+// Each row: its label, then its text or the texts of its chips
+const rows = (w) => w.findAll('.lt-row').map((r) => {
+  const chips = r.findAll('.vchip').map((c) => c.text())
+  return [r.find('.lt-k').text(), chips.length ? chips : r.find('.lt-v').text()]
+})
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -33,18 +38,18 @@ beforeEach(() => {
 })
 
 describe('TeamLeaderTooltip', () => {
-  it('lists the known details of the leader, the empty ones left out', () => {
-    const w = mount(TeamLeaderTooltip, { props: { user: LEADER }, global: { stubs: { VTooltip } } })
+  it('lists the known details of the leader, the empty ones left out, each group in its chip', () => {
+    const w = mount(TeamLeaderTooltip, { props: { user: LEADER }, global: { stubs: { VTooltip, VChip } } })
     expect(w.find('.lt-head').text()).toBe('Team Leader')
     expect(rows(w)).toEqual([
       ['Name', 'Fabrice Daugan'], ['Identifier', 'E-42'], ['Login', 'fdaugan'], ['Mail', 'fdaugan@sample.com, fd@sample.com'],
-      ['Company', 'ligoj'], ['Groups', 'dev, ops'], ['employeeId', 'E-42'],
+      ['Company', 'ligoj'], ['Groups', ['dev', 'ops']], ['employeeId', 'E-42'],
     ])
   })
 
   it('does not repeat the login when it is the identifier', () => {
     useAuthStore().session = { admin: true }
-    const w = mount(TeamLeaderTooltip, { props: { user: { id: 'fdaugan' } }, global: { stubs: { VTooltip } } })
+    const w = mount(TeamLeaderTooltip, { props: { user: { id: 'fdaugan', groups: [] } }, global: { stubs: { VTooltip, VChip } } })
     expect(rows(w)).toEqual([['Identifier', 'fdaugan']])
   })
 })

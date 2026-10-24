@@ -6,7 +6,11 @@
   <v-tooltip activator="parent" :location="location">
     <div class="leader-tip">
       <div class="lt-head">{{ t('project.teamLeader') }}</div>
-      <div v-for="line in details" :key="line.label" class="lt-row"><span class="lt-k">{{ line.label }}</span><span class="lt-v">{{ line.value }}</span></div>
+      <div v-for="line in details" :key="line.label" class="lt-row">
+        <span class="lt-k">{{ line.label }}</span>
+        <span v-if="line.chips" class="lt-v lt-chips"><v-chip v-for="chip in line.chips" :key="chip" size="x-small" variant="tonal" label>{{ chip }}</v-chip></span>
+        <span v-else class="lt-v">{{ line.value }}</span>
+      </div>
     </div>
   </v-tooltip>
 </template>
@@ -31,7 +35,8 @@ const details = computed(() => {
     { label: t('project.leader.login'), value: userVisualId(u) !== u.id ? u.id : '' },
     { label: t('project.leader.mail'), value: (u.mails || []).join(', ') },
     { label: t('project.leader.company'), value: u.company },
-    { label: t('project.leader.groups'), value: (u.groups || []).join(', ') },
+    // One chip per group
+    { label: t('project.leader.groups'), value: (u.groups || []).length, chips: u.groups },
     ...custom,
   ].filter((line) => line.value)
 })
@@ -43,4 +48,5 @@ const details = computed(() => {
 .leader-tip .lt-row { display: flex; gap: 10px; font-size: 12.5px; }
 .leader-tip .lt-k { opacity: .7; min-width: 78px; }
 .leader-tip .lt-v { font-family: var(--mono); overflow-wrap: anywhere; }
+.leader-tip .lt-chips { display: flex; flex-wrap: wrap; gap: 4px; }
 </style>
