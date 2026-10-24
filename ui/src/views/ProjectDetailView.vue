@@ -19,12 +19,7 @@
       <template v-if="project?.teamLeader" #title-append>
         <v-chip class="leader" size="small" variant="tonal" color="primary" prepend-icon="mdi-account-star">
           {{ leaderName }}
-          <v-tooltip activator="parent" location="bottom">
-            <div class="leader-tip">
-              <div class="lt-head">{{ t('project.teamLeader') }}</div>
-              <div v-for="line in leaderDetails" :key="line.label" class="lt-row"><span class="lt-k">{{ line.label }}</span><span class="lt-v">{{ line.value }}</span></div>
-            </div>
-          </v-tooltip>
+          <TeamLeaderTooltip :user="project.teamLeader" location="bottom" />
         </v-chip>
       </template>
       <template #subtitle>
@@ -88,6 +83,7 @@ import { toolColor } from '../toolColor.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import SubscribeWizardDialog from './SubscribeWizardView.vue'
 import AuditDialog from '../components/AuditDialog.vue'
+import TeamLeaderTooltip from '../components/TeamLeaderTooltip.vue'
 import SubscriptionsPanel from '../components/SubscriptionsPanel.vue'
 import { statusCounts, nodeStatusValues } from '../utils/projectStatus.js'
 
@@ -156,21 +152,6 @@ async function onRefreshStatus(shift) {
 }
 // Chip label: the full name when known, else the visual identifier (login by default)
 const leaderName = computed(() => userFullName(project.value?.teamLeader) || userVisualId(project.value?.teamLeader))
-// Tooltip rows: only the details the identity provider returned
-const leaderDetails = computed(() => {
-  const u = project.value?.teamLeader
-  if (!u) return []
-  const custom = Object.entries(u.customAttributes || {}).map(([label, value]) => ({ label, value }))
-  return [
-    { label: t('project.leader.name'), value: userFullName(u) },
-    { label: t('project.leader.id'), value: userVisualId(u) },
-    { label: t('project.leader.login'), value: userVisualId(u) !== u.id ? u.id : '' },
-    { label: t('project.leader.mail'), value: (u.mails || []).join(', ') },
-    { label: t('project.leader.company'), value: u.company },
-    { label: t('project.leader.groups'), value: (u.groups || []).join(', ') },
-    ...custom,
-  ].filter((line) => line.value)
-})
 
 /* Group the project's subscriptions by their tool (node.refined) into cockpit
    cards. Each row is one subscription; health = share of UP rows. */
@@ -319,13 +300,8 @@ onMounted(load)
 }
 
 /* Subtitle inline bits (slotted into LjPageHeader's `.sub`). */
-/* Team leader chip on the title line + its details tooltip */
+/* Team leader chip on the title line, its details in TeamLeaderTooltip */
 .leader { font-family: var(--font); font-weight: 700; letter-spacing: 0; }
-.leader-tip { display: grid; gap: 3px; min-width: 200px; }
-.leader-tip .lt-head { font-weight: 700; margin-bottom: 3px; }
-.leader-tip .lt-row { display: flex; gap: 10px; font-size: 12.5px; }
-.leader-tip .lt-k { opacity: .7; min-width: 78px; }
-.leader-tip .lt-v { font-family: var(--mono); overflow-wrap: anywhere; }
 
 .pkey {
   display: inline-flex;

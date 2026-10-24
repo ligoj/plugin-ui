@@ -47,13 +47,12 @@ describe('ProjectListView — server-side paging', () => {
     expect(table.props('items').map((r) => r.id)).toEqual([1, 2])
   })
 
-  it('shows the team leader by the visual identifier, keeping the full name aside', async () => {
+  it('shows the team leader by the visual identifier, keeping the user for its details', async () => {
     useAuthStore().session = { applicationSettings: { data: { 'service:id:visual-id-name': 'customAttributes.employeeId' } } }
     globalThis.fetch = vi.fn(() => jsonResponse({ data: [{ id: 1, name: 'P1', pkey: 'p1', teamLeader: { id: 'fdaugan', firstName: 'Fabrice', lastName: 'Daugan', customAttributes: { employeeId: 'E-42' } } }], recordsTotal: 1, recordsFiltered: 1 }))
     const w = await mountView()
     const row = w.findComponent(LjDataTable).props('items')[0]
     expect(row.teamLeader).toBe('E-42')
-    expect(row.teamLeaderName).toBe('Fabrice Daugan')
     expect(row.teamLeaderUser.id).toBe('fdaugan')
   })
 

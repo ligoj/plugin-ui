@@ -44,7 +44,7 @@ describe('ProjectEditDialog — team leader search', () => {
 
   it('accepts a project list row, whose teamLeader is the displayed visual id: the login stays the value', async () => {
     useAuthStore().session = { applicationSettings: { data: { 'service:id:visual-id-name': 'customAttributes.uidFonctionnel' } } }
-    const row = { id: 1, name: 'Démo #1', pkey: 'demo-1', teamLeader: 'UID Ragnar', teamLeaderName: 'Ragnar Ahmed',
+    const row = { id: 1, name: 'Démo #1', pkey: 'demo-1', teamLeader: 'UID Ragnar',
       teamLeaderUser: { id: 'ragnar', firstName: 'Ragnar', lastName: 'Ahmed', customAttributes: { uidFonctionnel: 'UID Ragnar' } } }
     const w = mount(ProjectEditDialog, { shallow: true, props: { modelValue: true, project: row } })
     await flushPromises()
