@@ -548,6 +548,7 @@ export default {
   'project.detail.unsubscribe': 'Unsubscribe',
   'project.detail.unsubscribeConfirm': 'Remove subscription to {name}?',
   'project.detail.unsubscribeData': 'Also delete remote data on the target service',
+  'project.detail.unsubscribePluginMissing': 'The plugin of this tool is not installed: only the subscription is removed, the data it created on the tool are kept. The removal fails when the plugin left its own data linked to this subscription.',
   'project.detail.unsubscribeDataHint': 'The job or folder tree, credentials and other resources created on the tool by this subscription are destroyed there too. This cannot be undone. Leave it unchecked to keep them and only detach the project.',
   'project.detail.unsubscribed': 'Subscription to {name} removed',
   'project.detail.unsubscribedData': 'Subscription to {name} removed and its remote data deleted on the target service',

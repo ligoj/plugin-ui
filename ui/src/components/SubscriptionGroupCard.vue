@@ -73,7 +73,7 @@
           <span v-if="r.sub" class="rowact">
             <!-- Plugin-contributed row actions; the host never interprets the HTML. -->
             <PluginFeatures :subscription="r.sub" action="renderFeatures" />
-            <button v-if="r.sub.id" class="rowcog" :title="t('common.actions') || 'Actions'" @click.stop="$emit('rowmenu', { event: $event, sub: r.sub })">
+            <button v-if="cog && r.sub.id" class="rowcog" :title="t('common.actions') || 'Actions'" @click.stop="$emit('rowmenu', { event: $event, sub: r.sub })">
               <v-icon size="16">mdi-dots-vertical</v-icon>
             </button>
           </span>
@@ -102,6 +102,8 @@ const props = defineProps({
   group: { type: Object, required: true },
   // Collapse is controlled by the parent panel (so "collapse all" can drive it).
   collapsed: { type: Boolean, default: false },
+  // Show the host row menu button: only when the parent handles `rowmenu`
+  cog: { type: Boolean, default: true },
 })
 defineEmits(['rowmenu', 'toggle', 'row-appear', 'refresh-node'])
 

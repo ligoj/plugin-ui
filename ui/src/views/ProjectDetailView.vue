@@ -48,28 +48,7 @@
     <SubscribeWizardDialog v-model="subscribeDialog" :project-id="project?.id" :project-name="project?.name" :project="project" @saved="load" />
     <AuditDialog v-model="auditDialog" :target="project" />
 
-    <div v-if="rowMenu.open" class="rowmenu-bg" @click="closeRowMenu">
-      <div class="rowmenu" :style="{ top: rowMenu.y + 'px', left: (rowMenu.x - 180) + 'px' }" @click.stop>
-        <!-- Host-owned action. Per-subscription "Configure" is NOT a generic
-             route — it's a plugin concern surfaced through the plugin's own
-             `renderFeatures` button (e.g. the VM Configure cog), rendered
-             inline on the row. The host menu keeps only unsubscribe. -->
-        <button v-if="auth.isAllowedApi('rest/subscription', 'DELETE')" class="danger" @click="deleteSub"><v-icon size="16">mdi-delete-outline</v-icon>{{ t('project.detail.unsubscribe') || t('common.delete') || 'Supprimer' }}</button>
-      </div>
-    </div>
-
-    <!-- Unsubscribe: an important confirmation like the other deletions. A subscription
-         created by Ligoj (CREATE mode) may also destroy what it created on the tool
-         (job / folder tree on Jenkins, ...): opt-in, explained, off by default. A
-         linked subscription only detaches the project, the API ignores the flag. -->
-    <LigojConfirmDialog v-model="unsubscribe.open" :title="t('project.detail.unsubscribe')" icon="mdi-delete-outline" icon-color="error"
-      :confirm-label="t('project.detail.unsubscribe')" confirm-color="error" :loading="unsubscribe.busy" @confirm="confirmUnsubscribe">
-      <p class="unsub-text">{{ t('project.detail.unsubscribeConfirm', { name: unsubscribe.name }) }}</p>
-      <template v-if="unsubscribe.created">
-        <v-checkbox v-model="unsubscribe.remote" class="unsub-remote" color="error" density="compact" hide-details :label="t('project.detail.unsubscribeData')" />
-        <p class="unsub-hint">{{ t('project.detail.unsubscribeDataHint') }}</p>
-      </template>
-    </LigojConfirmDialog>
+    <UnsubscribeMenu ref="unsubscribeMenu" @unsubscribed="load" />
 
     <div class="toast" :class="{ show: toastMsg }">{{ toastMsg }}</div>
   </div>
@@ -78,11 +57,12 @@
 <script setup>
 import { ref, computed, onMounted, watch, h } from 'vue'
 import { useRoute } from 'vue-router'
-import { useApi, useAppStore, useAuthStore, useErrorStore, useI18nStore, NodeIcon, VIcon, LjPageHeader, LjButton, LjConfirmDialog as LigojConfirmDialog, userFullName, userVisualId } from '@ligoj/host'
+import { useApi, useAppStore, useAuthStore, useI18nStore, NodeIcon, VIcon, LjPageHeader, LjButton, userFullName, userVisualId } from '@ligoj/host'
 import { toolColor } from '../toolColor.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
 import SubscribeWizardDialog from './SubscribeWizardView.vue'
 import AuditDialog from '../components/AuditDialog.vue'
+import UnsubscribeMenu from '../components/UnsubscribeMenu.vue'
 import TeamLeaderTooltip from '../components/TeamLeaderTooltip.vue'
 import SubscriptionsPanel from '../components/SubscriptionsPanel.vue'
 import { statusCounts, nodeStatusValues } from '../utils/projectStatus.js'
@@ -91,7 +71,6 @@ const route = useRoute()
 const api = useApi()
 const appStore = useAppStore()
 const auth = useAuthStore()
-const errorStore = useErrorStore()
 const i18n = useI18nStore()
 const t = i18n.t
 
@@ -234,47 +213,9 @@ function openSubscribe() {
   subscribeDialog.value = true
 }
 
-// SubscriptionsPanel emits { event, sub } from a row cog → host overflow menu.
-function onRowMenu({ event, sub }) { openRowMenu(event, sub) }
-
-const rowMenu = ref({ open: false, x: 0, y: 0, sub: null })
-function openRowMenu(ev, sub) {
-  const r = ev.currentTarget.getBoundingClientRect()
-  rowMenu.value = { open: true, x: r.right, y: r.bottom + 4, sub }
-}
-function closeRowMenu() { rowMenu.value.open = false }
-/* Unsubscribe confirmation: the subscription, whether Ligoj created it (CREATE mode:
-   the remote-data option is offered), and the user's choice. */
-const unsubscribe = ref({ open: false, busy: false, sub: null, name: '', created: false, remote: false })
-function deleteSub() {
-  const s = rowMenu.value.sub
-  closeRowMenu()
-  if (!s?.id) return
-  const node = s.node || {}
-  unsubscribe.value = {
-    open: true, busy: false, sub: s,
-    name: node.name || node.id || ('#' + s.id),
-    created: String(s.mode || '').toUpperCase() === 'CREATE',
-    remote: false,
-  }
-}
-async function confirmUnsubscribe() {
-  const u = unsubscribe.value
-  if (!u.sub?.id) return
-  u.busy = true
-  const remote = u.created && u.remote
-  try {
-    const res = await api.del(`rest/subscription/${u.sub.id}${remote ? '?deleteRemoteData=true' : ''}`, { raw: true })
-    if (res?.ok) {
-      unsubscribe.value.open = false
-      // Confirm what happened: the plain detachment, or the deletion of the remote data too
-      errorStore.success(t(remote ? 'project.detail.unsubscribedData' : 'project.detail.unsubscribed', { name: u.name }), { node: u.sub.node })
-    }
-  } finally {
-    u.busy = false
-    load()
-  }
-}
+// SubscriptionsPanel emits { event, sub } from the row dots → host row menu.
+const unsubscribeMenu = ref(null)
+function onRowMenu({ event, sub }) { unsubscribeMenu.value.open(event, sub) }
 
 let toastT
 const toastMsg = ref('')
@@ -734,53 +675,4 @@ onMounted(load)
   transform: translateX(-50%) translateY(0);
 }
 
-.rowmenu-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 70;
-}
-
-.rowmenu {
-  position: fixed;
-  min-width: 180px;
-  padding: 5px;
-  border-radius: var(--radius);
-  background: rgb(var(--v-theme-surface));
-  border: var(--border-w) var(--lj-border-style, solid) var(--border-c);
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.rowmenu button {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 11px;
-  border: 0;
-  background: transparent;
-  border-radius: 8px;
-  cursor: pointer;
-  color: var(--ink);
-  font-family: var(--font);
-  font-size: 13.5px;
-  font-weight: 600;
-  text-align: left;
-}
-
-.rowmenu button:hover {
-  background: rgba(var(--v-theme-on-surface), .07);
-}
-
-.rowmenu button.danger {
-  color: rgb(var(--v-theme-error));
-}
-
-.rowmenu button.danger:hover {
-  background: rgba(var(--v-theme-error), .08);
-}
-.unsub-text { margin: 0 0 12px; color: var(--ink-2); }
-.unsub-remote { margin-top: 4px; }
-.unsub-hint { margin: 2px 0 0 40px; font-size: 12.5px; color: var(--ink-3); }
 </style>

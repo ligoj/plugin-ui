@@ -547,6 +547,7 @@ export default {
   'project.detail.unsubscribe': 'Désabonner',
   'project.detail.unsubscribeConfirm': 'Supprimer la souscription à {name} ?',
   'project.detail.unsubscribeData': 'Supprimer également les données distantes sur le service cible',
+  'project.detail.unsubscribePluginMissing': "Le plugin de cet outil n'est pas installé : seule la souscription est supprimée, les données créées sur l'outil sont conservées. La suppression échoue si le plugin a laissé ses propres données liées à cette souscription.",
   'project.detail.unsubscribeDataHint': 'Le job ou l\'arborescence de dossiers, les identifiants et autres ressources créés sur l\'outil par cette souscription y sont aussi détruits. Cette action est irréversible. Laisser décoché pour les conserver et seulement détacher le projet.',
   'project.detail.unsubscribed': 'Souscription à {name} supprimée',
   'project.detail.unsubscribedData': 'Souscription à {name} supprimée et ses données distantes supprimées sur le service cible',

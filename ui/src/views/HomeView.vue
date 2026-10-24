@@ -28,8 +28,8 @@
       </template>
     </LjPageHeader>
 
-    <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length" default-view="cards" storage-key="home" searchable collapsible :cog="false" @row-appear="onRowAppear"
-      @refresh-node="onRefreshNode">
+    <SubscriptionsPanel :groups="groups" :loading="loading && !groups.length" default-view="cards" storage-key="home" searchable collapsible @row-appear="onRowAppear"
+      @refresh-node="onRefreshNode" @rowmenu="({ event, sub }) => unsubscribeMenu.open(event, sub)">
       <template #empty>
         <div class="dash-empty">
           <v-icon size="44" color="rgba(var(--v-theme-on-surface),.25)">mdi-connection</v-icon>
@@ -37,6 +37,7 @@
         </div>
       </template>
     </SubscriptionsPanel>
+    <UnsubscribeMenu ref="unsubscribeMenu" @unsubscribed="load" />
   </div>
 </template>
 
@@ -46,6 +47,7 @@ import { useApi, useDemoMode, useI18nStore, NodeIcon, LjPageHeader, KNOWN_TOOL_C
 import { toolColor } from '../toolColor.js'
 import { DEMO_TOOLS } from '../demo/demoData.js'
 import SubscriptionsPanel from '../components/SubscriptionsPanel.vue'
+import UnsubscribeMenu from '../components/UnsubscribeMenu.vue'
 
 const api = useApi()
 const t = useI18nStore().t
@@ -74,6 +76,8 @@ const subscriptions = ref([])
 const usersTotal = ref(0)
 // Full per-subscription details (parameters/data/status), fetched lazily.
 const detailsById = ref(new Map())
+// The host row menu of a subscription, opened from its dots: unsubscribe, then reload
+const unsubscribeMenu = ref(null)
 // Node operational statuses — NodeResource#getNodeStatus (GET rest/node/status):
 // a nested service→tool→instance tree of precomputed UP/DOWN values. Indexed by
 // node id → { total:#directChildren, up, down } so the NODE section reads the
