@@ -50,7 +50,7 @@
         <span class="chips">
           <span v-for="r in (item.roles || [])" :key="r.id" class="rchip"><v-icon size="12">mdi-shield-account-outline</v-icon>{{ r.name }}</span>
           <!-- Federated roles: obtained at login through the identity provider groups, not editable here -->
-          <span v-for="r in federatedRoles(item)" :key="'f-' + r.name" class="rchip rchip--federated"><v-icon size="12">mdi-account-group-outline</v-icon>{{ r.name }}<v-tooltip activator="parent" location="top" :text="t('system.user.federatedRole', { group: r.id })" /></span>
+          <span v-for="r in federatedRoles(item)" :key="'f-' + r.name" class="rchip rchip--federated"><v-icon size="12">mdi-account-group-outline</v-icon>{{ r.name }}<v-tooltip activator="parent" location="top">{{ t('system.user.federatedRoleBefore') }}<strong class="tt-group">{{ r.id }}</strong>{{ t('system.user.federatedRoleAfter') }}</v-tooltip></span>
           <span v-if="!hasAnyRole(item)" class="dash">{{ t('system.user.noRoles') }}</span>
         </span>
       </template>
@@ -88,7 +88,7 @@
           multiple chips closable-chips variant="outlined" :rules="[rules.requiredArray]" :hint="t('system.user.rolesHint')" persistent-hint />
         <p v-if="federatedRoles(editTarget).length" class="federated-hint">
           <v-icon size="14">mdi-account-group-outline</v-icon>{{ t('system.user.federatedRoles') }}
-          <span v-for="r in federatedRoles(editTarget)" :key="'f-' + r.name" class="rchip rchip--federated">{{ r.name }}<v-tooltip activator="parent" location="top" :text="t('system.user.federatedRole', { group: r.id })" /></span>
+          <span v-for="r in federatedRoles(editTarget)" :key="'f-' + r.name" class="rchip rchip--federated">{{ r.name }}<v-tooltip activator="parent" location="top">{{ t('system.user.federatedRoleBefore') }}<strong class="tt-group">{{ r.id }}</strong>{{ t('system.user.federatedRoleAfter') }}</v-tooltip></span>
         </p>
       </v-form>
       <template #footer="{ close }">
@@ -274,5 +274,7 @@ onMounted(() => {
 .rchip { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font); font-weight: 700; font-size: 11.5px; padding: 3px 10px; border-radius: 999px; color: #8b5cf6; background: rgba(139, 92, 246, .13); }
 .dash { color: var(--ink-3); font-size: 13px; }
 .rchip--federated { color: #0d9488; background: rgba(13, 148, 136, .13); }
+/* The group granting a federated role, in the tooltip: a tint of the tooltip text, readable in both themes */
+.tt-group { padding: 0 5px; border-radius: 4px; font-family: var(--mono, ui-monospace, monospace); background: color-mix(in srgb, currentColor 20%, transparent); }
 .federated-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-3); }
 </style>
