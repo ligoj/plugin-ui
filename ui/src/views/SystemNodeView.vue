@@ -72,9 +72,17 @@
       <template #cell.mode="{ item }">
         <NodeModeChip :mode="item.mode || 'all'" size="small" />
       </template>
-      <!-- Version of the tool an instance calls, detected by the last status check of an UP instance -->
+      <!-- The version an instance runs, detected by the last status check of an UP instance, flagged when older than
+           the latest released version of its tool; a tool shows that latest version -->
       <template #cell.version="{ item }">
-        <span class="mono ver">{{ isInstance(item) && item.version || '—' }}</span>
+        <span v-if="isTool(item) && item.lastVersion" class="ver latest">
+          <v-icon size="14">mdi-new-box</v-icon>{{ item.lastVersion }}
+          <v-tooltip activator="parent" location="top" :text="t('system.node.versionLatest')" />
+        </span>
+        <span v-else class="ver">{{ shownVersion(item) || '—' }}<span v-if="isOutdated(item.version, item.refined?.lastVersion)" class="ver-flag">
+          <v-icon size="16" color="warning">mdi-arrow-up-circle-outline</v-icon>
+          <v-tooltip activator="parent" location="top" :text="t('system.node.versionOutdated', { version: item.refined.lastVersion })" />
+        </span></span>
       </template>
       <!-- Attached subscriptions count (rest/node/status/subscription, loaded
            asynchronously); a dash while unknown / when the node has none. -->
@@ -134,6 +142,7 @@ import SubscriptionStatus from '../components/SubscriptionStatus.vue'
 import NodeStatusBadge from '../components/NodeStatusBadge.vue'
 import CredentialExpiryChip from '../components/CredentialExpiryChip.vue'
 import { statusCounts } from '../utils/projectStatus.js'
+import { isOutdated } from '../utils/versions.js'
 import { statusHeader } from '../useUiHelpers.js'
 
 const api = useApi()
@@ -207,10 +216,13 @@ const headers = computed(() => [
   { key: 'name', label: t('system.node.headerName'), sortable: true, icon: 'mdi-server-outline' },
   { key: 'type', label: t('system.node.headerType'), sortable: true, align: 'center', icon: 'mdi-shape-outline', exportValue: (r) => typeLabel(r) },
   { key: 'mode', label: t('system.node.headerMode'), sortable: false, align: 'center', icon: 'mdi-cog-outline', exportValue: (r) => r.mode || 'all' },
-  { key: 'version', label: t('system.node.headerVersion'), tooltip: t('system.node.headerVersionHint'), sortable: true, icon: 'mdi-tag-outline', exportValue: (r) => (isInstance(r) && r.version) || '' },
+  { key: 'version', label: t('system.node.headerVersion'), tooltip: t('system.node.headerVersionHint'), sortable: false, icon: 'mdi-tag-outline', exportValue: (r) => shownVersion(r) || '' },
   // Last data column → renders just before the gear/actions column.
   { key: 'subscriptions', label: t('system.node.subscriptions'), sortable: false, align: 'center', icon: 'mdi-link-variant', exportValue: (r) => subsTotal(r.id) },
 ])
+
+// The version an instance runs, or the latest released version of a tool
+function shownVersion(item) { return isInstance(item) ? item.version : isTool(item) ? item.lastVersion : null }
 
 function typeLabel(item) { const k = nodeType(item); return t('system.node.type' + k.charAt(0).toUpperCase() + k.slice(1)) }
 
@@ -652,6 +664,16 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
 .ver {
   font-family: var(--mono);
   color: var(--ink-2);
+}
+
+.ver {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ver.latest {
+  color: var(--ink-3);
 }
 
 .pill {

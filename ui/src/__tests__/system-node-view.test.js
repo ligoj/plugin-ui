@@ -40,7 +40,7 @@ const stubs = {
       + '<slot name="actions" :item="it" /></div>'
       + '<div class="tools"><slot name="tools-extra" /></div></div>',
   },
-  'v-tooltip': { template: '<div class="tt"><slot name="activator" :props="{}" /></div>' },
+  'v-tooltip': { props: ['text'], template: '<div class="tt" :data-text="text"><slot name="activator" :props="{}" /></div>' },
   'v-icon': true,
   'v-progress-circular': true,
 }
@@ -194,28 +194,43 @@ describe('SystemNodeView status refresh', () => {
 })
 
 describe('SystemNodeView version', () => {
-  // The detected version of the tool an instance calls. A tool row carrying one, such as after a direct status
-  // refresh, does not show it.
-  const VERSIONED = { ...INSTANCE, version: '2.479.1' }
+  // A tool shows its latest released version, an instance the version it runs, flagged when older than the latest
+  // one of its tool. A tool row carrying a version of its own, such as after a direct status refresh, does not show it.
+  const LATEST = { ...TOOL, version: '1', lastVersion: '2.480' }
+  const OUTDATED = { ...INSTANCE, version: '2.479.1', refined: { id: TOOL.id, lastVersion: '2.480' } }
+  const CURRENT = { ...INSTANCE, id: 'service:build:jenkins:2', version: '2.480', refined: OUTDATED.refined }
+  const UNKNOWN = { ...INSTANCE, id: 'service:build:jenkins:3', refined: OUTDATED.refined }
   beforeEach(() => {
     setActivePinia(createPinia())
     useI18nStore().merge(enMessages, 'en')
     useAuthStore().session = { admin: true }
-    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse([{ ...TOOL, version: '1' }, VERSIONED, { ...INSTANCE, id: 'service:build:jenkins:2' }])))
+    globalThis.fetch = vi.fn(() => Promise.resolve(jsonResponse([LATEST, OUTDATED, CURRENT, UNKNOWN])))
   })
 
-  it('shows the version of an instance, a dash for a tool or an unknown version', async () => {
+  it('shows the latest version of a tool and the version of an instance, a dash when unknown', async () => {
     const w = mountView()
     await flushPromises()
-    expect(w.findAll('.ver-cell').map((c) => c.text())).toEqual(['—', '2.479.1', '—'])
+    expect(w.findAll('.ver-cell').map((c) => c.text())).toEqual(['2.480', '2.479.1', '2.480', '—'])
+    expect(w.findAll('.ver-cell')[0].find('.tt').attributes('data-text')).toBe('Latest released version')
   })
 
-  it('has a sortable version column, exported as is', async () => {
+  it('flags an instance older than the latest version of its tool', async () => {
+    const w = mountView()
+    await flushPromises()
+    const cells = w.findAll('.ver-cell')
+    expect(cells[1].find('.ver-flag .tt').attributes('data-text')).toBe('Version 2.480 is available')
+    expect(cells[2].find('.ver-flag').exists()).toBe(false)
+    expect(cells[3].find('.ver-flag').exists()).toBe(false)
+  })
+
+  it('has a version column exporting the version shown', async () => {
     const w = mountView()
     await flushPromises()
     const header = w.findComponent(stubs.LjDataTable).props('headers').find((h) => h.key === 'version')
-    expect(header).toMatchObject({ label: 'Version', sortable: true, tooltip: 'Version of the tool, detected by the last status check' })
-    expect(header.exportValue(VERSIONED)).toBe('2.479.1')
+    expect(header).toMatchObject({ label: 'Version', sortable: false, tooltip: 'Version an instance runs, or latest released version of a tool, read by the last status check' })
+    expect(header.exportValue(LATEST)).toBe('2.480')
+    expect(header.exportValue(OUTDATED)).toBe('2.479.1')
+    expect(header.exportValue(UNKNOWN)).toBe('')
     expect(header.exportValue(TOOL)).toBe('')
   })
 })
