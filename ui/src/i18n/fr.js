@@ -781,6 +781,8 @@ export default {
   // Info-bulle de statut d'abonnement / nœud (composant SubscriptionStatus)
   'subscription.tip.status': 'Statut',
   'subscription.tip.mode': 'Mode',
+  'subscription.tip.instance': 'Instance',
+  'subscription.tip.id': 'Identifiant',
   'subscription.tip.parameters': 'Paramètres',
   'subscription.tip.created': 'Créé',
   'subscription.tip.modified': 'Modifié',

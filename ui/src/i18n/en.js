@@ -782,6 +782,8 @@ export default {
   // Subscription / node status tooltip (SubscriptionStatus component)
   'subscription.tip.status': 'Status',
   'subscription.tip.mode': 'Mode',
+  'subscription.tip.instance': 'Instance',
+  'subscription.tip.id': 'Identifier',
   'subscription.tip.parameters': 'Parameters',
   'subscription.tip.created': 'Created',
   'subscription.tip.modified': 'Modified',

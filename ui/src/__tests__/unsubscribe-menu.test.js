@@ -23,7 +23,11 @@ function json(body) { return { ok: true, status: 200, headers: { get: () => 'app
 const NO_CONTENT = { ok: true, status: 204, headers: { get: () => null }, json: () => Promise.resolve(null), text: () => Promise.resolve('') }
 const ConfirmStub = { props: ['modelValue', 'title', 'loading'], emits: ['confirm', 'update:modelValue'], template: '<div v-if="modelValue" class="confirm"><slot /></div>' }
 const CheckboxStub = { props: ['modelValue', 'label'], emits: ['update:modelValue'], template: '<label class="remote"><input type="checkbox" :checked="modelValue" @change="$emit(\'update:modelValue\', $event.target.checked)" />{{ label }}</label>' }
-const stubs = { LjConfirmDialog: ConfirmStub, 'v-checkbox': CheckboxStub, 'v-icon': true }
+const stubs = {
+  LjConfirmDialog: ConfirmStub, 'v-checkbox': CheckboxStub, 'v-icon': true,
+  NodeIcon: { props: ['node'], template: '<i class="ni" :data-node="node.id" />' },
+  PluginFeatures: { props: ['subscription', 'action'], template: '<span class="pf" :data-action="action">{{ subscription.id }}</span>' },
+}
 const deletes = () => globalThis.fetch.mock.calls.filter((c) => c[1]?.method === 'DELETE').map((c) => String(c[0]))
 
 beforeEach(() => {
@@ -63,6 +67,17 @@ describe('UnsubscribeMenu', () => {
     expect(w.find('.confirm').text()).toContain('Remove subscription to CI?')
     expect(w.find('.remote').exists()).toBe(true)
     expect(w.find('.unsub-missing').exists()).toBe(false)
+  })
+
+  it('recalls the tool, the instance and the identifier of the subscription, as the subscription list shows them', async () => {
+    install('service:build', 'service:build:jenkins')
+    const target = (await openDialog(CREATED)).find('.unsub-target')
+    expect(target.find('.glyph .ni').attributes('data-node')).toBe('service:build:jenkins')
+    expect(target.find('.ac-name').text()).toBe('Jenkins')
+    const value = (r) => (r.find('.um-v code').exists() ? r.find('.um-v code') : r.find('.um-v')).text()
+    expect(target.findAll('.um-row').map((r) => [r.find('.um-k').text(), value(r)])).toEqual([['Instance', 'CI'], ['Identifier', '#1']])
+    // The plugin renders the stable identity of its resource, as in the subscription list
+    expect(target.find('.pf').attributes('data-action')).toBe('renderDetailsKey')
   })
 
   it('only removes the subscription when its tool plugin is missing, and tells it', async () => {
