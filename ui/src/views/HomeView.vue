@@ -50,7 +50,8 @@ import SubscriptionsPanel from '../components/SubscriptionsPanel.vue'
 import UnsubscribeMenu from '../components/UnsubscribeMenu.vue'
 
 const api = useApi()
-const t = useI18nStore().t
+const i18n = useI18nStore()
+const t = i18n.t
 
 const LOGOS = { Jira: 'logos:jira', Jenkins: 'logos:jenkins', LDAP: 'mdi:folder-account-outline', SonarQube: 'logos:sonarqube', Confluence: 'logos:confluence', 'AWS EC2': 'logos:aws-ec2', GitLab: 'logos:gitlab', 'Provisioning AWS': 'logos:aws', 'Squash TM': 'mdi:clipboard-check-outline' }
 
@@ -243,11 +244,11 @@ const { enabled: demo } = useDemoMode()
 const demoGroups = computed(() => DEMO_TOOLS.map((td) => ({
   key: 'demo:' + td.key,
   name: td.name,
-  kind: td.kind,
+  kind: t(td.kindKey),
   color: fallbackToolColor(td.name),
   icon: () => h('img', { src: toolLogo(td.name), class: 'tool-icon', alt: td.name }),
   health: td.health,
-  rows: td.rows.map((r) => ({ name: r.n, status: r.s, pills: r.p, cost: r.cost, sub: null })),
+  rows: td.rows.map((r) => ({ name: r.n, status: r.s, pills: r.p.map((p) => (p.key ? t(p.key, { count: p.count }) : p)), cost: r.cost, sub: null })),
 })))
 
 // Inject the live per-group `refreshing` flag here (cheap map) so toggling it
@@ -260,10 +261,10 @@ const groups = computed(() => {
 })
 
 const kpis = computed(() => [
-  { l: 'Projets', v: projects.value.length.toLocaleString('fr-FR'), c: '#2f6df6', icon: 'mdi-folder-multiple-outline' },
-  { l: 'Outils', v: realGroups.value.length.toLocaleString('fr-FR'), c: '#1d9d63', icon: 'mdi-hammer-wrench' },
-  { l: 'Souscriptions', v: subscriptions.value.length.toLocaleString('fr-FR'), c: '#8b5cf6', icon: 'mdi-connection' },
-  { l: 'Utilisateurs', v: usersTotal.value.toLocaleString('fr-FR'), c: '#d9701a', icon: 'mdi-account-multiple-outline' },
+  { l: t('home.kpi.projects'), v: projects.value.length.toLocaleString(i18n.locale), c: '#2f6df6', icon: 'mdi-folder-multiple-outline' },
+  { l: t('home.kpi.tools'), v: realGroups.value.length.toLocaleString(i18n.locale), c: '#1d9d63', icon: 'mdi-hammer-wrench' },
+  { l: t('home.kpi.subscriptions'), v: subscriptions.value.length.toLocaleString(i18n.locale), c: '#8b5cf6', icon: 'mdi-connection' },
+  { l: t('home.kpi.users'), v: usersTotal.value.toLocaleString(i18n.locale), c: '#d9701a', icon: 'mdi-account-multiple-outline' },
 ])
 
 /* ---- lazy details: fetch a subscription's full status/data on row appearance ---- */

@@ -15,10 +15,10 @@
     <v-card class="vmodal">
       <div class="vmodal-head">
         <span class="mi"><v-icon color="#fff">mdi-lock-reset</v-icon></span>
-        <h3>{{ t('error.401') || 'Session expirée' }}</h3>
+        <h3>{{ t('error.401') }}</h3>
       </div>
       <v-card-text class="vmodal-body">
-        <p class="lp-intro">{{ t('error.401-details') || 'Votre session a expiré. Reconnectez-vous pour continuer.' }}</p>
+        <p class="lp-intro">{{ t('error.401-details') }}</p>
         <v-form ref="formRef" @submit.prevent="submit">
           <LigojTextField v-model="username" prepend-inner-icon="mdi-account-outline" :label="t('login.username') || 'Identifiant'" :disabled="loading" autocomplete="username" :rules="[rules.required]" variant="outlined" class="mb-2" autofocus />
           <LigojTextField v-model="password" prepend-inner-icon="mdi-lock-outline" :label="t('login.password') || 'Mot de passe'" :type="showPwd ? 'text' : 'password'" :disabled="loading" autocomplete="current-password" :rules="[rules.required]"
@@ -26,7 +26,7 @@
         </v-form>
       </v-card-text>
       <div class="vmodal-foot">
-        <button class="mbtn ghost" :disabled="loading" @click="cancel">{{ t('common.cancel') || 'Annuler' }}</button>
+        <button class="mbtn ghost" :disabled="loading" @click="cancel">{{ t('common.cancel') }}</button>
         <span class="foot-sp" />
         <button class="mbtn primary" :disabled="loading" @click="submit">
           <span v-if="loading" class="mspin" aria-hidden="true" /><v-icon v-else size="18">mdi-login-variant</v-icon>{{ t('login.submit') || 'Se reconnecter' }}
@@ -81,7 +81,7 @@ async function submit() {
       credentials: 'include',
     })
   } catch {
-    errorStore.push({ message: t('login.networkError') || 'Erreur réseau', status: 0 })
+    errorStore.push({ message: t('login.networkError'), status: 0 })
     loading.value = false
     return
   }
@@ -94,7 +94,7 @@ async function submit() {
     return
   }
   errorStore.clear()
-  errorStore.success(t('login.submit') || 'Reconnecté')
+  errorStore.success(t('login.submit'))
   auth.closeAuthPrompt()
   loading.value = false
   setTimeout(() => { window.location.reload() }, 300)

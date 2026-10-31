@@ -489,6 +489,18 @@ export default {
 
   // Manual / Home
   'manual.title': 'User manual',
+  'home.kpi.projects': "Projects",
+  'home.kpi.tools': "Tools",
+  'home.kpi.subscriptions': "Subscriptions",
+  'home.kpi.users': "Users",
+  'demo.tool.issueTracking': "Issue tracking",
+  'demo.tool.continuousIntegration': "Continuous integration",
+  'demo.tool.codeQuality': "Code quality",
+  'demo.tool.cloudCosts': "Cloud costs",
+  'demo.pill.open': "{count} open",
+  'demo.pill.closed': "{count} closed",
+  'demo.pill.failed': "failed",
+  'demo.pill.unstable': "unstable",
   'home.title': 'Home',
   'home.dashboard': 'Dashboard',
   'home.filterPlaceholder': 'Filter projects or tools',

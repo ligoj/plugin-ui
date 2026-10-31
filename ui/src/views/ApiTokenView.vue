@@ -77,7 +77,7 @@
       </div>
       <p v-if="copyDone" class="copied"><v-icon size="15">mdi-check-circle</v-icon>{{ t('system.apiToken.copyDone') }}</p>
       <template #footer>
-        <LjButton variant="ghost" @click="tokenDialog = false">{{ t('common.close') || 'Fermer' }}</LjButton>
+        <LjButton variant="ghost" @click="tokenDialog = false">{{ t('common.close') }}</LjButton>
       </template>
     </LjDialog>
 

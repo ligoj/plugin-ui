@@ -82,7 +82,7 @@
         <div v-else-if="!matchingRows.length" class="mrow mempty">{{ t('subscription.noMatch') }}</div>
         <button v-if="matchingRows.length > 4" class="rowmore" @click.stop="expanded = !expanded">
           <v-icon size="14">{{ expanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-          <span v-if="expanded">{{ t('common.reduce') || 'Réduire' }}</span>
+          <span v-if="expanded">{{ t('common.reduce') }}</span>
           <span v-else>+{{ matchingRows.length - 4 }} {{ t('project.detail.more') }}</span>
         </button>
       </div>

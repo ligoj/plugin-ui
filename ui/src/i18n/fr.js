@@ -488,6 +488,18 @@ export default {
 
   // Manuel / Accueil
   'manual.title': 'Manuel utilisateur',
+  'home.kpi.projects': "Projets",
+  'home.kpi.tools': "Outils",
+  'home.kpi.subscriptions': "Souscriptions",
+  'home.kpi.users': "Utilisateurs",
+  'demo.tool.issueTracking': "Gestion de tickets",
+  'demo.tool.continuousIntegration': "Intégration continue",
+  'demo.tool.codeQuality': "Qualité de code",
+  'demo.tool.cloudCosts': "Coûts cloud",
+  'demo.pill.open': "{count} ouverts",
+  'demo.pill.closed': "{count} clos",
+  'demo.pill.failed': "échec",
+  'demo.pill.unstable': "instable",
   'home.title': 'Accueil',
   'home.dashboard': 'Tableau de bord',
   'home.filterPlaceholder': 'Filtrer les projets ou outils',

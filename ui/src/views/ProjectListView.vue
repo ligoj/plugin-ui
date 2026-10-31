@@ -18,7 +18,7 @@
       </template>
     </LjPageHeader>
 
-    <LjDataTable :headers="headers" :items="items" :items-length="total" :loading="dt.loading.value" item-value="id" default-sort="name" :empty-text="t('common.noData') || 'Aucune donnée'"
+    <LjDataTable :headers="headers" :items="items" :items-length="total" :loading="dt.loading.value" item-value="id" default-sort="name" :empty-text="t('common.noData')"
       filename="projects.csv" :fetch-all="exportAll" @update:options="loadData" @row-click="openProject">
       <!-- Status badge of the whole page in the column header, of each project's subscriptions in its cell
            (loaded with the page; demo projects have none) -->
@@ -63,9 +63,9 @@
 
     <ProjectEditDialog v-model="editDialog" :project="editTarget" @saved="onSaved" />
 
-    <LjConfirmDialog v-model="deleteDialog" :title="t('project.deleteTitle') || 'Supprimer le projet'" icon="mdi-folder-remove" confirm-color="error" :confirm-label="t('common.delete')"
+    <LjConfirmDialog v-model="deleteDialog" :title="t('project.deleteTitle')" icon="mdi-folder-remove" confirm-color="error" :confirm-label="t('common.delete')"
       :loading="deleting" @confirm="confirmDelete">
-      <span>{{ t('project.deleteConfirm', { name: deleteTarget?.name }) || `Supprimer le projet « ${deleteTarget?.name} » ?` }}</span>
+      <span>{{ t('project.deleteConfirm', { name: deleteTarget?.name }) }}</span>
     </LjConfirmDialog>
 
     <div class="toast" :class="{ show: toastMsg }">{{ toastMsg }}</div>
