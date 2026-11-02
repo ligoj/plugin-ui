@@ -124,8 +124,8 @@ const headers = computed(() => [
   statusHeader({ tooltip: t('common.status'), sortable: false, exportValue: (r) => exportStatus(r) }),
   { key: 'name', label: t('common.name'), sortable: true },
   { key: 'description', label: t('common.description'), sortable: false },
-  { key: 'teamLeader', label: t('project.teamLeader') || 'Team leader', sortable: true, exportValue: (r) => r.teamLeader || '' },
-  { key: 'createdDate', label: t('common.createdDate') || 'Created', sortable: true, exportValue: (r) => fmtDate(r.createdDate) },
+  { key: 'teamLeader', label: t('project.teamLeader'), sortable: true, exportValue: (r) => r.teamLeader || '' },
+  { key: 'createdDate', label: t('common.createdDate'), sortable: true, exportValue: (r) => fmtDate(r.createdDate) },
   { key: 'subs', label: t('project.subsShort'), sortable: true, align: 'center', width: '90px' },
 ])
 

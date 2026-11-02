@@ -218,7 +218,7 @@ async function load() {
     const [d] = await Promise.all([api.get('rest/system/task'), loadScheduled()])
     runners.value = Array.isArray(d) ? d : (d?.data || [])
   } catch {
-    error.value = t('common.loadError') || 'Load error'
+    error.value = t('common.loadError')
   } finally {
     loading.value = false
   }

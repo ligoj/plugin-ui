@@ -150,7 +150,7 @@ function round1(n) { return Math.round(n * 10) / 10 }
 async function load() {
   error.value = null
   let data
-  try { data = await api.get('rest/system') } catch { error.value = t('common.loadError') || 'Load error'; return }
+  try { data = await api.get('rest/system') } catch { error.value = t('common.loadError'); return }
   if (!data) return
   cpu.value = data.cpu?.total ?? ''
   dateIso.value = data.date?.date ? new Date(data.date.date).toISOString() : ''

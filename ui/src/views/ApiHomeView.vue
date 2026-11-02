@@ -350,7 +350,7 @@ async function load() {
     // collapsed headers, but keep the rest collapsed (the API is large).
     groups.value.slice(0, 1).forEach((g) => openTags.add(g.tag))
     focusFromQuery()
-  } catch { error.value = t('common.loadError') || 'Unable to load the API description.' }
+  } catch { error.value = t('common.loadError') }
   loading.value = false
 }
 

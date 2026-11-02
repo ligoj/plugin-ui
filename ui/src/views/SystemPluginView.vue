@@ -372,7 +372,7 @@ async function load() {
   try {
     const data = await api.get(`rest/system/plugin?repository=${repository.value}`)
     items.value = Array.isArray(data) ? data : (data?.data || [])
-  } catch { error.value = t('common.loadError') || 'Load error' }
+  } catch { error.value = t('common.loadError') }
   loading.value = false
 }
 

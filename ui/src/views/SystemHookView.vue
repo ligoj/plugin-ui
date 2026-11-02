@@ -111,7 +111,7 @@ let searchTimeout = null
 let lastOptions = {}
 
 const rules = {
-  required: (v) => (v != null && v !== '') || (t('common.required') || 'Required'),
+  required: (v) => (v != null && v !== '') || t('common.required'),
   // workingDirectory is `@Pattern(\\S*)` server-side — reject any whitespace.
   noSpace: (v) => !/\s/.test(v || '') || t('system.hook.noSpace'),
 }

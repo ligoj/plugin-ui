@@ -129,7 +129,7 @@ let lastOptions = {}
 const allRoles = ref([])
 
 const rules = {
-  required: (v) => !!v || (t('common.required') || 'Required'),
+  required: (v) => !!v || t('common.required'),
   requiredArray: (v) => (Array.isArray(v) && v.length > 0) || t('system.user.rolesHint'),
 }
 

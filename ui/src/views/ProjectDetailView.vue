@@ -26,7 +26,7 @@
         <span class="pkey">{{ project?.pkey }}</span>
       </template>
       <template #actions>
-        <LjButton v-if="project" variant="ghost" icon="mdi-clock-outline" @click="auditDialog = true">{{ t('common.audit') || 'Audit' }}</LjButton>
+        <LjButton v-if="project" variant="ghost" icon="mdi-clock-outline" @click="auditDialog = true">{{ t('common.audit') }}</LjButton>
         <LjButton variant="ghost" icon="mdi-pencil" @click="editDialog = true">{{ t('project.detail.edit') }}</LjButton>
         <LjButton v-if="auth.isAllowedApi('rest/subscription', 'POST')" icon="mdi-plus" @click="openSubscribe">{{ t('project.detail.addSubscription') }}</LjButton>
       </template>

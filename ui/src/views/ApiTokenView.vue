@@ -62,7 +62,7 @@
     <!-- Freshly-created token value. -->
     <LjDialog v-model="createdDialog" :title="`${t('system.apiToken.newTokenLabel')} ${createdName}`" icon="mdi-key-plus" :max-width="540">
       <p class="hint"><v-icon size="16">mdi-information-outline</v-icon>{{ t('system.apiToken.newSaveHint', { showLabel: t('system.apiToken.show') }) }}</p>
-      <div class="secret"><code>{{ createdValue }}</code><button class="copy" :title="t('common.copy') || 'Copier'" @click="doCopy(createdValue)"><v-icon size="16">mdi-content-copy</v-icon></button></div>
+      <div class="secret"><code>{{ createdValue }}</code><button class="copy" :title="t('common.copy')" @click="doCopy(createdValue)"><v-icon size="16">mdi-content-copy</v-icon></button></div>
       <template #footer>
         <LjButton @click="createdDialog = false">{{ t('system.apiToken.done') }}</LjButton>
       </template>
@@ -73,7 +73,7 @@
       <div class="secret" :class="{ loading: tokenLoading }">
         <span v-if="tokenLoading" class="mspin sm dark" aria-hidden="true" />
         <code v-else>{{ tokenValue }}</code>
-        <button v-if="!tokenLoading" class="copy" :title="t('common.copy') || 'Copier'" @click="doCopy(tokenValue, true)"><v-icon size="16">mdi-content-copy</v-icon></button>
+        <button v-if="!tokenLoading" class="copy" :title="t('common.copy')" @click="doCopy(tokenValue, true)"><v-icon size="16">mdi-content-copy</v-icon></button>
       </div>
       <p v-if="copyDone" class="copied"><v-icon size="15">mdi-check-circle</v-icon>{{ t('system.apiToken.copyDone') }}</p>
       <template #footer>
@@ -119,7 +119,7 @@ const filtered = computed(() => {
 })
 const table = useClientTable(filtered, { defaultSort: 'name' })
 
-const rules = { required: (v) => !!v || (t('common.required') || 'Required') }
+const rules = { required: (v) => !!v || t('common.required') }
 
 const createDialog = ref(false)
 const createFormRef = ref(null)
@@ -145,7 +145,7 @@ async function load() {
   try {
     const data = await api.get('rest/api/token')
     rows.value = Array.isArray(data) ? data.map((name) => ({ name })) : []
-  } catch { error.value = t('common.loadError') || 'Load error' }
+  } catch { error.value = t('common.loadError') }
   loading.value = false
 }
 

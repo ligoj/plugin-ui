@@ -73,7 +73,7 @@
           <span v-if="r.sub" class="rowact">
             <!-- Plugin-contributed row actions; the host never interprets the HTML. -->
             <PluginFeatures :subscription="r.sub" action="renderFeatures" />
-            <button v-if="cog && r.sub.id" class="rowcog" :title="t('common.actions') || 'Actions'" @click.stop="$emit('rowmenu', { event: $event, sub: r.sub })">
+            <button v-if="cog && r.sub.id" class="rowcog" :title="t('common.actions')" @click.stop="$emit('rowmenu', { event: $event, sub: r.sub })">
               <v-icon size="16">mdi-dots-vertical</v-icon>
             </button>
           </span>

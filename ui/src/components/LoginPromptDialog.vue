@@ -20,8 +20,8 @@
       <v-card-text class="vmodal-body">
         <p class="lp-intro">{{ t('error.401-details') }}</p>
         <v-form ref="formRef" @submit.prevent="submit">
-          <LigojTextField v-model="username" prepend-inner-icon="mdi-account-outline" :label="t('login.username') || 'Identifiant'" :disabled="loading" autocomplete="username" :rules="[rules.required]" variant="outlined" class="mb-2" autofocus />
-          <LigojTextField v-model="password" prepend-inner-icon="mdi-lock-outline" :label="t('login.password') || 'Mot de passe'" :type="showPwd ? 'text' : 'password'" :disabled="loading" autocomplete="current-password" :rules="[rules.required]"
+          <LigojTextField v-model="username" prepend-inner-icon="mdi-account-outline" :label="t('login.username')" :disabled="loading" autocomplete="username" :rules="[rules.required]" variant="outlined" class="mb-2" autofocus />
+          <LigojTextField v-model="password" prepend-inner-icon="mdi-lock-outline" :label="t('login.password')" :type="showPwd ? 'text' : 'password'" :disabled="loading" autocomplete="current-password" :rules="[rules.required]"
             :append-inner-icon="showPwd ? 'mdi-eye-off-outline' : 'mdi-eye-outline'" variant="outlined" @click:append-inner="showPwd = !showPwd" @keyup.enter="submit" />
         </v-form>
       </v-card-text>
@@ -29,7 +29,7 @@
         <button class="mbtn ghost" :disabled="loading" @click="cancel">{{ t('common.cancel') }}</button>
         <span class="foot-sp" />
         <button class="mbtn primary" :disabled="loading" @click="submit">
-          <span v-if="loading" class="mspin" aria-hidden="true" /><v-icon v-else size="18">mdi-login-variant</v-icon>{{ t('login.submit') || 'Se reconnecter' }}
+          <span v-if="loading" class="mspin" aria-hidden="true" /><v-icon v-else size="18">mdi-login-variant</v-icon>{{ t('login.submit') }}
         </button>
       </div>
     </v-card>
@@ -57,7 +57,7 @@ const username = ref('')
 const password = ref('')
 const showPwd = ref(false)
 const loading = ref(false)
-const rules = { required: (v) => !!v || (t('common.required') || 'Requis') }
+const rules = { required: (v) => !!v || t('common.required') }
 
 watch(open, (v) => {
   if (v) { username.value = ''; password.value = ''; showPwd.value = false; formRef.value?.resetValidation?.() }
@@ -88,7 +88,7 @@ async function submit() {
   let data = null
   try { data = await resp.json() } catch { /* non-JSON → failure */ }
   if (!resp.ok || data?.success !== true) {
-    errorStore.push({ title: t('login.error') || 'Échec', message: t('login.failed') || 'Identifiants invalides', status: resp.status })
+    errorStore.push({ title: t('login.error'), message: t('login.failed'), status: resp.status })
     password.value = ''
     loading.value = false
     return

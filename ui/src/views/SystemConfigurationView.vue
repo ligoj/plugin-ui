@@ -47,7 +47,7 @@
         <div class="cfield result">
           <v-icon size="17" class="cf-ic">mdi-key-variant</v-icon>
           <input :value="encrypted" type="text" readonly :placeholder="t('system.config.encryptResult')" />
-          <button v-if="encrypted" class="cf-copy" :title="t('common.copy') || 'Copier'" @click="copyResult"><v-icon size="16">mdi-content-copy</v-icon></button>
+          <button v-if="encrypted" class="cf-copy" :title="t('common.copy')" @click="copyResult"><v-icon size="16">mdi-content-copy</v-icon></button>
         </div>
       </div>
     </div>
@@ -142,7 +142,7 @@ const items = ref([])
 const loading = ref(false)
 const error = ref(null)
 
-const rules = { required: (v) => (v !== '' && v != null) || (t('common.required') || 'Required') }
+const rules = { required: (v) => (v !== '' && v != null) || t('common.required') }
 
 /* --- search / filter / sort / pagination (all client-side) --- */
 const query = ref('')
@@ -285,7 +285,7 @@ async function load() {
   try {
     const d = await api.get('rest/system/configuration')
     items.value = Array.isArray(d) ? d : (d?.data || [])
-  } catch { error.value = t('common.loadError') || 'Load error' }
+  } catch { error.value = t('common.loadError') }
   loading.value = false
 }
 

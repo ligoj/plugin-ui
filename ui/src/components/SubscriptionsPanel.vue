@@ -72,7 +72,7 @@
         <template #actions="{ item }">
           <span v-if="item.sub" class="rowact">
             <PluginFeatures :subscription="item.sub" action="renderFeatures" />
-            <button v-if="cog && item.sub.id" class="rowcog" :title="t('common.actions') || 'Actions'" @click.stop="$emit('rowmenu', { event: $event, sub: item.sub })"><v-icon size="16">mdi-dots-vertical</v-icon></button>
+            <button v-if="cog && item.sub.id" class="rowcog" :title="t('common.actions')" @click.stop="$emit('rowmenu', { event: $event, sub: item.sub })"><v-icon size="16">mdi-dots-vertical</v-icon></button>
           </span>
         </template>
       </LjDataTable>
@@ -157,7 +157,7 @@ const subRows = computed(() => filteredGroups.value.flatMap((g) => g.rows.map((r
 const listHeaders = computed(() => [
   // Status first: icon-only heart header + tooltip + fixed width (shared helper).
   statusHeader({ tooltip: t('common.status'), sortable: false }),
-  { key: 'tool', label: t('project.detail.tool') || 'Outil', sortable: true, icon: 'mdi-hammer-wrench' },
+  { key: 'tool', label: t('project.detail.tool'), sortable: true, icon: 'mdi-hammer-wrench' },
   { key: 'details', label: t('project.detail.subscriptions'), sortable: false },
 ])
 

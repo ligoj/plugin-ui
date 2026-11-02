@@ -212,7 +212,7 @@ async function load() {
       r['authorizations-ui'] = (r.authorizations || []).filter((a) => a.type === 'ui')
     }
     items.value = rows
-  } catch { error.value = t('common.loadError') || 'Load error' }
+  } catch { error.value = t('common.loadError') }
   loading.value = false
 }
 
