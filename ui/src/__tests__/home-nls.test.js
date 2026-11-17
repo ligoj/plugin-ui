@@ -4,7 +4,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mount, flushPromises } from '@vue/test-utils'
-import { useI18nStore } from '@ligoj/host'
+import { useAuthStore, useI18nStore } from '@ligoj/host'
 import enMessages from '../i18n/en.js'
 import frMessages from '../i18n/fr.js'
 import HomeView from '../views/HomeView.vue'
@@ -14,6 +14,8 @@ const json = (body) => ({ ok: true, status: 200, headers: { get: () => 'applicat
 
 beforeEach(() => {
   setActivePinia(createPinia())
+  // The KPI cards are gated by the API feeding them
+  useAuthStore().session = { admin: true, roles: ['ADMIN'] }
   const i18n = useI18nStore()
   i18n.merge(enMessages, 'en')
   i18n.merge(frMessages, 'fr')

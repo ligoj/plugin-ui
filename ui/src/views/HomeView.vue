@@ -16,7 +16,7 @@
   <div class="dash lj-surface">
     <LjPageHeader :title="t('home.dashboard')">
       <template #actions>
-        <div class="kpis">
+        <div v-if="kpis.length" class="kpis">
           <div v-for="k in kpis" :key="k.l" class="kpi" :style="{ '--a': k.c }">
             <div class="kpi-ic"><v-icon size="18">{{ k.icon }}</v-icon></div>
             <div class="kpi-b">
@@ -43,13 +43,19 @@
 
 <script setup>
 import { ref, computed, onMounted, h } from 'vue'
-import { useApi, useDemoMode, useI18nStore, NodeIcon, LjPageHeader, KNOWN_TOOL_COLORS, fallbackToolColor } from '@ligoj/host'
+import { useApi, useAuthStore, useDemoMode, useI18nStore, NodeIcon, LjPageHeader, KNOWN_TOOL_COLORS, fallbackToolColor } from '@ligoj/host'
 import { toolColor } from '../toolColor.js'
 import { DEMO_TOOLS } from '../demo/demoData.js'
 import SubscriptionsPanel from '../components/SubscriptionsPanel.vue'
 import UnsubscribeMenu from '../components/UnsubscribeMenu.vue'
 
 const api = useApi()
+const auth = useAuthStore()
+// APIs feeding the KPI cards: a card shows, and its API is called, only when the session may GET it
+const SUBSCRIPTION_API = 'rest/subscription'
+const SYSTEM_USER_API = 'rest/system/user'
+const canSubscriptions = computed(() => auth.isAllowedApi(SUBSCRIPTION_API))
+const canSystemUsers = computed(() => auth.isAllowedApi(SYSTEM_USER_API))
 const i18n = useI18nStore()
 const t = i18n.t
 
@@ -113,13 +119,13 @@ function resolveNode(id, depth = 0) {
 async function load() {
   loading.value = true
   try {
-    const data = await api.get('rest/subscription')
+    const data = canSubscriptions.value ? await api.get(SUBSCRIPTION_API) : null
     nodes.value = Array.isArray(data?.nodes) ? data.nodes : []
     projects.value = Array.isArray(data?.projects) ? data.projects : []
     subscriptions.value = Array.isArray(data?.subscriptions) ? data.subscriptions : []
   } catch { nodes.value = []; projects.value = []; subscriptions.value = [] }
   try {
-    const u = await api.get('rest/system/user?rows=1&page=1')
+    const u = canSystemUsers.value ? await api.get(`${SYSTEM_USER_API}?rows=1&page=1`) : null
     usersTotal.value = u?.recordsTotal ?? 0
   } catch { usersTotal.value = 0 }
   loading.value = false
@@ -261,11 +267,11 @@ const groups = computed(() => {
 })
 
 const kpis = computed(() => [
-  { l: t('home.kpi.projects'), v: projects.value.length.toLocaleString(i18n.locale), c: '#2f6df6', icon: 'mdi-folder-multiple-outline' },
-  { l: t('home.kpi.tools'), v: realGroups.value.length.toLocaleString(i18n.locale), c: '#1d9d63', icon: 'mdi-hammer-wrench' },
-  { l: t('home.kpi.subscriptions'), v: subscriptions.value.length.toLocaleString(i18n.locale), c: '#8b5cf6', icon: 'mdi-connection' },
-  { l: t('home.kpi.users'), v: usersTotal.value.toLocaleString(i18n.locale), c: '#d9701a', icon: 'mdi-account-multiple-outline' },
-])
+  { on: canSubscriptions.value, l: t('home.kpi.projects'), v: projects.value.length.toLocaleString(i18n.locale), c: '#2f6df6', icon: 'mdi-folder-multiple-outline' },
+  { on: canSubscriptions.value, l: t('home.kpi.tools'), v: realGroups.value.length.toLocaleString(i18n.locale), c: '#1d9d63', icon: 'mdi-hammer-wrench' },
+  { on: canSubscriptions.value, l: t('home.kpi.subscriptions'), v: subscriptions.value.length.toLocaleString(i18n.locale), c: '#8b5cf6', icon: 'mdi-connection' },
+  { on: canSystemUsers.value, l: t('home.kpi.users'), v: usersTotal.value.toLocaleString(i18n.locale), c: '#d9701a', icon: 'mdi-account-multiple-outline' },
+].filter((k) => k.on))
 
 /* ---- lazy details: fetch a subscription's full status/data on row appearance ---- */
 const STATUS_CHUNK = 50
