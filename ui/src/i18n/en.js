@@ -540,6 +540,13 @@ export default {
   'project.subscriptionsTooltip': 'Number of subscriptions attached to this project',
   'project.deleteTitle': 'Delete Project',
   'project.deleteConfirm': 'Are you sure you want to delete {name}? This action cannot be undone.',
+  'project.deleteSubs': "Subscriptions removed with the project",
+  'project.deleteCreated': "Created by Ligoj on their tool",
+  'project.deleteData': "Also delete the remote data of the {count} created subscription(s)",
+  'project.deleteDataHint': "The jobs or folder trees, credentials and other resources created on the tools by these subscriptions are destroyed there too. This cannot be undone. Leave it unchecked to keep them and only delete the project.",
+  'project.deletePluginMissing': "The tool plugin of {count} created subscription(s) is not installed: the data they created on the tool are kept.",
+  'project.deleted': "Project {name} deleted",
+  'project.deletedData': "Project {name} deleted, with the remote data of its {count} created subscription(s)",
   'project.deleteWithSubs': 'Delete {name} and all its subscriptions? This cannot be undone.',
   'project.empty': 'No projects yet. Create a project to start managing subscriptions.',
 

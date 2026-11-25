@@ -63,10 +63,7 @@
 
     <ProjectEditDialog v-model="editDialog" :project="editTarget" @saved="onSaved" />
 
-    <LjConfirmDialog v-model="deleteDialog" :title="t('project.deleteTitle')" icon="mdi-folder-remove" confirm-color="error" :confirm-label="t('common.delete')"
-      :loading="deleting" @confirm="confirmDelete">
-      <span>{{ t('project.deleteConfirm', { name: deleteTarget?.name }) }}</span>
-    </LjConfirmDialog>
+    <ProjectDeleteDialog v-model="deleteDialog" :project="deleteTarget" @deleted="load" />
 
     <div class="toast" :class="{ show: toastMsg }">{{ toastMsg }}</div>
   </div>
@@ -78,12 +75,13 @@ import { useRouter } from 'vue-router'
 import { useApi, useAppStore, useAuthStore, useDataTable, useDemoMode, useI18nStore, userVisualId } from '@ligoj/host'
 import { DEMO_PROJECTS } from '../demo/demoData.js'
 import ProjectEditDialog from './ProjectEditDialog.vue'
+import ProjectDeleteDialog from './ProjectDeleteDialog.vue'
 import RowActionsCog from '../components/RowActionsCog.vue'
 import TeamLeaderTooltip from '../components/TeamLeaderTooltip.vue'
 import NodeStatusBadge from '../components/NodeStatusBadge.vue'
 import { statusHeader } from '../useUiHelpers.js'
 import { statusCounts } from '../utils/projectStatus.js'
-import { LjDataTable, LjConfirmDialog, LjPageHeader, LjButton, LjSearch } from '@ligoj/host'
+import { LjDataTable, LjPageHeader, LjButton, LjSearch } from '@ligoj/host'
 
 const router = useRouter()
 const api = useApi()
@@ -224,21 +222,10 @@ const editDialog = ref(false)
 const editTarget = ref(null)
 const deleteDialog = ref(false)
 const deleteTarget = ref(null)
-const deleting = ref(false)
 function openNew() { editTarget.value = null; editDialog.value = true }
 function openEdit(p) { editTarget.value = p; editDialog.value = true }
 
 function startDelete(p) { deleteTarget.value = p; deleteDialog.value = true }
-async function confirmDelete() {
-  if (!deleteTarget.value) return
-  deleting.value = true
-  try {
-    await api.del(`rest/project/${deleteTarget.value.id}`)
-    deleteDialog.value = false
-    deleteTarget.value = null
-    await load()
-  } finally { deleting.value = false }
-}
 /* After a create/edit: jump straight to the new project's detail (so the
    user lands on the cockpit they just populated); on edit, reload the grid. */
 function onSaved({ id, created }) {

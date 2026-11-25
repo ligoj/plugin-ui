@@ -539,6 +539,13 @@ export default {
   'project.subscriptionsTooltip': 'Nombre de souscriptions rattachées à ce projet',
   'project.deleteTitle': 'Supprimer le projet',
   'project.deleteConfirm': 'Êtes-vous certain de supprimer {name} ? Cette action est irréversible.',
+  'project.deleteSubs': "Souscriptions supprimées avec le projet",
+  'project.deleteCreated': "Créées par Ligoj sur leur outil",
+  'project.deleteData': "Supprimer également les données distantes des {count} souscription(s) créée(s)",
+  'project.deleteDataHint': "Les jobs ou arborescences de dossiers, les identifiants et autres ressources créés sur les outils par ces souscriptions y sont aussi détruits. Cette action est irréversible. Laisser décoché pour les conserver et seulement supprimer le projet.",
+  'project.deletePluginMissing': "Le plugin de l'outil de {count} souscription(s) créée(s) n'est pas installé : les données créées sur l'outil sont conservées.",
+  'project.deleted': "Projet {name} supprimé",
+  'project.deletedData': "Projet {name} supprimé, avec les données distantes de ses {count} souscription(s) créée(s)",
   'project.deleteWithSubs': 'Supprimer {name} et toutes ses souscriptions ? Cette action est irréversible.',
   'project.empty': 'Aucun projet. Créez un projet pour commencer à gérer les souscriptions.',
 
