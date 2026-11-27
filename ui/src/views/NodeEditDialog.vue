@@ -88,7 +88,7 @@ import ParameterForm from '../components/ParameterForm.vue'
 
 // Connection check of the form values before they are saved
 const CHECK_API = 'rest/node/status/check'
-import { modesFromParameters, modeTransitions, nodeModeParameters, nodeModes } from '../utils/subscriptionModes.js'
+import { instanceModes, modesFromParameters, modeTransitions, nodeModeParameters, nodeModes } from '../utils/subscriptionModes.js'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -140,12 +140,12 @@ const rules = {
   nodeId: (v) => /^[\w-]+(:[\w-]+)+$/.test(v || '') || t('wizard.rule.nodeId'),
 }
 
-// Modes offered for the new instance: what the tool's PARAMETERS support (modesFromParameters), not the tool node's
-// own `mode`. A parameter without explicit mode is ALL, so most tools offer every mode.
+// Modes offered for the new instance: what the tool's PARAMETERS support (modesFromParameters), among the ones the
+// tool node's own `mode` accepts (instanceModes). A parameter without explicit mode is ALL, so most tools offer every mode.
 const toolModes = ref([])
 const availableModes = computed(() => toolModes.value.map((value) => ({ value, label: t('wizard.nodeMode.' + value) })))
-// The server still checks the mode against the tool node's mode (NodeResource#checkMode). When that stored mode
-// would refuse the choice, say so up front instead of letting the save fail without explanation.
+// The server checks the mode against the tool node's mode (NodeResource#checkMode). When that stored mode accepts
+// no mode of the parameters, say so up front instead of letting the save fail without explanation.
 const modeConflict = computed(() => !isEdit.value && !!selected.mode && !!selected.tool && !nodeModes(selected.tool.mode).includes(selected.mode))
 // Modes of an edited node: its own, and all for a link or create node whose parent allows it (NodeResource#checkModeTransition)
 const editModes = computed(() => (isEdit.value ? modeTransitions(props.node?.mode, props.node?.refined?.mode) : [])
@@ -245,7 +245,7 @@ watch(() => selected.tool, async (tool) => {
   form.id = tool ? `${tool.id}:` : ''
   selected.mode = null; toolModes.value = []
   if (!tool) return
-  const modes = await loadToolModes(tool.id)
+  const modes = instanceModes(await loadToolModes(tool.id), tool.mode)
   if (selected.tool !== tool) return // the tool changed while loading
   toolModes.value = modes
   // Pre-select the first, most permissive, mode

@@ -26,6 +26,22 @@ export function nodeModes(parentMode) {
 }
 
 /**
+ * Modes offered for a NEW node of a tool: the ones its parameters support that the tool node accepts, since the
+ * server checks the mode against the tool node (`NodeResource#checkMode`). A tool stored in `CREATE` mode offers
+ * `create` only, whatever the mode of its parameters. When the tool node accepts none of them, its stored mode is
+ * wrong: the modes of the parameters are kept, and the dialog warns.
+ *
+ * @param {string[]} parameterModes Modes the parameters support (`modesFromParameters`).
+ * @param {string|null|undefined} toolMode Mode of the tool node, any case. A missing mode means `ALL`.
+ * @returns {string[]} The offered modes, most permissive first.
+ */
+export function instanceModes(parameterModes, toolMode) {
+  const accepted = nodeModes(toolMode)
+  const modes = parameterModes.filter((m) => accepted.includes(m))
+  return modes.length ? modes : parameterModes
+}
+
+/**
  * Modes an EXISTING node may switch to, mirroring the backend rule (`NodeResource#checkModeTransition`): its own mode,
  * and `all` for a `link` or `create` node whose parent allows it. Any other change would break the subscriptions
  * created on the node.

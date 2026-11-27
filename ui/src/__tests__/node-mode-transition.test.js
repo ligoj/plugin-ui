@@ -8,7 +8,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { useAuthStore, useI18nStore, pluginRegistry } from '@ligoj/host'
 import NodeEditDialog from '../views/NodeEditDialog.vue'
 import enMessages from '../i18n/en.js'
-import { modeTransitions, nodeModeParameters } from '../utils/subscriptionModes.js'
+import { instanceModes, modeTransitions, nodeModeParameters } from '../utils/subscriptionModes.js'
 
 function response(body, status = 200) {
   return { ok: status < 300, status, headers: { get: () => 'application/json' }, clone() { return response(body, status) }, json: async () => body, text: async () => JSON.stringify(body) }
@@ -114,5 +114,51 @@ describe('NodeEditDialog mode of an existing node', () => {
     const body = JSON.parse(put[1].body)
     expect(body.mode).toBe('ALL')
     expect(body.parameters).toEqual([{ parameter: URL_PARAM.id, text: 'ldap://new' }])
+  })
+})
+
+describe('instanceModes', () => {
+  it('keeps the modes of the parameters the tool node accepts', () => {
+    expect(instanceModes(['all', 'create', 'link'], 'CREATE')).toEqual(['create'])
+    expect(instanceModes(['all', 'create', 'link'], 'link')).toEqual(['link'])
+    expect(instanceModes(['all', 'create', 'link'], 'all')).toEqual(['all', 'create', 'link'])
+    expect(instanceModes(['all', 'create', 'link'], undefined)).toEqual(['all', 'create', 'link'])
+    expect(instanceModes(['create', 'link'], 'create')).toEqual(['create'])
+  })
+
+  it('keeps the modes of the parameters when the tool node accepts none of them', () => {
+    // The stored mode of the tool is wrong: the dialog warns about it
+    expect(instanceModes(['create'], 'link')).toEqual(['create'])
+    expect(instanceModes(['all', 'create', 'link'], 'none')).toEqual(['all', 'create', 'link'])
+  })
+})
+
+describe('NodeEditDialog mode of a new node', () => {
+  async function openCreate(tool) {
+    const w = mount(NodeEditDialog, { props: { modelValue: true }, global: { stubs } })
+    await flushPromises()
+    w.vm.selected.tool = tool
+    await flushPromises()
+    return w
+  }
+
+  it('offers only the mode of a CREATE tool, without warning', async () => {
+    // Parameters without explicit mode: they alone would offer every mode
+    const w = await openCreate({ id: 'service:x:tool', mode: 'CREATE', refined: { id: 'service:x', mode: 'all' } })
+    expect(w.findComponent({ name: 'LjSegmented' }).props('options').map((o) => o.value)).toEqual(['create'])
+    expect(w.vm.selected.mode).toBe('create')
+    expect(w.find('.modehint.warn').exists()).toBe(false)
+  })
+
+  it('offers every mode under an ALL tool', async () => {
+    const w = await openCreate({ id: 'service:x:tool', mode: 'all', refined: { id: 'service:x', mode: 'all' } })
+    expect(w.findComponent({ name: 'LjSegmented' }).props('options').map((o) => o.value)).toEqual(['all', 'create', 'link'])
+    expect(w.find('.modehint.warn').exists()).toBe(false)
+  })
+
+  it('warns when the tool node accepts no mode of its parameters', async () => {
+    const w = await openCreate({ id: 'service:x:tool', mode: 'none', refined: { id: 'service:x', mode: 'all' } })
+    expect(w.findComponent({ name: 'LjSegmented' }).props('options').map((o) => o.value)).toEqual(['all', 'create', 'link'])
+    expect(w.find('.modehint.warn').exists()).toBe(true)
   })
 })
