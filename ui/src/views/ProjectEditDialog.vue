@@ -32,7 +32,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { LigojTextField, LigojTextarea, useApi, useEditExtensions, useI18nStore, LjDialog, LjButton, LigojAutocomplete, userLabel } from '@ligoj/host'
 
 const props = defineProps({
@@ -161,8 +161,12 @@ async function save() {
     const body = await extensionPrepare(payload)
     if (body === false) return // a plugin hook aborted the save
     const id = await api[isEdit.value ? 'put' : 'post'](apiPath.value, body)
-    emit('saved', { id: isEdit.value ? props.project.id : id, created: !isEdit.value })
+    // Close first and let the dialog drop its unsaved-changes guard: a parent leaving the page from `saved`,
+    // as the project list opening the created project, would otherwise be asked to discard the saved form
+    const saved = { id: isEdit.value ? props.project.id : id, created: !isEdit.value }
     emit('update:modelValue', false)
+    await nextTick()
+    emit('saved', saved)
   } finally {
     saving.value = false
   }
