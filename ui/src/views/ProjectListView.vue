@@ -111,9 +111,11 @@ watch(search, () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => 
 
 // Admin-level demo mode: blend the demonstration projects into the list.
 const { enabled: demo } = useDemoMode()
+// A demo project names its leader by a login: the leader tooltip and the edit dialog read a user
+const demoRows = DEMO_PROJECTS.map((p) => ({ ...p, teamLeaderUser: p.teamLeader ? { id: p.teamLeader } : null }))
 const items = computed(() => {
   const rows = dt.items.value.map(mapProject)
-  return demo.value ? rows.concat(DEMO_PROJECTS) : rows
+  return demo.value ? rows.concat(demoRows) : rows
 })
 const total = computed(() => dt.totalItems.value + (demo.value ? DEMO_PROJECTS.length : 0))
 async function exportAll() { return (await dt.loadAll()).map(mapProject) }
